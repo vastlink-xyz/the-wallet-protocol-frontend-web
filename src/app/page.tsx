@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { usePassport } from "./hooks/usePassport";
 
+import axios from "axios";
+
 import theWalletAuthenticaionService from "./services/AuthenticationService";
 import theWalletTransactionService from "./services/TransactionService";
 
@@ -81,9 +83,30 @@ export default function Page() {
     }
   }
 
+  // async function signTransaction() {
+  //   try {
+  //     const response = await theWalletTransactionService.passportSignTransaction(authenticatedHeader);
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  // }
+
   async function signTransaction() {
     try {
-      const response = await theWalletTransactionService.passportSignTransaction(authenticatedHeader);
+      const response = await axios.post("http://localhost:5001/transaction/sign", 
+        {
+          amount: 1,
+        }, 
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "X-Encrypted-Key": `${authenticatedHeader["X-Encrypted-Key"]}`,
+            "X-Scope-Id": `${authenticatedHeader["X-Scope-Id"]}`,
+            "X-Encrypted-User": `${authenticatedHeader["X-Encrypted-User"]}`,
+            "X-Encrypted-Session": `${authenticatedHeader["X-Encrypted-Session"]}`,
+          },
+        }
+      );
     } catch (error) {
       console.error(error);
     }
