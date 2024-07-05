@@ -93,6 +93,7 @@ export default function Page() {
 
   async function signTransaction() {
     try {
+      console.log(authenticatedHeader);
       const response = await axios.post("http://localhost:5001/transaction/sign", 
         {
           amount: 1,
@@ -107,6 +108,7 @@ export default function Page() {
           },
         }
       );
+      console.log(response);
     } catch (error) {
       console.error(error);
     }
