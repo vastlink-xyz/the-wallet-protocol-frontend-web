@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { usePassport } from "./hooks/usePassport";
+import { useSearchParams } from 'next/navigation'
+import { useState, useEffect } from "react";
+import { usePassport } from "../../app/hooks/usePassport";
 
 import axios from "axios";
 
-import theWalletAuthenticaionService from "./services/AuthenticationService";
-import theWalletTransactionService from "./services/TransactionService";
+import theWalletAuthenticaionService from "../../app/services/AuthenticationService";
+import theWalletTransactionService from "../../app/services/TransactionService";
 
 export default function Page() {
   const [username, setUsername] = useState("");
@@ -19,8 +20,10 @@ export default function Page() {
   const [messageSignature, setMessageSignature] = useState("");
   const [authenticatedHeader, setAuthenticatedHeader] = useState({});
   const [address, setAddress] = useState<string>();
+  
+  const params = useSearchParams();
 
-  const userInput = {
+  var userInput = {
     username: username,
     userDisplayName: username,
   };
@@ -30,6 +33,22 @@ export default function Page() {
     // "43ca2cb8-886e-417f-9e31-0c0c5b3acd1e" // localhost:4943
     "4b8e66a2-bf1f-4d9d-8df8-7f7aa7502370" // localhost:3000
   );
+
+  useEffect(() => {
+    const email = params?.get('email')
+    const otp = params?.get('otp')
+
+    if (email && otp) {
+      console.log(`verify-registration ${email} ${otp}`);
+      
+      userInput = {
+        username: email,
+        userDisplayName: email,
+      };
+
+      register();
+    }
+  }, [params]);
 
   async function register() {
     setRegistering(true);
@@ -94,17 +113,17 @@ export default function Page() {
   async function signTransaction() {
     try {
       console.log(authenticatedHeader);
-      const response = await axios.post("http://localhost:5001/transaction/sign", 
+      const response = await axios.post(`http://localhost:5001/transaction/sign`, 
         {
           amount: 1,
         }, 
         {
           headers: {
             "Content-Type": "application/json",
-            "X-Encrypted-Key": `${authenticatedHeader["X-Encrypted-Key"]}`,
-            "X-Scope-Id": `${authenticatedHeader["X-Scope-Id"]}`,
-            "X-Encrypted-User": `${authenticatedHeader["X-Encrypted-User"]}`,
-            "X-Encrypted-Session": `${authenticatedHeader["X-Encrypted-Session"]}`,
+            "X-Encrypted-Key": `${authenticatedHeader["X-Encrypted-Key" as keyof typeof authenticatedHeader]}`,
+            "X-Scope-Id": `${authenticatedHeader["X-Scope-Id" as keyof typeof authenticatedHeader]}`,
+            "X-Encrypted-User": `${authenticatedHeader["X-Encrypted-User" as keyof typeof authenticatedHeader]}`,
+            "X-Encrypted-Session": `${authenticatedHeader["X-Encrypted-Session" as keyof typeof authenticatedHeader]}`,
           },
         }
       );
@@ -128,7 +147,7 @@ export default function Page() {
           Passport Protocol Quickstart
         </h1>
         <p className="mt-2 text-lg">
-          This is a quickstart guide for the Passport Protocol SDK.
+          Verify Registration
         </p>
 
         <div className="flex flex-col mt-4 space-y-4">
