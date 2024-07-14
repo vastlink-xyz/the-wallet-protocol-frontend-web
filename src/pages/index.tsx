@@ -7,6 +7,7 @@ import axios from "axios";
 
 import theWalletAuthenticaionService from "../app/services/AuthenticationService";
 import theWalletTransactionService from "../app/services/TransactionService";
+import theWalletPassportService from "../app/services/PassportService";
 
 export default function Page() {
   const [username, setUsername] = useState("");
@@ -88,6 +89,13 @@ export default function Page() {
   async function signTransaction() {
     try {
       console.log(authenticatedHeader);
+      const encryptedUsername = `${authenticatedHeader["X-Encrypted-User" as keyof typeof authenticatedHeader]}`
+      const aesKey = passport.aesKey;
+      const username = await theWalletPassportService.aesDecrypt(encryptedUsername, aesKey);
+      console.log("encryptedUsername", encryptedUsername);
+      console.log("aesKey", passport.aesKey);
+      console.log("username", username); // TODO by JJ: username should better be decrypted on the server side?
+
       const response = await axios.post(`http://localhost:5001/transaction/sign`, 
         {
           amount: 1,
@@ -99,6 +107,7 @@ export default function Page() {
             "X-Scope-Id": `${authenticatedHeader["X-Scope-Id" as keyof typeof authenticatedHeader]}`,
             "X-Encrypted-User": `${authenticatedHeader["X-Encrypted-User" as keyof typeof authenticatedHeader]}`,
             "X-Encrypted-Session": `${authenticatedHeader["X-Encrypted-Session" as keyof typeof authenticatedHeader]}`,
+            "X-Passport-Username": `${username.username}`,
           },
         }
       );
