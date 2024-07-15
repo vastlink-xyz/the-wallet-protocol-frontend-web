@@ -21,6 +21,9 @@ This command installs all dependencies required for the project, including the P
 3. Start a local Hardhat node
 - `npx hardhat node`
 
+3.1. Blockchain explorer for local Hardhat node
+https://app.tryethernal.com/overview
+
 4. Run the development server
    Start the development server to view the project in your web browser:
 
