@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "@/styles/globals.css";
+import { cn } from "@/lib/utils";
+import { Account } from "@/components/account";
+import { Toaster } from "@/components/ui/toaster";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -16,7 +19,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={cn(inter.className, 'min-h-screen bg-white text-black', 'flex flex-col')}>
+        <header className="border-b h-14 flex items-center justify-between px-6">
+          <span>Wallet Protocol</span>
+          <Account />
+        </header>
+
+        <main className="flex flex-col flex-grow">
+          {children}
+        </main>
+        <Toaster />
+      </body>
     </html>
   );
 }
