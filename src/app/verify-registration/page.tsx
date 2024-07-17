@@ -2,13 +2,13 @@
 
 import { useSearchParams } from 'next/navigation'
 import { useState, useEffect } from "react";
-import { usePassport } from "../../app/hooks/usePassport";
+import { usePassport } from "@/hooks/usePassport";
 
 import axios from "axios";
 
-import theWalletAuthenticaionService from "../../app/services/AuthenticationService";
-import theWalletTransactionService from "../../app/services/TransactionService";
-import theWalletPassportService from "../../app/services/PassportService";
+import theWalletAuthenticaionService from "@/services/AuthenticationService";
+import theWalletTransactionService from "@/services/TransactionService";
+import theWalletPassportService from "@/services/PassportService";
 
 export default function Page() {
   const [username, setUsername] = useState("");
@@ -116,7 +116,8 @@ export default function Page() {
       console.log(authenticatedHeader, passport.aesKey);
       const response = await axios.post(`http://localhost:5001/transaction/sign`, 
         {
-          amount: 1,
+          to: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
+          amount: 3,
         }, 
         {
           headers: {

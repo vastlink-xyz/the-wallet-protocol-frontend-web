@@ -2,7 +2,7 @@
 
 import { useSearchParams } from 'next/navigation'
 import { useState, useEffect } from "react";
-import { usePassport } from "../../app/hooks/usePassport";
+import { usePassport } from "@/hooks/usePassport";
 
 import axios from "axios";
 
@@ -20,10 +20,11 @@ export default function Page() {
   }, [params]);
 
   async function verifyTransaction(id: string, otp: string) {
+    console.log('verify transaction', id, otp);
     const response = await axios.post(`http://localhost:5001/transaction/verify-to-sign`, 
       {
-        id,
-        otp,
+        transactionId: id,
+        OTP: otp,
       }
     );
     console.log(response);

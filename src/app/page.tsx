@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { usePassport } from "../app/hooks/usePassport";
+import { usePassport } from "@/hooks/usePassport";
 
 import axios from "axios";
 
-import theWalletAuthenticaionService from "../app/services/AuthenticationService";
-import theWalletTransactionService from "../app/services/TransactionService";
-import theWalletPassportService from "../app/services/PassportService";
+import theWalletAuthenticaionService from "@/services/AuthenticationService";
+import theWalletTransactionService from "@/services/TransactionService";
+import theWalletPassportService from "@/services/PassportService";
 
 export default function Page() {
   const [username, setUsername] = useState("");
@@ -20,6 +20,10 @@ export default function Page() {
   const [messageSignature, setMessageSignature] = useState("");
   const [authenticatedHeader, setAuthenticatedHeader] = useState({});
   const [address, setAddress] = useState<string>();
+
+  const [verifyTransactionId, setVerifyTransactionId] = useState<string>();
+  const [verifyTransactionOtp, setVerifyTransactionOtp] = useState<string>();
+  const [desUsername, setDesUsername] = useState<any>();
 
   const userInput = {
     username: username,
@@ -48,6 +52,7 @@ export default function Page() {
   }
 
   async function authenticate() {
+    console.log("userinput is", userInput);
     setAuthenticating(true);
     try {
       await passport.setupEncryption();
@@ -95,10 +100,12 @@ export default function Page() {
       console.log("encryptedUsername", encryptedUsername);
       console.log("aesKey", passport.aesKey);
       console.log("username", username); // TODO by JJ: username should better be decrypted on the server side?
+      setDesUsername(username);
 
       const response = await axios.post(`http://localhost:5001/transaction/sign`, 
         {
-          amount: 1,
+          to: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
+          amount: 3,
         }, 
         {
           headers: {
@@ -117,8 +124,53 @@ export default function Page() {
     }
   }
 
+  async function verifyTransaction() {
+    const id = verifyTransactionId;
+    const otp = verifyTransactionOtp;
+    const response = await axios.post(`http://localhost:5001/transaction/verify-to-sign`, 
+      {
+        transactionId: id,
+        OTP: otp,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "X-Encrypted-Key": `${authenticatedHeader["X-Encrypted-Key" as keyof typeof authenticatedHeader]}`,
+          "X-Scope-Id": `${authenticatedHeader["X-Scope-Id" as keyof typeof authenticatedHeader]}`,
+          "X-Encrypted-User": `${authenticatedHeader["X-Encrypted-User" as keyof typeof authenticatedHeader]}`,
+          "X-Encrypted-Session": `${authenticatedHeader["X-Encrypted-Session" as keyof typeof authenticatedHeader]}`,
+          "X-Passport-Username": `${desUsername}`,
+        },
+      }
+    );
+    console.log(response);
+  }
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-2 bg-white text-black">
+      <div>
+        <input
+          value={verifyTransactionId}
+          onChange={(e) => setVerifyTransactionId(e.target.value)}
+          className="border border-1 rounded p-2 border-black mb-4 ml-2 text-center"
+          placeholder="verify transaction id"
+        />
+
+        <input
+          value={verifyTransactionOtp}
+          onChange={(e) => setVerifyTransactionOtp(e.target.value)}
+          className="border border-1 rounded p-2 border-black mb-4 ml-2 text-center"
+          placeholder="verify transaction otp"
+        />
+
+        <button
+            onClick={async () => await verifyTransaction()}
+            className="border border-1 rounded p-2 border-black mb-4 ml-2"
+          >
+            Verify Transaction
+          </button>
+      </div>
+
       <div
         className={`text-2xl font-bold mb-8 ${
           authenticated ? "text-green-500" : "text-red-500"
