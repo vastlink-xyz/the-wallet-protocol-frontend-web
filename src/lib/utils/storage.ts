@@ -26,6 +26,35 @@ class CustomStorage {
     }
   }
 
+  setData(value: any): boolean {
+    if (this.isClient) {
+      try {
+        const jsonString = JSON.stringify(value);
+        localStorage.setItem(this.key, jsonString);
+        return true;
+      } catch (error) {
+        console.error("Failed to stringify object", error);
+        return false;
+      }
+    }
+    return false;
+  }
+
+  getData(): any | null {
+    if (this.isClient) {
+      const item = localStorage.getItem(this.key);
+      if (item) {
+        try {
+          return JSON.parse(item);
+        } catch (error) {
+          console.error("Failed to parse JSON", error);
+          return null;
+        }
+      }
+    }
+    return null;
+  }
+
   // clear(): void {
   //   if (this.isClient) {
   //     localStorage.clear();
@@ -34,3 +63,5 @@ class CustomStorage {
 }
 
 export const storageAuthenticatedHeader = new CustomStorage('authenticatedHeader');
+export const storageAddress = new CustomStorage('address');
+export const storageAuthenticated = new CustomStorage('authenticated');
