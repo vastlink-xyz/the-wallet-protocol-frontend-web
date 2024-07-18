@@ -20,11 +20,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={cn(inter.className, 'min-h-screen bg-white text-black', 'flex flex-col')}>
-        {/* <header className="border-b h-14 flex items-center justify-between px-6">
-          <span>Wallet Protocol</span>
-          <Account />
-        </header> */}
-
         <main className="flex flex-col flex-grow">
           {children}
         </main>

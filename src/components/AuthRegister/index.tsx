@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 
 import { usePassport } from "@/hooks/usePassport";
@@ -23,6 +23,7 @@ type UserInput = {
 export default function AuthRegister() {
   const { toast } = useToast();
   const params = useSearchParams();
+  const router = useRouter();
 
   // const [pageType, setPageType] = useState<PageType>('login')
   const [username, setUsername] = useState("");
@@ -33,9 +34,9 @@ export default function AuthRegister() {
   const [authenticatedHeader, setAuthenticatedHeader] = useState({});
   const [address, setAddress] = useState<string>();
 
-  type UserInput = {
-    username: string;
-    userDisplayName: string;
+  const userInput = {
+    username: '',
+    userDisplayName: '',
   };
 
   const { passport } = usePassport(
@@ -53,22 +54,18 @@ export default function AuthRegister() {
     setAuthenticatedHeader(storageAuthenticatedHeader.getData() || {})
   }, [])
 
+  // verify registration
   useEffect(() => {
     const email = params?.get('email')
     const otp = params?.get('otp')
 
     if (email && otp) {
-      if (!username) {
-        // make sure that register function can get username
-        setUsername(email)
-      }
-      if (username) {
-        console.log(`verify-registration ${email} ${otp}`);
-        // setPageType('verify-registration')
-        register();
-      }
+      console.log(`verify-registration ${email} ${otp}`);
+      // setPageType('verify-registration')
+      setUsername(email)
+      register(email)
     }
-  }, [params, username]);
+  }, [params]);
 
   async function preRegister() {
     log('call register')
@@ -87,20 +84,22 @@ export default function AuthRegister() {
     }
   }
 
-  async function register() {
+  async function register(registerUsername: string) {
+    log('call register')
     setRegistering(true);
     try {
       await passport.setupEncryption();
+      log('username is', registerUsername)
       const res = await passport.register({
-        username,
-        userDisplayName: username,
+        username: registerUsername,
+        userDisplayName: registerUsername,
       });
-      console.log(res);
-
+      log(res);
+  
       if (res.result.account_id) {
         setRegistering(false);
         setAuthenticating(true);
-        await authenticate();
+        await authenticate(registerUsername);
         setAuthenticating(false);
       }
     } catch (error) {
@@ -116,34 +115,35 @@ export default function AuthRegister() {
     }
   }
 
-  async function authenticate() {
-    log('call authenticate')
+  async function authenticate(authUsername: string) {
+    log('call authenticate', authUsername)
     setAuthenticating(true);
     try {
       await passport.setupEncryption();
       const [authenticatedHeader, address] = await passport.authenticate({
-        username,
-        userDisplayName: username,
+        username: authUsername,
+        userDisplayName: authUsername,
       })!;
       log('authenticatedHeader', authenticatedHeader)
       log('address', address);
-      setAuthenticatedHeader(authenticatedHeader);
-      setAddress(address);
-      setAuthenticated(true);
       storageAuthenticatedHeader.setData(authenticatedHeader)
       storageAddress.setData(address)
       storageAuthenticated.setData(true)
+      router.push('/home')
+      // setAuthenticatedHeader(authenticatedHeader);
+      // setAddress(address);
+      // setAuthenticated(true);
     } catch (error) {
       console.error("Error registering:", error);
     } finally {
-      setAuthenticating(false);
+      // setAuthenticating(false);
     }
   }
 
   const processUserAccess = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (authenticateSetup) {
-      await authenticate();
+      await authenticate(username);
     } else {
       await preRegister();
     }
@@ -165,23 +165,23 @@ export default function AuthRegister() {
     }
   }
 
-  if (authenticated) {
-    return (
-      <div className="flex flex-grow flex-col items-center justify-center">
-        <h1 className="mb-4 text-2xl">Register or Authenticate</h1>
+  // if (authenticated) {
+  //   return (
+  //     <div className="flex flex-grow flex-col items-center justify-center">
+  //       <h1 className="mb-4 text-2xl">Register or Authenticate</h1>
 
-        <Card className="py-4">
-          <CardContent>
-            <div className="text-center">
-              <h2 className="mb-4 text-xl">You are authenticated!</h2>
-              <div className="font-bold mr-2">Your Address is:</div>
-              <div>{address}</div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  //       <Card className="py-4">
+  //         <CardContent>
+  //           <div className="text-center">
+  //             <h2 className="mb-4 text-xl">You are authenticated!</h2>
+  //             <div className="font-bold mr-2">Your Address is:</div>
+  //             <div>{address}</div>
+  //           </div>
+  //         </CardContent>
+  //       </Card>
+  //     </div>
+  //   );
+  // }
   return (
     <div className="flex flex-grow flex-col items-center justify-center">
       <Card className="w-[360px] py-4 border-none shadow-none mb-12 text-warm-foreground">
@@ -193,7 +193,7 @@ export default function AuthRegister() {
             <div className="mb-4">
               <Label htmlFor="email">Email</Label>
               <Input
-                className="focus-visible:ring-warm-foreground focus-visible:ring-1"
+                className="focus-visible:ring-warm-foreground focus-visible:ring-1 focus-visible:text-primary"
                 type="email"
                 id="email"
                 required
