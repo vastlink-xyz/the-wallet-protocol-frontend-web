@@ -184,14 +184,16 @@ export default function AuthRegister() {
   }
   return (
     <div className="flex flex-grow flex-col items-center justify-center">
-      <h1 className="mb-4 text-2xl">Register or Authenticate</h1>
-
-      <Card className="w-[360px] py-4">
+      <Card className="w-[360px] py-4 border-none shadow-none mb-12 text-warm-foreground">
+        <CardHeader>
+          <p className="mb-4 text-2xl m-0 p-0">Register or Authenticate</p>
+        </CardHeader>
         <CardContent>
           <form onSubmit={(e) => processUserAccess(e)}>
             <div className="mb-4">
               <Label htmlFor="email">Email</Label>
               <Input
+                className="focus-visible:ring-warm-foreground focus-visible:ring-1"
                 type="email"
                 id="email"
                 required
@@ -202,7 +204,7 @@ export default function AuthRegister() {
             </div>
             <Button
               type="submit"
-              className="w-full"
+              className="w-full rounded-full bg-warm-flame"
               disabled={registering || authenticating}
             >
               { submitBtnText() }
@@ -211,7 +213,7 @@ export default function AuthRegister() {
         </CardContent>
 
         <CardFooter>
-          <p className="cursor-pointer" onClick={() => setAuthenticateSetup(!authenticateSetup)}>
+          <p className="cursor-pointer select-none" onClick={() => setAuthenticateSetup(!authenticateSetup)}>
             {
               authenticateSetup ? 'Register a Passkey?' : 'Already have a passkey?'
             }

@@ -52,6 +52,10 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        warm: {
+          DEFAULT: "hsl(var(--warm))",
+          foreground: "hsl(var(--warm-foreground))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -73,7 +77,7 @@ const config: Config = {
         "accordion-up": "accordion-up 0.2s ease-out",
       },
       backgroundImage: {
-        "warm-flame": "linear-gradient(45deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%)",
+        "warm-flame": "linear-gradient(120deg, #a6c0fe 0%, #f68084 100%)",
       },
     },
   },
