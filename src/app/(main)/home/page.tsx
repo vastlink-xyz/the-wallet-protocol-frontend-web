@@ -1,6 +1,6 @@
 import { RecentTransactions } from "./components/RecentTransactions"
 import { RewardsGraph } from "./components/RewardsGraph"
-import { UserWallet } from "./components/UserWallet"
+import { UserWallet } from "./components/UserWallet/index"
 
 export default function HomePage() {
   return (
@@ -13,7 +13,7 @@ export default function HomePage() {
         </section>
 
         <section className="flex-1">
-          <RewardsGraph />
+          {/* <RewardsGraph /> */}
         </section>
 
         <section className="flex-1">

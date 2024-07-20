@@ -5,7 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 
 import { usePassport } from "@/hooks/usePassport";
-import { log, storageAddress, storageAuthenticated, storageAuthenticatedHeader } from "@/lib/utils";
+import theWalletPassportService from "@/services/PassportService";
+import { log, auth } from "@/lib/utils";
 
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -46,14 +47,6 @@ export default function AuthRegister() {
     process.env.NEXT_PUBLIC_SCOPE_ID!,
   );
 
-  useEffect(() => {
-    // set initial authenticated state
-    // Calling the getItem method of localStorage outside the useEffect hook will cause an error.
-    setAuthenticated(storageAuthenticated.getData() || false)
-    setAddress(storageAddress.getData() || '')
-    setAuthenticatedHeader(storageAuthenticatedHeader.getData() || {})
-  }, [])
-
   // verify registration
   useEffect(() => {
     const email = params?.get('email')
@@ -61,7 +54,6 @@ export default function AuthRegister() {
 
     if (email && otp) {
       console.log(`verify-registration ${email} ${otp}`);
-      // setPageType('verify-registration')
       setUsername(email)
       register(email)
     }
@@ -124,15 +116,19 @@ export default function AuthRegister() {
         username: authUsername,
         userDisplayName: authUsername,
       })!;
-      log('authenticatedHeader', authenticatedHeader)
-      log('address', address);
-      storageAuthenticatedHeader.setData(authenticatedHeader)
-      storageAddress.setData(address)
-      storageAuthenticated.setData(true)
+
+      const encryptedUsername = `${authenticatedHeader["X-Encrypted-User" as keyof typeof authenticatedHeader]}`
+      const aesKey = passport.aesKey;
+      const desUsername = await theWalletPassportService.aesDecrypt(encryptedUsername, aesKey);
+
+      // save authentication data locally so that don't have to reauthenticate every time refresh the page
+      auth.saveAuthDataByKey('authenticated', true)
+      auth.saveAuthDataByKey('aeskey', aesKey)
+      auth.saveAuthDataByKey('authenticatedHeader', authenticatedHeader)
+      auth.saveAuthDataByKey('address', address)
+      auth.saveAuthDataByKey('desUsername', JSON.parse(desUsername))
+
       router.push('/home')
-      // setAuthenticatedHeader(authenticatedHeader);
-      // setAddress(address);
-      // setAuthenticated(true);
     } catch (error) {
       console.error("Error registering:", error);
     } finally {
@@ -193,7 +189,7 @@ export default function AuthRegister() {
             <div className="mb-4">
               <Label htmlFor="email">Email</Label>
               <Input
-                className="focus-visible:ring-warm-foreground focus-visible:ring-1 focus-visible:text-primary"
+                className="focus-visible:ring-warm-foreground focus-visible:ring-1 focus-visible:text-primary text-primary"
                 type="email"
                 id="email"
                 required

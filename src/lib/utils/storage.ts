@@ -1,4 +1,6 @@
-class CustomStorage {
+import theWalletPassportService from "@/services/PassportService";
+
+export class CustomStorage {
   private isClient: boolean;
   private key: string;
 
@@ -61,7 +63,3 @@ class CustomStorage {
   //   }
   // }
 }
-
-export const storageAuthenticatedHeader = new CustomStorage('authenticatedHeader');
-export const storageAddress = new CustomStorage('address');
-export const storageAuthenticated = new CustomStorage('authenticated');
