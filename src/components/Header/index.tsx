@@ -1,4 +1,4 @@
-import { Account } from "@/components/Account";
+import { Account } from "@/components/UserAccount";
 
 export function Header() {
   return <header className="border-b flex items-center justify-between px-6">
