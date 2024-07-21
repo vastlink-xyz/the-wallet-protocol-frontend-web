@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "@/styles/globals.css";
 import { cn } from "@/lib/utils";
-import { Account } from "@/components/account";
 import { Toaster } from "@/components/ui/toaster";
+import { Suspense } from "react";
+import ProgressBarProvider from "@/providers/ProgressBarProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,7 +22,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={cn(inter.className, 'min-h-screen bg-white text-black', 'flex flex-col')}>
         <main className="flex flex-col flex-grow">
-          {children}
+        <Suspense>
+          <ProgressBarProvider>{children}</ProgressBarProvider>
+        </Suspense>
         </main>
         <Toaster />
       </body>
