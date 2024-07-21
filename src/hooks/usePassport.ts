@@ -8,7 +8,7 @@ export function usePassport(scopeId: string) {
 
   if (!signerRef.current) {
     signerRef.current = new WebauthnSigner({
-      rpId: process.env.NEXT_PUBLIC_RP_ID!,
+      rpId: window.location.hostname!,
       rpName: "0xPass",
     });
   }
