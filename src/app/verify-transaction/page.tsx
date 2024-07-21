@@ -1,13 +1,16 @@
 "use client";
 
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useState, useEffect } from "react";
-import { usePassport } from "@/hooks/usePassport";
 
 import axios from "axios";
+import { toast } from '@/components/ui/use-toast';
+import { auth, log, publicClient } from '@/lib/utils';
 
 export default function Page() {  
   const params = useSearchParams();
+  const router = useRouter();
+  const [status, setStatus] = useState('pending')
 
   useEffect(() => {
     const id = params?.get('id')
@@ -20,17 +23,60 @@ export default function Page() {
   }, [params]);
 
   async function verifyTransaction(id: string, otp: string) {
-    console.log('verify transaction', id, otp);
-    const response = await axios.post(`http://localhost:5001/transaction/verify-to-sign`, 
-      {
-        transactionId: id,
-        OTP: otp,
+    const {
+      authenticatedHeader,
+      desUsername,
+    } = auth.all()
+
+    try {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/transaction/verify-to-sign`, 
+        {
+          transactionId: id,
+          OTP: otp,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "X-Encrypted-Key": `${authenticatedHeader["X-Encrypted-Key" as keyof typeof authenticatedHeader]}`,
+            "X-Scope-Id": `${authenticatedHeader["X-Scope-Id" as keyof typeof authenticatedHeader]}`,
+            "X-Encrypted-User": `${authenticatedHeader["X-Encrypted-User" as keyof typeof authenticatedHeader]}`,
+            "X-Encrypted-Session": `${authenticatedHeader["X-Encrypted-Session" as keyof typeof authenticatedHeader]}`,
+            "X-Passport-Username": `${desUsername.username}`,
+          },
+        }
+      );
+      log('res', response);
+
+      const txHash = response.data
+      const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash })
+      if (receipt.status === 'success') {
+        setStatus('success')
+        // jump to home page
+        router.replace('/home')
       }
-    );
-    console.log(response);
+      log('receipt', receipt)
+    } catch(error) {
+      setStatus('error')
+      log('error', error)
+    }
+
+  }
+
+  const transactionStatus = () => {
+    if (status === 'pending') {
+      return <div>Transaction is waiting for confirmation...</div>
+    } else if (status === 'success') {
+      return <div>Transaction confirmed, redirecting to the homepage...</div>
+    } else {
+      return <div>Error processing transaction</div>
+    }
   }
 
   return (
-    <div> Verify transaction </div>
+    <div className='m-auto text-warm-foreground'> 
+      {
+        transactionStatus()
+      }
+    </div>
   );
 }

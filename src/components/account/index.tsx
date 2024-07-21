@@ -14,7 +14,7 @@ export function Account() {
 
   return (
     <div className="flex items-center">
-      <p className="overflow-hidden text-ellipsis whitespace-nowrap w-[160px] mr-2">{displayName}</p>
+      <p className="mr-2">{displayName}</p>
       <Avatar>
         <AvatarImage src="https://github.com/shadcn.png" alt='avatar' />
         <AvatarFallback>User</AvatarFallback>

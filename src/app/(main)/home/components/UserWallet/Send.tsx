@@ -5,6 +5,8 @@ import axios from "axios";
 import { Address, createPublicClient, formatEther, http, parseEther } from 'viem'
 import { hardhat } from "viem/chains";
 
+import { auth, cn, formatDecimal, log, publicClient } from "@/lib/utils"
+
 import {
   Dialog,
   DialogClose,
@@ -14,11 +16,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-
-import { auth, cn, formatDecimal, log, publicClient } from "@/lib/utils"
-import { usePassport } from "@/hooks/usePassport"
-
-import { MoveUpRight, Loader, CircleCheck, X } from "lucide-react"
+import { MoveUpRight, Loader, CircleCheck } from "lucide-react"
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
@@ -64,39 +62,46 @@ export function Send({
       );
       console.log(response);
       log('data', response.data)
+
       const succeeded = typeof response.data === 'string' && response.data.startsWith('0x');
       if (succeeded) {
         setOpen(false)
+        notifyTransactionSubmitted(response.data)
+      } else {
+        // need to be verified
         toast({
-          title: '',
-          description: <div className="w-full">
-              <div className="flex items-center">
-                <CircleCheck color="#2edc82" size={16} className="mr-2" />
-                <p className="flex items-center">
-                  Transaction submitted, 
-                  <Button
-                    className="text-warm-foreground"
-                    variant={'link'}
-                    size={'sm'}
-                    onClick={() => {
-                      window.open(`${process.env.NEXT_PUBLIC_ETHSCAN}/${response.data}`, '_blank')
-                    }}
-                  >
-                    View Detail
-                  </Button>
-                </p>
-              </div>
-          </div>
+          description: response.data,
         })
+        setOpen(false)
       }
     } catch (error) {
       console.error(error);
     } finally {
       setSending(false);
-
-      setAmount('')
-      setTo('')
     }
+  }
+
+  const notifyTransactionSubmitted = (txHash: string) => {
+    toast({
+      description: <div className="w-full">
+          <div className="flex items-center">
+            <CircleCheck color="#2edc82" size={16} className="mr-2" />
+            <p className="flex items-center">
+              Transaction submitted, 
+              <Button
+                className="text-warm-foreground"
+                variant={'link'}
+                size={'sm'}
+                onClick={() => {
+                  window.open(`${process.env.NEXT_PUBLIC_ETHSCAN}/${txHash}`, '_blank')
+                }}
+              >
+                View Detail
+              </Button>
+            </p>
+          </div>
+      </div>
+    })
   }
 
   const handleSend = async (event: FormEvent<HTMLFormElement>) => {
@@ -109,9 +114,15 @@ export function Send({
   }
 
   return(
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={opened => {
+      setOpen(opened)
+      // clear input data
+      setAmount('')
+      setTo('')
+    }}>
       <DialogTrigger>
         <div
+          title="Send"
           className="bg-primary rounded-full w-[48px] h-[48px] flex items-center justify-center mr-4 cursor-pointer"
         >
           <MoveUpRight color="#fff" onClick={() => setOpen(true)} />

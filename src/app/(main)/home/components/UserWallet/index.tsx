@@ -3,20 +3,14 @@
 import { useState, useEffect } from "react"
 import axios from "axios";
 import { Address, createPublicClient, formatEther, http } from 'viem'
-import { hardhat } from "viem/chains";
 
 import { auth, formatDecimal, log, publicClient } from "@/lib/utils"
-import theWalletPassportService from "@/services/PassportService"
-import { usePassport } from "@/hooks/usePassport"
 
 import { Coins, Settings, MoveUpRight, MoveDownLeft, ArrowLeftRight, RefreshCcw, Loader } from "lucide-react"
 import { Send } from "./Send";
+import { Receive } from "./Receive";
 
 export function UserWallet() {
-  const { passport } = usePassport(
-    process.env.NEXT_PUBLIC_SCOPE_ID!,
-  );
-  const [desUsername, setDesUsername] = useState<any>();
   const [address, setAddress] = useState('')
   const [balance, setBalance] = useState('')
   const [loading, setLoading] = useState(false)
@@ -31,13 +25,6 @@ export function UserWallet() {
         authenticatedHeader,
         desUsername,
       } = auth.all()
-      // const encryptedUsername = `${authenticatedHeader["X-Encrypted-User" as keyof typeof authenticatedHeader]}`
-      // const aesKey = passport.aesKey;
-      // log("username", aesKey);
-      // const username = await theWalletPassportService.aesDecrypt(encryptedUsername, aesKey);
-      // console.log("encryptedUsername", encryptedUsername);
-      // console.log("aesKey", passport.aesKey);
-      // console.log("username", username); // TODO by JJ: username should better be decrypted on the server side?
 
       const response = await axios.post(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/transaction/sign`, 
         {
@@ -77,25 +64,24 @@ export function UserWallet() {
   return(
     <div className="border rounded-md p-4 mb-4">
       <div className="flex justify-between items-center mb-4">
-        {/* <p className="overflow-hidden text-ellipsis whitespace-nowrap w-[220px] mr-2">{address || '0x'}</p> */}
-        <p>{address}</p>
+        <p title={address} className="overflow-hidden text-ellipsis whitespace-nowrap w-[220px] mr-2">{address || ''}</p>
         <Settings />
       </div>
 
       <div className="mb-14 flex justify-between">
-        <p className="flex items-center">
+        <div className="flex items-center">
           <Coins size={22} />
           {
             loading ? <Loader size={14} className="animate-spin mx-2" /> : <span className="font-bold ml-2 text-2xl">{formatDecimal(balance)}</span>
           }
-          <RefreshCcw color="#666" size={16} className="cursor-pointer ml-2" onClick={() => syncBalance()} />
-        </p>
+          <div title="sync">
+            <RefreshCcw color="#666" size={16} className="cursor-pointer ml-2" onClick={() => syncBalance()} />
+          </div>
+        </div>
       </div>
 
       <div className="flex items-center">
-        <div className="bg-warm-flame rounded-full w-[48px] h-[48px] flex items-center justify-center mr-4 cursor-pointer">
-          <MoveDownLeft color="#fff" />
-        </div>
+        <Receive address={address as Address} />
 
         <Send balance={balance} address={address as Address} />
         

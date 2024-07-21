@@ -1,5 +1,5 @@
 import { createPublicClient, http } from "viem"
-import { hardhat } from "viem/chains"
+import { hardhat, kavaTestnet } from "viem/chains"
 
 export const formatDecimal = (amount: string, decimal=6) => parseFloat(amount).toFixed(decimal)
 
