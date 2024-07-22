@@ -6,13 +6,13 @@ import axios from "axios";
 
 import { usePassport } from "@/hooks/usePassport";
 import theWalletPassportService from "@/services/PassportService";
-import { log, auth } from "@/lib/utils";
+import { log, auth, cn } from "@/lib/utils";
 
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "react-toastify";
 
 export type PageType = 'login' | 'verify-registration'
 
@@ -22,7 +22,6 @@ type UserInput = {
 };
 
 export default function AuthRegister() {
-  const { toast } = useToast();
   const params = useSearchParams();
   const router = useRouter();
 
@@ -61,9 +60,7 @@ export default function AuthRegister() {
     );
     log('register res', response);
     if (response.status === 200) {
-      toast({
-        description: `Please check your email inbox. We've sent you a confirmation email. Click the link in the email to complete your registration.`,
-      })
+      toast(`Please check your email inbox. We've sent you a confirmation email. Click the link in the email to complete your registration.`)
       setRegistering(false);
     }
   }
@@ -88,10 +85,7 @@ export default function AuthRegister() {
       }
     } catch (error) {
       console.error("Error registering:", error);
-      toast({
-        variant: 'destructive',
-        description: (error as any).message,
-      })
+      toast.error((error as any).message)
     } finally {
       log('set authenticating finally')
       setRegistering(false);
@@ -177,22 +171,26 @@ export default function AuthRegister() {
           <p className="mb-4 text-lg md:text-2xl m-0 p-0">Register or Authenticate</p>
         </CardHeader>
         <CardContent>
-          <form onSubmit={(e) => processUserAccess(e)}>
-            <div className="mb-4">
+          <form onSubmit={(e) => processUserAccess(e)} className="group" noValidate>
+            <div className="mb-4 relative">
               <Label htmlFor="email">Email</Label>
               <Input
-                className="focus-visible:ring-warm-foreground focus-visible:ring-1 focus-visible:text-primary text-primary"
+                className="w-full mb-2 rounded border border-gray-300 bg-inherit p-3 shadow shadow-gray-100 mt-2 appearance-none outline-none text-neutral-800 invalid:[&:not(:placeholder-shown):not(:focus)]:border-red-500 peer"
                 type="email"
                 id="email"
-                required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Email Address"
+                required
+                pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
               />
+              <span className="absolute -bottom-5 hidden text-xs text-red-500 peer-[&:not(:placeholder-shown):not(:focus):invalid]:block">
+                Please enter a valid email address
+              </span>
             </div>
             <Button
               type="submit"
-              className="w-full rounded-full bg-warm-flame"
+              className="w-full mt-2 rounded-full bg-warm-flame group-invalid:pointer-events-none group-invalid:opacity-30"
               disabled={registering || authenticating}
             >
               { submitBtnText() }

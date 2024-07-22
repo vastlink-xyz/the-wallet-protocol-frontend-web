@@ -3,7 +3,6 @@
 import { useState, useEffect, FormEvent, useRef } from "react"
 import axios from "axios";
 import { Address, createPublicClient, formatEther, http, parseEther } from 'viem'
-import { hardhat } from "viem/chains";
 
 import { auth, cn, formatDecimal, log, publicClient } from "@/lib/utils"
 
@@ -19,7 +18,7 @@ import {
 import { MoveUpRight, Loader, CircleCheck } from "lucide-react"
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "react-toastify";
 
 export function Send({
   balance,
@@ -69,9 +68,7 @@ export function Send({
         notifyTransactionSubmitted(response.data)
       } else {
         // need to be verified
-        toast({
-          description: response.data,
-        })
+        toast(response.data)
         setOpen(false)
       }
     } catch (error) {
@@ -82,8 +79,7 @@ export function Send({
   }
 
   const notifyTransactionSubmitted = (txHash: string) => {
-    toast({
-      description: <div className="w-full">
+    toast(<div className="w-full">
           <div className="flex items-center">
             <CircleCheck color="#2edc82" size={16} className="mr-2" />
             <p className="flex items-center">
@@ -101,7 +97,7 @@ export function Send({
             </p>
           </div>
       </div>
-    })
+    )
   }
 
   const handleSend = async (event: FormEvent<HTMLFormElement>) => {
