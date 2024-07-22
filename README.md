@@ -49,6 +49,8 @@ NEXT_PUBLIC_ENV=development
 
 ## Config ScopeId
 https://docs.0xpass.io/authentication/configuring-your-scope#passkeys
+1. config scope_config.json
+2. `npm run gen-scope`
 
 ## Deploy using Heroku
 ```
