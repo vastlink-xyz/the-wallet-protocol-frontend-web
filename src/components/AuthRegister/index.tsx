@@ -28,17 +28,9 @@ export default function AuthRegister() {
 
   // const [pageType, setPageType] = useState<PageType>('login')
   const [username, setUsername] = useState("");
-  const [authenticated, setAuthenticated] = useState(false);
   const [authenticating, setAuthenticating] = useState(false);
   const [registering, setRegistering] = useState(false);
   const [authenticateSetup, setAuthenticateSetup] = useState(false);
-  const [authenticatedHeader, setAuthenticatedHeader] = useState({});
-  const [address, setAddress] = useState<string>();
-
-  const userInput = {
-    username: '',
-    userDisplayName: '',
-  };
 
   const { passport } = usePassport(
     // "07907e39-63c6-4b0b-bca8-377d26445172" // original
@@ -180,9 +172,9 @@ export default function AuthRegister() {
   // }
   return (
     <div className="flex flex-grow flex-col items-center justify-center">
-      <Card className="w-[360px] py-4 border-none shadow-none mb-12 text-warm-foreground">
+      <Card className="sm:w-[360px] py-4 border-none shadow-none mb-12 text-warm-foreground">
         <CardHeader>
-          <p className="mb-4 text-2xl m-0 p-0">Register or Authenticate</p>
+          <p className="mb-4 text-lg md:text-2xl m-0 p-0">Register or Authenticate</p>
         </CardHeader>
         <CardContent>
           <form onSubmit={(e) => processUserAccess(e)}>

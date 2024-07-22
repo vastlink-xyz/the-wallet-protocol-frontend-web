@@ -7,7 +7,7 @@ export default function HomePage() {
     <div>
       <h1 className="text-2xl font-bold mb-4">Overview</h1>
 
-      <div className="flex justify-between gap-6">
+      <div className="md:flex md:justify-between flex-wrap md:gap-6">
         <section className="flex-1">
           <UserWallet />
         </section>
