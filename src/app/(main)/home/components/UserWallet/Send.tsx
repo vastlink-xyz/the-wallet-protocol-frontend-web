@@ -45,7 +45,7 @@ export function Send({
       setSending(true)
       const response = await axios.post(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/transaction/sign`, 
         {
-          to: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
+          to,
           amount: amt,
         },
         {
@@ -59,7 +59,7 @@ export function Send({
           },
         }
       );
-      console.log(response);
+      // console.log(response);
       log('data', response.data)
 
       const succeeded = typeof response.data === 'string' && response.data.startsWith('0x');

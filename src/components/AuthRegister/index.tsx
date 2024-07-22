@@ -60,7 +60,12 @@ export default function AuthRegister() {
     );
     log('register res', response);
     if (response.status === 200) {
-      toast(`Please check your email inbox. We've sent you a confirmation email. Click the link in the email to complete your registration.`)
+      toast.info(
+        `Please check your email inbox. We've sent you a confirmation email. Click the link in the email to complete your registration.`,
+        {
+          autoClose: 10000,
+        }
+      )
       setRegistering(false);
     }
   }
@@ -115,10 +120,11 @@ export default function AuthRegister() {
       auth.saveAuthDataByKey('desUsername', JSON.parse(desUsername))
 
       router.push('/home')
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error registering:", error);
+      toast.error(error.message)
     } finally {
-      // setAuthenticating(false);
+      setAuthenticating(false);
     }
   }
 

@@ -16,7 +16,6 @@ import { MoveDownLeft, Copy, CopyCheck } from "lucide-react"
 
 import QRCode from 'react-qr-code'
 import {CopyToClipboard} from 'react-copy-to-clipboard';
-import { publicClient } from "@/lib/utils"
 import { toast } from "react-toastify"
 
 export function Receive({
@@ -47,6 +46,7 @@ export function Receive({
           <CopyToClipboard text={address} onCopy={() => {
             toast.success('Copy success!', {
               autoClose: 1000,
+              hideProgressBar: true,
             })
           }}>
             <div className="">

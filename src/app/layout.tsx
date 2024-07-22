@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { Suspense } from "react";
 import ProgressBarProvider from "@/providers/ProgressBarProvider";
 
-import { ToastContainer, toast } from 'react-toastify';
+import { Flip, ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 const inter = Inter({ subsets: ["latin"] });
@@ -37,9 +37,10 @@ export default function RootLayout({
           closeOnClick
           rtl={false}
           pauseOnFocusLoss
-          draggable
+          draggable={false}
           pauseOnHover
           theme="colored"
+          transition={Flip}
         />
       </body>
     </html>
