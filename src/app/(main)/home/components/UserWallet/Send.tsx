@@ -93,7 +93,7 @@ export function Send({
                 variant={'link'}
                 size={'sm'}
                 onClick={() => {
-                  window.open(`${process.env.NEXT_PUBLIC_ETHSCAN}/${txHash}`, '_blank')
+                  window.open(`${process.env.NEXT_PUBLIC_ETHSCAN_TRANSACTION}/${txHash}`, '_blank')
                 }}
               >
                 View Detail
