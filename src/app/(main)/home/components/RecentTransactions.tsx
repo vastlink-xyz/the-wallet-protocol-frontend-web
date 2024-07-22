@@ -64,7 +64,9 @@ export function RecentTransactions() {
                     }
                     Funds
                   </p>
-                  <p className="text-gray-500 text-xs">23/09/2023, 11:48</p>
+                  <p className="text-gray-500 text-xs">
+                    {new Date(tx.timestamp * 1000).toLocaleString()}
+                  </p>
                 </div>
               </div>
 
