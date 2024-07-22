@@ -71,16 +71,16 @@ export function RecentTransactions() {
 
               {
                 tx.from === address ? (
-                  <div className="rounded-full flex items-center bg-warm px-2">
-                    <span className="text-warm-foreground">+</span>
-                    <Coins size={14} color="#dd687a" />
-                    <span className="ml-2 text-xs text-warm-foreground">{tx.value}</span>
-                  </div>
-                ) : (
                   <div className="rounded-full flex items-center bg-secondary px-2">
                     <span>-</span>
                     <Coins size={14} />
                     <span className="ml-2 text-xs">{tx.value}</span>
+                  </div>
+                ) : (
+                  <div className="rounded-full flex items-center bg-warm px-2">
+                    <span className="text-warm-foreground">+</span>
+                    <Coins size={14} color="#dd687a" />
+                    <span className="ml-2 text-xs text-warm-foreground">{tx.value}</span>
                   </div>
                 )
               }
