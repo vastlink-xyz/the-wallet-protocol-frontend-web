@@ -4,7 +4,6 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useState, useEffect } from "react";
 
 import axios from "axios";
-import { toast } from '@/components/ui/use-toast';
 import { auth, log, publicClient } from '@/lib/utils';
 
 export default function Page() {  
