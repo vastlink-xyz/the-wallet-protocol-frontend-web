@@ -1,9 +1,8 @@
 {
     "rp": {
-        "id": "wallet-protocol-app-813e58c2d020.herokuapp.com",
-        "origin": "https://wallet-protocol-app-813e58c2d020.herokuapp.com/",
-        "name": "wallet protocol app"
+        "id": "the-wallet-protocol-app-poc-a611cfbc83a9.herokuapp.com",
+        "origin": "https://the-wallet-protocol-app-poc-a611cfbc83a9.herokuapp.com/",
+        "name": "the wallet protocol"
     },
     "policies": []
 }
-

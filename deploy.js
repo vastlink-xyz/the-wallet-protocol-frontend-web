@@ -5,7 +5,7 @@ const fs = require('fs');
 // Load heroku env vars
 const envConfig = dotenv.parse(fs.readFileSync('.env.heroku'));
 
-const APP_NAME = 'wallet-protocol-app';
+const APP_NAME = 'the-wallet-protocol-app-poc';
 
 function runCommand(command) {
   const output = execSync(command, { encoding: 'utf8' });
@@ -50,7 +50,7 @@ const main = () => {
     }
   } catch (error) {
     console.log(`Creating Heroku app: ${APP_NAME}`);
-    const createResult = runCommand(`heroku create ${APP_NAME}`);
+    const createResult = runCommand(`heroku create ${APP_NAME} --team j-labs`);
     if (!createResult) {
       console.error('Failed to create Heroku app. Exiting.');
       process.exit(1);
