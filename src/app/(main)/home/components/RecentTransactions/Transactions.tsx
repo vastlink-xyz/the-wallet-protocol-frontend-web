@@ -16,6 +16,11 @@ export function Transactions({
   address: Address,
   transactions: any[],
 }) {
+  const openTxPage = (ttx: any) => {
+    const url = `${process.env.NEXT_PUBLIC_ETHSCAN_TRANSACTION}/${ttx.hash}`
+    window.open(url, '_blank')
+  }
+
   return(
     <div>
       {
@@ -42,8 +47,8 @@ export function Transactions({
                 }
 
                 <div className="ml-4 w-[160px]">
-                  <p className="flex items-center">
-                    {
+                  <p onClick={() => openTxPage(tx)} className="flex items-center cursor-pointer underline">
+                  {
                       tx.from === address ? 'Send ' : 'Receive '
                     }
                     Funds

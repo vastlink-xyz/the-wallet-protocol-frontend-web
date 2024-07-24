@@ -22,6 +22,11 @@ export function TokenTransfers({
   address: Address,
   tokenTransfers: any[],
 }) {
+  const openTxPage = (ttx: any) => {
+    const url = `${process.env.NEXT_PUBLIC_ETHSCAN_TRANSACTION}/${ttx.hash}`
+    window.open(url, '_blank')
+  }
+
   return(
     <div>
       {
@@ -48,7 +53,7 @@ export function TokenTransfers({
                 }
 
                 <div className="ml-4 w-[160px]">
-                  <p className="flex items-center">
+                  <p onClick={() => openTxPage(ttx)} className="flex items-center cursor-pointer underline">
                     {
                       ttx.from === address ? 'Send ' : 'Receive '
                     }
