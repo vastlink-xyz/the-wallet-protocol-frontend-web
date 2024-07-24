@@ -1,4 +1,4 @@
-import { RecentTransactions } from "./components/RecentTransactions"
+import { RecentTransactions } from "./components/RecentTransactions/index"
 import { RewardsGraph } from "./components/RewardsGraph"
 import { UserWallet } from "./components/UserWallet/index"
 

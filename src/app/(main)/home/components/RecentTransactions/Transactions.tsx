@@ -1,49 +1,33 @@
 'use client'
 
 import { useState, useEffect } from "react"
-import { Coins, Settings, MoveUpRight, MoveDownLeft, ArrowLeftRight, ArrowUpRight, ChevronDown, Book, StickyNote } from "lucide-react"
-import { Button } from "@/components/ui/button";
-import { auth, log } from "@/lib/utils";
 import axios from "axios";
+import { Address, formatEther } from "viem";
 
-export function RecentTransactions() {
-  const [transactions, setTransactions] = useState([])
-  const [address, setAddress] = useState('')
+import { Coins, Settings, MoveUpRight, MoveDownLeft, Book, StickyNote } from "lucide-react"
+import { Button } from "@/components/ui/button";
 
-  useEffect(() => {
-    fetchTransactions()
-  }, [])
-  
-  const fetchTransactions = async () => {
-    const address = auth.all().address
-    setAddress(address)
-    if (address) {
-      // only available for the sepolia
-      const url = `https://sepolia.ethplorer.io/service/service.php?data=${address}&page=pageTab%3Dtransfers&showTx=all`
-      const res = await axios.get(url)
-      const txs = res.data.transfers || []
-      setTransactions(txs)
-      log('txs', txs)
-    }
-  }
+import { auth, formatDecimal, log } from "@/lib/utils";
 
+export function Transactions({
+  address,
+  transactions,
+}: {
+  address: Address,
+  transactions: any[],
+}) {
   return(
-    <div className="border rounded-md px-4">
-      <div className="flex justify-between items-center mt-4 mb-4">
-        <span>Recent transactions</span>
-        <span className="text-gray-400 text-sm cursor-pointer">See all</span>
-      </div>
-
+    <div>
       {
         transactions.length === 0 && <div className="flex items-center justify-center py-8">
-            <p className="text-gray-400">No transactions to display</p>
+          <p className="text-gray-400">No transactions to display</p>
         </div>
       }
 
       {
         transactions.map((tx: any) => {
           return (
-            <div key={tx.transactionHash} className="border-t flex items-center justify-between py-4">
+            <div key={tx.hash} className="border-t flex items-center justify-between py-4">
               <div className="flex items-center">
                 {
                   tx.from === address ? (
@@ -65,24 +49,23 @@ export function RecentTransactions() {
                     Funds
                   </p>
                   <p className="text-gray-500 text-xs">
-                    {new Date(tx.timestamp * 1000).toLocaleString()}
+                    {new Date(Number(tx.timeStamp) * 1000).toLocaleString()}
                   </p>
                 </div>
               </div>
-
 
               {
                 tx.from === address ? (
                   <div className="rounded-full flex items-center bg-secondary px-2">
                     <span>-</span>
                     <Coins size={14} />
-                    <span className="ml-2 text-xs">{tx.value}</span>
+                    <span className="ml-2 text-xs">{formatDecimal(formatEther(tx.value))}</span>
                   </div>
                 ) : (
                   <div className="rounded-full flex items-center bg-warm px-2">
                     <span className="text-warm-foreground">+</span>
                     <Coins size={14} color="#dd687a" />
-                    <span className="ml-2 text-xs text-warm-foreground">{tx.value}</span>
+                    <span className="ml-2 text-xs text-warm-foreground">{formatDecimal(formatEther(tx.value))}</span>
                   </div>
                 )
               }
@@ -97,6 +80,7 @@ export function RecentTransactions() {
           <span>Address book</span>
         </Button>
       </div>
+
     </div>
   );
 }
