@@ -40,7 +40,7 @@ const fetchTokenTransfers = async (address: Address) => {
       ...query,
       action: 'tokentx',
       address,
-      contractaddress: process.env.CONTRACT_ADDRESS,
+      contractaddress: process.env.NEXT_PUBLIC_TVWT_TOKEN_CONTRACT_ADDRESS,
       startblock: '0',
       endblock: 'latest',
     }

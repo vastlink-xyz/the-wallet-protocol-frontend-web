@@ -9,10 +9,12 @@ import { auth, formatDecimal, log, publicClient } from "@/lib/utils"
 import { Coins, Settings, MoveUpRight, MoveDownLeft, ArrowLeftRight, RefreshCcw, Loader } from "lucide-react"
 import { Send } from "./Send";
 import { Receive } from "./Receive";
+import { ERC20_TVWT_ABI } from "@/abis/TheVastWalletToken";
 
 export function UserWallet() {
   const [address, setAddress] = useState('')
   const [balance, setBalance] = useState('')
+  const [tvwtBalance, setTvwtBalance] = useState('')
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -49,16 +51,36 @@ export function UserWallet() {
   }
 
   const syncBalance = async () => {
-    setLoading(true)
     const addr = auth.all().address;
     setAddress(addr)
 
+    setLoading(true)
+    const b = await getBalanceByAddress(addr)
+    setBalance(b)
+
+    const tb = await getTVWTBalanceByAddress(addr)
+    setTvwtBalance(tb)
+
+    setLoading(false)
+  }
+  
+  const getBalanceByAddress = async (address: Address) => {
     const balance = await publicClient.getBalance({
-      address: addr,
+      address,
     })
     let b = formatEther(balance)
-    setBalance(b)
-    setLoading(false)
+    return b
+  }
+
+  const getTVWTBalanceByAddress = async (address: Address) => {
+    const balance = await publicClient.readContract({
+      address: process.env.NEXT_PUBLIC_TVWT_TOKEN_CONTRACT_ADDRESS as Address,
+      abi: ERC20_TVWT_ABI,
+      functionName: 'balanceOf',
+      args: [address],
+    })
+    let b = formatEther(balance)
+    return b
   }
 
   return(
@@ -68,15 +90,38 @@ export function UserWallet() {
         <Settings />
       </div>
 
-      <div className="mb-14 flex justify-between">
-        <div className="flex items-center">
-          <Coins size={22} />
+      <div className="w-full mb-8 flex justify-between">
+        <>
           {
-            loading ? <Loader size={14} className="animate-spin mx-2" /> : <span className="font-bold ml-2 text-2xl">{formatDecimal(balance)}</span>
+            loading ? (
+              <Loader size={14} className="animate-spin m-auto" />
+            ) : (
+              <div>
+                <p className="text-gray-500 text-sm">MATIC BALANCE</p>
+                <section className="flex items-center">
+                  {/* <Coins size={22} /> */}
+                  <img
+                    className="w-[20px]"
+                    src="https://amoy.polygonscan.com/assets/poly/images/svg/logos/token-light.svg?v=24.7.3.0" alt=""
+                  />
+                  <p className="ml-2 text-xl">{formatDecimal(balance)} MATIC</p>
+                </section>
+
+                <p className="text-gray-500 mt-4 text-sm">TVWT BALANCE</p>
+                <section className="flex items-center text-xl">
+                  <img
+                    className="w-[22px]"
+                    src="/logo-alone.png" alt=""
+                  />
+                  <p className="mx-2">{tvwtBalance}</p>
+                  <span className="">TVWT</span>
+                </section>
+              </div>
+            )
           }
-          <div title="sync">
-            <RefreshCcw color="#666" size={16} className="cursor-pointer ml-2" onClick={() => syncBalance()} />
-          </div>
+        </>
+        <div title="sync" className="">
+          <RefreshCcw color="#666" size={16} className="cursor-pointer ml-2" onClick={() => syncBalance()} />
         </div>
       </div>
 
