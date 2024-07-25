@@ -1,17 +1,51 @@
 'use client'
 
-import { useRef } from "react"
+import { RefAttributes, useRef } from "react"
 
 import { cn } from "@/lib/utils"
-import { House, Coins, NotebookText } from "lucide-react"
+import { House, Coins, NotebookText, Store, LucideProps } from "lucide-react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
+
+const iconComponents = {
+  House,
+  Store,
+};
+
+interface RouteItem {
+  name: string;
+  href: string;
+  icon: keyof typeof iconComponents;
+}
+
+const routes: RouteItem[] = [
+  {
+    name: 'Home',
+    href: '/home',
+    icon: 'House',
+  },
+  {
+    name: 'Marketplace',
+    href: '/marketplace',
+    icon: 'Store',
+  },
+];
+
+interface IconComponentProps extends LucideProps {
+  iconName: keyof typeof iconComponents;
+}
+
+const IconComponent: React.FC<IconComponentProps> = ({ iconName, ...props }) => {
+  const Icon = iconComponents[iconName];
+  return Icon ? <Icon {...props} /> : null;
+};
 
 export function SideBar() {
   const menuRef = useRef<HTMLUListElement>(null)
+  const pathname = usePathname()
 
   const toggleSidebar = () => {
     menuRef.current?.classList.toggle('scale-0')
-    // menuRef.current?.classList.remove('scale-0')
   }
 
   return <div className="relative">
@@ -22,24 +56,29 @@ export function SideBar() {
         'md:w-[200px] md:static md:scale-100 md:shadow-none',
         'transition transform scale-0 origin-top-left text-sm p-6 bg-white',
       )}>
-      <li>
-        <Link href={'/home'} className="flex items-center my-4">
-          <House className="mr-2" size={18} strokeWidth={3} />
-          Home
-        </Link>
-      </li>
-      <li>
-        <Link href={'/transactions'} className="flex items-center my-4 text-gray-500">
-          <NotebookText className="mr-2" size={18} color='gray' />
-          Transactions
-        </Link>
-      </li>
-      <li>
-        <Link href={'/tokens'} className="flex items-center my-4 text-gray-500">
-          <Coins className="mr-2" size={18} color="gray" />
-          Tokens
-        </Link>
-      </li>
+        {
+          routes.map((route) => {
+            const actived = pathname === route.href
+            return (
+              <li key={route.name}>
+                <Link
+                  href={route.href}
+                  className={cn(
+                    "flex items-center my-4",
+                    !actived && 'text-gray-500',
+                  )}>
+                  <IconComponent
+                    iconName={route.icon}
+                    className="mr-2"
+                    size={18}
+                    strokeWidth={actived ? 3 : 1}
+                  />
+                  { route.name }
+                </Link>
+              </li>
+            )
+          })
+        }
     </ul>
 
     <div className="relative md:hidden p-4 focus:outline-none focus:bg-gray-700" onClick={() => toggleSidebar()}>

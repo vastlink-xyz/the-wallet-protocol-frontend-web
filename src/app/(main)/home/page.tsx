@@ -10,6 +10,7 @@ export default function HomePage() {
       <div className="md:flex md:justify-between flex-wrap md:gap-6">
         <section className="flex-1">
           <UserWallet />
+          <RecentTransactions />
         </section>
 
         <section className="flex-1">
@@ -17,7 +18,6 @@ export default function HomePage() {
         </section>
 
         <section className="flex-1">
-          <RecentTransactions />
         </section>
       </div>
     </div>
