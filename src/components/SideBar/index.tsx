@@ -2,7 +2,7 @@
 
 import { RefAttributes, useRef } from "react"
 
-import { cn } from "@/lib/utils"
+import { cn, log } from "@/lib/utils"
 import { House, Coins, NotebookText, Store, LucideProps } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -58,7 +58,7 @@ export function SideBar() {
       )}>
         {
           routes.map((route) => {
-            const actived = pathname === route.href
+            const actived = pathname.startsWith(route.href)
             return (
               <li key={route.name}>
                 <Link

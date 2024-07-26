@@ -1,17 +1,15 @@
 'use client'
 
 import { useState, useEffect } from "react"
-import axios from "axios";
 import { Address, createPublicClient, formatEther, http } from 'viem'
 
 import { auth, formatDecimal, log } from "@/lib/utils"
 
 import { Coins, Settings, MoveUpRight, MoveDownLeft, ArrowLeftRight, RefreshCcw, Loader } from "lucide-react"
-import { Send } from "./Send";
-import { Receive } from "./Receive";
 import { ERC20_TVWT_ABI } from "@/abis/TheVastWalletToken";
 import { polygonAmoy, sepolia } from "viem/chains";
 import Link from "next/link";
+import { toast } from "react-toastify"
 
 export function UserWallet() {
   const [address, setAddress] = useState('')
@@ -30,16 +28,21 @@ export function UserWallet() {
     setAddress(addr)
 
     setLoading(true)
-    const matic = await getMaticBalanceByAddress(addr)
-    setMaticBalance(matic)
-  
-    const eth = await getETHBalanceByAddress(addr)
-    setEthBalance(eth)
+    try {
+      const [matic, eth, tvwt] = await Promise.all([
+        getMaticBalanceByAddress(addr),
+        getETHBalanceByAddress(addr),
+        getTVWTBalanceByAddress(addr),
+      ]);
+      setMaticBalance(matic);
+      setEthBalance(eth);
+      setTvwtBalance(tvwt);
+    } catch(error: any) {
+      toast.error(error.message)
+    } finally {
+      setLoading(false)
+    }
 
-    const tvwt = await getTVWTBalanceByAddress(addr)
-    setTvwtBalance(tvwt)
-
-    setLoading(false)
   }
   
   const getETHBalanceByAddress = async (address: Address) => {
@@ -90,9 +93,8 @@ export function UserWallet() {
         >
           {address || ''}
         </p>
-        <div title="sync" className="">
+        <div title="sync" className="text-warm-foreground">
           <RefreshCcw
-            color="#666"
             size={16}
             className="cursor-pointer ml-2 text-2xl hover:scale-125 hover:rotate-180 transition duration-300"
             onClick={() => syncBalance()}
@@ -100,7 +102,7 @@ export function UserWallet() {
         </div>
       </div>
 
-      <div className="w-full mb-8 flex justify-between">
+      <div className="w-full mb-2 flex justify-between">
         <>
           {
             loading ? (
@@ -108,7 +110,7 @@ export function UserWallet() {
             ) : (
               <div className="w-full">
                 <Link
-                  href={'/'}
+                  href={'/home/eth'}
                   className="flex justify-between items-center bg-gray-50 hover:bg-gray-200 p-2 rounded-sm cursor-pointer mb-2"
                 >
                   <section className="flex items-center">
@@ -122,7 +124,7 @@ export function UserWallet() {
                 </Link>
 
                 <Link
-                  href={'/'}
+                  href={'/home/matic'}
                   className="flex justify-between items-center bg-gray-50 hover:bg-gray-200 p-2 rounded-sm cursor-pointer mb-2"
                 >
                   <section className="flex items-center">
@@ -136,7 +138,7 @@ export function UserWallet() {
                 </Link>
 
                 <Link
-                  href={'/'}
+                  href={'/tvwt'}
                   className="flex justify-between items-center bg-gray-50 hover:bg-gray-200 p-2 rounded-sm cursor-pointer mb-2"
                 >
                   <section className="flex items-center">
@@ -156,15 +158,11 @@ export function UserWallet() {
         
       </div>
 
-      <div className="flex items-center">
-        <Receive address={address as Address} />
-
-        <Send balance={maticBalance} address={address as Address} />
-        
+      {/* <div className="flex items-center">
         <div className="border border-primary rounded-full w-[48px] h-[48px] flex items-center justify-center cursor-pointer">
           <ArrowLeftRight />
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }

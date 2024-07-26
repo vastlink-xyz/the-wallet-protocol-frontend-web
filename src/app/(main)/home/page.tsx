@@ -1,5 +1,3 @@
-import { RecentTransactions } from "./components/RecentTransactions/index"
-import { RewardsGraph } from "./components/RewardsGraph"
 import { UserWallet } from "./components/UserWallet/index"
 
 export default function HomePage() {
@@ -10,7 +8,6 @@ export default function HomePage() {
       <div className="md:flex md:justify-between flex-wrap md:gap-6">
         <section className="flex-1">
           <UserWallet />
-          <RecentTransactions />
         </section>
 
         <section className="flex-1">
