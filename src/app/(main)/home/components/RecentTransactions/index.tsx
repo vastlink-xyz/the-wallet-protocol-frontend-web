@@ -10,8 +10,8 @@ import { auth, formatDecimal, log } from "@/lib/utils";
 import { Transactions } from "./Transactions";
 import { TokenTransfers } from "./TokenTransactions";
 
-const scanApi = process.env.NEXT_PUBLIC_SCAN_API as string
-const apiKey = process.env.NEXT_PUBLIC_SCAN_API_KEY
+const scanApi = process.env.NEXT_PUBLIC_POLYGON_SCAN_API as string
+const apiKey = process.env.NEXT_PUBLIC__POLYGON_SCAN_API_KEY
 const query = {
   apikey: apiKey,
   module: 'account',

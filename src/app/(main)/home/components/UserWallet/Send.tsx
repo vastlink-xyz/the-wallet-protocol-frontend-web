@@ -4,7 +4,7 @@ import { useState, useEffect, FormEvent, useRef } from "react"
 import axios from "axios";
 import { Address, createPublicClient, formatEther, http, parseEther } from 'viem'
 
-import { auth, cn, formatDecimal, log, publicClient } from "@/lib/utils"
+import { auth, cn, formatDecimal, log } from "@/lib/utils"
 
 import {
   Dialog,
@@ -89,7 +89,7 @@ export function Send({
                 variant={'link'}
                 size={'sm'}
                 onClick={() => {
-                  window.open(`${process.env.NEXT_PUBLIC_ETHSCAN_TRANSACTION}/${txHash}`, '_blank')
+                  window.open(`${process.env.NEXT_PUBLIC_POLYGON_SCAN_TRANSACTION}/${txHash}`, '_blank')
                 }}
               >
                 View Detail

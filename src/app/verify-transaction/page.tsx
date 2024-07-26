@@ -4,7 +4,9 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useState, useEffect } from "react";
 
 import axios from "axios";
-import { auth, log, publicClient } from '@/lib/utils';
+import { auth, log } from '@/lib/utils';
+import { createPublicClient, http } from 'viem';
+import { polygonAmoy } from 'viem/chains';
 
 export default function Page() {  
   const params = useSearchParams();
@@ -47,6 +49,10 @@ export default function Page() {
       log('res', response);
 
       const txHash = response.data
+      const publicClient = createPublicClient({
+        chain: polygonAmoy,
+        transport: http(process.env.NEXT_PUBLIC_POLYGON_JSON_RPC),
+      })
       const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash })
       if (receipt.status === 'success') {
         setStatus('success')

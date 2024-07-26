@@ -13,8 +13,3 @@ export function getChain() {
       return polygonAmoy;
   };
 }
-
-export const publicClient = createPublicClient({
-  chain: getChain(),
-  transport: http(process.env.NEXT_PUBLIC_JSON_RPC),
-})

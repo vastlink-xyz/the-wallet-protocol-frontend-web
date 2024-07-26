@@ -42,8 +42,8 @@ For local development, create a .env file in the root directory of the project. 
 ```
 NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL=<api_base_url> # Development is http://localhost:5001
 NEXT_PUBLIC_SCOPE_ID=<scope_id> # Development is 4b8e66a2-bf1f-4d9d-8df8-7f7aa7502370
-NEXT_PUBLIC_JSON_RPC=<json_rpc> # Development is http://127.0.0.1:8545
-NEXT_PUBLIC_ETHSCAN_TRANSACTION=<tx_scan_url> # Development is https://app.tryethernal.com/transaction
+NEXT_PUBLIC_POLGON_JSON_RPC=<json_rpc> # Development is http://127.0.0.1:8545
+NEXT_PUBLIC_POLYGON_SCAN_TRANSACTION=<tx_scan_url>
 NEXT_PUBLIC_ENV=development
 ```
 

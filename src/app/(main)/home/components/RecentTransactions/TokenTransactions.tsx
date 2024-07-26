@@ -23,7 +23,7 @@ export function TokenTransfers({
   tokenTransfers: any[],
 }) {
   const openTxPage = (ttx: any) => {
-    const url = `${process.env.NEXT_PUBLIC_ETHSCAN_TRANSACTION}/${ttx.hash}`
+    const url = `${process.env.NEXT_PUBLIC_POLYGON_SCAN_TRANSACTION}/${ttx.hash}`
     window.open(url, '_blank')
   }
 
