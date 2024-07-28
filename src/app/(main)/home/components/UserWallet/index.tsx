@@ -138,7 +138,7 @@ export function UserWallet() {
                 </Link>
 
                 <Link
-                  href={'/tvwt'}
+                  href={'/home/tvwt'}
                   className="flex justify-between items-center bg-gray-50 hover:bg-gray-200 p-2 rounded-sm cursor-pointer mb-2"
                 >
                   <section className="flex items-center">

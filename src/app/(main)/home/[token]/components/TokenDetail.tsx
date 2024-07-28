@@ -1,24 +1,41 @@
 'use client'
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { CircleChevronLeft } from "lucide-react";
 import { Send } from "./Send";
 import { Receive } from "./Receive";
 
-import { coinInfoMap, CoinType } from "@/types/coins"
 import { Address } from "viem";
 import { RecentTransactions } from "./RecentTransactions";
+import { TokenType } from "@/types/tokens";
+import { TokenFactory } from "@/services/TokenService";
+import { auth, formatDecimal } from "@/lib/utils";
 
-export function CoinDetail({
-  coinType
+export function TokenDetail({
+  tokenType
 }: {
-  coinType: CoinType;
+  tokenType: TokenType;
 }) {
   const router = useRouter()
   const [balance, setBalance] = useState('')
   const [address, setAddress] = useState('')
+
+  useEffect(() => {
+    init()
+  })
+  
+  const init = async () => {
+    // const addr = auth.all().address
+    const addr = '0xfee205a130850906687141bb2d1c7ff3245f1366'
+    setAddress(addr)
+
+    const token = TokenFactory.getInstance().createToken(tokenType)
+    let b = await token.getBalance(addr)
+    b = formatDecimal(b)
+    setBalance(b)
+  }
 
   return (
     <div>
@@ -27,11 +44,11 @@ export function CoinDetail({
           <div onClick={() => router.push('/home')} className="text-warm-foreground cursor-pointer hover:scale-105">
             <CircleChevronLeft className="" size={28} />
           </div>
-          <h1 className="text-2xl font-bold ml-4">{coinInfoMap[coinType].name}</h1>
+          <h1 className="text-2xl font-bold ml-4">{TokenFactory.getInstance().createToken(tokenType).symbol}</h1>
         </div>
 
         <div className="bg-white border rounded p-4 mb-4">
-          <h2 className="text-lg font-semibold">Balance: 100.00</h2>
+          <h2 className="text-lg font-semibold">Balance: {balance}</h2>
           <div className="flex mt-4">
             <Receive address={address as Address} />
 
@@ -39,7 +56,7 @@ export function CoinDetail({
           </div>
         </div>
 
-        <RecentTransactions />
+        <RecentTransactions address={address as Address} tokenType={tokenType} />
       </div>
     </div>
   )
