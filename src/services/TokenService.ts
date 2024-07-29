@@ -17,19 +17,22 @@ export abstract class Token {
     this.decimals = decimals;
   }
 
+  abstract openUrl: string;
   abstract getBalance(address: Address): Promise<string>;
   abstract getRecentTransactions(address: Address): Promise<any[]>;
 }
 
 class ETH extends Token {
   publicClient: PublicClient;
-  
+  openUrl: string;
+
   constructor() {
     super('Ethereum', 'ETH', 18);
     this.publicClient = createPublicClient({
       chain: sepolia,
       transport: http(process.env.NEXT_PUBLIC_ETH_JSON_RPC),
     })
+    this.openUrl = `${process.env.NEXT_PUBLIC_ETH_SCAN_TRANSACTION}/`
   }
   
   async getBalance(address: Address): Promise<string> {
@@ -41,12 +44,32 @@ class ETH extends Token {
   }
   
   async getRecentTransactions(address: string): Promise<any[]> {
-    return []
+    const scanApi = process.env.NEXT_PUBLIC_ETH_SCAN_API as string
+    const apiKey = process.env.NEXT_PUBLIC_ETH_SCAN_API_KEY
+    const query = {
+      apikey: apiKey,
+      module: 'account',
+      sort: 'desc',
+      page: 1,
+      offset: 10,
+    }
+    const res = await axios.get(scanApi, {
+      params: {
+        ...query,
+        action: 'txlist',
+        address,
+        startblock: '0',
+        endblock: 'latest',
+      }
+    })
+    const txs = res.data.result
+    return txs
   }
 }
 
 class MATIC extends Token {
   publicClient: PublicClient;
+  openUrl: string;
 
   constructor() {
     super('Polygon', 'MATIC', 18);
@@ -54,6 +77,7 @@ class MATIC extends Token {
       chain: polygonAmoy,
       transport: http(process.env.NEXT_PUBLIC_POLYGON_JSON_RPC),
     })
+    this.openUrl = `${process.env.NEXT_PUBLIC_POLYGON_SCAN_TRANSACTION}/`
   }
 
   async getBalance(address: Address): Promise<string> {
@@ -66,7 +90,7 @@ class MATIC extends Token {
 
   async getRecentTransactions(address: string): Promise<any[]> {
     const scanApi = process.env.NEXT_PUBLIC_POLYGON_SCAN_API as string
-    const apiKey = process.env.NEXT_PUBLIC__POLYGON_SCAN_API_KEY
+    const apiKey = process.env.NEXT_PUBLIC_POLYGON_SCAN_API_KEY
     const query = {
       apikey: apiKey,
       module: 'account',
@@ -92,6 +116,7 @@ class TVWT extends Token {
   publicClient: PublicClient;
   private contractAddress: Address;
   private contractAbi: typeof ERC20_TVWT_ABI;
+  openUrl: string;
 
   constructor() {
     super('TheVastWalletToken', 'TVWT', 18);
@@ -101,6 +126,7 @@ class TVWT extends Token {
       chain: polygonAmoy,
       transport: http(process.env.NEXT_PUBLIC_POLYGON_JSON_RPC),
     })
+    this.openUrl = `${process.env.NEXT_PUBLIC_POLYGON_SCAN_TRANSACTION}/`
   }
 
   async getBalance(address: Address): Promise<string> {
@@ -116,7 +142,7 @@ class TVWT extends Token {
 
   async getRecentTransactions(address: string): Promise<any[]> {
     const scanApi = process.env.NEXT_PUBLIC_POLYGON_SCAN_API as string
-    const apiKey = process.env.NEXT_PUBLIC__POLYGON_SCAN_API_KEY
+    const apiKey = process.env.NEXT_PUBLIC_POLYGON_SCAN_API_KEY
     const query = {
       apikey: apiKey,
       module: 'account',

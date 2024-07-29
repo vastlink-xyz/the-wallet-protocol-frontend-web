@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import axios from "axios";
 import { Address, formatEther } from "viem";
 
@@ -19,28 +19,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination"
-import { TokenFactory } from "@/services/TokenService";
+import { Token, TokenFactory } from "@/services/TokenService";
 import { TokenType } from "@/types/tokens";
 import { MoveDownLeft, MoveUpRight } from "lucide-react";
-
-const scanApi = process.env.NEXT_PUBLIC_POLYGON_SCAN_API as string
-const apiKey = process.env.NEXT_PUBLIC__POLYGON_SCAN_API_KEY
-const query = {
-  apikey: apiKey,
-  module: 'account',
-  sort: 'desc',
-  page: 1,
-  offset: 10,
-}
 
 export function RecentTransactions({
   address,
@@ -50,6 +31,7 @@ export function RecentTransactions({
   tokenType: TokenType;
 }) {
   const [transactions, setTransactions] = useState<any>([])
+  const tokenRef = useRef<Token>()
 
   useEffect(() => {
     if (address) {
@@ -60,13 +42,15 @@ export function RecentTransactions({
   const init = async () => {
     log('addd', address)
     const token = TokenFactory.getInstance().createToken(tokenType)
+    tokenRef.current = token
     const txs = await token.getRecentTransactions(address)
     log('txs', txs)
     setTransactions(txs)
   }
 
-  const openTxPage = (ttx: any) => {
-    const url = `${process.env.NEXT_PUBLIC_POLYGON_SCAN_TRANSACTION}/${ttx.hash}`
+  const openTxPage = (tx: any) => {
+    log('tx open', tx)
+    const url = `${tokenRef.current?.openUrl}/${tx.hash}`
     window.open(url, '_blank')
   }
 
@@ -143,17 +127,6 @@ export function RecentTransactions({
           <p className="text-gray-400">No transactions to display</p>
         </div>
       }
-
-      {/* <Pagination>
-        <PaginationContent>
-          <PaginationItem>
-            <PaginationPrevious />
-          </PaginationItem>
-          <PaginationItem>
-            <PaginationNext />
-          </PaginationItem>
-        </PaginationContent>
-      </Pagination> */}
 
       {/* <Tabs defaultValue="ttx" className="w-full">
         <TabsList className="w-full">
