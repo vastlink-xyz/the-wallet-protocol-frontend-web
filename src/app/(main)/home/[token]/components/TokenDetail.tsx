@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { CircleChevronLeft } from "lucide-react";
+import { CircleChevronLeft, Loader, RefreshCcw } from "lucide-react";
 import { Send } from "./Send";
 import { Receive } from "./Receive";
 
@@ -21,20 +21,27 @@ export function TokenDetail({
   const router = useRouter()
   const [balance, setBalance] = useState('')
   const [address, setAddress] = useState('')
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     init()
   })
   
   const init = async () => {
-    // const addr = auth.all().address
-    const addr = '0xfee205a130850906687141bb2d1c7ff3245f1366'
+    const addr = auth.all().address
+    // const addr = '0xfee205a130850906687141bb2d1c7ff3245f1366'
     setAddress(addr)
 
+    syncBalance(addr)
+  }
+  
+  const syncBalance = async (address: Address) => {
+    setLoading(true)
     const token = TokenFactory.getInstance().createToken(tokenType)
-    let b = await token.getBalance(addr)
+    let b = await token.getBalance(address)
     b = formatDecimal(b)
     setBalance(b)
+    setLoading(false)
   }
 
   return (
@@ -48,11 +55,32 @@ export function TokenDetail({
         </div>
 
         <div className="bg-white border rounded p-4 mb-4">
-          <h2 className="text-lg font-semibold">Balance: {balance}</h2>
+          <div className="flex items-center">
+            <h2 className="text-lg font-semibold flex items-center">Balance: 
+              <div className="w-[100px] flex items-center">
+                {
+                  loading ? (
+                    <Loader size={14} className="animate-spin m-auto" />
+                  ) : (
+                    <span className="block ml-2">
+                      {balance}
+                    </span>
+                  )
+                }
+              </div>
+            </h2>
+            <div title="sync" className="text-warm-foreground">
+              <RefreshCcw
+                size={16}
+                className="cursor-pointer ml-4 text-2xl hover:scale-125 hover:rotate-180 transition duration-300"
+                onClick={() => syncBalance(address as Address)}
+              />
+            </div>
+          </div>
           <div className="flex mt-4">
             <Receive address={address as Address} />
 
-            <Send balance={balance} address={address as Address} />
+            <Send balance={balance} address={address as Address} tokenType={tokenType} />
           </div>
         </div>
 

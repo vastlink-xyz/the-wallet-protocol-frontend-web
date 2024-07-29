@@ -17,6 +17,7 @@ export abstract class Token {
     this.decimals = decimals;
   }
 
+  abstract publicClient: PublicClient;
   abstract openUrl: string;
   abstract getBalance(address: Address): Promise<string>;
   abstract getRecentTransactions(address: Address): Promise<any[]>;

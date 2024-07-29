@@ -2,7 +2,7 @@
 
 import { useState, useEffect, FormEvent, useRef } from "react"
 import axios from "axios";
-import { Address, createPublicClient, formatEther, http, parseEther } from 'viem'
+import { Address, parseEther } from 'viem'
 
 import { auth, cn, formatDecimal, log } from "@/lib/utils"
 
@@ -19,18 +19,28 @@ import { MoveUpRight, Loader, CircleCheck } from "lucide-react"
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "react-toastify";
+import { TokenType } from "@/types/tokens";
+import { Token, TokenFactory } from "@/services/TokenService";
 
 export function Send({
   balance,
   address,
+  tokenType,
 }: {
   balance: string;
   address: Address;
+  tokenType: TokenType;
 }) {
   const [to, setTo] = useState('')
   const [amount, setAmount] = useState('')
   const [sending, setSending] = useState(false)
   const [open, setOpen] = useState(false)
+  const tokenRef = useRef<Token>()
+
+  useEffect(() => {
+    const token = TokenFactory.getInstance().createToken(tokenType)
+    tokenRef.current = token
+  }, [])
 
   async function signTransaction() {
     try {
@@ -47,6 +57,7 @@ export function Send({
         {
           to,
           amount: amt,
+          token: tokenType,
         },
         {
           headers: {
@@ -78,6 +89,11 @@ export function Send({
     }
   }
 
+  const openTxPage = (txHash: string) => {
+    const url = `${tokenRef.current?.openUrl}/${txHash}`
+    window.open(url, '_blank')
+  }
+
   const notifyTransactionSubmitted = (txHash: string) => {
     toast(<div className="w-full">
           <div className="flex items-center">
@@ -89,7 +105,7 @@ export function Send({
                 variant={'link'}
                 size={'sm'}
                 onClick={() => {
-                  window.open(`${process.env.NEXT_PUBLIC_POLYGON_SCAN_TRANSACTION}/${txHash}`, '_blank')
+                  openTxPage(txHash)
                 }}
               >
                 View Detail

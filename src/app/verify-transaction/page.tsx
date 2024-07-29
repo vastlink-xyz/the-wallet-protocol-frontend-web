@@ -7,6 +7,7 @@ import axios from "axios";
 import { auth, log } from '@/lib/utils';
 import { createPublicClient, http } from 'viem';
 import { polygonAmoy } from 'viem/chains';
+import { TokenFactory } from '@/services/TokenService';
 
 export default function Page() {  
   const params = useSearchParams();
@@ -48,11 +49,10 @@ export default function Page() {
       );
       log('res', response);
 
-      const txHash = response.data
-      const publicClient = createPublicClient({
-        chain: polygonAmoy,
-        transport: http(process.env.NEXT_PUBLIC_POLYGON_JSON_RPC),
-      })
+      const txHash = response.data.hash
+      const tokenType = response.data.token
+
+      const publicClient = TokenFactory.getInstance().createToken(tokenType).publicClient
       const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash })
       if (receipt.status === 'success') {
         setStatus('success')

@@ -111,7 +111,7 @@ export function RecentTransactions({
                     <p
                       title={tx.to}
                       >
-                      { truncateMiddle(tx.from) }
+                      { truncateMiddle(tx.to) }
                     </p>
                   </TableCell>
                   <TableCell className="text-right">{formatDecimal(formatEther(tx.value))}</TableCell>

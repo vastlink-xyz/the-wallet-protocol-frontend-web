@@ -1,4 +1,4 @@
-import { Chain, createPublicClient, http } from "viem"
+import { Chain, http } from "viem"
 import {hardhat, sepolia, polygonAmoy} from "viem/chains"
 
 export const formatDecimal = (amount: string, decimal=6) => parseFloat(amount).toFixed(decimal)

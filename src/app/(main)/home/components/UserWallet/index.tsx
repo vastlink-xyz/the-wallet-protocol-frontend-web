@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from "react"
-import { Address, createPublicClient, formatEther, http } from 'viem'
+import { Address, formatEther, http } from 'viem'
 
 import { auth, formatDecimal, log } from "@/lib/utils"
 
@@ -10,6 +10,7 @@ import { ERC20_TVWT_ABI } from "@/abis/TheVastWalletToken";
 import { polygonAmoy, sepolia } from "viem/chains";
 import Link from "next/link";
 import { toast } from "react-toastify"
+import { TokenFactory } from "@/services/TokenService"
 
 export function UserWallet() {
   const [address, setAddress] = useState('')
@@ -46,41 +47,17 @@ export function UserWallet() {
   }
   
   const getETHBalanceByAddress = async (address: Address) => {
-    const publicClient = createPublicClient({
-      chain: sepolia,
-      transport: http(process.env.NEXT_PUBLIC_ETH_JSON_RPC),
-    })
-    const balance = await publicClient.getBalance({
-      address,
-    })
-    let b = formatEther(balance)
+    const b = await TokenFactory.getInstance().createToken('ETH').getBalance(address)
     return b
   }
   
   const getMaticBalanceByAddress = async (address: Address) => {
-    const publicClient = createPublicClient({
-      chain: polygonAmoy,
-      transport: http(process.env.NEXT_PUBLIC_POLYGON_JSON_RPC),
-    })
-    const balance = await publicClient.getBalance({
-      address,
-    })
-    let b = formatEther(balance)
+    const b = await TokenFactory.getInstance().createToken('MATIC').getBalance(address)
     return b
   }
   
   const getTVWTBalanceByAddress = async (address: Address) => {
-    const publicClient = createPublicClient({
-      chain: polygonAmoy,
-      transport: http(process.env.NEXT_PUBLIC_POLYGON_JSON_RPC),
-    })
-    const balance = await publicClient.readContract({
-      address: process.env.NEXT_PUBLIC_TVWT_TOKEN_CONTRACT_ADDRESS as Address,
-      abi: ERC20_TVWT_ABI,
-      functionName: 'balanceOf',
-      args: [address],
-    })
-    let b = formatEther(balance)
+    const b = await TokenFactory.getInstance().createToken('TVWT').getBalance(address)
     return b
   }
 
