@@ -35,11 +35,13 @@ export function Send({
   const [amount, setAmount] = useState('')
   const [sending, setSending] = useState(false)
   const [open, setOpen] = useState(false)
+  const [symbol, setSymbol] = useState('')
   const tokenRef = useRef<Token>()
 
   useEffect(() => {
     const token = TokenFactory.getInstance().createToken(tokenType)
     tokenRef.current = token
+    setSymbol(tokenRef.current.symbol)
   }, [])
 
   async function signTransaction() {
@@ -53,7 +55,8 @@ export function Send({
       log('amt', amt)
 
       setSending(true)
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/transaction/sign`, 
+      const apiPath = tokenType === 'TVWT' ? `smartcontract/transferToken` : `transaction/sign`
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/${apiPath}`, 
         {
           to,
           amount: amt,
@@ -161,7 +164,7 @@ export function Send({
           <div className="mb-5">
             <div className="flex items-center justify-between">
               <label htmlFor="amount" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Amount</label>
-              <p className="text-xs mb-2 text-gray-500">Balance: {formatDecimal(balance)} ETH</p>
+              <p className="text-xs mb-2 text-gray-500">Balance: {formatDecimal(balance)} {symbol}</p>
             </div>
             <div className="relative">
               <Input

@@ -57,10 +57,10 @@ export function TokenDetail({
         <div className="bg-white border rounded p-4 mb-4">
           <div className="flex items-center">
             <h2 className="text-lg font-semibold flex items-center">Balance: 
-              <div className="w-[100px] flex items-center">
+              <div className="flex items-center">
                 {
                   loading ? (
-                    <Loader size={14} className="animate-spin m-auto" />
+                    <Loader size={14} className="animate-spin mx-4" />
                   ) : (
                     <span className="block ml-2">
                       {balance}
