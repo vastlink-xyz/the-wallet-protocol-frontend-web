@@ -25,7 +25,7 @@ export function TokenDetail({
 
   useEffect(() => {
     init()
-  })
+  }, [])
   
   const init = async () => {
     const addr = auth.all().address
