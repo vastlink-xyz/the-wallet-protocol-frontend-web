@@ -3,17 +3,62 @@
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import axios from 'axios'
-import { log } from "@/lib/utils"
+import { auth, cn, log } from "@/lib/utils"
+import { PurchaseModal } from "./PurchaseModal"
+import { TokenFactory } from "@/services/TokenService"
+import { Address } from "viem"
 
 export function List() {
   const [products, setProducts] = useState([])
+  const [purchasedProductIds, setPurchasedProductIds] = useState<string[]>([])
+  const [isOpen, setIsOpen] = useState(false)
+  const [product, setProduct] = useState({})
+  const [balance, setBalance] = useState('')
 
   useEffect(() => {
-    (async function() {
-      const res = await axios.get(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/marketplace/products`)
-      setProducts(res.data)
-    })();
+    const addr = auth.all().address
+    setTVWTBalanceByAddress(addr)
+
+    getProducts()
+    getPurchasedProducts()
   }, [])
+  
+  const getPurchasedProducts = async () => {
+    const {
+      authenticatedHeader,
+      desUsername,
+    } = auth.all()
+    const res = await axios.get(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/user/purchasedProducts`, {
+      headers: {
+        "Content-Type": "application/json",
+        "X-Encrypted-Key": `${authenticatedHeader["X-Encrypted-Key" as keyof typeof authenticatedHeader]}`,
+        "X-Scope-Id": `${authenticatedHeader["X-Scope-Id" as keyof typeof authenticatedHeader]}`,
+        "X-Encrypted-User": `${authenticatedHeader["X-Encrypted-User" as keyof typeof authenticatedHeader]}`,
+        "X-Encrypted-Session": `${authenticatedHeader["X-Encrypted-Session" as keyof typeof authenticatedHeader]}`,
+        "X-Passport-Username": `${desUsername.username}`,
+      },
+    })
+    const ids = res.data.map((p: any) => p.id)
+    setPurchasedProductIds(ids)
+  }
+  
+  const getProducts = async () => {
+    const res = await axios.get(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/marketplace/products`)
+    setProducts(res.data)
+  }
+
+  const setTVWTBalanceByAddress = async (address: Address) => {
+    const b = await TokenFactory.getInstance().createToken('TVWT').getBalance(address)
+    setBalance(b)
+  }
+
+  const handleOpenModal = (product: any) => {
+    if (purchasedProductIds.includes(product.id)) {
+      return
+    }
+    setIsOpen(true)
+    setProduct(product)
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -23,7 +68,13 @@ export function List() {
         {
           products.map((p: any) => {
             return (
-              <div key={p.id} className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col h-full">
+              <div
+                key={p.id}
+                className={cn(
+                  "bg-white rounded-lg shadow-md overflow-hidden flex flex-col h-full",
+                )}
+                onClick={() => handleOpenModal(p)}
+              >
                 <div
                   className="w-full relative px-4 bg-black aspect-square flex items-center justify-center"
                 >
@@ -41,8 +92,24 @@ export function List() {
                       <span className="text-gray-600 font-medium text-sm">TVWT</span>
                     </p>
                   </div>
+
                   <div className="flex justify-between items-center space-x-2 mt-auto">
-                    <Button className="w-full bg-warm-flame">Buy</Button>
+                    <Button
+                      className={cn(
+                        "w-full bg-warm-flame",
+                        purchasedProductIds.includes(p.id) && 'cursor-default'
+                      )}
+                      onClick={() => handleOpenModal(p)}
+                      disabled={purchasedProductIds.includes(p.id)}
+                    >
+                      {
+                        purchasedProductIds.includes(p.id) ? (
+                          'Purchased'
+                        ) : (
+                          'Purchase'
+                        )
+                      }
+                    </Button>
                     <Button
                       variant={'outline'}
                       className="w-full text-warm-foreground border-warm-foreground bg-white hover:bg-white hover:text-warm-foreground"
@@ -51,11 +118,14 @@ export function List() {
                     </Button>
                   </div>
                 </div>
+
               </div>
             )
           })
         }
       </div>
+
+      <PurchaseModal isOpen={isOpen} onClose={() => setIsOpen(false)} product={product} balance={balance} />
     </div>
   )
 }
