@@ -82,7 +82,7 @@ export function Send({
         notifyTransactionSubmitted(response.data)
       } else {
         // need to be verified
-        toast(response.data)
+        toast.error(response.data)
         setOpen(false)
       }
     } catch (error) {
