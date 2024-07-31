@@ -153,23 +153,23 @@ export function PurchasedList() {
 
   const statusBadge = (status: string) => {
     if (status === 'active') {
-      return <Badge className="bg-green-400">Actived</Badge>
+      return <Badge className="bg-green-400 h-8">Actived</Badge>
     }
-    return <Badge variant={'destructive'}>Deleted</Badge>
+    return <Badge variant={'destructive'} className="h-8">Deleted</Badge>
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="mx-auto px-4 py-8">
       {/* <h1 className="text-3xl font-bold mb-8">Marketplace</h1> */}
 
-      <div className="grid gap-6 ml-auto mr-0" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))' }}>
+      <div className="grid grid-flow-row gap-8 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {
           purchasedProducts.map((p: any) => {
             return (
               <div
                 key={p.id}
                 className={cn(
-                  "bg-white rounded-lg shadow-md overflow-hidden flex flex-col h-full max-w-sm",
+                  "bg-white rounded-lg shadow-md overflow-hidden flex flex-col h-full",
                 )}
               >
                 <div
