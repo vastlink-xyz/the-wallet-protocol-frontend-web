@@ -11,7 +11,6 @@ import { Id, toast } from "react-toastify"
 
 export function List() {
   const [products, setProducts] = useState([])
-  const [purchasedProductIds, setPurchasedProductIds] = useState<string[]>([])
   const [purchasedProducts, setPurchasedProducts] = useState<any[]>([])
   const [isOpen, setIsOpen] = useState(false)
   const [product, setProduct] = useState({})
@@ -20,9 +19,7 @@ export function List() {
   const toastId = useRef<Id>();
 
   useEffect(() => {
-    const addr = auth.all().address
-    setTVWTBalanceByAddress(addr)
-
+    refreshTVWTBalance()
     getProducts()
     getPurchasedProducts()
   }, [])
@@ -43,8 +40,6 @@ export function List() {
       },
     })
     setPurchasedProducts(res.data)
-    const ids = res.data.map((p: any) => p.id)
-    setPurchasedProductIds(ids)
   }
   
   const getProducts = async () => {
@@ -52,8 +47,9 @@ export function List() {
     setProducts(res.data)
   }
 
-  const setTVWTBalanceByAddress = async (address: Address) => {
-    const b = await TokenFactory.getInstance().createToken('TVWT').getBalance(address)
+  const refreshTVWTBalance = async () => {
+    const addr = auth.all().address
+    const b = await TokenFactory.getInstance().createToken('TVWT').getBalance(addr)
     setBalance(b)
   }
 
@@ -68,6 +64,7 @@ export function List() {
     if (isSave) {
       getProducts()
       getPurchasedProducts()
+      refreshTVWTBalance()
     }
   }
 
@@ -108,6 +105,7 @@ export function List() {
         // reload data
         getProducts()
         getPurchasedProducts()
+        refreshTVWTBalance()
       } else {
         toast.error(response.data.message)
       }
