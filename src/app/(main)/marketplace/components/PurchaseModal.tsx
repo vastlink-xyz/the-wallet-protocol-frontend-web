@@ -28,7 +28,7 @@ export function PurchaseModal({
 }: {
   isOpen: boolean;
   product: any;
-  onClose: () => void;
+  onClose: (isSave: boolean) => void;
   balance: string;
 }) {
   const [isPurchasing, setIsPurchasing] = useState(false)
@@ -64,7 +64,7 @@ export function PurchaseModal({
       )
       log('response', response)
       if (response.data.success) {
-        onClose()
+        onClose(true)
         toast.success(response.data.message)
       } else {
         toast.error(response.data.message)
@@ -81,7 +81,7 @@ export function PurchaseModal({
       open={isOpen}
       onOpenChange={opened => {
         if (!opened) {
-          onClose()
+          onClose(false)
         }
       }}
     >
