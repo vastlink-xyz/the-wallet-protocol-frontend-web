@@ -8,6 +8,7 @@ import { auth, log } from '@/lib/utils';
 import { createPublicClient, http } from 'viem';
 import { polygonAmoy } from 'viem/chains';
 import { TokenFactory } from '@/services/TokenService';
+import { toast } from 'react-toastify';
 
 export default function Page() {  
   const params = useSearchParams();
@@ -52,6 +53,12 @@ export default function Page() {
       const txHash = response.data.hash
       const tokenType = response.data.token
 
+      if (!txHash || !tokenType) {
+        setStatus('error')
+        toast.error(response.data)
+        return
+      }
+
       const publicClient = TokenFactory.getInstance().createToken(tokenType).publicClient
       const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash })
       if (receipt.status === 'success') {
@@ -63,6 +70,7 @@ export default function Page() {
     } catch(error) {
       setStatus('error')
       log('error', error)
+      toast.error((error as any).message)
     }
 
   }
