@@ -173,6 +173,7 @@ export function PurchasedList() {
                 className={cn(
                   "bg-white rounded-lg shadow-md overflow-hidden flex flex-col h-full",
                   'cursor-pointer hover:scale-105',
+                  checkPurchaseStatus(p) === 'deleted' && 'opacity-40',
                 )}
                 onClick={() => {
                   let url = p.website
@@ -231,7 +232,10 @@ export function PurchasedList() {
 
                     <Button
                       variant={'outline'}
-                      className="w-full text-warm-foreground border-warm-foreground bg-white hover:bg-white hover:text-warm-foreground"
+                      className={cn(
+                        "w-full text-warm-foreground border-warm-foreground bg-white hover:bg-white hover:text-warm-foreground",
+                        checkPurchaseStatus(p) === 'deleted' && 'hidden'
+                      )}
                       disabled={checkPurchaseStatus(p) === 'deleted' || checkPurchaseStatus(p) === ''}
                       onClick={(e) => handleDelete(e, p)}
                     >
