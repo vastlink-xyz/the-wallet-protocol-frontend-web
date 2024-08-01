@@ -1,3 +1,4 @@
+import { VastWalletConnect } from "@/components/VastWalletConnect"
 import { UserWallet } from "./components/UserWallet/index"
 
 export default function HomePage() {
@@ -15,6 +16,7 @@ export default function HomePage() {
         </section>
 
         <section className="flex-1">
+          <VastWalletConnect />
         </section>
       </div>
     </div>
