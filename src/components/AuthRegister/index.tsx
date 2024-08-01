@@ -142,39 +142,22 @@ export default function AuthRegister() {
       if (authenticating) {
         return 'Authenticating...';
       }
-      return 'Authenticate'
+      return 'Sign In'
     } else {
       if (registering) {
         return 'Registering...';
       } else if (authenticating) {
         return 'Authenticating...';
       }
-      return 'Register';
+      return 'Sign Up';
     }
   }
 
-  // if (authenticated) {
-  //   return (
-  //     <div className="flex flex-grow flex-col items-center justify-center">
-  //       <h1 className="mb-4 text-2xl">Register or Authenticate</h1>
-
-  //       <Card className="py-4">
-  //         <CardContent>
-  //           <div className="text-center">
-  //             <h2 className="mb-4 text-xl">You are authenticated!</h2>
-  //             <div className="font-bold mr-2">Your Address is:</div>
-  //             <div>{address}</div>
-  //           </div>
-  //         </CardContent>
-  //       </Card>
-  //     </div>
-  //   );
-  // }
   return (
     <div className="flex flex-grow flex-col items-center justify-center">
-      <Card className="sm:w-[360px] py-4 border-none shadow-none mb-12 text-warm-foreground">
+      <Card className="sm:w-[360px] py-4 border-none shadow-none mb-12">
         <CardHeader>
-          <p className="mb-4 text-lg md:text-2xl m-0 p-0">Register or Authenticate</p>
+          <p className="mb-4 text-lg md:text-2xl m-0 p-0">Sign Up or Sign In</p>
         </CardHeader>
         <CardContent>
           <form onSubmit={(e) => processUserAccess(e)} className="group" noValidate>
@@ -207,7 +190,7 @@ export default function AuthRegister() {
         <CardFooter>
           <p className="cursor-pointer select-none" onClick={() => setAuthenticateSetup(!authenticateSetup)}>
             {
-              authenticateSetup ? 'Register a Passkey?' : 'Already have a passkey?'
+              authenticateSetup ? 'Sign up?' : 'Already have an account?'
             }
           </p>
         </CardFooter>
