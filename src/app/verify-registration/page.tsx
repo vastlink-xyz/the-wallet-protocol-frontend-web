@@ -12,14 +12,6 @@ export default function Page() {
         </div>
 
         <div className="md:flex md:justify-between md:items-center">
-          <div className="text-center">
-            <div className="w-full text-warm-foreground flex flex-col items-center">
-              <p className="text-2xl md:text-4xl font-bold mb-4">Next generation</p>
-              <p className="text-xl md:text-3xl mb-2">Crypto Wallets</p>
-              <img src='/logo-and-text.gif' className="w-32 md:w-[360px]" alt="logo" />
-            </div>
-          </div>
-
           <AuthRegister />
         </div>
 
@@ -27,4 +19,4 @@ export default function Page() {
     </div>
   );
 }
-// http://localhost:3000/verify-registration?email=user4@abc.com&otp=09aeef
+
