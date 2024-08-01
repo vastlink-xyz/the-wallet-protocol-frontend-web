@@ -40,7 +40,8 @@ export function PurchasedList() {
     setBalance(b)
   }
 
-  const handleOpenModal = (product: any) => {
+  const handleOpenModal = (event: any, product: any) => {
+    event.stopPropagation()
     setIsOpen(true)
     setProduct(product)
   }
@@ -93,7 +94,8 @@ export function PurchasedList() {
     }
   }
 
-  const handleDelete = (product: any) => {
+  const handleDelete = (event: any, product: any) => {
+    event.stopPropagation()
     toastId.current = toast(
       <div className="w-full">
         <h2 className="text-lg font-semibold">Confirm Deletion</h2>
@@ -170,7 +172,15 @@ export function PurchasedList() {
                 key={p.id}
                 className={cn(
                   "bg-white rounded-lg shadow-md overflow-hidden flex flex-col h-full",
+                  'cursor-pointer hover:scale-105',
                 )}
+                onClick={() => {
+                  let url = p.website
+                  if (p.integrationPoints.includes("standalone") && checkPurchaseStatus(p) === 'active') {
+                    url = p.serviceUrl
+                  }
+                  window.open(url, '_blank')
+                }}
               >
                 <div
                   className="w-full relative px-4 bg-black aspect-square flex items-center justify-center"
@@ -207,7 +217,7 @@ export function PurchasedList() {
                       className={cn(
                         "w-full bg-warm-flame",
                       )}
-                      onClick={() => handleOpenModal(p)}
+                      onClick={(e) => handleOpenModal(e, p)}
                       disabled={checkPurchaseStatus(p) === 'active'}
                     >
                       {
@@ -223,7 +233,7 @@ export function PurchasedList() {
                       variant={'outline'}
                       className="w-full text-warm-foreground border-warm-foreground bg-white hover:bg-white hover:text-warm-foreground"
                       disabled={checkPurchaseStatus(p) === 'deleted' || checkPurchaseStatus(p) === ''}
-                      onClick={() => handleDelete(p)}
+                      onClick={(e) => handleDelete(e, p)}
                     >
                       {
                         checkPurchaseStatus(p) === 'deleted' ? (
