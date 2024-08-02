@@ -14,13 +14,15 @@ import { Button } from '../ui/button';
 import { toast } from 'react-toastify';
 import { Loader } from 'lucide-react';
 import { useTransaction } from './useTransaction';
+import { WalletConnectModal } from './WalletConnectModal';
+import { PairContextType, useWalletConnectPair } from '@/providers/WalletConnectPairProvider';
 
 export function VastWalletConnect() {
-  const [web3wallet, setWeb3Wallet] = useState<IWeb3Wallet>();
+  // const [web3wallet, setWeb3Wallet] = useState<IWeb3Wallet>();
   const [address, setAddress] = useState('');
   const [wallet, setWallet] = useState<WalletClient>();
-  const [isConnected, setIsConnected] = useState<boolean>(false);
-  const [uri, setUri] = useState<string>();
+  // const [isConnected, setIsConnected] = useState<boolean>(false);
+  // const [uri, setUri] = useState<string>();
   const [session, setSession] = useState<SessionTypes.Struct>();
   const [chain] = useState(sepolia);
   const [connectOpen, setConnectOpen] = useState(false);
@@ -34,8 +36,15 @@ export function VastWalletConnect() {
     value: string;
     data: string;
   } | null>(null);
-
+   
   const { sending, signTransaction } = useTransaction()
+  const {
+    setIsModalOpen,
+    isConnected,
+    setIsConnected,
+    web3wallet,
+    setWeb3Wallet,
+  } = useWalletConnectPair() as PairContextType
 
   const updateSessionStatus = useCallback(() => {
     const activeSessions = web3wallet?.getActiveSessions();
@@ -50,11 +59,10 @@ export function VastWalletConnect() {
   }, [web3wallet]);
 
   const onSessionRequest = useCallback(async (event: Web3WalletTypes.SessionRequest) => {
+    log('event', event)
     const { topic, params, id } = event;
     const { request } = params;
     const transactionRequest = request.params[0];
-    log('transaction request', transactionRequest)
-    log('topic', topic)
 
     if (request.method === 'eth_sendTransaction') {
       setTransferDetails({
@@ -130,7 +138,7 @@ export function VastWalletConnect() {
     }
   }, [web3wallet, onSessionProposal, onSessionRequest, onSessionDelete, updateSessionStatus]);
 
-  const pair = async () => {
+  const pair = async (uri: string) => {
     if (uri) {
       try {
         log("pairing with uri", uri);
@@ -138,6 +146,7 @@ export function VastWalletConnect() {
         setConnectOpen(true);
       } catch (e) {
         console.error("Error pairing with uri", e);
+        toast.error((e as any).message)
       }
     }
   };
@@ -163,6 +172,7 @@ export function VastWalletConnect() {
       setSession(session);
       setIsConnected(true)
       setConnectOpen(false);
+      setIsModalOpen(false)
       setSessionProposal(null);
     } catch (error) {
       console.error("Error approving session:", error);
@@ -193,13 +203,19 @@ export function VastWalletConnect() {
     try {
       setLoading(true);
 
-      await signTransaction(transferDetails?.to as Address, transferDetails.value)
+      const hash = await signTransaction(transferDetails?.to as Address, transferDetails.value)
+      log('hash', hash)
 
       const { topic, response } = requestContent;
+      const res = {
+        ...response,
+        result: hash,
+      }
       await web3wallet?.respondSessionRequest({
         topic,
-        response: response as { id: number; jsonrpc: string; result: `0x${string}`; },
+        response: res as { id: number; jsonrpc: string; result: `0x${string}`; },
       });
+      log('successful')
 
       setTransferOpen(false);
     } catch (error) {
@@ -243,36 +259,32 @@ export function VastWalletConnect() {
     }
   };
 
+  const openPairModal = () => {
+    log('open')
+    setIsModalOpen(true)
+  }
+
   return (
-    <div className='border p-4 rounded-md'>
+    <div className=''>
       <div className="flex items-center justify-center space-x-2">
         {
           isConnected ? (
             <Button
-            type="button"
-            onClick={disconnectSession}
+              type="button"
+              size={'sm'}
+              onClick={disconnectSession}
             >
               Disconnect Session
             </Button>
           ) : (
-            <>
-              <Input
-                type="text"
-                onChange={(e) => setUri(e.target.value)}
-                placeholder="Enter URI"
-                className="focus-visible:ring-black"
-              />
               <Button
                 type="button"
-                onClick={pair}
-                disabled={loading}
+                onClick={() => openPairModal()}
               >
-                {loading ? 'Pairing' : 'Pair'}
+                Pair
               </Button>
-            </>
           )
         }
-
       </div>
 
       <Dialog
@@ -357,6 +369,8 @@ export function VastWalletConnect() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      <WalletConnectModal onPair={pair} />
     </div>
   )
 }

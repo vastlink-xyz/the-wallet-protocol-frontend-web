@@ -7,6 +7,7 @@ import ProgressBarProvider from "@/providers/ProgressBarProvider";
 
 import { Flip, ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { WalletConnectPairProvider } from "@/providers/WalletConnectPairProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -24,9 +25,13 @@ export default function RootLayout({
     <html lang="en">
       <body className={cn(inter.className, 'min-h-screen bg-white text-black', 'flex flex-col')}>
         <main className="flex flex-col flex-grow">
-        <Suspense>
-          <ProgressBarProvider>{children}</ProgressBarProvider>
-        </Suspense>
+          <Suspense>
+            <ProgressBarProvider>
+              <WalletConnectPairProvider>
+                {children}
+              </WalletConnectPairProvider>
+            </ProgressBarProvider>
+          </Suspense>
         </main>
 
         <ToastContainer

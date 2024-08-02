@@ -8,6 +8,7 @@ import { PurchaseModal } from "./PurchaseModal"
 import { TokenFactory } from "@/services/TokenService"
 import { Address } from "viem"
 import { Id, toast } from "react-toastify"
+import { PairContextType, useWalletConnectPair } from "@/providers/WalletConnectPairProvider"
 
 export function List() {
   const [products, setProducts] = useState([])
@@ -17,6 +18,12 @@ export function List() {
   const [balance, setBalance] = useState('')
   const [loading, setLoading] = useState(false)
   const toastId = useRef<Id>();
+
+  const {
+    setIsModalOpen,
+    setDappInfo,
+    isConnected,
+  } = useWalletConnectPair() as PairContextType
 
   useEffect(() => {
     refreshTVWTBalance()
@@ -155,6 +162,29 @@ export function List() {
     )
   }
 
+  const handleClick = (p: any) => {
+    // wallet connect
+    if (p.integrationPoints.includes('walletconnect') && checkPurchaseStatus(p) === 'active') {
+      if (isConnected) {
+        window.open(p.serviceUrl, '_blank')
+      } else {
+        setDappInfo({
+          name: p.name,
+          url: p.serviceUrl,
+        })
+        setIsModalOpen(true)
+      }
+      return
+    }
+
+    // other types
+    let url = p.website
+    if (p.integrationPoints.includes("standalone") && checkPurchaseStatus(p) === 'active') {
+      url = p.serviceUrl
+    }
+    window.open(url, '_blank')
+  }
+
   return (
     <div className="px-4 py-8">
       {/* <h1 className="text-3xl font-bold mb-8">Marketplace</h1> */}
@@ -170,13 +200,7 @@ export function List() {
                   'cursor-pointer hover:scale-105',
                   checkPurchaseStatus(p) === 'deleted' && 'opacity-40',
                 )}
-                onClick={() => {
-                  let url = p.website
-                  if (p.integrationPoints.includes("standalone") && checkPurchaseStatus(p) === 'active') {
-                    url = p.serviceUrl
-                  }
-                  window.open(url, '_blank')
-                }}
+                onClick={() => handleClick(p)}
               >
                 <div
                   className="w-full relative px-4 bg-black aspect-square flex items-center justify-center"

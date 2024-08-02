@@ -9,7 +9,6 @@ interface CopyboardAddressProps {
   [key: string]: any;
 }
 
-
 export function CopyClipboardAddress({
   iconSize=24,
   address,

@@ -10,6 +10,7 @@ import { Id, toast } from "react-toastify"
 import { PurchaseModal } from "./PurchaseModal"
 import { TokenFactory } from "@/services/TokenService"
 import { Address } from "viem"
+import { PairContextType, useWalletConnectPair } from "@/providers/WalletConnectPairProvider"
 
 export function PurchasedList() {
   const [purchasedProducts, setPurchasedProducts] = useState<any[]>([])
@@ -18,6 +19,12 @@ export function PurchasedList() {
   const [balance, setBalance] = useState('')
   const [loading, setLoading] = useState(false)
   const toastId = useRef<Id>();
+
+  const {
+    setIsModalOpen,
+    setDappInfo,
+    isConnected,
+  } = useWalletConnectPair() as PairContextType
 
   useEffect(() => {
     refreshTVWTBalance()
@@ -153,6 +160,29 @@ export function PurchasedList() {
     setPurchasedProducts(list)
   }
 
+  const handleClick = (p: any) => {
+    // wallet connect
+    if (p.integrationPoints.includes('walletconnect') && checkPurchaseStatus(p) === 'active') {
+      if (isConnected) {
+        window.open(p.serviceUrl, '_blank')
+      } else {
+        setDappInfo({
+          name: p.name,
+          url: p.serviceUrl,
+        })
+        setIsModalOpen(true)
+      }
+      return
+    }
+
+    // other types
+    let url = p.website
+    if (p.integrationPoints.includes("standalone") && checkPurchaseStatus(p) === 'active') {
+      url = p.serviceUrl
+    }
+    window.open(url, '_blank')
+  }
+
   const statusBadge = (status: string) => {
     if (status === 'active') {
       return <Badge className="bg-green-400 h-8">Actived</Badge>
@@ -175,13 +205,7 @@ export function PurchasedList() {
                   'cursor-pointer hover:scale-105',
                   checkPurchaseStatus(p) === 'deleted' && 'opacity-40',
                 )}
-                onClick={() => {
-                  let url = p.website
-                  if (p.integrationPoints.includes("standalone") && checkPurchaseStatus(p) === 'active') {
-                    url = p.serviceUrl
-                  }
-                  window.open(url, '_blank')
-                }}
+                onClick={() => handleClick(p)}
               >
                 <div
                   className="w-full relative px-4 bg-black aspect-square flex items-center justify-center"

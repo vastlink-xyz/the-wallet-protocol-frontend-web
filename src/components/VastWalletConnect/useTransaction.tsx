@@ -40,7 +40,7 @@ export const useTransaction = () => {
       const succeeded = typeof response.data === 'string' && response.data.startsWith('0x');
       if (succeeded) {
         notifyTransactionSubmitted(response.data);
-        return true;
+        return response.data;
       } else {
         toast.error(response.data);
         return false;
