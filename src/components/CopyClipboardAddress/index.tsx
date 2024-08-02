@@ -23,7 +23,7 @@ export function CopyClipboardAddress({
       })
     }}>
       <div className="flex">
-        <p {...props} style={{wordBreak: 'break-all'}}>{address}</p>
+        <div {...props} style={{wordBreak: 'break-all'}}>{address}</div>
         <Copy className="cursor-pointer hover:scale-105 mr-2" size={iconSize} />
       </div>
     </CopyToClipboard>
