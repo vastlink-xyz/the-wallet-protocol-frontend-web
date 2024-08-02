@@ -11,6 +11,7 @@ import { polygonAmoy, sepolia } from "viem/chains";
 import Link from "next/link";
 import { toast } from "react-toastify"
 import { TokenFactory } from "@/services/TokenService"
+import { CopyClipboardAddress } from "@/components/CopyClipboardAddress"
 
 export function UserWallet() {
   const [address, setAddress] = useState('')
@@ -63,17 +64,12 @@ export function UserWallet() {
 
   return(
     <div className="border rounded-md p-4 mb-4">
-      <div className="flex justify-between items-center mb-4">
-        <p
-          title={address}
-          className="overflow-hidden text-ellipsis whitespace-nowrap w-[220px] mr-2 text-xl font-medium"
-        >
-          {address || ''}
-        </p>
-        <div title="sync" className="text-warm-foreground">
+      <div className="flex justify-between items-start mb-4">
+        <CopyClipboardAddress address={address as Address} />
+        <div title="sync" className="text-warm-foreground ml-4">
           <RefreshCcw
             size={16}
-            className="cursor-pointer ml-2 text-2xl hover:scale-125 hover:rotate-180 transition duration-300"
+            className="cursor-pointer ml-2 mt-2 text-2xl hover:scale-125 hover:rotate-180 transition duration-300"
             onClick={() => syncBalance()}
           />
         </div>

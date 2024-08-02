@@ -22,6 +22,7 @@ import {
 import { Token, TokenFactory } from "@/services/TokenService";
 import { TokenType } from "@/types/tokens";
 import { MoveDownLeft, MoveUpRight } from "lucide-react";
+import { CopyClipboardAddress } from "@/components/CopyClipboardAddress";
 
 export function RecentTransactions({
   address,
@@ -65,10 +66,10 @@ export function RecentTransactions({
         <TableHeader>
           <TableRow>
             <TableHead className=""></TableHead>
-            <TableHead className="">Transaction Hash</TableHead>
+            <TableHead className="max-w-[300px]">Transaction Hash</TableHead>
             <TableHead className="">Time</TableHead>
-            <TableHead className="">From</TableHead>
-            <TableHead className="">To</TableHead>
+            <TableHead className="max-w-[180px]">From</TableHead>
+            <TableHead className="max-w-[180px]">To</TableHead>
             <TableHead className="text-right">Amount</TableHead>
           </TableRow>
         </TableHeader>
@@ -90,28 +91,26 @@ export function RecentTransactions({
                       )
                     }
                   </TableCell>
-                  <TableCell className="">
+                  <TableCell className="max-w-[300px]">
                     <p onClick={() => openTxPage(tx)} className="cursor-pointer underline">
-                      {
-                        truncateMiddle(tx.hash)
-                      }
+                      <CopyClipboardAddress address={tx.hash} iconSize={22} />
                     </p>
                   </TableCell>
                   <TableCell className="font-medium">
                     {new Date(Number(tx.timeStamp) * 1000).toLocaleString()}
                   </TableCell>
-                  <TableCell className="w-[200px] truncate">
+                  <TableCell className="max-w-[180px]">
                     <p
                       title={tx.from}
                     >
-                      { truncateMiddle(tx.from) }
+                      <CopyClipboardAddress address={tx.from} iconSize={28} />
                     </p>
                   </TableCell>
-                  <TableCell className="w-[200px] truncate">
+                  <TableCell className="max-w-[180px]">
                     <p
                       title={tx.to}
                       >
-                      { truncateMiddle(tx.to) }
+                      <CopyClipboardAddress address={tx.to} iconSize={28} />
                     </p>
                   </TableCell>
                   <TableCell className="text-right">{formatDecimal(formatEther(tx.value))}</TableCell>

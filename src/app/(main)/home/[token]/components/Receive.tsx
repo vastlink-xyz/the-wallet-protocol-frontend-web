@@ -17,6 +17,7 @@ import { MoveDownLeft, Copy, CopyCheck } from "lucide-react"
 import QRCode from 'react-qr-code'
 import {CopyToClipboard} from 'react-copy-to-clipboard';
 import { toast } from "react-toastify"
+import { CopyClipboardAddress } from "@/components/CopyClipboardAddress"
 
 export function Receive({
   address,
@@ -42,7 +43,7 @@ export function Receive({
         </DialogTitle>
 
         <div className="flex items-center justify-between w-full my-6">
-          <p className="break-all mr-2">{address}</p>
+          {/* <p className="break-all mr-2">{address}</p>
           <CopyToClipboard text={address} onCopy={() => {
             toast.success('Copy success!', {
               autoClose: 1000,
@@ -52,7 +53,8 @@ export function Receive({
             <div className="">
               <Copy className="cursor-pointer" size={14} />
             </div>
-          </CopyToClipboard>
+          </CopyToClipboard> */}
+          <CopyClipboardAddress address={address} />
         </div>
 
         <div className="w-full">
