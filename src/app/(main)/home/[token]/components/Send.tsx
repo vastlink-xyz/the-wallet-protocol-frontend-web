@@ -87,6 +87,10 @@ export function Send({
       }
     } catch (error) {
       console.error(error);
+      const res = (error as any).response
+      if (res && res.data) {
+        toast.error(res.data)
+      }
     } finally {
       setSending(false);
     }

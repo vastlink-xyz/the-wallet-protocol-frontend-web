@@ -69,10 +69,11 @@ export default function Page() {
       log('receipt', receipt)
     } catch(error) {
       setStatus('error')
-      log('error', error)
-      toast.error((error as any).message)
+      const res = (error as any).response
+      if (res && res.data) {
+        toast.error(res.data)
+      }
     }
-
   }
 
   const transactionStatus = () => {
