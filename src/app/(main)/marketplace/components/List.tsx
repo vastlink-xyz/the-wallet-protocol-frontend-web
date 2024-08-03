@@ -11,7 +11,7 @@ import { Id, toast } from "react-toastify"
 import { PairContextType, useWalletConnectPair } from "@/providers/WalletConnectPairProvider"
 
 export function List() {
-  const [products, setProducts] = useState([])
+  const [products, setProducts] = useState<any[]>([])
   const [purchasedProducts, setPurchasedProducts] = useState<any[]>([])
   const [isOpen, setIsOpen] = useState(false)
   const [product, setProduct] = useState({})
@@ -27,9 +27,39 @@ export function List() {
 
   useEffect(() => {
     refreshTVWTBalance()
-    getProducts()
-    getPurchasedProducts()
+    loadProducts()
   }, [])
+
+  const loadProducts = async () => {
+    const products = await getProducts()
+    const purchasedProducts = await getPurchasedProducts()
+    const deletedPurchasedProductIds = purchasedProducts.filter((p: any) => p.status === 'deleted').map((p: any) => p.id)
+    const activedPurchasedProductIds = purchasedProducts.filter((p: any) => p.status === 'active').map((p: any) => p.id)
+    
+    log('deleteds', deletedPurchasedProductIds)
+    log('active', activedPurchasedProductIds)
+    let activeProducts = []
+    let deletedProducts = []
+    let otherProducts = []
+
+    for (const product of products) {
+      if (deletedPurchasedProductIds.includes(product.id)) {
+        deletedProducts.push(product)
+      } else if (activedPurchasedProductIds.includes(product.id)) {
+        activeProducts.push(product)
+      } else {
+        otherProducts.push(product)
+      }
+    }
+
+    const sortedProducts = [
+      ...activeProducts,
+      ...otherProducts,
+      ...deletedProducts,
+    ]
+    setPurchasedProducts(purchasedProducts)
+    setProducts(sortedProducts)
+  }
   
   const getPurchasedProducts = async () => {
     const {
@@ -46,13 +76,12 @@ export function List() {
         "X-Passport-Username": `${desUsername.username}`,
       },
     })
-    setPurchasedProducts(res.data)
+    return res.data
   }
   
   const getProducts = async () => {
     const res = await axios.get(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/marketplace/products`)
-    log('res data is', res.data)
-    setProducts(res.data)
+    return res.data
   }
 
   const refreshTVWTBalance = async () => {
@@ -71,8 +100,7 @@ export function List() {
     log('handle close call')
     setIsOpen(false)
     if (isSave) {
-      getProducts()
-      getPurchasedProducts()
+      loadProducts()
       refreshTVWTBalance()
     }
   }
@@ -112,8 +140,7 @@ export function List() {
       if (response.data.success) {
         toast.success(response.data.message)
         // reload data
-        getProducts()
-        getPurchasedProducts()
+        loadProducts()
         refreshTVWTBalance()
       } else {
         toast.error(response.data.message)
