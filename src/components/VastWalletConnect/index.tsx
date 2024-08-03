@@ -37,7 +37,7 @@ export function VastWalletConnect() {
     data: string;
   } | null>(null);
    
-  const { sending, signTransaction } = useTransaction()
+  const { signTransaction, waitForTransactionExection } = useTransaction()
   const {
     setIsModalOpen,
     isConnected,
@@ -203,8 +203,23 @@ export function VastWalletConnect() {
     try {
       setLoading(true);
 
-      const hash = await signTransaction(transferDetails?.to as Address, transferDetails.value)
-      log('hash', hash)
+      let hash = ''
+      const result = await signTransaction({
+        to: transferDetails?.to as Address,
+        amount: transferDetails.value,
+        data: transferDetails.data,
+      })
+
+      if (result.needOtp) {
+        // Transaction requires OTP verification
+        // Wait for the backend to complete OTP verification and execute the transaction
+        // This may take some time, the function will periodically check the transaction status
+        hash = await waitForTransactionExection(result.transactionId)
+      } else {
+        hash = result.hash
+      }
+
+      log('hash is', hash)
 
       const { topic, response } = requestContent;
       const res = {

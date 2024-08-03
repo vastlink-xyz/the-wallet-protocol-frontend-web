@@ -12,7 +12,15 @@ const tokenType: TokenType = 'ETH'
 export const useTransaction = () => {
   const [sending, setSending] = useState(false);
 
-  const signTransaction = async (to: Address, amount: string) => {
+  const signTransaction = async ({
+    to,
+    amount,
+    data,
+  }: {
+    to: Address;
+    amount: string;
+    data: string;
+  }) => {
     try {
       const { authenticatedHeader, desUsername } = auth.all();
       const amt = parseEther(amount).toString();
@@ -22,7 +30,12 @@ export const useTransaction = () => {
       const apiPath = `transaction/sign`;
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/${apiPath}`,
-        { to, amount: amt, token: tokenType },
+        {
+          to,
+          amount: amt,
+          data,
+          token: tokenType,
+        },
         {
           headers: {
             "Content-Type": "application/json",
@@ -36,20 +49,39 @@ export const useTransaction = () => {
       );
 
       log('data', response.data);
+      const result = response.data
 
-      const succeeded = typeof response.data === 'string' && response.data.startsWith('0x');
+      const succeeded = typeof result.hash === 'string' && result.hash.startsWith('0x');
       if (succeeded) {
-        notifyTransactionSubmitted(response.data);
-        return response.data;
+        notifyTransactionSubmitted(result.hash);
       } else {
-        toast.error(response.data);
-        return false;
+        toast.error(result.message);
       }
+      return result
     } catch (error) {
       console.error(error);
-      return false;
     } finally {
       setSending(false);
+    }
+  };
+
+  const waitForTransactionExection = async (transactionId: string) => {
+    try {
+      const apiPath = `transaction/wait-for-execution`;
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/${apiPath}`,
+        {
+          transactionId,
+        },
+      );
+
+      log('data', response.data);
+      const result = response.data
+
+      return result.hash
+    } catch (error) {
+      console.error(error);
+    } finally {
     }
   };
 
@@ -79,5 +111,5 @@ export const useTransaction = () => {
     );
   };
 
-  return { signTransaction, sending };
+  return { signTransaction, sending, waitForTransactionExection };
 };

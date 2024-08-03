@@ -73,16 +73,17 @@ export function Send({
           },
         }
       );
-      // console.log(response);
-      log('data', response.data)
 
-      const succeeded = typeof response.data === 'string' && response.data.startsWith('0x');
+      const data = response.data
+      log('data', data)
+
+      const succeeded = typeof data.hash === 'string' && data.hash.startsWith('0x');
       if (succeeded) {
         setOpen(false)
-        notifyTransactionSubmitted(response.data)
+        notifyTransactionSubmitted(data.hash)
       } else {
         // need to be verified
-        toast.error(response.data)
+        toast.error(data.message)
         setOpen(false)
       }
     } catch (error) {
