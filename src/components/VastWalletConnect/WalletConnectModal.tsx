@@ -58,13 +58,17 @@ export function WalletConnectModal({
       const clipboardText = await navigator.clipboard.readText();
       log('read', clipboardText)
 
-      // Clear clipboard to avoid pairing with old URI from previous sessions
-      await navigator.clipboard.writeText('');
-      log('Clipboard cleared');
-  
-      startClipboardListener();
-      window.open(dappInfo.url, '_blank')
+      setTimeout(async () => {
+        // Clear clipboard to avoid pairing with old URI from previous sessions
+        await navigator.clipboard.writeText('');
+        log('Clipboard cleared');
+    
+        startClipboardListener();
+        window.open(dappInfo.url, '_blank')
+      }, 500)
+
     } catch(err) {
+      log('err', err)
       setClipboardErrorTip(tip)
     }
   }
