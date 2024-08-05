@@ -94,8 +94,8 @@ export function WalletConnectModal({
         </p>
         <ol className="list-decimal list-inside mb-4">
           <li>Visit the {dappInfo.name} website</li>
-          <li>Look for a "Connect Wallet" or similar option</li>
-          <li>Choose "WalletConnect" as the connection method</li>
+          <li>Look for a &quot;Connect Wallet&quot; or similar option</li>
+          <li>Choose &quot;WalletConnect&quot; as the connection method</li>
           <li>Copy the provided WalletConnect URI</li>
           <li>Return to this page - the URI will be automatically detected and processed</li>
         </ol>
