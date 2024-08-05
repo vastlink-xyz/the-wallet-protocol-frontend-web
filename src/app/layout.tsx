@@ -8,6 +8,7 @@ import ProgressBarProvider from "@/providers/ProgressBarProvider";
 import { Flip, ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { WalletConnectPairProvider } from "@/providers/WalletConnectPairProvider";
+import { ThemeProvider } from "@/providers/ThemeProvider"
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -28,7 +29,13 @@ export default function RootLayout({
           <Suspense>
             <ProgressBarProvider>
               <WalletConnectPairProvider>
-                {children}
+                <ThemeProvider
+                  attribute="class"
+                  enableSystem={false}
+                  defaultTheme="light"
+                >
+                  {children}
+                </ThemeProvider>
               </WalletConnectPairProvider>
             </ProgressBarProvider>
           </Suspense>

@@ -155,7 +155,7 @@ export default function AuthRegister() {
 
   return (
     <div className="flex flex-grow flex-col items-center justify-center">
-      <Card className="sm:w-[360px] py-4 border-none shadow-none mb-12">
+      <Card className="sm:w-[360px] py-4 border-none shadow-none mb-12 bg-white text-warm-foreground">
         <CardHeader>
           <p className="mb-4 text-lg md:text-2xl m-0 p-0">Sign Up or Sign In</p>
         </CardHeader>
@@ -164,7 +164,7 @@ export default function AuthRegister() {
             <div className="mb-4 relative">
               <Label htmlFor="email">Email</Label>
               <Input
-                className="w-full mb-2 rounded border border-gray-300 bg-inherit p-3 shadow shadow-gray-100 mt-2 appearance-none outline-none text-neutral-800 invalid:[&:not(:placeholder-shown):not(:focus)]:border-red-500 peer"
+                className="w-full mb-2 rounded border border-gray-300 bg-inherit p-3 shadow shadow-gray-100 ring-offset-transparent mt-2 appearance-none outline-none text-neutral-800 invalid:[&:not(:placeholder-shown):not(:focus)]:border-red-500 peer"
                 type="email"
                 id="email"
                 value={username}
@@ -179,7 +179,7 @@ export default function AuthRegister() {
             </div>
             <Button
               type="submit"
-              className="w-full mt-2 rounded-full bg-warm-flame group-invalid:pointer-events-none group-invalid:opacity-30"
+              className="w-full mt-2 rounded-full bg-warm-flame group-invalid:pointer-events-none group-invalid:opacity-30 text-primary"
               disabled={registering || authenticating}
             >
               { submitBtnText() }

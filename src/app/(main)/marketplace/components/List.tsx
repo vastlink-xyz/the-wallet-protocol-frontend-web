@@ -9,6 +9,7 @@ import { TokenFactory } from "@/services/TokenService"
 import { Address } from "viem"
 import { Id, toast } from "react-toastify"
 import { PairContextType, useWalletConnectPair } from "@/providers/WalletConnectPairProvider"
+import { useTheme } from "next-themes"
 
 export function List() {
   const [products, setProducts] = useState<any[]>([])
@@ -18,6 +19,8 @@ export function List() {
   const [balance, setBalance] = useState('')
   const [loading, setLoading] = useState(false)
   const toastId = useRef<Id>();
+
+  const { setTheme } = useTheme()
 
   const {
     setIsModalOpen,
@@ -102,6 +105,12 @@ export function List() {
     if (isSave) {
       loadProducts()
       refreshTVWTBalance()
+      
+      // The theme product automatically changes the theme after purchase
+      const p = product as any
+      if (p.integrationPoints.includes('theme')) {
+        setTheme('dark')
+      }
     }
   }
 

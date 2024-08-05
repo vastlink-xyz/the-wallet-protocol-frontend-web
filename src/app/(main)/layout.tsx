@@ -19,7 +19,7 @@ export default function MainLayout({
   useEffect(() => {
     init()
   }, [])
-  
+
   const init = async () => {
     const purchasedProducts = await getPurchasedProducts()
     const themeProduct = purchasedProducts.find((p: any) => p.integrationPoints.includes('theme') && p.status === 'active')
@@ -49,21 +49,16 @@ export default function MainLayout({
   }
 
   return (
-    <ThemeProvider
-      attribute="class"
-      enableSystem
-    >
-      <section className="flex flex-col flex-grow bg-background">
-        <Header />
+    <section className="flex flex-col flex-grow bg-background">
+      <Header />
 
-        <div className="md:flex-grow md:flex">
-          <SideBar />
+      <div className="md:flex-grow md:flex">
+        <SideBar />
 
-          <div className="flex-grow p-6 md:border-l border-border">
-            {children}
-          </div>
+        <div className="flex-grow p-6 md:border-l border-border">
+          {children}
         </div>
-      </section>
-    </ThemeProvider>
+      </div>
+    </section>
   )
 }

@@ -11,6 +11,7 @@ import { PurchaseModal } from "./PurchaseModal"
 import { TokenFactory } from "@/services/TokenService"
 import { Address } from "viem"
 import { PairContextType, useWalletConnectPair } from "@/providers/WalletConnectPairProvider"
+import { useTheme } from "next-themes"
 
 export function PurchasedList() {
   const [purchasedProducts, setPurchasedProducts] = useState<any[]>([])
@@ -19,6 +20,8 @@ export function PurchasedList() {
   const [balance, setBalance] = useState('')
   const [loading, setLoading] = useState(false)
   const toastId = useRef<Id>();
+
+  const { setTheme } = useTheme()
 
   const {
     setIsModalOpen,
@@ -38,6 +41,12 @@ export function PurchasedList() {
     if (isSave) {
       getPurchasedProducts()
       refreshTVWTBalance()
+            
+      // The theme product automatically changes the theme after purchase
+      const p = product as any
+      if (p.integrationPoints.includes('theme')) {
+        setTheme('dark')
+      }
     }
   }
 
