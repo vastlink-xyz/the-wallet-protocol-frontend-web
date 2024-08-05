@@ -54,7 +54,7 @@ export function SideBar() {
       className={cn(
         'absolute top-10 left-10 z-10 shadow-lg',
         'md:w-[200px] md:static md:scale-100 md:shadow-none',
-        'transition transform scale-0 origin-top-left text-sm p-6 bg-white',
+        'transition transform scale-0 origin-top-left text-sm p-6 bg-background',
       )}>
         {
           routes.map((route) => {
@@ -64,8 +64,8 @@ export function SideBar() {
                 <Link
                   href={route.href}
                   className={cn(
-                    "flex items-center my-4",
-                    !actived && 'text-gray-500',
+                    "flex items-center my-4 text-primary",
+                    !actived && 'text-muted-foreground',
                   )}>
                   <IconComponent
                     iconName={route.icon}

@@ -294,6 +294,7 @@ export function VastWalletConnect() {
           ) : (
               <Button
                 type="button"
+                size={'sm'}
                 onClick={() => openPairModal()}
               >
                 Pair
@@ -306,7 +307,7 @@ export function VastWalletConnect() {
         open={connectOpen}
         onOpenChange={(opened) => setConnectOpen(opened)}
       >
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] text-primary">
           <DialogHeader>
             <DialogTitle>
               Connect Account
@@ -343,7 +344,7 @@ export function VastWalletConnect() {
         open={transferOpen}
         onOpenChange={(opened) => setTransferOpen(opened)}
       >
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] text-primary">
           <DialogHeader>
             <DialogTitle>Confirm Transfer</DialogTitle>
             <DialogDescription>

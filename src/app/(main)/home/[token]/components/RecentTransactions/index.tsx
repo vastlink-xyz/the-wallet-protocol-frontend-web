@@ -56,7 +56,7 @@ export function RecentTransactions({
   }
 
   return(
-    <div className="border rounded-md px-4">
+    <div className="border rounded-md px-4 text-primary">
       <div className="flex justify-between items-center mt-4 mb-4">
         <span>Recent transactions</span>
         <span className="text-gray-400 text-sm cursor-pointer">See all</span>

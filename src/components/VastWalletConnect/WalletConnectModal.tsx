@@ -22,7 +22,7 @@ export function WalletConnectModal({
       open={isModalOpen}
       onOpenChange={(opened) => setIsModalOpen(opened)}
     >
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] text-primary">
         <DialogHeader>
           <DialogTitle>
             Connect Account

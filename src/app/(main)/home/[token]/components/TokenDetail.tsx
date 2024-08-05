@@ -51,11 +51,11 @@ export function TokenDetail({
           <div onClick={() => router.push('/home')} className="text-warm-foreground cursor-pointer hover:scale-105">
             <CircleChevronLeft className="" size={28} />
           </div>
-          <h1 className="text-2xl font-bold ml-4">{TokenFactory.getInstance().createToken(tokenType).symbol}</h1>
+          <h1 className="text-2xl font-bold ml-4 text-primary">{TokenFactory.getInstance().createToken(tokenType).symbol}</h1>
         </div>
 
-        <div className="bg-white border rounded p-4 mb-4">
-          <div className="flex items-center">
+        <div className="border rounded p-4 mb-4">
+          <div className="flex items-center text-primary">
             <h2 className="text-lg font-semibold flex items-center">Balance: 
               <div className="flex items-center">
                 {

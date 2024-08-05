@@ -77,7 +77,7 @@ const config: Config = {
         "accordion-up": "accordion-up 0.2s ease-out",
       },
       backgroundImage: {
-        "warm-flame": "linear-gradient(120deg, #a6c0fe 0%, #f68084 100%)",
+        "warm-flame": "linear-gradient(to top left,#FF512F,#DD2476)",
       },
     },
   },

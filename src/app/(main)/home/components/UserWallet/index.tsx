@@ -63,7 +63,7 @@ export function UserWallet() {
   }
 
   return(
-    <div className="border rounded-md p-4 mb-4">
+    <div className="border border-border rounded-md p-4 mb-4 bg-background">
       <div className="flex justify-between items-start mb-4">
         <CopyClipboardAddress address={address as Address} />
         <div title="sync" className="text-warm-foreground ml-4">
@@ -79,47 +79,49 @@ export function UserWallet() {
         <>
           {
             loading ? (
-              <Loader size={14} className="animate-spin m-auto" />
+              <div className="text-warm-foreground text-center w-full">
+                <Loader size={14} className="animate-spin m-auto" />
+              </div>
             ) : (
               <div className="w-full">
                 <Link
                   href={'/home/eth'}
-                  className="flex justify-between items-center bg-gray-50 hover:bg-gray-200 p-2 rounded-sm cursor-pointer mb-2"
+                  className="flex justify-between items-center bg-muted/40 text-muted-foreground hover:bg-muted p-2 rounded-sm cursor-pointer mb-2"
                 >
                   <section className="flex items-center">
                     <img
                       className="w-[20px]"
                       src="/eth.png" alt=""
                     />
-                    <p className="ml-2 text-xl">ETH</p>
+                    <p className="ml-2 text-xl text-primary">ETH</p>
                   </section>
                   <p className="text-2xl font-medium text-warm-foreground">{formatDecimal(ethBalance)}</p>
                 </Link>
 
                 <Link
                   href={'/home/matic'}
-                  className="flex justify-between items-center bg-gray-50 hover:bg-gray-200 p-2 rounded-sm cursor-pointer mb-2"
+                  className="flex justify-between items-center bg-muted/40 text-muted-foreground hover:bg-muted p-2 rounded-sm cursor-pointer mb-2"
                 >
                   <section className="flex items-center">
                     <img
                       className="w-[20px]"
                       src="https://amoy.polygonscan.com/assets/poly/images/svg/logos/token-light.svg?v=24.7.3.0" alt=""
                     />
-                    <p className="ml-2 text-xl">MATIC</p>
+                    <p className="ml-2 text-xl text-primary">MATIC</p>
                   </section>
                   <p className="text-2xl font-medium text-warm-foreground">{formatDecimal(maticBalance)}</p>
                 </Link>
 
                 <Link
                   href={'/home/tvwt'}
-                  className="flex justify-between items-center bg-gray-50 hover:bg-gray-200 p-2 rounded-sm cursor-pointer mb-2"
+                  className="flex justify-between items-center bg-muted/40 text-muted-foreground hover:bg-muted p-2 rounded-sm cursor-pointer mb-2"
                 >
                   <section className="flex items-center">
                     <img
                       className="w-[22px]"
                       src="/logo-alone.png" alt=""
                     />
-                    <p className="ml-2 text-xl">TVWT</p>
+                    <p className="ml-2 text-xl text-primary">TVWT</p>
                   </section>
                   <p className="text-2xl font-medium text-warm-foreground">{tvwtBalance}</p>
                 </Link>

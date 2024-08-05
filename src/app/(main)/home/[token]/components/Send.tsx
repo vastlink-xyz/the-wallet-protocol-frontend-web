@@ -143,13 +143,13 @@ export function Send({
       <DialogTrigger>
         <div
           title="Send"
-          className="bg-primary rounded-full w-[48px] h-[48px] flex items-center justify-center mr-4 cursor-pointer"
+          className="bg-primary rounded-full w-[48px] h-[48px] flex items-center justify-center mr-4 cursor-pointer text-primary-foreground"
         >
-          <MoveUpRight color="#fff" onClick={() => setOpen(true)} />
+          <MoveUpRight onClick={() => setOpen(true)} />
         </div>
       </DialogTrigger>
 
-      <DialogContent className="w-[360px]">
+      <DialogContent className="w-[360px] text-primary">
         <DialogTitle>
           Send
         </DialogTitle>
@@ -157,7 +157,7 @@ export function Send({
         <form
           onSubmit={(e) => handleSend(e)}>
           <div className="mb-5">
-            <label htmlFor="to" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">To</label>
+            <label htmlFor="to" className="block mb-2 text-sm font-medium">To</label>
             <Input
               value={to}
               onChange={e => setTo(e.target.value)}
@@ -168,7 +168,7 @@ export function Send({
 
           <div className="mb-5">
             <div className="flex items-center justify-between">
-              <label htmlFor="amount" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Amount</label>
+              <label htmlFor="amount" className="block mb-2 text-sm font-medium">Amount</label>
               <p className="text-xs mb-2 text-gray-500">Balance: {formatDecimal(balance)} {symbol}</p>
             </div>
             <div className="relative">
@@ -190,12 +190,15 @@ export function Send({
           <Button
             className={cn(
               'bg-warm-flame w-full',
+              'text-white'
             )}
             disabled={!(to && amount && !sending)}
           >
             {
               sending ? (
-                <Loader className="animate-spin" size={16} />
+                <div className="text-warm">
+                  <Loader className="animate-spin" size={16} />
+                </div>
               ) : (
                 <span>Send</span>
               )
