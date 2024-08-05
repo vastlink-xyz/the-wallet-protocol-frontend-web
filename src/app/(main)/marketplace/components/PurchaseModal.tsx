@@ -83,7 +83,7 @@ export function PurchaseModal({
         }
       }}
     >
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] text-primary">
         <DialogHeader>
           <DialogTitle>Confirm Purchase</DialogTitle>
           <DialogDescription>
