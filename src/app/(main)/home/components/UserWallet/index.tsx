@@ -26,7 +26,6 @@ export function UserWallet() {
 
   const syncBalance = async () => {
     const addr = auth.all().address;
-    // const addr = '0xfee205a130850906687141bb2d1c7ff3245f1366';
     setAddress(addr)
 
     setLoading(true)

@@ -9,11 +9,6 @@ export default function HomePage() {
         <section className="flex-1">
           <UserWallet />
         </section>
-
-        <section className="flex-1">
-          {/* <RewardsGraph /> */}
-        </section>
-
         <section className="flex-1">
         </section>
       </div>
