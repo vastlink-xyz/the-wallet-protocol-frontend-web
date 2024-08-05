@@ -1,9 +1,11 @@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { PairContextType, useWalletConnectPair } from "@/providers/WalletConnectPairProvider";
-import { log } from "@/lib/utils";
+import { cn, log } from "@/lib/utils";
+
+const tip = `Clipboard access denied. To use this feature, please click the lock icon to the left of the address bar, find the 'Clipboard' option, set it to 'Allow', then refresh the page.`
 
 export function WalletConnectModal({
   onPair,
@@ -11,18 +13,73 @@ export function WalletConnectModal({
   onPair: (uri: string) => void;
 }) {
   const [uri, setUri] = useState('')
+  const [clipboardErrorTip, setClipboardErrorTip] = useState('')
   const {
     isModalOpen,
     dappInfo,
     setIsModalOpen,
   } = useWalletConnectPair() as PairContextType
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [])
+
+  const startClipboardListener = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+
+    intervalRef.current = setInterval(async () => {
+      try {
+        const clipboardText = await navigator.clipboard.readText();
+        log('clipboard', clipboardText)
+        if (clipboardText.startsWith('wc:')) {
+          // Detected WalletConnect uri, stop listening and connect
+          if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+          }
+          log('exec on pair')
+          onPair(clipboardText);
+        }
+      } catch (error) {
+        console.error('Failed to read clipboard:', error);
+      }
+    }, 1000);
+  }
+
+  const handleOpenDapp = async () => {
+    try {
+      // Checking for clipboard permission
+      const clipboardText = await navigator.clipboard.readText();
+      log('read', clipboardText)
+
+      // Clear clipboard to avoid pairing with old URI from previous sessions
+      await navigator.clipboard.writeText('');
+      log('Clipboard cleared');
+  
+      startClipboardListener();
+      window.open(dappInfo.url, '_blank')
+    } catch(err) {
+      setClipboardErrorTip(tip)
+    }
+  }
 
   return (
     <Dialog
       open={isModalOpen}
       onOpenChange={(opened) => setIsModalOpen(opened)}
     >
-      <DialogContent className="sm:max-w-[500px] text-primary">
+      <DialogContent
+        className="sm:max-w-[500px] text-primary"
+        onInteractOutside={(e) => {
+          e.preventDefault()
+        }}
+      >
         <DialogHeader>
           <DialogTitle>
             Connect Account
@@ -40,19 +97,30 @@ export function WalletConnectModal({
           <li>Look for a "Connect Wallet" or similar option</li>
           <li>Choose "WalletConnect" as the connection method</li>
           <li>Copy the provided WalletConnect URI</li>
-          <li>Paste the URI in the input field below</li>
+          <li>Return to this page - the URI will be automatically detected and processed</li>
         </ol>
 
-        <a
-          href={dappInfo.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-blue-600 hover:text-blue-800 mb-4 block cursor-pointer"
+        {
+          clipboardErrorTip ? (
+            <div className="text-destructive-foreground bg-destructive p-2 rounded">
+              { clipboardErrorTip }
+            </div>
+          ) : (
+            null
+          )
+        }
+
+        <p
+          className={cn(
+            "text-blue-600 hover:text-blue-800 mb-4 block cursor-pointer",
+            clipboardErrorTip && 'cursor-not-allowed'
+          )}
+          onClick={() => handleOpenDapp()}
         >
           Go to {dappInfo.name}
-        </a>
+        </p>
 
-        <div className="flex items-center space-x-2">
+        {/* <div className="flex items-center space-x-2">
           <Input
             type="text"
             onChange={(e) => setUri(e.target.value)}
@@ -65,7 +133,7 @@ export function WalletConnectModal({
           >
             Pair
           </Button>
-        </div>
+        </div> */}
       </DialogContent>
     </Dialog>
   )

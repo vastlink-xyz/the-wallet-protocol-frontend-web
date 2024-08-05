@@ -2,7 +2,7 @@
 
 import { log } from '@/lib/utils';
 import { IWeb3Wallet } from '@walletconnect/web3wallet';
-import React, { createContext, useState, useContext, PropsWithChildren } from 'react';
+import React, { createContext, useState, useContext, PropsWithChildren, useRef } from 'react';
 
 interface DappInfo {
   name: string;
@@ -21,6 +21,7 @@ export interface PairContextType {
 
   web3wallet: IWeb3Wallet | undefined;
   setWeb3Wallet: (w: IWeb3Wallet) => void;
+  web3walletRef: React.RefObject<IWeb3Wallet | undefined>;
 }
 
 const WalletConnectPairContext = createContext<PairContextType | undefined>(undefined);
@@ -30,6 +31,12 @@ export const WalletConnectPairProvider = ({ children }: PropsWithChildren) => {
   const [dappInfo, setDappInfo] = useState({ name: '', url: '' });
   const [isConnected, setIsConnected] = useState(false);
   const [web3wallet, setWeb3Wallet] = useState<IWeb3Wallet>();
+  const web3walletRef = useRef<IWeb3Wallet>();
+
+  const setWeb3WalletWithRef = (w: IWeb3Wallet) => {
+    setWeb3Wallet(w);
+    web3walletRef.current = w;
+  };
 
   return (
     <WalletConnectPairContext.Provider value={{
@@ -40,7 +47,8 @@ export const WalletConnectPairProvider = ({ children }: PropsWithChildren) => {
       isConnected,
       setIsConnected,
       web3wallet,
-      setWeb3Wallet,
+      setWeb3Wallet: setWeb3WalletWithRef,
+      web3walletRef,
     }}>
       {children}
     </WalletConnectPairContext.Provider>

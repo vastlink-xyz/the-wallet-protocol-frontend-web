@@ -18,7 +18,6 @@ import { WalletConnectModal } from './WalletConnectModal';
 import { PairContextType, useWalletConnectPair } from '@/providers/WalletConnectPairProvider';
 
 export function VastWalletConnect() {
-  // const [web3wallet, setWeb3Wallet] = useState<IWeb3Wallet>();
   const [address, setAddress] = useState('');
   const [wallet, setWallet] = useState<WalletClient>();
   // const [isConnected, setIsConnected] = useState<boolean>(false);
@@ -27,8 +26,10 @@ export function VastWalletConnect() {
   const [chain] = useState(sepolia);
   const [connectOpen, setConnectOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [sessionProposal, setSessionProposal] = useState<Web3WalletTypes.SessionProposal | null>(null);
   const [requestContent, setRequestContent] = useState({ method: "", message: "", topic: "", response: {} });
+
+  const [sessionProposal, setSessionProposal] = useState<Web3WalletTypes.SessionProposal | null>(null);
+  const sessionProposalRef = useRef<Web3WalletTypes.SessionProposal | null>(null);
 
   const [transferOpen, setTransferOpen] = useState(false);
   const [transferDetails, setTransferDetails] = useState<{
@@ -44,10 +45,11 @@ export function VastWalletConnect() {
     setIsConnected,
     web3wallet,
     setWeb3Wallet,
+    web3walletRef,
   } = useWalletConnectPair() as PairContextType
 
   const updateSessionStatus = useCallback(() => {
-    const activeSessions = web3wallet?.getActiveSessions();
+    const activeSessions = web3walletRef.current?.getActiveSessions();
     if (activeSessions && Object.keys(activeSessions).length > 0) {
       const currentSession = Object.values(activeSessions)[0];
       setSession(currentSession);
@@ -56,7 +58,7 @@ export function VastWalletConnect() {
       setIsConnected(false);
       setSession(undefined);
     }
-  }, [web3wallet]);
+  }, []);
 
   const onSessionRequest = useCallback(async (event: Web3WalletTypes.SessionRequest) => {
     log('event', event)
@@ -85,7 +87,9 @@ export function VastWalletConnect() {
   const onSessionProposal = useCallback(async (proposal: Web3WalletTypes.SessionProposal) => {
     log('proposal received', proposal);
     setSessionProposal(proposal);
+    sessionProposalRef.current = proposal
     setConnectOpen(true);
+    // handleApproveSession()
   }, []);
 
   const onProposalExpire = (p: any) => {
@@ -136,12 +140,12 @@ export function VastWalletConnect() {
       web3wallet.on("session_delete", onSessionDelete);
       updateSessionStatus()
     }
-  }, [web3wallet, onSessionProposal, onSessionRequest, onSessionDelete, updateSessionStatus]);
+  }, [web3wallet, onSessionRequest, onSessionDelete, updateSessionStatus]);
 
   const pair = async (uri: string) => {
+    log("pairing with uri", uri);
     if (uri) {
       try {
-        log("pairing with uri", uri);
         await web3wallet?.pair({ uri });
         setConnectOpen(true);
       } catch (e) {
@@ -151,9 +155,12 @@ export function VastWalletConnect() {
     }
   };
 
-  const handleApproveSession = async () => {
-    if (!sessionProposal || !address) return;
-    const { id, params } = sessionProposal;
+  const handleApproveSession = useCallback(async () => {
+    const { address } = auth.all()
+    if (!sessionProposalRef.current || !address) {
+      return;
+    }
+    const { id, params } = sessionProposalRef.current;
     try {
       const namespaces = {
         proposal: params,
@@ -168,7 +175,7 @@ export function VastWalletConnect() {
       };
       const approvedNamespaces = buildApprovedNamespaces(namespaces);
       setLoading(true)
-      const session = await web3wallet?.approveSession({ id, namespaces: approvedNamespaces });
+      const session = await web3walletRef.current?.approveSession({ id, namespaces: approvedNamespaces });
       setSession(session);
       setIsConnected(true)
       setConnectOpen(false);
@@ -179,7 +186,7 @@ export function VastWalletConnect() {
     } finally {
       setLoading(false)
     }
-  };
+  }, [web3wallet])
 
   const handleRejectSession = async () => {
     if (!sessionProposal) return;
@@ -314,15 +321,12 @@ export function VastWalletConnect() {
             </DialogTitle>
             <DialogDescription>
               {sessionProposal?.params.proposer.metadata.name}
-              {/* Uniswap Interface */}
             </DialogDescription>
           </DialogHeader>
 
           <div className='border mx-auto flex items-center justify-between space-x-4 rounded-full px-4 py-2'>
             <img className='w-[14px]' src={sessionProposal?.params.proposer.metadata.icons[0]} alt="" />
             <p>{sessionProposal?.params.proposer.metadata.url}</p>
-            {/* <img className='w-[14px]' src="https://app.uniswap.org/favicon.png" alt="" />
-            <p>https://app.uniswap.org/favicon.png</p> */}
           </div>
 
           <DialogFooter>
