@@ -95,7 +95,7 @@ export function WalletConnectModal({
         </DialogHeader>
 
         <p className="mb-4">
-          To pair your wallet with DApp using WalletConnect, please follow these steps:
+          To pair your wallet with the DApp using WalletConnect, please follow these steps:
         </p>
         <ol className="list-decimal list-inside mb-4">
           <li>Visit the Dapp website</li>
@@ -130,7 +130,7 @@ export function WalletConnectModal({
               )}
               onClick={() => handleOpenDapp()}
             >
-              Go to Dapps
+              Go to the Dapp
             </span>
           )
         }
