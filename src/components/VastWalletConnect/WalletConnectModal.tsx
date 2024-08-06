@@ -18,6 +18,7 @@ export function WalletConnectModal({
     isModalOpen,
     dappInfo,
     setIsModalOpen,
+    displayUriInput,
   } = useWalletConnectPair() as PairContextType
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -97,11 +98,17 @@ export function WalletConnectModal({
           To pair your wallet with DApp using WalletConnect, please follow these steps:
         </p>
         <ol className="list-decimal list-inside mb-4">
-          <li>Visit the {dappInfo.name} website</li>
+          <li>Visit the Dapp website</li>
           <li>Look for a &quot;Connect Wallet&quot; or similar option</li>
           <li>Choose &quot;WalletConnect&quot; as the connection method</li>
           <li>Copy the provided WalletConnect URI</li>
-          <li>Return to this page - the URI will be automatically detected and processed</li>
+          {
+            displayUriInput ? (
+              <li>Paste the URI in the input field below</li>
+            ) : (
+              <li>Return to this page - the URI will be automatically detected and processed</li>
+            )
+          }
         </ol>
 
         {
@@ -114,30 +121,40 @@ export function WalletConnectModal({
           )
         }
 
-        <p
-          className={cn(
-            "text-blue-600 hover:text-blue-800 mb-4 block cursor-pointer",
-            clipboardErrorTip && 'cursor-not-allowed'
-          )}
-          onClick={() => handleOpenDapp()}
-        >
-          Go to {dappInfo.name}
-        </p>
+        {
+          !displayUriInput && (
+            <span
+              className={cn(
+                "text-blue-600 hover:text-blue-800 mb-4 cursor-pointer inline-block",
+                clipboardErrorTip && 'cursor-not-allowed'
+              )}
+              onClick={() => handleOpenDapp()}
+            >
+              Go to Dapps
+            </span>
+          )
+        }
 
-        {/* <div className="flex items-center space-x-2">
-          <Input
-            type="text"
-            onChange={(e) => setUri(e.target.value)}
-            placeholder="Enter URI"
-            className="focus-visible:ring-black"
-          />
-          <Button
-            type="button"
-            onClick={() => onPair(uri)}
-          >
-            Pair
-          </Button>
-        </div> */}
+
+        {
+          displayUriInput && (
+            <div className="flex items-center space-x-2">
+              <Input
+                type="text"
+                onChange={(e) => setUri(e.target.value)}
+                placeholder="Enter URI"
+                className="focus-visible:ring-black"
+              />
+              <Button
+                type="button"
+                onClick={() => onPair(uri)}
+              >
+                Pair
+              </Button>
+            </div>
+          )
+        }
+
       </DialogContent>
     </Dialog>
   )

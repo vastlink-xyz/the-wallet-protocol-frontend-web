@@ -26,6 +26,7 @@ export function List() {
     setIsModalOpen,
     setDappInfo,
     isConnected,
+    setDisplayUriInput,
   } = useWalletConnectPair() as PairContextType
 
   useEffect(() => {
@@ -208,6 +209,7 @@ export function List() {
           name: p.name,
           url: p.serviceUrl,
         })
+        setDisplayUriInput(false)
         setIsModalOpen(true)
       }
       return

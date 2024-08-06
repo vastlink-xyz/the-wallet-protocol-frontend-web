@@ -7,6 +7,8 @@ import { House, Coins, NotebookText, Store, LucideProps } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
+import { VastWalletConnect } from "../VastWalletConnect";
+
 const iconComponents = {
   House,
   Store,
@@ -80,6 +82,10 @@ export function SideBar() {
           })
         }
     </ul>
+
+    <div className="">
+      <VastWalletConnect />
+    </div>
 
     <div className="relative md:hidden p-4 focus:outline-none focus:bg-gray-700" onClick={() => toggleSidebar()}>
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

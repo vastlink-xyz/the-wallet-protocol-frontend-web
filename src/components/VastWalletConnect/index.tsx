@@ -46,6 +46,7 @@ export function VastWalletConnect() {
     web3wallet,
     setWeb3Wallet,
     web3walletRef,
+    setDisplayUriInput,
   } = useWalletConnectPair() as PairContextType
 
   const updateSessionStatus = useCallback(() => {
@@ -283,6 +284,7 @@ export function VastWalletConnect() {
 
   const openPairModal = () => {
     log('open')
+    setDisplayUriInput(true)
     setIsModalOpen(true)
   }
 
@@ -304,7 +306,7 @@ export function VastWalletConnect() {
                 size={'sm'}
                 onClick={() => openPairModal()}
               >
-                Pair
+                Connect to Dapps
               </Button>
           )
         }

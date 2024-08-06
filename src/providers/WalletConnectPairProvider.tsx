@@ -13,6 +13,9 @@ export interface PairContextType {
   isModalOpen: boolean;
   setIsModalOpen: (isopen: boolean) => void;
 
+  displayUriInput: boolean;
+  setDisplayUriInput: (displayUriInput: boolean) => void;
+
   dappInfo: DappInfo;
   setDappInfo: (dappInfo: DappInfo) => void;
 
@@ -28,6 +31,7 @@ const WalletConnectPairContext = createContext<PairContextType | undefined>(unde
 
 export const WalletConnectPairProvider = ({ children }: PropsWithChildren) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [displayUriInput, setDisplayUriInput] = useState(false);
   const [dappInfo, setDappInfo] = useState({ name: '', url: '' });
   const [isConnected, setIsConnected] = useState(false);
   const [web3wallet, setWeb3Wallet] = useState<IWeb3Wallet>();
@@ -42,6 +46,8 @@ export const WalletConnectPairProvider = ({ children }: PropsWithChildren) => {
     <WalletConnectPairContext.Provider value={{
       isModalOpen,
       setIsModalOpen,
+      displayUriInput,
+      setDisplayUriInput,
       dappInfo,
       setDappInfo,
       isConnected,
