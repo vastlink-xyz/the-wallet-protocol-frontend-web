@@ -110,6 +110,7 @@ export function VastWalletConnect() {
     setAddress(address)
     setWallet(client)
     walletClientRef.current = client
+    log('set wallet client', client)
   }
 
   const init = async () => {
@@ -207,7 +208,7 @@ export function VastWalletConnect() {
 
   const handleConfirmTransfer = async () => {
     log('transferDetails', transferDetails, 'wallet', wallet, 'walletref', walletClientRef.current)
-    if (!transferDetails || !walletClientRef.current) {
+    if (!transferDetails) {
       return;
     }
 
