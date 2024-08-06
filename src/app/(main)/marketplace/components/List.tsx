@@ -10,6 +10,7 @@ import { Address } from "viem"
 import { Id, toast } from "react-toastify"
 import { PairContextType, useWalletConnectPair } from "@/providers/WalletConnectPairProvider"
 import { useTheme } from "next-themes"
+import { CategoryBadge } from "@/components/CategoryBadge"
 
 export function List() {
   const [products, setProducts] = useState<any[]>([])
@@ -152,6 +153,12 @@ export function List() {
         // reload data
         loadProducts()
         refreshTVWTBalance()
+
+        // The theme product automatically changes the theme after purchase
+        const p = product as any
+        if (p.integrationPoints.includes('theme')) {
+          setTheme('light')
+        }
       } else {
         toast.error(response.data.message)
       }
@@ -244,6 +251,9 @@ export function List() {
                   className="w-full relative px-4 bg-black aspect-square flex items-center justify-center"
                 >
                   <img src={p.logoUrl} className="object-cover" alt="Image" />
+                  <div className="absolute top-4 left-4">
+                    <CategoryBadge categoryType={p.category} />
+                  </div>
                 </div>
 
                 <div className="p-4 flex flex-col flex-grow">
