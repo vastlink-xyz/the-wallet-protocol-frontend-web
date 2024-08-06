@@ -20,8 +20,7 @@ import { PairContextType, useWalletConnectPair } from '@/providers/WalletConnect
 export function VastWalletConnect() {
   const [address, setAddress] = useState('');
   const [wallet, setWallet] = useState<WalletClient>();
-  // const [isConnected, setIsConnected] = useState<boolean>(false);
-  // const [uri, setUri] = useState<string>();
+  const walletClientRef = useRef<WalletClient | null>(null)
   const [session, setSession] = useState<SessionTypes.Struct>();
   const [chain] = useState(sepolia);
   const [connectOpen, setConnectOpen] = useState(false);
@@ -33,6 +32,7 @@ export function VastWalletConnect() {
 
   const [transferOpen, setTransferOpen] = useState(false);
   const [transferDetails, setTransferDetails] = useState<{
+    from: string;
     to: string;
     value: string;
     data: string;
@@ -69,6 +69,7 @@ export function VastWalletConnect() {
 
     if (request.method === 'eth_sendTransaction') {
       setTransferDetails({
+        from: transactionRequest.from,
         to: transactionRequest.to,
         value: formatEther(hexToBigInt(transactionRequest.value)),
         data: transactionRequest.data,
@@ -108,6 +109,7 @@ export function VastWalletConnect() {
     const client = await createPassportClient(authenticatedHeader, transport, chain)
     setAddress(address)
     setWallet(client)
+    walletClientRef.current = client
   }
 
   const init = async () => {
@@ -204,7 +206,8 @@ export function VastWalletConnect() {
   };
 
   const handleConfirmTransfer = async () => {
-    if (!transferDetails || !wallet) {
+    log('transferDetails', transferDetails, 'wallet', wallet, 'walletref', walletClientRef.current)
+    if (!transferDetails || !walletClientRef.current) {
       return;
     }
 
@@ -361,7 +364,7 @@ export function VastWalletConnect() {
           <div className="space-y-4">
             <div>
               <label className="font-medium">From:</label>
-              <p className="text-sm">{address}</p>
+              <p className="text-sm">{transferDetails?.from}</p>
             </div>
             <div>
               <label className="font-medium">To:</label>
