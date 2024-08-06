@@ -17,6 +17,8 @@ import {
 import { toast } from 'react-toastify'
 import { CircleCheck } from 'lucide-react'
 import { Token, TokenFactory } from '@/services/TokenService'
+import { makeAuthenticatedApiRequest } from '@/lib/utils'
+import { usePassportClientVerification } from '@/hooks/usePassportClientVerification'
 
 export function PurchaseModal({
   isOpen,
@@ -31,6 +33,7 @@ export function PurchaseModal({
 }) {
   const [isPurchasing, setIsPurchasing] = useState(false)
   const tokenRef = useRef<Token>()
+  const {verifyPassportClient} = usePassportClientVerification()
 
   useEffect(() => {
     const token = TokenFactory.getInstance().createToken('TVWT')
@@ -45,21 +48,16 @@ export function PurchaseModal({
 
     try {
       setIsPurchasing(true)
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/user/purchase`, 
-        {
+      const client = await verifyPassportClient()
+      if (!client) {
+        return
+      }
+      const response = await makeAuthenticatedApiRequest({
+        path: 'user/purchase',
+        data: {
           productId: product.id,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            "X-Encrypted-Key": `${authenticatedHeader["X-Encrypted-Key" as keyof typeof authenticatedHeader]}`,
-            "X-Scope-Id": `${authenticatedHeader["X-Scope-Id" as keyof typeof authenticatedHeader]}`,
-            "X-Encrypted-User": `${authenticatedHeader["X-Encrypted-User" as keyof typeof authenticatedHeader]}`,
-            "X-Encrypted-Session": `${authenticatedHeader["X-Encrypted-Session" as keyof typeof authenticatedHeader]}`,
-            "X-Passport-Username": `${desUsername.username}`,
-          },
         }
-      )
+      })
       log('response', response)
       if (response.data.success) {
         onClose(true)

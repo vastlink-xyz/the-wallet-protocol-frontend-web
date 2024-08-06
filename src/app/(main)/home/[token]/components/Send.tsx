@@ -21,6 +21,8 @@ import { Input } from "@/components/ui/input";
 import { toast } from "react-toastify";
 import { TokenType } from "@/types/tokens";
 import { Token, TokenFactory } from "@/services/TokenService";
+import { makeAuthenticatedApiRequest } from "@/lib/utils";
+import { usePassportClientVerification } from "@/hooks/usePassportClientVerification";
 
 export function Send({
   balance,
@@ -37,6 +39,7 @@ export function Send({
   const [open, setOpen] = useState(false)
   const [symbol, setSymbol] = useState('')
   const tokenRef = useRef<Token>()
+  const { verifyPassportClient } = usePassportClientVerification()
 
   useEffect(() => {
     const token = TokenFactory.getInstance().createToken(tokenType)
@@ -46,33 +49,23 @@ export function Send({
 
   async function signTransaction() {
     try {
-      const {
-        authenticatedHeader,
-        desUsername,
-      } = auth.all()
-
       const amt = parseEther(amount).toString()
       log('amt', amt)
 
       setSending(true)
+      const client = await verifyPassportClient()
+      if (!client) {
+        return
+      }
       const apiPath = tokenType === 'TVWT' ? `smartcontract/transferToken` : `transaction/sign`
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/${apiPath}`, 
-        {
+      const response = await makeAuthenticatedApiRequest({
+        path: apiPath,
+        data: {
           to,
           amount: amt,
           token: tokenType,
         },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            "X-Encrypted-Key": `${authenticatedHeader["X-Encrypted-Key" as keyof typeof authenticatedHeader]}`,
-            "X-Scope-Id": `${authenticatedHeader["X-Scope-Id" as keyof typeof authenticatedHeader]}`,
-            "X-Encrypted-User": `${authenticatedHeader["X-Encrypted-User" as keyof typeof authenticatedHeader]}`,
-            "X-Encrypted-Session": `${authenticatedHeader["X-Encrypted-Session" as keyof typeof authenticatedHeader]}`,
-            "X-Passport-Username": `${desUsername.username}`,
-          },
-        }
-      );
+      })
 
       const data = response.data
       log('data', data)

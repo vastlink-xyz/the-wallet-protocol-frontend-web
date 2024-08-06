@@ -17,6 +17,7 @@ import { useTransaction } from './useTransaction';
 import { WalletConnectModal } from './WalletConnectModal';
 import { PairContextType, useWalletConnectPair } from '@/providers/WalletConnectPairProvider';
 import { useRouter } from 'next/navigation';
+import { usePassportClientVerification } from '@/hooks/usePassportClientVerification';
 
 export function VastWalletConnect() {
   const router = useRouter();
@@ -51,6 +52,8 @@ export function VastWalletConnect() {
     web3walletRef,
     setDisplayUriInput,
   } = useWalletConnectPair() as PairContextType
+
+  const {verifyPassportClient} = usePassportClientVerification()
 
   const updateSessionStatus = useCallback(() => {
     const activeSessions = web3walletRef.current?.getActiveSessions();
@@ -107,19 +110,13 @@ export function VastWalletConnect() {
   }, [updateSessionStatus]);
 
   const generateAccount = async () => {
-    const { authenticatedHeader, address } = auth.all()
     const transport = http();
-    try {
-      const client = await createPassportClient(authenticatedHeader, transport, chain)
+    const client = await verifyPassportClient(chain)
+    if (client) {
       setAddress(address)
       setWallet(client)
       walletClientRef.current = client
       log('set wallet client', client)
-    } catch(error) {
-      log('error', error)
-      toast.error('Authentication Error. Please sign in again.')
-      auth.clearAllAuthData()
-      router.push('/')
     }
   }
 

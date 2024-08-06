@@ -9,11 +9,14 @@ import { createPublicClient, http } from 'viem';
 import { polygonAmoy } from 'viem/chains';
 import { TokenFactory } from '@/services/TokenService';
 import { toast } from 'react-toastify';
+import { makeAuthenticatedApiRequest } from '@/lib/utils';
+import { usePassportClientVerification } from '@/hooks/usePassportClientVerification';
 
 export default function Page() {  
   const params = useSearchParams();
   const router = useRouter();
   const [status, setStatus] = useState('pending')
+  const { verifyPassportClient } = usePassportClientVerification()
 
   useEffect(() => {
     const id = params?.get('id')
@@ -26,28 +29,18 @@ export default function Page() {
   }, [params]);
 
   async function verifyTransaction(id: string, otp: string) {
-    const {
-      authenticatedHeader,
-      desUsername,
-    } = auth.all()
-
     try {
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/transaction/verify-to-sign`, 
-        {
+      const client = await verifyPassportClient()
+      if (!client) {
+        return
+      }
+      const response = await makeAuthenticatedApiRequest({
+        path: 'transaction/verify-to-sign',
+        data: {
           transactionId: id,
           OTP: otp,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            "X-Encrypted-Key": `${authenticatedHeader["X-Encrypted-Key" as keyof typeof authenticatedHeader]}`,
-            "X-Scope-Id": `${authenticatedHeader["X-Scope-Id" as keyof typeof authenticatedHeader]}`,
-            "X-Encrypted-User": `${authenticatedHeader["X-Encrypted-User" as keyof typeof authenticatedHeader]}`,
-            "X-Encrypted-Session": `${authenticatedHeader["X-Encrypted-Session" as keyof typeof authenticatedHeader]}`,
-            "X-Passport-Username": `${desUsername.username}`,
-          },
         }
-      );
+      })
       log('res', response);
 
       const txHash = response.data.hash

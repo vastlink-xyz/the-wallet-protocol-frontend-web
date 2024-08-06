@@ -13,6 +13,7 @@ import { Address } from "viem"
 import { PairContextType, useWalletConnectPair } from "@/providers/WalletConnectPairProvider"
 import { useTheme } from "next-themes"
 import { CategoryBadge } from "@/components/CategoryBadge"
+import { makeAuthenticatedApiRequest } from "@/lib/utils"
 
 export function PurchasedList() {
   const [purchasedProducts, setPurchasedProducts] = useState<any[]>([])
@@ -80,21 +81,13 @@ export function PurchasedList() {
 
     try {
       setLoading(true)
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/user/deleteProducts`, 
-        {
+      const response = await makeAuthenticatedApiRequest({
+        path: 'user/deleteProducts',
+        data: {
           productId: product.id,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            "X-Encrypted-Key": `${authenticatedHeader["X-Encrypted-Key" as keyof typeof authenticatedHeader]}`,
-            "X-Scope-Id": `${authenticatedHeader["X-Scope-Id" as keyof typeof authenticatedHeader]}`,
-            "X-Encrypted-User": `${authenticatedHeader["X-Encrypted-User" as keyof typeof authenticatedHeader]}`,
-            "X-Encrypted-Session": `${authenticatedHeader["X-Encrypted-Session" as keyof typeof authenticatedHeader]}`,
-            "X-Passport-Username": `${desUsername.username}`,
-          },
         }
-      )
+      })
+      
       log('response', response)
       if (response.data.success) {
         toast.success(response.data.message)

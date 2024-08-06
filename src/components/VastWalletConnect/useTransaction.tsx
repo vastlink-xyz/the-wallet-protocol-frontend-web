@@ -6,11 +6,14 @@ import { toast } from 'react-toastify';
 import { CircleCheck } from 'lucide-react';
 import { Button } from '../ui/button';
 import { TokenType } from '@/types/tokens';
+import { makeAuthenticatedApiRequest } from '@/lib/utils';
+import { usePassportClientVerification } from '@/hooks/usePassportClientVerification';
 
 const tokenType: TokenType = 'ETH'
 
 export const useTransaction = () => {
   const [sending, setSending] = useState(false);
+  const { verifyPassportClient } = usePassportClientVerification()
 
   const signTransaction = async ({
     to,
@@ -22,31 +25,25 @@ export const useTransaction = () => {
     data: string;
   }) => {
     try {
-      const { authenticatedHeader, desUsername } = auth.all();
       const amt = parseEther(amount).toString();
       log('amt', amt);
 
       setSending(true);
+      const client = await verifyPassportClient()
+      if (!client) {
+        return
+      }
+
       const apiPath = `transaction/sign`;
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/${apiPath}`,
-        {
+      const response = await makeAuthenticatedApiRequest({
+        path: apiPath,
+        data: {
           to,
           amount: amt,
           data,
           token: tokenType,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            "X-Encrypted-Key": `${authenticatedHeader["X-Encrypted-Key"]}`,
-            "X-Scope-Id": `${authenticatedHeader["X-Scope-Id"]}`,
-            "X-Encrypted-User": `${authenticatedHeader["X-Encrypted-User"]}`,
-            "X-Encrypted-Session": `${authenticatedHeader["X-Encrypted-Session"]}`,
-            "X-Passport-Username": `${desUsername.username}`,
-          },
         }
-      );
+      })
 
       log('data', response.data);
       const result = response.data
