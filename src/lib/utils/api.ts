@@ -11,7 +11,7 @@ interface AuthenticatedRequestConfig {
   data: any;
 }
 
-export async function makeAuthenticatedApiRequest<T=any>({ path, data }: AuthenticatedRequestConfig): Promise<T> {
+export async function makeAuthenticatedApiRequest<T=any>({ path, data }: AuthenticatedRequestConfig): Promise<AxiosResponse<T>> {
   try {
     const { authenticatedHeader, desUsername } = auth.all();
 
