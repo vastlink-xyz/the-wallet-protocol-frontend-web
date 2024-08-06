@@ -243,7 +243,7 @@ export function List() {
                 className={cn(
                   "bg-white rounded-lg shadow-md overflow-hidden flex flex-col h-full",
                   'cursor-pointer hover:scale-105',
-                  checkPurchaseStatus(p) === 'deleted' && 'opacity-40',
+                  // checkPurchaseStatus(p) === 'deleted' && 'opacity-40',
                 )}
                 onClick={() => handleClick(p)}
               >
