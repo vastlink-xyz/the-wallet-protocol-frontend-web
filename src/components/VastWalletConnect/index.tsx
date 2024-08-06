@@ -16,8 +16,11 @@ import { Loader } from 'lucide-react';
 import { useTransaction } from './useTransaction';
 import { WalletConnectModal } from './WalletConnectModal';
 import { PairContextType, useWalletConnectPair } from '@/providers/WalletConnectPairProvider';
+import { useRouter } from 'next/navigation';
 
 export function VastWalletConnect() {
+  const router = useRouter();
+
   const [address, setAddress] = useState('');
   const [wallet, setWallet] = useState<WalletClient>();
   const walletClientRef = useRef<WalletClient | null>(null)
@@ -106,11 +109,18 @@ export function VastWalletConnect() {
   const generateAccount = async () => {
     const { authenticatedHeader, address } = auth.all()
     const transport = http();
-    const client = await createPassportClient(authenticatedHeader, transport, chain)
-    setAddress(address)
-    setWallet(client)
-    walletClientRef.current = client
-    log('set wallet client', client)
+    try {
+      const client = await createPassportClient(authenticatedHeader, transport, chain)
+      setAddress(address)
+      setWallet(client)
+      walletClientRef.current = client
+      log('set wallet client', client)
+    } catch(error) {
+      log('error', error)
+      toast.error('Authentication Error. Please sign in again.')
+      auth.clearAllAuthData()
+      router.push('/')
+    }
   }
 
   const init = async () => {
