@@ -4,9 +4,11 @@ import { Account } from "@/components/UserAccount";
 import { cn, log } from "@/lib/utils";
 import { TokenFactory } from "@/services/TokenService";
 import { TokenType } from "@/types/tokens";
-import { ArrowLeft, SquareArrowLeft } from "lucide-react";
+import { ArrowLeft, Moon, Sun } from "lucide-react";
 import { useParams, usePathname, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useTheme } from "next-themes";
+import { Switch } from "../ui/switch";
 
 const titleMapper: Record<string, string> = {
   '/home': 'Overview',
@@ -17,11 +19,19 @@ export function Header() {
   const pathname = usePathname()
   const params = useParams()
   const router = useRouter()
+  const { theme, setTheme, systemTheme } = useTheme()
+  const [checked, setChecked] = useState<boolean>()
 
   useEffect(() => {
-    log('pathname', pathname)
-    log('params', params)
-  }, [pathname])
+    if (theme) {
+      setChecked(theme === 'dark')
+    }
+  }, [])
+  
+  const onCheckChange = (checked: boolean) => {
+    setTheme(checked ? 'dark' : 'light')
+    setChecked(checked)
+  }
 
   const title = () => {
     if (pathname.startsWith('/home/')) {
@@ -52,6 +62,23 @@ export function Header() {
     "md:flex md:items-center md:justify-between md:flex-row-reverse",
   )}>
     <div className="flex items-center justify-end">
+      <div className="mr-4">
+        <Switch
+          checked={checked} 
+          onCheckedChange={onCheckChange}
+          iconChecked={(
+            <div className="text-primary">
+              <Moon className="h-3 w-3" />
+            </div>
+          )}
+          iconUnchecked={(
+            <div className="text-primary">
+              <Sun className="h-3 w-3" />
+            </div>
+          )}
+        />
+      </div>
+
       <Account />
     </div>
 
@@ -60,6 +87,5 @@ export function Header() {
         title()
       }
     </div>
-
   </header>
 }

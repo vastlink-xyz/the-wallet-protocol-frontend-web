@@ -120,6 +120,7 @@ export function List() {
           products.map((p: any) => {
             return (
               <ProductCard
+                key={p.id}
                 tab='all'
                 productItem={p}
                 purchasedProducts={purchasedProducts}

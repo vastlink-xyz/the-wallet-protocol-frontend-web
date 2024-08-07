@@ -38,8 +38,8 @@ export default function RootLayout({
               <WalletConnectPairProvider>
                 <ThemeProvider
                   attribute="class"
-                  enableSystem={false}
-                  defaultTheme="light"
+                  enableSystem={true}
+                  defaultTheme="system"
                 >
                   {children}
                 </ThemeProvider>

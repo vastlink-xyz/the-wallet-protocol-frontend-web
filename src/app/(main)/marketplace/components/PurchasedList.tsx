@@ -87,6 +87,7 @@ export function PurchasedList() {
           purchasedProducts.map((p: any) => {
             return (
               <ProductCard
+                key={p.id}
                 tab='purchased'
                 productItem={p}
                 purchasedProducts={purchasedProducts}
