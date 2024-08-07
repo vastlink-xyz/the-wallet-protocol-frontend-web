@@ -82,6 +82,7 @@ const config: Config = {
       },
       backgroundImage: {
         "warm-flame": "linear-gradient(to top left,#FF512F,#DD2476)",
+        "warm-flame-80": "linear-gradient(to top left, rgba(255,81,47,0.8), rgba(221,36,118,0.8))",
       },
     },
   },
