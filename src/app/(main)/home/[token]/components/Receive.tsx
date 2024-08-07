@@ -32,12 +32,12 @@ export function Receive({
       <DialogTrigger>
         <div
           title="Receive"
-          className="bg-warm-flame rounded-full w-[48px] h-[48px] flex items-center justify-center mr-4 cursor-pointer">
+          className="bg-brand-foreground hover:bg-brand-foreground/80 rounded-full w-[48px] h-[48px] flex items-center justify-center mr-4 cursor-pointer">
           <MoveDownLeft color="#fff" onClick={() => setOpen(true)} />
         </div>
       </DialogTrigger>
 
-      <DialogContent className="w-[360px]">
+      <DialogContent className="w-[360px] text-primary">
         <DialogTitle>
           Receive
         </DialogTitle>

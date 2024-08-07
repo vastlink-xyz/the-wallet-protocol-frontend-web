@@ -23,6 +23,7 @@ import { Token, TokenFactory } from "@/services/TokenService";
 import { TokenType } from "@/types/tokens";
 import { MoveDownLeft, MoveUpRight } from "lucide-react";
 import { CopyClipboardAddress } from "@/components/CopyClipboardAddress";
+import { Card } from "@/components/ui/card";
 
 export function RecentTransactions({
   address,
@@ -56,15 +57,15 @@ export function RecentTransactions({
   }
 
   return(
-    <div className="border rounded-md px-4 text-primary">
+    <Card className="text-primary">
       <div className="flex justify-between items-center mt-4 mb-4">
-        <span>Recent transactions</span>
-        <span className="text-gray-400 text-sm cursor-pointer">See all</span>
+        <span className="text-xl">Recent transactions</span>
+        {/* <span className="text-gray-400 text-sm cursor-pointer">See all</span> */}
       </div>
 
       <Table className="mb-4">
         <TableHeader>
-          <TableRow>
+          <TableRow className="hover:bg-transparent">
             <TableHead className=""></TableHead>
             <TableHead className="max-w-[300px]">Transaction Hash</TableHead>
             <TableHead className="">Time</TableHead>
@@ -93,7 +94,7 @@ export function RecentTransactions({
                   </TableCell>
                   <TableCell className="max-w-[300px]">
                     <p onClick={() => openTxPage(tx)} className="cursor-pointer underline">
-                      <CopyClipboardAddress address={tx.hash} iconSize={22} />
+                      <CopyClipboardAddress address={tx.hash} iconSize={28} />
                     </p>
                   </TableCell>
                   <TableCell className="font-medium">
@@ -126,22 +127,7 @@ export function RecentTransactions({
           <p className="text-gray-400">No transactions to display</p>
         </div>
       }
-
-      {/* <Tabs defaultValue="ttx" className="w-full">
-        <TabsList className="w-full">
-          <TabsTrigger value="tx" className="w-full">Transactions</TabsTrigger>
-          <TabsTrigger value="ttx" className="w-full">Token Transfers</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="tx">
-          <Transactions address={address as Address} transactions={transactions} />
-        </TabsContent>
-
-        <TabsContent value="ttx">
-          <TokenTransfers address={address as Address} tokenTransfers={tokenTransfers} />
-        </TabsContent>
-      </Tabs> */}
-    </div>
+    </Card>
   );
 }
 

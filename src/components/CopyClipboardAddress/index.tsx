@@ -10,7 +10,7 @@ interface CopyboardAddressProps {
 }
 
 export function CopyClipboardAddress({
-  iconSize=24,
+  iconSize=20,
   address,
   ...props
 }: CopyboardAddressProps) {
@@ -25,7 +25,7 @@ export function CopyClipboardAddress({
         <span {...props} style={{wordBreak: 'break-all', display: 'block'}}>
           <span className="text-primary">{address}</span>
         </span>
-        <Copy className="cursor-pointer hover:scale-105 mr-2" size={iconSize} />
+        <Copy className="cursor-pointer hover:scale-105 ml-2" size={iconSize} />
       </span>
     </CopyToClipboard>
   )

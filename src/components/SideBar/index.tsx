@@ -57,7 +57,7 @@ export function SideBar() {
         'absolute top-10 left-10 z-10 shadow-lg',
         'bg-card',
         'md:w-[240px] md:static md:scale-100 md:shadow-none md:m-4 md:flex-grow',
-        'transition transform scale-0 origin-top-left text-sm p-6 rounded-3xl',
+        'transition transform scale-0 origin-top-left text-sm p-2 rounded-3xl',
       )}
     >
       <div className="flex items-center m-4">

@@ -136,7 +136,7 @@ export function Send({
       <DialogTrigger>
         <div
           title="Send"
-          className="bg-primary rounded-full w-[48px] h-[48px] flex items-center justify-center mr-4 cursor-pointer text-primary-foreground"
+          className="bg-primary hover:bg-primary/80 rounded-full w-[48px] h-[48px] flex items-center justify-center mr-4 cursor-pointer text-primary-foreground"
         >
           <MoveUpRight onClick={() => setOpen(true)} />
         </div>

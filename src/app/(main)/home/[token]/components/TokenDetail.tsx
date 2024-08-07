@@ -12,6 +12,8 @@ import { RecentTransactions } from "./RecentTransactions";
 import { TokenType } from "@/types/tokens";
 import { TokenFactory } from "@/services/TokenService";
 import { auth, formatDecimal } from "@/lib/utils";
+import { LogoLoading } from "@/components/LogoLoading";
+import { Card } from "@/components/ui/card";
 
 export function TokenDetail({
   tokenType
@@ -46,21 +48,14 @@ export function TokenDetail({
 
   return (
     <div>
-      <div className="container mx-auto p-4">
-        <div className="flex items-center mb-4">
-          <div onClick={() => router.push('/home')} className="text-warm-foreground cursor-pointer hover:scale-105">
-            <CircleChevronLeft className="" size={28} />
-          </div>
-          <h1 className="text-2xl font-bold ml-4 text-primary">{TokenFactory.getInstance().createToken(tokenType).symbol}</h1>
-        </div>
-
-        <div className="border rounded p-4 mb-4">
+      <div className="w-full">
+        <Card className="mb-4 p-6">
           <div className="flex items-center text-primary">
             <h2 className="text-lg font-semibold flex items-center">Balance: 
               <div className="flex items-center">
                 {
                   loading ? (
-                    <Loader size={14} className="animate-spin mx-4" />
+                    <LogoLoading className="ml-6" />
                   ) : (
                     <span className="block ml-2">
                       {balance}
@@ -69,7 +64,7 @@ export function TokenDetail({
                 }
               </div>
             </h2>
-            <div title="sync" className="text-warm-foreground">
+            <div title="sync" className="text-brand-foreground">
               <RefreshCcw
                 size={16}
                 className="cursor-pointer ml-4 text-2xl hover:scale-125 hover:rotate-180 transition duration-300"
@@ -77,12 +72,13 @@ export function TokenDetail({
               />
             </div>
           </div>
+
           <div className="flex mt-4">
             <Receive address={address as Address} />
 
             <Send balance={balance} address={address as Address} tokenType={tokenType} />
           </div>
-        </div>
+        </Card>
 
         <RecentTransactions address={address as Address} tokenType={tokenType} />
       </div>

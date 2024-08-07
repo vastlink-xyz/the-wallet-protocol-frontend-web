@@ -5,13 +5,15 @@ import { Address, formatEther, http } from 'viem'
 
 import { auth, formatDecimal, log } from "@/lib/utils"
 
-import { Coins, Settings, MoveUpRight, MoveDownLeft, ArrowLeftRight, RefreshCcw, Loader } from "lucide-react"
+import { Coins, Settings, MoveUpRight, MoveDownLeft, ArrowLeftRight, RefreshCcw, Loader, SquareArrowRight } from "lucide-react"
 import { ERC20_TVWT_ABI } from "@/abis/TheVastWalletToken";
 import { polygonAmoy, sepolia } from "viem/chains";
 import Link from "next/link";
 import { toast } from "react-toastify"
 import { TokenFactory } from "@/services/TokenService"
 import { CopyClipboardAddress } from "@/components/CopyClipboardAddress"
+import { Card } from "@/components/ui/card"
+import { LogoLoading } from "@/components/LogoLoading"
 
 export function UserWallet() {
   const [address, setAddress] = useState('')
@@ -62,30 +64,30 @@ export function UserWallet() {
   }
 
   return(
-    <div className="border border-border rounded-md p-4 mb-4 bg-background">
-      <div className="flex justify-between items-start mb-4">
+    <Card className="p-6">
+      <div className="flex justify-between items-start">
         <CopyClipboardAddress address={address as Address} />
-        <div title="sync" className="text-warm-foreground ml-4">
+        <div title="sync" className="text-brand-foreground ml-4">
           <RefreshCcw
-            size={16}
-            className="cursor-pointer ml-2 mt-2 text-2xl hover:scale-125 hover:rotate-180 transition duration-300"
+            size={18}
+            className="cursor-pointer ml-2 hover:scale-125 hover:rotate-180 transition duration-300"
             onClick={() => syncBalance()}
           />
         </div>
       </div>
 
-      <div className="w-full mb-2 flex justify-between">
+      <div className="w-full mt-4 flex justify-between">
         <>
           {
             loading ? (
-              <div className="text-warm-foreground text-center w-full">
-                <Loader size={14} className="animate-spin m-auto" />
+              <div className="text-brand-foreground text-center w-full h-16 flex items-center justify-center">
+                <LogoLoading />
               </div>
             ) : (
               <div className="w-full">
                 <Link
                   href={'/home/eth'}
-                  className="flex justify-between items-center bg-muted/40 text-muted-foreground hover:bg-muted p-2 rounded-sm cursor-pointer mb-2"
+                  className="flex justify-between items-center text-muted-foreground p-4 bg-background rounded-xl cursor-pointer mb-2 hover:scale-105 hover:bg-brand"
                 >
                   <section className="flex items-center">
                     <img
@@ -94,12 +96,12 @@ export function UserWallet() {
                     />
                     <p className="ml-2 text-xl text-primary">ETH</p>
                   </section>
-                  <p className="text-2xl font-medium text-warm-foreground">{formatDecimal(ethBalance)}</p>
+                  <p className="text-2xl font-medium text-brand-foreground">{formatDecimal(ethBalance)}</p>
                 </Link>
 
                 <Link
                   href={'/home/matic'}
-                  className="flex justify-between items-center bg-muted/40 text-muted-foreground hover:bg-muted p-2 rounded-sm cursor-pointer mb-2"
+                  className="flex justify-between items-center text-muted-foreground p-4 bg-background rounded-xl cursor-pointer mb-2 hover:scale-105 hover:bg-brand"
                 >
                   <section className="flex items-center">
                     <img
@@ -108,12 +110,12 @@ export function UserWallet() {
                     />
                     <p className="ml-2 text-xl text-primary">MATIC</p>
                   </section>
-                  <p className="text-2xl font-medium text-warm-foreground">{formatDecimal(maticBalance)}</p>
+                  <p className="text-2xl font-medium text-brand-foreground">{formatDecimal(maticBalance)}</p>
                 </Link>
 
                 <Link
                   href={'/home/tvwt'}
-                  className="flex justify-between items-center bg-muted/40 text-muted-foreground hover:bg-muted p-2 rounded-sm cursor-pointer mb-2"
+                  className="flex justify-between items-center text-muted-foreground p-4 bg-background rounded-xl cursor-pointer mb-2 hover:scale-105 hover:bg-brand"
                 >
                   <section className="flex items-center">
                     <img
@@ -122,21 +124,13 @@ export function UserWallet() {
                     />
                     <p className="ml-2 text-xl text-primary">TVWT</p>
                   </section>
-                  <p className="text-2xl font-medium text-warm-foreground">{tvwtBalance}</p>
+                  <p className="text-2xl font-medium text-brand-foreground">{tvwtBalance}</p>
                 </Link>
-
               </div>
             )
           }
         </>
-        
       </div>
-
-      {/* <div className="flex items-center">
-        <div className="border border-primary rounded-full w-[48px] h-[48px] flex items-center justify-center cursor-pointer">
-          <ArrowLeftRight />
-        </div>
-      </div> */}
-    </div>
+    </Card>
   );
 }
