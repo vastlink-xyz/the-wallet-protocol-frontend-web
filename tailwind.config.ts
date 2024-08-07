@@ -52,6 +52,10 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        brand: {
+          DEFAULT: "hsl(var(--brand))",
+          foreground: "hsl(var(--brand-foreground))",
+        },
         warm: {
           DEFAULT: "hsl(var(--warm))",
           foreground: "hsl(var(--warm-foreground))",

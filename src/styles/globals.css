@@ -40,9 +40,12 @@
     --ring: 243 100% 13%;
 
     --radius: 0.5rem;
-
+/* 
     --warm: 347, 70%, 96%;
-    --warm-foreground: 349, 80%, 65%;
+    --warm-foreground: 349, 80%, 65%; */
+
+    --brand: 356.67 75% 95.29%;
+    --brand-foreground: 2.14 78.65% 65.1%;
   }
 
   .dark {
@@ -83,8 +86,10 @@
 
     --ring: 191 7% 97%;
 
-    --warm: 347, 70%, 96%;
-    --warm-foreground: 349, 80%, 65%;
+    /* --warm: 347, 70%, 96%;
+    --warm-foreground: 349, 80%, 65%; */
+    --brand: 168.26 37.7% 23.92%;
+    --brand-foreground: 174.07 43.78% 63.73%;
   }
 }
 

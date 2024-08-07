@@ -1,7 +1,7 @@
 'use client'
 
 import { Account } from "@/components/UserAccount";
-import { log } from "@/lib/utils";
+import { cn, log } from "@/lib/utils";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 
@@ -33,15 +33,19 @@ export function Header() {
     }
   }
 
-  return <header className="flex items-center justify-between px-2 md:px-6 md:py-2 w-full">
-    <div className="text-2xl font-extrabold text-card-foreground">
+  return <header className={cn(
+    "px-2 md:px-6 md:py-2 w-full",
+    "md:flex md:items-center md:justify-between md:flex-row-reverse",
+  )}>
+    <div className="flex items-center justify-end">
+      <Account />
+    </div>
+
+    <div className="text-2xl font-extrabold text-card-foreground mt-4 mx-4 md:mx-0">
       {
         title()
       }
     </div>
 
-    <div className="flex items-center">
-      <Account />
-    </div>
   </header>
 }

@@ -77,14 +77,15 @@ export function SideBar() {
                   <Link
                     href={route.href}
                     className={cn(
-                      "flex items-center my-4 text-primary",
-                      !actived && 'text-muted-foreground',
+                      "flex items-center my-2 text-muted-foreground p-4 rounded-xl",
+                      actived && 'bg-brand text-brand-foreground',
+                      'hover:scale-105'
                     )}>
                     <IconComponent
                       iconName={route.icon}
                       className="mr-2"
                       size={18}
-                      strokeWidth={actived ? 3 : 1}
+                      strokeWidth={2}
                     />
                     { route.name }
                   </Link>
