@@ -23,6 +23,7 @@ export default function MainLayout({
   const init = async () => {
     const purchasedProducts = await getPurchasedProducts()
     const themeProduct = purchasedProducts.find((p: any) => p.integrationPoints.includes('theme') && p.status === 'active')
+    // return
     if (themeProduct) {
       setTheme('dark')
     } else {
@@ -49,13 +50,13 @@ export default function MainLayout({
   }
 
   return (
-    <section className="flex flex-col flex-grow bg-background">
-      <Header />
+    <section className="flex flex-grow bg-background">
+      <SideBar />
 
-      <div className="md:flex-grow md:flex">
-        <SideBar />
+      <div className="flex-grow flex-col flex mt-12 md:mt-4 w-full">
+        <Header />
 
-        <div className="flex-grow p-6 md:border-l border-border">
+        <div className="flex-grow p-6 overflow-y-auto max-h-[calc(100vh-4rem)]">
           {children}
         </div>
       </div>

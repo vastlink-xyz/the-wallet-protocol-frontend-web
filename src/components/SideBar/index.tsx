@@ -43,48 +43,60 @@ const IconComponent: React.FC<IconComponentProps> = ({ iconName, ...props }) => 
 };
 
 export function SideBar() {
-  const menuRef = useRef<HTMLUListElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
   const pathname = usePathname()
 
   const toggleSidebar = () => {
     menuRef.current?.classList.toggle('scale-0')
   }
 
-  return <div className="relative">
-    <ul
+  return <div className="relative w-0 md:w-auto md:h-screen flex flex-grow flex-col">
+    <div
       ref={menuRef}
       className={cn(
         'absolute top-10 left-10 z-10 shadow-lg',
-        'md:w-[200px] md:static md:scale-100 md:shadow-none',
-        'transition transform scale-0 origin-top-left text-sm p-6 bg-background',
-      )}>
-        {
-          routes.map((route) => {
-            const actived = pathname.startsWith(route.href)
-            return (
-              <li key={route.name}>
-                <Link
-                  href={route.href}
-                  className={cn(
-                    "flex items-center my-4 text-primary",
-                    !actived && 'text-muted-foreground',
-                  )}>
-                  <IconComponent
-                    iconName={route.icon}
-                    className="mr-2"
-                    size={18}
-                    strokeWidth={actived ? 3 : 1}
-                  />
-                  { route.name }
-                </Link>
-              </li>
-            )
-          })
-        }
-    </ul>
+        'bg-card',
+        'md:w-[240px] md:static md:scale-100 md:shadow-none md:m-4 md:flex-grow',
+        'transition transform scale-0 origin-top-left text-sm p-6 rounded-3xl',
+      )}
+    >
+      <div className="flex items-center m-4">
+        <img src="/logo-alone.png" className="w-[48px]" alt="logo" />
+        <p className="font-extrabold hidden md:block text-primary text-xl">Vast Wallet</p>
+      </div>
 
-    <div className="">
-      <VastWalletConnect />
+      <ul
+        className={cn(
+          'm-6'
+        )}>
+          {
+            routes.map((route) => {
+              const actived = pathname.startsWith(route.href)
+              return (
+                <li key={route.name}>
+                  <Link
+                    href={route.href}
+                    className={cn(
+                      "flex items-center my-4 text-primary",
+                      !actived && 'text-muted-foreground',
+                    )}>
+                    <IconComponent
+                      iconName={route.icon}
+                      className="mr-2"
+                      size={18}
+                      strokeWidth={actived ? 3 : 1}
+                    />
+                    { route.name }
+                  </Link>
+                </li>
+              )
+            })
+          }
+      </ul>
+
+      <div className="">
+        <VastWalletConnect />
+      </div>
     </div>
 
     <div className="relative md:hidden p-4 focus:outline-none focus:bg-gray-700" onClick={() => toggleSidebar()}>

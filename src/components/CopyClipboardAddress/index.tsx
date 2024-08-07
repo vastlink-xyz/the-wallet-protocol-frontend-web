@@ -21,12 +21,12 @@ export function CopyClipboardAddress({
         hideProgressBar: true,
       })
     }}>
-      <div className="flex text-primary">
-        <div {...props} style={{wordBreak: 'break-all'}}>
+      <span className="flex text-primary">
+        <span {...props} style={{wordBreak: 'break-all', display: 'block'}}>
           <span className="text-primary">{address}</span>
-        </div>
+        </span>
         <Copy className="cursor-pointer hover:scale-105 mr-2" size={iconSize} />
-      </div>
+      </span>
     </CopyToClipboard>
   )
 }
