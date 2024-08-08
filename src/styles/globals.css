@@ -48,8 +48,7 @@
     --ink-foreground: 0, 0%, 96.47%;
 
     /* toast theme */
-    --toastify-color-dark: #22212f;
-
+    --toastify-toast-min-height: 32px;
   }
 
   .dark {

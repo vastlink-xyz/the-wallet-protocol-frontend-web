@@ -179,7 +179,7 @@ export default function AuthRegister() {
             </div>
             <Button
               type="submit"
-              className="w-full mt-2 rounded-full bg-warm-flame group-invalid:pointer-events-none group-invalid:opacity-30 text-primary"
+              className="w-full mt-2 rounded-full group-invalid:pointer-events-none group-invalid:opacity-30"
               disabled={registering || authenticating}
             >
               { submitBtnText() }

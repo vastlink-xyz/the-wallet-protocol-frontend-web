@@ -1,17 +1,13 @@
 'use client';
 
 import { log } from "@/lib/utils";
-import { useTheme } from "next-themes";
-import { useEffect } from "react";
 import { Flip, Zoom, Bounce, ToastContainer } from 'react-toastify';
 
 export default function ThemeAwareToastContainer() {
-  const { theme, systemTheme } = useTheme();
-
   return (
     <ToastContainer
       position="top-center"
-      autoClose={8000}
+      autoClose={5000}
       hideProgressBar={true}
       newestOnTop={false}
       closeOnClick={false}
@@ -19,8 +15,10 @@ export default function ThemeAwareToastContainer() {
       pauseOnFocusLoss
       draggable={false}
       pauseOnHover
-      theme={theme as "light" | "dark"}
+      // theme={currentTheme() as "light" | "dark"}
+      theme={'light'}
       transition={Zoom}
+      style={{width: 'auto', maxWidth: '400px'}}
     />
   );
 }
