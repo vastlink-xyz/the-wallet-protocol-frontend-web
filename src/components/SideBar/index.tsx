@@ -8,6 +8,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 
 import { VastWalletConnect } from "../VastWalletConnect";
+import { useTheme } from "next-themes"
 
 const iconComponents = {
   House,
@@ -45,9 +46,18 @@ const IconComponent: React.FC<IconComponentProps> = ({ iconName, ...props }) => 
 export function SideBar() {
   const menuRef = useRef<HTMLDivElement>(null)
   const pathname = usePathname()
+  const { theme } = useTheme()
 
   const toggleSidebar = () => {
     menuRef.current?.classList.toggle('scale-0')
+  }
+
+  const themeLogo = () => {
+    let path = '/logo-alone.png'
+    if (theme === 'dark') {
+      path = '/logo-alone-dark.png'
+    }
+    return path
   }
 
   return <div className="relative w-0 md:w-auto md:h-screen flex flex-grow flex-col">
@@ -60,8 +70,8 @@ export function SideBar() {
         'transition transform scale-0 origin-top-left text-sm p-2 rounded-3xl',
       )}
     >
-      <div className="flex items-center m-4">
-        <img src="/logo-alone.png" className="w-[48px]" alt="logo" />
+      <div className="flex items-center justify-center m-6">
+        <img src={themeLogo()} className="w-[32px] mr-2" alt="logo" />
         <p className="font-extrabold hidden md:block text-primary text-xl">Vast Wallet</p>
       </div>
 
