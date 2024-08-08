@@ -52,21 +52,25 @@ export default function AuthRegister() {
 
   async function preRegister() {
     log('call register')
-    setRegistering(true)
-    const response = await axios.post(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/auth/generate-otp`, 
-      {
-        email: username,
-      }
-    );
-    log('register res', response);
-    if (response.status === 200) {
-      toast.info(
-        `Please check your email inbox. We've sent you a confirmation email. Click the link in the email to complete your registration.`,
+    try {
+      setRegistering(true)
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/auth/generate-otp`, 
         {
-          autoClose: 10000,
+          email: username,
         }
-      )
-      setRegistering(false);
+      );
+      log('register res', response);
+      if (response.status === 200) {
+        toast.info(
+          `Please check your email inbox. We've sent you a confirmation email. Click the link in the email to complete your registration.`,
+          {
+            autoClose: 10000,
+          }
+        )
+        setRegistering(false);
+      }
+    } catch(error) {
+      toast.error((error as any).message)
     }
   }
 
