@@ -17,7 +17,7 @@ export default function MainLayout({
   const { setTheme } = useTheme()
 
   useEffect(() => {
-    init()
+    // init()
   }, [])
 
   const init = async () => {

@@ -18,6 +18,7 @@ import { WalletConnectModal } from './WalletConnectModal';
 import { PairContextType, useWalletConnectPair } from '@/providers/WalletConnectPairProvider';
 import { useRouter } from 'next/navigation';
 import { usePassportClientVerification } from '@/hooks/usePassportClientVerification';
+import { LogoLoading } from '../LogoLoading';
 
 export function VastWalletConnect() {
   const router = useRouter();
@@ -192,6 +193,7 @@ export function VastWalletConnect() {
       setConnectOpen(false);
       setIsModalOpen(false)
       setSessionProposal(null);
+      toast.success('Connected successfully.')
     } catch (error) {
       console.error("Error approving session:", error);
     } finally {
@@ -348,7 +350,7 @@ export function VastWalletConnect() {
             </Button>
             <Button onClick={handleApproveSession}>
               {loading ? (
-                <Loader size={14} className="animate-spin m-auto" />
+                <LogoLoading />
               ) : (
                 'Approve'
               )}
@@ -394,7 +396,7 @@ export function VastWalletConnect() {
             </Button>
             <Button onClick={handleConfirmTransfer} disabled={loading}>
               {loading ? (
-                <Loader size={14} className="animate-spin m-auto" />
+                <LogoLoading />
               ) : (
                 'Confirm'
               )}

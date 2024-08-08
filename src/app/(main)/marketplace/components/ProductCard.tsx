@@ -40,7 +40,7 @@ export function ProductCard({
 
   const statusBadge = (status: string) => {
     if (status === 'active') {
-      return <Badge className="bg-green-400 h-8 text-white">Actived</Badge>
+      return <Badge className="bg-green-400 hover:bg-green-400 h-8 text-white">Actived</Badge>
     }
     return <Badge variant={'destructive'} className="h-8 text-white">Deleted</Badge>
   }
@@ -178,13 +178,13 @@ export function ProductCard({
         {/* product name */}
         {
           tab === 'all' && (
-            <h2 className="font-bold text-lg mb-2">{p.name}</h2>
+            <h2 className="font-bold text-lg mb-2 w-fit cursor-pointer hover:underline" onClick={() => handleClick(p)}>{p.name}</h2>
           )
         }
         {
           tab === 'purchased' && (
             <div className="flex justify-between">
-              <h2 className="font-bold text-lg mb-2">{p.name}</h2>
+              <h2 className="font-bold text-lg mb-2 w-fit cursor-pointer hover:underline" onClick={() => handleClick(p)}>{p.name}</h2>
               {statusBadge(p.status)}
             </div>
           )

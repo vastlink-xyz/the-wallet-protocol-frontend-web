@@ -26,8 +26,10 @@ export function List() {
   }, [])
 
   const onReloadData = async () => {
-    loadProducts()
-    refreshTVWTBalance()
+    await Promise.all([
+      loadProducts(),
+      refreshTVWTBalance(),
+    ])
   }
 
   const loadProducts = async () => {
@@ -116,7 +118,7 @@ export function List() {
       {/* <h1 className="text-3xl font-bold mb-8">Marketplace</h1> */}
 
       <div className="grid grid-flow-row gap-8 grid-cols-[repeat(auto-fit,minmax(320px,1fr))]">
-      {
+        {
           products.map((p: any) => {
             return (
               <ProductCard
