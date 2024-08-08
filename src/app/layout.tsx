@@ -8,10 +8,10 @@ import ProgressBarProvider from "@/providers/ProgressBarProvider";
 import {NextIntlClientProvider} from 'next-intl';
 import {getLocale, getMessages} from 'next-intl/server';
 
-import { Flip, ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { WalletConnectPairProvider } from "@/providers/WalletConnectPairProvider";
 import { ThemeProvider } from "@/providers/ThemeProvider"
+import ThemeAwareToastContainer from "@/components/ThemeAwareToastContainer";
 
 const inter = Inter({
   subsets: ["latin"]
@@ -50,6 +50,7 @@ export default async function RootLayout({
                   defaultTheme="system"
                 >
                   {children}
+                  <ThemeAwareToastContainer />
                 </ThemeProvider>
               </WalletConnectPairProvider>
             </ProgressBarProvider>
@@ -57,19 +58,6 @@ export default async function RootLayout({
           </Suspense>
         </main>
 
-        <ToastContainer
-          position="top-center"
-          autoClose={5000}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable={false}
-          pauseOnHover
-          theme="colored"
-          transition={Flip}
-        />
       </body>
     </html>
   );

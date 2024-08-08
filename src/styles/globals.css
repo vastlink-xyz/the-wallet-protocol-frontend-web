@@ -46,6 +46,10 @@
 
     --ink: 243 10% 0.52%;
     --ink-foreground: 0, 0%, 96.47%;
+
+    /* toast theme */
+    --toastify-color-dark: #22212f;
+
   }
 
   .dark {

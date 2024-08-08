@@ -43,17 +43,6 @@ export function Receive({
         </DialogTitle>
 
         <div className="flex items-center justify-between w-full my-6">
-          {/* <p className="break-all mr-2">{address}</p>
-          <CopyToClipboard text={address} onCopy={() => {
-            toast.success('Copy success!', {
-              autoClose: 1000,
-              hideProgressBar: true,
-            })
-          }}>
-            <div className="">
-              <Copy className="cursor-pointer" size={14} />
-            </div>
-          </CopyToClipboard> */}
           <CopyClipboardAddress address={address} />
         </div>
 
