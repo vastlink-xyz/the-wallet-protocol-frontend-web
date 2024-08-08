@@ -11,6 +11,7 @@ import { TokenFactory } from '@/services/TokenService';
 import { toast } from 'react-toastify';
 import { makeAuthenticatedApiRequest } from '@/lib/utils';
 import { usePassportClientVerification } from '@/hooks/usePassportClientVerification';
+import { LogoLoading } from '@/components/LogoLoading';
 
 export default function Page() {  
   const params = useSearchParams();
@@ -71,7 +72,9 @@ export default function Page() {
 
   const transactionStatus = () => {
     if (status === 'pending') {
-      return <div>Transaction is waiting for confirmation...</div>
+      return <div>
+        <LogoLoading />
+      </div>
     } else if (status === 'success') {
       return <div>Transaction confirmed, redirecting to the homepage...</div>
     } else {

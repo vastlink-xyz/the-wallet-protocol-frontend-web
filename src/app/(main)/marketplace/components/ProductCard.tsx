@@ -10,6 +10,7 @@ import { PairContextType, useWalletConnectPair } from "@/providers/WalletConnect
 import { useTheme } from "next-themes"
 import { CategoryBadge } from "@/components/CategoryBadge"
 import { makeAuthenticatedApiRequest } from "@/lib/utils"
+import { LogoLoading } from "@/components/LogoLoading";
 
 export function ProductCard({
   productItem,
@@ -35,7 +36,7 @@ export function ProductCard({
   const [product, setProduct] = useState({})
   const toastId = useRef<Id>();
   const [loading, setLoading] = useState(false)
-  const { setTheme } = useTheme()
+  const { setTheme, theme } = useTheme()
 
   const statusBadge = (status: string) => {
     if (status === 'active') {
@@ -79,35 +80,40 @@ export function ProductCard({
   const handleDelete = (event: any, product: any) => {
     event.stopPropagation()
     toastId.current = toast(
-      <div className="w-full">
+      <div className="w-full text-primary">
         <h2 className="text-lg font-semibold">Confirm Deletion</h2>
         <p className="mt-2">Are you sure you want to delete this item?</p>
         <div className="mt-4 flex justify-end">
-          <button 
-            className="mr-2 px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400" 
+          <Button 
+            className="mr-2 px-4 py-2" 
+            variant={'ghost'}
             onClick={() => {
               toast.dismiss(toastId.current)
             }}
           >
             Cancel
-          </button>
-          <button 
-            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700" 
+          </Button>
+          <Button 
+            className="px-4 py-2" 
+            variant={'destructive'}
             onClick={() => onDelete(product)}
             disabled={loading}
           >
             {
               loading ? (
-                'Deleting...'
+                <LogoLoading />
               ) : (
                 'Delete'
               )
             }
-          </button>
+          </Button>
         </div>
       </div>,
       {
         closeOnClick: false,
+        autoClose: false,
+        theme: theme,
+        className: 'bg-card !important',
       }
     )
   }

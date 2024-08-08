@@ -23,6 +23,7 @@ import { TokenType } from "@/types/tokens";
 import { Token, TokenFactory } from "@/services/TokenService";
 import { makeAuthenticatedApiRequest } from "@/lib/utils";
 import { usePassportClientVerification } from "@/hooks/usePassportClientVerification";
+import { LogoLoading } from "@/components/LogoLoading";
 
 export function Send({
   balance,
@@ -57,6 +58,7 @@ export function Send({
       if (!client) {
         return
       }
+
       const apiPath = tokenType === 'TVWT' ? `smartcontract/transferToken` : `transaction/sign`
       const response = await makeAuthenticatedApiRequest({
         path: apiPath,
@@ -80,7 +82,6 @@ export function Send({
         setOpen(false)
       }
     } catch (error) {
-      console.error(error);
       const res = (error as any).response
       if (res && res.data) {
         toast.error(res.data)
@@ -143,7 +144,7 @@ export function Send({
       </DialogTrigger>
 
       <DialogContent className="w-[360px] text-primary">
-        <DialogTitle>
+        <DialogTitle className="mb-4">
           Send
         </DialogTitle>
 
@@ -182,15 +183,14 @@ export function Send({
 
           <Button
             className={cn(
-              'bg-warm-flame w-full',
-              'text-white'
+              'w-full',
             )}
             disabled={!(to && amount && !sending)}
           >
             {
               sending ? (
                 <div className="text-warm">
-                  <Loader className="animate-spin" size={16} />
+                  <LogoLoading />
                 </div>
               ) : (
                 <span>Send</span>

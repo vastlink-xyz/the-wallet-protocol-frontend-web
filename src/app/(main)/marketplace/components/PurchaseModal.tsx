@@ -19,6 +19,7 @@ import { CircleCheck } from 'lucide-react'
 import { Token, TokenFactory } from '@/services/TokenService'
 import { makeAuthenticatedApiRequest } from '@/lib/utils'
 import { usePassportClientVerification } from '@/hooks/usePassportClientVerification'
+import { LogoLoading } from '@/components/LogoLoading'
 
 export function PurchaseModal({
   isOpen,
@@ -66,7 +67,7 @@ export function PurchaseModal({
         toast.error(response.data.message)
       }
     } catch(err) {
-      toast.error((err as Error).message)
+      toast.error((err as any).response.data)
     } finally {
       setIsPurchasing(false)
     }
@@ -116,7 +117,7 @@ export function PurchaseModal({
           >
             {
               isPurchasing ? (
-                'Processing...'
+                <LogoLoading />
               ) : (
                 'Confirm'
               )
