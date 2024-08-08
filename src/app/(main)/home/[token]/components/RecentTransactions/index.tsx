@@ -7,8 +7,6 @@ import { Address, formatEther } from "viem";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 import { auth, formatDecimal, log, truncateMiddle } from "@/lib/utils";
-import { Transactions } from "./Transactions";
-import { TokenTransfers } from "./TokenTransactions";
 
 import {
   Table,
@@ -86,7 +84,7 @@ export function RecentTransactions({
                           <MoveUpRight size={14} />
                         </div>
                       ) : (
-                        <div className="bg-warm-flame rounded-full w-[32px] h-[32px] flex items-center justify-center">
+                        <div className="bg-brand-foreground rounded-full w-[32px] h-[32px] flex items-center justify-center">
                           <MoveDownLeft size={14} color="#fff" />
                         </div>
                       )

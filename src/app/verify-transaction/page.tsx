@@ -83,7 +83,7 @@ export default function Page() {
   }
 
   return (
-    <div className='m-auto text-warm-foreground'> 
+    <div className='m-auto text-brand-foreground'> 
       {
         transactionStatus()
       }

@@ -103,7 +103,7 @@ export function Send({
             <p className="flex items-center">
               Transaction submitted, 
               <Button
-                className="text-warm-foreground"
+                className="text-brand-foreground"
                 variant={'link'}
                 size={'sm'}
                 onClick={() => {
@@ -175,7 +175,7 @@ export function Send({
                 required
               />
               <p
-                className="absolute end-2.5 bottom-2.5 cursor-pointer text-warm-foreground"
+                className="absolute end-2.5 bottom-2.5 cursor-pointer text-brand-foreground"
                 onClick={() => handleClickMax()}
               >Max</p>
             </div>
@@ -189,7 +189,7 @@ export function Send({
           >
             {
               sending ? (
-                <div className="text-warm">
+                <div className="">
                   <LogoLoading />
                 </div>
               ) : (

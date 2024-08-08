@@ -97,14 +97,14 @@ export function PurchaseModal({
           <div className='flex items-center mb-2'>
             <p className='text-sm opacity-85 w-[80px]'>Price:</p>
             <p className='ml-2'>
-              <span className='text-warm-foreground'>{product.price}</span>
+              <span className='text-brand-foreground'>{product.price}</span>
               <span className='text-xs inline-block ml-2'>TVWT</span>
             </p>
           </div>
           <div className='flex items-center'>
             <p className='text-sm opacity-85 w-[80px]'>Balance:</p>
             <p className='ml-2'>
-              <span className='text-warm-foreground'>{balance}</span>
+              <span className='text-brand-foreground'>{balance}</span>
               <span className='text-xs inline-block ml-2'>TVWT</span>
             </p>
           </div>

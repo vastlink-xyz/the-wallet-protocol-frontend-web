@@ -60,10 +60,6 @@ const config: Config = {
           DEFAULT: "hsl(var(--ink))",
           foreground: "hsl(var(--ink-foreground))",
         },
-        warm: {
-          DEFAULT: "hsl(var(--warm))",
-          foreground: "hsl(var(--warm-foreground))",
-        },
       },
       borderRadius: {
         lg: "var(--radius)",

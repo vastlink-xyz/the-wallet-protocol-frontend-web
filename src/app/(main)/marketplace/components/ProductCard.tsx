@@ -199,7 +199,7 @@ export function ProductCard({
             <div className="flex items-center justify-start mb-4">
               <p className="text-gray-600 text-sm font-medium mr-2">Price: </p>
               <p className="text-brand-foreground">
-                <span className="text-lg font-extrabold text-warm-foreground inline-block mr-[4px]">{p.price}</span>
+                <span className="text-lg font-extrabold text-brand-foreground inline-block mr-[4px]">{p.price}</span>
                 <span className="font-medium text-sm">TVWT</span>
               </p>
             </div>

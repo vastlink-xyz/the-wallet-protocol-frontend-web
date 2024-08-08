@@ -95,7 +95,7 @@ export const useTransaction = () => {
           <p className="flex items-center">
             Transaction submitted,
             <Button
-              className="text-warm-foreground"
+              className="text-brand-foreground"
               variant={'link'}
               size={'sm'}
               onClick={() => openTxPage(txHash)}
