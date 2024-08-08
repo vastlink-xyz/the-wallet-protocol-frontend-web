@@ -5,15 +5,14 @@ import { Address, formatEther, http } from 'viem'
 
 import { auth, formatDecimal, log } from "@/lib/utils"
 
-import { Coins, Settings, MoveUpRight, MoveDownLeft, ArrowLeftRight, RefreshCcw, Loader, SquareArrowRight } from "lucide-react"
-import { ERC20_TVWT_ABI } from "@/abis/TheVastWalletToken";
-import { polygonAmoy, sepolia } from "viem/chains";
+import { RefreshCcw } from "lucide-react"
 import Link from "next/link";
 import { toast } from "react-toastify"
 import { TokenFactory } from "@/services/TokenService"
 import { CopyClipboardAddress } from "@/components/CopyClipboardAddress"
 import { Card } from "@/components/ui/card"
 import { LogoLoading } from "@/components/LogoLoading"
+import { useThemeLogoPath } from "@/hooks/useThemeLogoPath"
 
 export function UserWallet() {
   const [address, setAddress] = useState('')
@@ -21,6 +20,7 @@ export function UserWallet() {
   const [ethBalance, setEthBalance] = useState('')
   const [tvwtBalance, setTvwtBalance] = useState('')
   const [loading, setLoading] = useState(false)
+  const { logoPath } = useThemeLogoPath()
 
   useEffect(() => {
     syncBalance()
@@ -119,8 +119,8 @@ export function UserWallet() {
                 >
                   <section className="flex items-center">
                     <img
-                      className="w-[22px]"
-                      src="/logo-alone.png" alt=""
+                      className="w-[20px]"
+                      src={logoPath} alt=""
                     />
                     <p className="ml-2 text-xl text-primary">TVWT</p>
                   </section>

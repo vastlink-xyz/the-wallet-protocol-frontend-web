@@ -15,9 +15,8 @@ import {
 import { MoveDownLeft, Copy, CopyCheck } from "lucide-react"
 
 import QRCode from 'react-qr-code'
-import {CopyToClipboard} from 'react-copy-to-clipboard';
-import { toast } from "react-toastify"
 import { CopyClipboardAddress } from "@/components/CopyClipboardAddress"
+import { useTheme } from "next-themes"
 
 export function Receive({
   address,
@@ -26,6 +25,7 @@ export function Receive({
 }) {
   const [open, setOpen] = useState(false)
   const [copied, setCopied] = useState(false)
+  const { theme } = useTheme()
 
   return(
     <Dialog open={open} onOpenChange={setOpen}>
@@ -48,7 +48,8 @@ export function Receive({
 
         <div className="w-full">
           <QRCode
-            fgColor="#ed607b"
+            fgColor="#7bcdc6"
+            bgColor={theme === 'light' ? '#fff' : '#000'}
             value={address}
             style={{width: '100%'}}
             size={320}
