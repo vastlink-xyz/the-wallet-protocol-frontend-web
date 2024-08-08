@@ -56,6 +56,10 @@ const config: Config = {
           DEFAULT: "hsl(var(--brand))",
           foreground: "hsl(var(--brand-foreground))",
         },
+        ink: {
+          DEFAULT: "hsl(var(--ink))",
+          foreground: "hsl(var(--ink-foreground))",
+        },
         warm: {
           DEFAULT: "hsl(var(--warm))",
           foreground: "hsl(var(--warm-foreground))",

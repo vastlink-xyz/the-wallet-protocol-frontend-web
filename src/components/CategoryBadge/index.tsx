@@ -15,7 +15,7 @@ interface CategoryBadgeProps {
 export function CategoryBadge({ categoryType }: CategoryBadgeProps) {
   return (
     <div 
-      className="text-white rounded-full px-2 py-1 text-sm"
+      className="text-white rounded-full px-4 py-1 text-sm"
       style={{ backgroundColor: CategoryColors[categoryType] }}
     >
       {categoryType}

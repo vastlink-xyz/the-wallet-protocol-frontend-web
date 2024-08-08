@@ -39,9 +39,9 @@ export function ProductCard({
 
   const statusBadge = (status: string) => {
     if (status === 'active') {
-      return <Badge className="bg-green-400 h-8">Actived</Badge>
+      return <Badge className="bg-green-400 h-8 text-white">Actived</Badge>
     }
-    return <Badge variant={'destructive'} className="h-8">Deleted</Badge>
+    return <Badge variant={'destructive'} className="h-8 text-white">Deleted</Badge>
   }
 
   const checkPurchaseStatus = (product: any) => {
@@ -148,17 +148,21 @@ export function ProductCard({
     <div
       key={p.id}
       className={cn(
-        "bg-white rounded-lg shadow-md overflow-hidden flex flex-col h-full",
-        'cursor-pointer hover:scale-105',
+        "bg-white rounded-lg shadow-md shadow-card overflow-hidden flex flex-col h-full",
         tab === 'purchased' && checkPurchaseStatus(p) === 'deleted' ? 'opacity-40' : '',
       )}
-      onClick={() => handleClick(p)}
-    >
+      >
       {/* image part */}
       <div
-        className="w-full relative px-4 bg-black aspect-square flex items-center justify-center"
+        className={cn(
+          "w-full relative px-4 aspect-square flex items-center justify-center cursor-pointer group",
+          // 'bg-[linear-gradient(135deg,rgb(128,128,128)_0%,rgb(64,64,64)_50%,rgb(10,10,10)_100%)]'
+          // 'bg-black/90',
+          'bg-[#22212f]'
+        )}
+        onClick={() => handleClick(p)}
       >
-        <img src={p.logoUrl} className="object-cover" alt="Image" />
+        <img src={p.logoUrl} className="object-cover transition-transform duration-700 group-hover:scale-110" alt="Image" />
         <div className="absolute top-4 left-4">
           <CategoryBadge categoryType={p.category} />
         </div>
@@ -188,9 +192,9 @@ export function ProductCard({
           tab === 'all' && (
             <div className="flex items-center justify-start mb-4">
               <p className="text-gray-600 text-sm font-medium mr-2">Price: </p>
-              <p className="">
-                <span className="text-lg font-bold text-warm-foreground inline-block mr-[4px]">{p.price}</span>
-                <span className="text-gray-600 font-medium text-sm">TVWT</span>
+              <p className="text-brand-foreground">
+                <span className="text-lg font-extrabold text-warm-foreground inline-block mr-[4px]">{p.price}</span>
+                <span className="font-medium text-sm">TVWT</span>
               </p>
             </div>
           )
@@ -219,7 +223,7 @@ export function ProductCard({
         <div className="flex justify-between items-center space-x-2 mt-auto">
           <Button
             className={cn(
-              "w-full bg-warm-flame hover:bg-warm-flame-80",
+              "w-full bg-ink text-ink-foreground hover:bg-ink/80",
             )}
             onClick={(e) => handleOpenModal(e, p)}
             disabled={checkPurchaseStatus(p) === 'active'}
