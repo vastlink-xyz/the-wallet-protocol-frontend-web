@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Address, formatEther, http } from 'viem'
+import { useTranslations } from 'next-intl'
 
 import { auth, formatDecimal, log } from "@/lib/utils"
 
@@ -21,6 +22,7 @@ export function UserWallet() {
   const [tvwtBalance, setTvwtBalance] = useState('')
   const [loading, setLoading] = useState(false)
   const { logoPath } = useThemeLogoPath()
+  const t = useTranslations('/home.userWallet')
 
   useEffect(() => {
     syncBalance()
@@ -67,7 +69,7 @@ export function UserWallet() {
     <Card className="p-6">
       <div className="flex justify-between items-start">
         <CopyClipboardAddress address={address as Address} />
-        <div title="sync" className="text-brand-foreground ml-4">
+        <div title={t('syncTitle')} className="text-brand-foreground ml-4">
           <RefreshCcw
             size={18}
             className="cursor-pointer ml-2 hover:scale-125 hover:rotate-180 transition duration-300"

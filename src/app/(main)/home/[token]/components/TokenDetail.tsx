@@ -14,6 +14,7 @@ import { TokenFactory } from "@/services/TokenService";
 import { auth, formatDecimal } from "@/lib/utils";
 import { LogoLoading } from "@/components/LogoLoading";
 import { Card } from "@/components/ui/card";
+import { useTranslations } from "next-intl";
 
 export function TokenDetail({
   tokenType
@@ -24,6 +25,7 @@ export function TokenDetail({
   const [balance, setBalance] = useState('')
   const [address, setAddress] = useState('')
   const [loading, setLoading] = useState(false)
+  const t = useTranslations('/home.[token]')
 
   useEffect(() => {
     init()
@@ -51,7 +53,7 @@ export function TokenDetail({
       <div className="w-full">
         <Card className="mb-4 p-6">
           <div className="flex items-center text-primary">
-            <h2 className="text-lg font-semibold flex items-center">Balance: 
+            <h2 className="text-lg font-semibold flex items-center">{t('balance')}: 
               <div className="flex items-center">
                 {
                   loading ? (

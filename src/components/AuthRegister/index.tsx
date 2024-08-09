@@ -146,7 +146,7 @@ export default function AuthRegister() {
   const submitBtnText = () => {
     if (authenticateSetup) {
       if (authenticating) {
-        return 'Authenticating...';
+        return t('authenticating');
       }
       return t('signInButton')
     } else {

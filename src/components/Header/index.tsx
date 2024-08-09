@@ -10,11 +10,7 @@ import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { Switch } from "../ui/switch";
 import { LanguageSwitch } from "./LanguageSwitch";
-
-const titleMapper: Record<string, string> = {
-  '/home': 'Overview',
-  '/marketplace': 'Marketplace',
-};
+import { useTranslations } from "next-intl";
 
 export function Header() {
   const pathname = usePathname()
@@ -22,6 +18,12 @@ export function Header() {
   const router = useRouter()
   const { theme, setTheme, systemTheme } = useTheme()
   const [checked, setChecked] = useState<boolean>()
+  const t = useTranslations('header')
+
+  const titleMapper: Record<string, string> = {
+    '/home': t('overview'),
+    '/marketplace': t('marketplace'),
+  };
 
   useEffect(() => {
     if (theme) {

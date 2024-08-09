@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from "react"
+import { useTranslations } from 'next-intl'
 import axios from "axios";
 import { Address, formatEther } from "viem";
 
@@ -32,6 +33,7 @@ export function RecentTransactions({
 }) {
   const [transactions, setTransactions] = useState<any>([])
   const tokenRef = useRef<Token>()
+  const t = useTranslations('/home.[token].recentTransactions')
 
   useEffect(() => {
     if (address) {
@@ -57,19 +59,19 @@ export function RecentTransactions({
   return(
     <Card className="text-primary">
       <div className="flex justify-between items-center mt-4 mb-4">
-        <span className="text-xl">Recent transactions</span>
-        {/* <span className="text-gray-400 text-sm cursor-pointer">See all</span> */}
+        <span className="text-xl">{t('title')}</span>
+        {/* <span className="text-gray-400 text-sm cursor-pointer">{t('seeAll')}</span> */}
       </div>
 
       <Table className="mb-4">
         <TableHeader>
           <TableRow className="hover:bg-transparent">
             <TableHead className=""></TableHead>
-            <TableHead className="max-w-[300px]">Transaction Hash</TableHead>
-            <TableHead className="">Time</TableHead>
-            <TableHead className="max-w-[180px]">From</TableHead>
-            <TableHead className="max-w-[180px]">To</TableHead>
-            <TableHead className="text-right">Amount</TableHead>
+            <TableHead className="max-w-[300px]">{t('table.transactionHash')}</TableHead>
+            <TableHead className="">{t('table.time')}</TableHead>
+            <TableHead className="max-w-[180px]">{t('table.from')}</TableHead>
+            <TableHead className="max-w-[180px]">{t('table.to')}</TableHead>
+            <TableHead className="text-right">{t('table.amount')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -122,10 +124,9 @@ export function RecentTransactions({
 
       {
         transactions.length === 0 && <div className="flex items-center justify-center py-8">
-          <p className="text-gray-400">No transactions to display</p>
+          <p className="text-gray-400">{t('noTransactions')}</p>
         </div>
       }
     </Card>
   );
 }
-

@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { auth, cn, log } from "@/lib/utils"
@@ -25,6 +26,8 @@ export function ProductCard({
   handleOpenModal: (event: any, product: any) => void;
   tab: 'all' | 'purchased';
 }) {
+  const t = useTranslations('/marketplace.productCard');
+
   const p = productItem
   const {
     setIsModalOpen,
@@ -40,9 +43,9 @@ export function ProductCard({
 
   const statusBadge = (status: string) => {
     if (status === 'active') {
-      return <Badge className="bg-green-400 hover:bg-green-400 h-8 text-white">Actived</Badge>
+      return <Badge className="bg-green-400 hover:bg-green-400 h-8 text-white">{t('status.active')}</Badge>
     }
-    return <Badge variant={'destructive'} className="h-8 text-white">Deleted</Badge>
+    return <Badge variant={'destructive'} className="h-8 text-white">{t('status.deleted')}</Badge>
   }
 
   const checkPurchaseStatus = (product: any) => {
@@ -81,8 +84,8 @@ export function ProductCard({
     event.stopPropagation()
     toastId.current = toast(
       <div className="w-full text-primary">
-        <h2 className="text-lg font-semibold">Confirm Deletion</h2>
-        <p className="mt-2">Are you sure you want to delete this item?</p>
+        <h2 className="text-lg font-semibold">{t('deleteConfirmation.title')}</h2>
+        <p className="mt-2">{t('deleteConfirmation.message')}</p>
         <div className="mt-4 flex justify-end">
           <Button 
             className="mr-2 px-4 py-2" 
@@ -91,7 +94,7 @@ export function ProductCard({
               toast.dismiss(toastId.current)
             }}
           >
-            Cancel
+            {t('deleteConfirmation.cancel')}
           </Button>
           <Button 
             className="px-4 py-2" 
@@ -103,7 +106,7 @@ export function ProductCard({
               loading ? (
                 <LogoLoading />
               ) : (
-                'Delete'
+                t('deleteConfirmation.confirm')
               )
             }
           </Button>
@@ -157,7 +160,7 @@ export function ProductCard({
         "bg-white rounded-lg shadow-md shadow-card overflow-hidden flex flex-col h-full",
         tab === 'purchased' && checkPurchaseStatus(p) === 'deleted' ? 'opacity-40' : '',
       )}
-      >
+    >
       {/* image part */}
       <div
         className={cn(
@@ -197,10 +200,10 @@ export function ProductCard({
         {
           tab === 'all' && (
             <div className="flex items-center justify-start mb-4">
-              <p className="text-gray-600 text-sm font-medium mr-2">Price: </p>
+              <p className="text-gray-600 text-sm font-medium mr-2">{t('price')}: </p>
               <p className="text-brand-foreground">
                 <span className="text-lg font-extrabold text-brand-foreground inline-block mr-[4px]">{p.price}</span>
-                <span className="font-medium text-sm">TVWT</span>
+                <span className="font-medium text-sm">{t('currency')}</span>
               </p>
             </div>
           )
@@ -213,11 +216,11 @@ export function ProductCard({
               {
                 p.status === 'active' ? (
                   <p className="text-sm text-gray-600">
-                    Purchased: {format(p.purchaseDate, 'yyyy-MM-dd HH:mm:ss')}
+                    {t('purchased')}: {format(p.purchaseDate, 'yyyy-MM-dd HH:mm:ss')}
                   </p>
                 ) : (
                   <p className="text-sm text-red-500 mt-1">
-                    Deleted: {format(p.deleteDate, 'yyyy-MM-dd HH:mm:ss')}
+                    {t('deleted')}: {format(p.deleteDate, 'yyyy-MM-dd HH:mm:ss')}
                   </p>
                 )
               }
@@ -235,11 +238,9 @@ export function ProductCard({
             disabled={checkPurchaseStatus(p) === 'active'}
           >
             {
-              checkPurchaseStatus(p) === 'active' ? (
-                'Purchased'
-              ) : (
-                'Purchase'
-              )
+              checkPurchaseStatus(p) === 'active' 
+                ? t('buttons.purchased')
+                : t('buttons.purchase')
             }
           </Button>
 
@@ -253,11 +254,9 @@ export function ProductCard({
             onClick={(e) => handleDelete(e, p)}
           >
             {
-              checkPurchaseStatus(p) === 'deleted' ? (
-                'Deleted'
-              ) : (
-                'Delete'
-              )
+              checkPurchaseStatus(p) === 'deleted' 
+                ? t('buttons.deleted')
+                : t('buttons.delete')
             }
           </Button>
         </div>

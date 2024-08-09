@@ -6,10 +6,103 @@
     "emailValidationError": "请输入有效的电子邮箱地址",
     "signUpButton": "注册",
     "signInButton": "登录",
-    "authenticating": "认证中...",
-    "registering": "注册中...",
-    "alreadyHaveAccount": "已有账号？",
+    "authenticating": "正在认证...",
+    "registering": "正在注册...",
+    "alreadyHaveAccount": "已有账户？",
     "signUp": "注册？",
     "otpSentMessage": "请检查您的电子邮箱。我们已发送确认邮件。点击邮件中的链接完成注册。"
+  },
+  "sidebar": {
+    "title": "Vast 钱包",
+    "home": "首页",
+    "marketplace": "市场"
+  },
+  "/home": {
+    "userWallet": {
+      "syncTitle": "同步"
+    },
+    "[token]": {
+      "balance": "余额",
+      "recentTransactions": {
+        "title": "最近交易",
+        "seeAll": "查看全部",
+        "table": {
+          "transactionHash": "交易哈希",
+          "time": "时间",
+          "from": "发送方",
+          "to": "接收方",
+          "amount": "金额"
+        },
+        "noTransactions": "暂无交易记录"
+      }
+    }
+  },
+  "header": {
+    "overview": "概览",
+    "marketplace": "市场"
+  },
+  "/marketplace": {
+    "tabs": {
+      "all": "所有产品",
+      "purchased": "已购买产品"
+    },
+    "productCard": {
+      "status": {
+        "active": "已激活",
+        "deleted": "已删除"
+      },
+      "price": "价格",
+      "currency": "TVWT",
+      "purchased": "购买时间",
+      "deleted": "删除时间",
+      "buttons": {
+        "purchase": "购买",
+        "purchased": "已购买",
+        "delete": "删除",
+        "deleted": "已删除"
+      },
+      "deleteConfirmation": {
+        "title": "确认删除",
+        "message": "您确定要删除此项目吗？",
+        "cancel": "取消",
+        "confirm": "删除"
+      }
+    }
+  },
+  "vastWalletConnect": {
+    "pairModal": {
+      "title": "连接账户",
+      "instructions": "要使用 WalletConnect 将您的钱包与 DApp 配对，请按照以下步骤操作：",
+      "steps": {
+        "1": "访问 Dapp 网站",
+        "2": "寻找\"连接钱包\"或类似选项",
+        "3": "选择\"WalletConnect\"作为连接方式",
+        "4": "复制提供的 WalletConnect URI",
+        "5a": "将 URI 粘贴到下面的输入框中",
+        "5b": "返回此页面 - URI 将被自动检测和处理"
+      },
+      "clipboardError": "剪贴板访问被拒绝。要使用此功能，请点击地址栏左侧的锁定图标，找到\"剪贴板\"选项，将其设置为\"允许\"，然后刷新页面。",
+      "goToDapp": "前往 Dapp",
+      "enterUri": "输入 URI",
+      "pair": "配对"
+    },
+    "connectToDapps": "连接到 Dapps",
+    "disconnectSession": "断开会话",
+    "connectAccount": "连接账户",
+    "reject": "拒绝",
+    "approve": "批准",
+    "confirmTransfer": "确认转账",
+    "reviewTransferDetails": "请检查以下转账详情",
+    "from": "从：",
+    "to": "到：",
+    "amount": "金额：",
+    "data": "数据：",
+    "confirm": "确认",
+    "connectionSuccess": "连接成功。",
+    "transferFailed": "转账失败",
+    "transferRejected": "转账被拒绝",
+    "disconnected": "已断开连接"
   }
+  
+  
 }

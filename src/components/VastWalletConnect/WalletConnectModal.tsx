@@ -4,14 +4,14 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { PairContextType, useWalletConnectPair } from "@/providers/WalletConnectPairProvider";
 import { cn, log } from "@/lib/utils";
-
-const tip = `Clipboard access denied. To use this feature, please click the lock icon to the left of the address bar, find the 'Clipboard' option, set it to 'Allow', then refresh the page.`
+import { useTranslations } from 'next-intl';
 
 export function WalletConnectModal({
   onPair,
 }: {
   onPair: (uri: string) => void;
 }) {
+  const t = useTranslations('vastWalletConnect.pairModal');
   const [uri, setUri] = useState('')
   const [clipboardErrorTip, setClipboardErrorTip] = useState('')
   const {
@@ -70,7 +70,7 @@ export function WalletConnectModal({
 
     } catch(err) {
       log('err', err)
-      setClipboardErrorTip(tip)
+      setClipboardErrorTip(t('clipboardError'))
     }
   }
 
@@ -87,7 +87,7 @@ export function WalletConnectModal({
       >
         <DialogHeader>
           <DialogTitle>
-            Connect Account
+            {t('title')}
           </DialogTitle>
           <DialogDescription>
 
@@ -95,18 +95,18 @@ export function WalletConnectModal({
         </DialogHeader>
 
         <p className="mb-4">
-          To pair your wallet with the DApp using WalletConnect, please follow these steps:
+          {t('instructions')}
         </p>
         <ol className="list-decimal list-inside mb-4">
-          <li>Visit the Dapp website</li>
-          <li>Look for a &quot;Connect Wallet&quot; or similar option</li>
-          <li>Choose &quot;WalletConnect&quot; as the connection method</li>
-          <li>Copy the provided WalletConnect URI</li>
+          <li>{t('steps.1')}</li>
+          <li>{t('steps.2')}</li>
+          <li>{t('steps.3')}</li>
+          <li>{t('steps.4')}</li>
           {
             displayUriInput ? (
-              <li>Paste the URI in the input field below</li>
+              <li>{t('steps.5a')}</li>
             ) : (
-              <li>Return to this page - the URI will be automatically detected and processed</li>
+              <li>{t('steps.5b')}</li>
             )
           }
         </ol>
@@ -130,11 +130,10 @@ export function WalletConnectModal({
               )}
               onClick={() => handleOpenDapp()}
             >
-              Go to the Dapp
+              {t('goToDapp')}
             </span>
           )
         }
-
 
         {
           displayUriInput && (
@@ -142,14 +141,14 @@ export function WalletConnectModal({
               <Input
                 type="text"
                 onChange={(e) => setUri(e.target.value)}
-                placeholder="Enter URI"
+                placeholder={t('enterUri')}
                 className="focus-visible:ring-black"
               />
               <Button
                 type="button"
                 onClick={() => onPair(uri)}
               >
-                Pair
+                {t('pair')}
               </Button>
             </div>
           )

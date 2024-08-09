@@ -1,4 +1,6 @@
 'use client'
+
+import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { auth, log } from '@/lib/utils';
 import { createPassportClient } from '@0xpass/passport-viem';
@@ -21,6 +23,8 @@ import { usePassportClientVerification } from '@/hooks/usePassportClientVerifica
 import { LogoLoading } from '../LogoLoading';
 
 export function VastWalletConnect() {
+  const t = useTranslations('vastWalletConnect');
+
   const router = useRouter();
 
   const [address, setAddress] = useState('');
@@ -311,7 +315,7 @@ export function VastWalletConnect() {
               size={'sm'}
               onClick={disconnectSession}
             >
-              Disconnect Session
+              {t('disconnectSession')}
             </Button>
           ) : (
               <Button
@@ -319,7 +323,7 @@ export function VastWalletConnect() {
                 size={'sm'}
                 onClick={() => openPairModal()}
               >
-                Connect to Dapps
+                {t('connectToDapps')}
               </Button>
           )
         }
@@ -332,7 +336,7 @@ export function VastWalletConnect() {
         <DialogContent className="sm:max-w-[425px] text-primary">
           <DialogHeader>
             <DialogTitle>
-              Connect Account
+              {t('connectAccount')}
             </DialogTitle>
             <DialogDescription>
               {sessionProposal?.params.proposer.metadata.name}
@@ -346,13 +350,13 @@ export function VastWalletConnect() {
 
           <DialogFooter>
             <Button onClick={handleRejectSession} variant="outline">
-              Reject
+              {t('reject')}
             </Button>
             <Button onClick={handleApproveSession}>
               {loading ? (
                 <LogoLoading />
               ) : (
-                'Approve'
+                t('approve')
               )}
             </Button>
           </DialogFooter>

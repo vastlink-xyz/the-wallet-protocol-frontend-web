@@ -10,6 +10,7 @@ import { usePathname } from "next/navigation"
 import { VastWalletConnect } from "../VastWalletConnect";
 import { useTheme } from "next-themes"
 import { useThemeLogoPath } from "@/hooks/useThemeLogoPath"
+import { useTranslations } from "next-intl"
 
 const iconComponents = {
   House,
@@ -22,18 +23,6 @@ interface RouteItem {
   icon: keyof typeof iconComponents;
 }
 
-const routes: RouteItem[] = [
-  {
-    name: 'Home',
-    href: '/home',
-    icon: 'House',
-  },
-  {
-    name: 'Marketplace',
-    href: '/marketplace',
-    icon: 'Store',
-  },
-];
 
 interface IconComponentProps extends LucideProps {
   iconName: keyof typeof iconComponents;
@@ -49,6 +38,20 @@ export function SideBar() {
   const pathname = usePathname()
   const { theme } = useTheme()
   const { logoPath } = useThemeLogoPath()
+  const t = useTranslations('sidebar')
+  
+  const routes: RouteItem[] = [
+    {
+      name: t('home'),
+      href: '/home',
+      icon: 'House',
+    },
+    {
+      name: t('marketplace'),
+      href: '/marketplace',
+      icon: 'Store',
+    },
+  ];
 
   const toggleSidebar = () => {
     menuRef.current?.classList.toggle('scale-0')
@@ -66,7 +69,7 @@ export function SideBar() {
     >
       <div className="flex items-center justify-center m-6">
         <img src={logoPath} className="w-[32px] mr-2" alt="logo" />
-        <p className="font-extrabold hidden md:block text-primary text-xl">Vast Wallet</p>
+        <p className="font-extrabold hidden md:block text-primary text-xl">{t('title')}</p>
       </div>
 
       <ul
