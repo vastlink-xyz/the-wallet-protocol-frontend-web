@@ -47,6 +47,7 @@ export function LogoLoading({ size = 24, className, type = 'spin' }: {
       </svg>
     </div>
   )
+
   const renderLogo = () => (
     <div className="flex items-center justify-center">
       <img
@@ -57,34 +58,35 @@ export function LogoLoading({ size = 24, className, type = 'spin' }: {
         )}
         width={size}
         height={size}
-        style={{
-          animation: 'breathe 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        }}
+        // style={{
+        //   animation: 'breathe 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        // }}
       />
       <style jsx>{`
         @keyframes breathe {
           0%, 100% {
-            opacity: 0.4;
-            transform: scale(0.97);
+            opacity: 0.2;
+            transform: scale(0.9);
           }
           20% {
             opacity: 1;
-            transform: scale(1.03);
+            transform: scale(1.1);
           }
           30% {
             opacity: 0.9;
-            transform: scale(1.01);
+            transform: scale(1.05);
           }
           50% {
-            opacity: 0.7;
-            transform: scale(0.99);
+            opacity: 0.5;
+            transform: scale(0.95);
           }
           70% {
             opacity: 0.8;
-            transform: scale(1);
+            transform: scale(1.03);
           }
         }
       `}</style>
+
     </div>
   );
   

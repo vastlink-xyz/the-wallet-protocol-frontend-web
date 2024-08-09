@@ -8,6 +8,7 @@ import { usePathname } from "next/navigation"
 export const forcedLightThemeRoutes = [
   '/',
   '/verify-registration',
+  '/verify-transaction',
 ]
 
 export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
