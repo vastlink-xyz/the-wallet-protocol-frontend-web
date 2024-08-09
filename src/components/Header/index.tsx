@@ -9,6 +9,7 @@ import { useParams, usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { Switch } from "../ui/switch";
+import { LanguageSwitch } from "./LanguageSwitch";
 
 const titleMapper: Record<string, string> = {
   '/home': 'Overview',
@@ -62,6 +63,8 @@ export function Header() {
     "md:flex md:items-center md:justify-between md:flex-row-reverse",
   )}>
     <div className="flex items-center justify-end">
+      <LanguageSwitch />
+
       <div className="mr-4">
         <Switch
           checked={checked} 
@@ -78,6 +81,7 @@ export function Header() {
           )}
         />
       </div>
+
 
       <Account />
     </div>

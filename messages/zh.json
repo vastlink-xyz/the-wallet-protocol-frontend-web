@@ -1,0 +1,15 @@
+{
+  "/": {
+    "title": "注册或登录",
+    "emailLabel": "电子邮箱",
+    "emailPlaceholder": "请输入电子邮箱地址",
+    "emailValidationError": "请输入有效的电子邮箱地址",
+    "signUpButton": "注册",
+    "signInButton": "登录",
+    "authenticating": "认证中...",
+    "registering": "注册中...",
+    "alreadyHaveAccount": "已有账号？",
+    "signUp": "注册？",
+    "otpSentMessage": "请检查您的电子邮箱。我们已发送确认邮件。点击邮件中的链接完成注册。"
+  }
+}

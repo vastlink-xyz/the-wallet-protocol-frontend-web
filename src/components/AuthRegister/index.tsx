@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "react-toastify";
+import { useTranslations } from "next-intl";
 
 export type PageType = 'login' | 'verify-registration'
 
@@ -24,6 +25,7 @@ type UserInput = {
 export default function AuthRegister() {
   const params = useSearchParams();
   const router = useRouter();
+  const t = useTranslations('/')
 
   // const [pageType, setPageType] = useState<PageType>('login')
   const [username, setUsername] = useState("");
@@ -62,7 +64,7 @@ export default function AuthRegister() {
       log('register res', response);
       if (response.status === 200) {
         toast.info(
-          `Please check your email inbox. We've sent you a confirmation email. Click the link in the email to complete your registration.`,
+          t('otpSentMessage'),
           {
             autoClose: 10000,
           }
@@ -146,14 +148,14 @@ export default function AuthRegister() {
       if (authenticating) {
         return 'Authenticating...';
       }
-      return 'Sign In'
+      return t('signInButton')
     } else {
       if (registering) {
-        return 'Registering...';
+        return t('registering');
       } else if (authenticating) {
-        return 'Authenticating...';
+        return t('authenticating');
       }
-      return 'Sign Up';
+      return t('signUpButton');
     }
   }
 
@@ -161,24 +163,24 @@ export default function AuthRegister() {
     <div className="flex flex-grow flex-col items-center justify-center">
       <Card className="sm:w-[360px] py-4 border-none shadow-none mb-12 bg-white">
         <CardHeader>
-          <p className="mb-4 text-lg md:text-2xl m-0 p-0">Sign Up or Sign In</p>
+          <p className="mb-4 text-lg md:text-2xl m-0 p-0">{t('title')}</p>
         </CardHeader>
         <CardContent>
           <form onSubmit={(e) => processUserAccess(e)} className="group" noValidate>
             <div className="mb-4 relative">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t('emailLabel')}</Label>
               <Input
                 className="w-full mb-2 rounded border border-gray-300 bg-inherit p-3 shadow shadow-gray-100 ring-offset-transparent mt-2 appearance-none outline-none text-neutral-800 invalid:[&:not(:placeholder-shown):not(:focus)]:border-red-500 peer"
                 type="email"
                 id="email"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="Email Address"
+                placeholder={t('emailPlaceholder')}
                 required
                 pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
               />
               <span className="absolute -bottom-5 hidden text-xs text-red-500 peer-[&:not(:placeholder-shown):not(:focus):invalid]:block">
-                Please enter a valid email address
+                {t('emailValidationError')}
               </span>
             </div>
             <Button
@@ -194,7 +196,7 @@ export default function AuthRegister() {
         <CardFooter>
           <p className="cursor-pointer select-none" onClick={() => setAuthenticateSetup(!authenticateSetup)}>
             {
-              authenticateSetup ? 'Sign up?' : 'Already have an account?'
+              authenticateSetup ? t('signUp') : t('alreadyHaveAccount')
             }
           </p>
         </CardFooter>
