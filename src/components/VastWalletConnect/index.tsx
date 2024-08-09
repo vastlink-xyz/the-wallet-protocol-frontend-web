@@ -78,7 +78,7 @@ export function VastWalletConnect() {
       setTransferDetails({
         from: transactionRequest.from,
         to: transactionRequest.to,
-        value: formatEther(hexToBigInt(transactionRequest.value)),
+        value: formatEther(hexToBigInt(transactionRequest.value || '')),
         data: transactionRequest.data,
       });
       setTransferOpen(true);

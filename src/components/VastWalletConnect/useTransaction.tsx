@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { auth, log } from "@/lib/utils";
 import { Address, parseEther } from "viem";
 import axios from 'axios';
@@ -8,12 +8,19 @@ import { Button } from '../ui/button';
 import { TokenType } from '@/types/tokens';
 import { makeAuthenticatedApiRequest } from '@/lib/utils';
 import { usePassportClientVerification } from '@/hooks/usePassportClientVerification';
+import { Token, TokenFactory } from '@/services/TokenService';
 
 const tokenType: TokenType = 'ETH'
 
 export const useTransaction = () => {
   const [sending, setSending] = useState(false);
   const { verifyPassportClient } = usePassportClientVerification()
+  const tokenRef = useRef<Token>()
+
+  useEffect(() => {
+    const token = TokenFactory.getInstance().createToken(tokenType)
+    tokenRef.current = token
+  }, [])
 
   const signTransaction = async ({
     to,
@@ -83,9 +90,9 @@ export const useTransaction = () => {
   };
 
   const openTxPage = (txHash: string) => {
-    const url = `${process.env.NEXT_PUBLIC_EXPLORER_URL}/${txHash}`;
-    window.open(url, '_blank');
-  };
+    const url = `${tokenRef.current?.openUrl}/${txHash}`
+    window.open(url, '_blank')
+  }
 
   const notifyTransactionSubmitted = (txHash: string) => {
     toast(
