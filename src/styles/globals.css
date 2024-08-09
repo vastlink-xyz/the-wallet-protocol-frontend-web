@@ -49,6 +49,11 @@
 
     /* toast theme */
     --toastify-toast-min-height: 32px;
+
+    --toastify-color-info: #5dade2;    
+    --toastify-color-success: #58d68d; 
+    --toastify-color-warning: #f4d03f; 
+    --toastify-color-error: #ec7063;   
   }
 
   .dark {
