@@ -9,10 +9,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Languages } from "lucide-react"
+import { setUserLocale } from "@/services/locale"
+import { Locale } from "@/types/locale"
 
 export function LanguageSwitch() {
-  const handleChange = () => {
-
+  const handleChange = (newLocale: Locale) => {
+    setUserLocale(newLocale)
   }
 
   return (
@@ -23,12 +25,12 @@ export function LanguageSwitch() {
         </div>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => handleChange()}>
-          Light
+      <DropdownMenuContent align="end" className="bg-card">
+        <DropdownMenuItem onClick={() => handleChange('en')}>
+          English
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => handleChange()}>
-          Dark
+        <DropdownMenuItem onClick={() => handleChange('zh')}>
+          中文
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
