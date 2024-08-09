@@ -1,10 +1,11 @@
 import { cn } from "@/lib/utils";
 
-export function LogoLoading({ size = 24, className }: {
+export function LogoLoading({ size = 24, className, type = 'spin' }: {
   size?: number;
   className?: string;
+  type?: 'breathe' | 'spin';
 }) {
-  return (
+  const renderSpin = () => (
     <div className={cn(
       'text-brand-foreground',
       className,
@@ -40,5 +41,48 @@ export function LogoLoading({ size = 24, className }: {
         </g>
       </svg>
     </div>
+  )
+  const renderLogo = () => (
+    <div className="flex items-center justify-center">
+      <img
+        src="/logo-alone.png"
+        alt="Loading"
+        className={cn(
+          'animate-[breathe_2s_cubic-bezier(0.4,0,0.6,1)_infinite]',
+        )}
+        width={size}
+        height={size}
+        style={{
+          animation: 'breathe 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        }}
+      />
+      <style jsx>{`
+        @keyframes breathe {
+          0%, 100% {
+            opacity: 0.4;
+            transform: scale(0.97);
+          }
+          20% {
+            opacity: 1;
+            transform: scale(1.03);
+          }
+          30% {
+            opacity: 0.9;
+            transform: scale(1.01);
+          }
+          50% {
+            opacity: 0.7;
+            transform: scale(0.99);
+          }
+          70% {
+            opacity: 0.8;
+            transform: scale(1);
+          }
+        }
+      `}</style>
+    </div>
   );
+  
+
+  return type === 'breathe' ? renderLogo() : renderSpin()
 }

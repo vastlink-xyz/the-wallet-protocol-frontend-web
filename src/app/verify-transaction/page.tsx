@@ -73,7 +73,7 @@ export default function Page() {
   const transactionStatus = () => {
     if (status === 'pending') {
       return <div>
-        <LogoLoading />
+        <LogoLoading size={48} type={'breathe'} />
       </div>
     } else if (status === 'success') {
       return <div>Transaction confirmed, redirecting to the homepage...</div>

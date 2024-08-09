@@ -81,7 +81,7 @@ export function UserWallet() {
           {
             loading ? (
               <div className="text-brand-foreground text-center w-full h-16 flex items-center justify-center">
-                <LogoLoading />
+                <LogoLoading type={'breathe'} />
               </div>
             ) : (
               <div className="w-full">
