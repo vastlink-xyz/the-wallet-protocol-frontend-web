@@ -7,11 +7,16 @@ import { PurchaseModal } from "./PurchaseModal"
 import { TokenFactory } from "@/services/TokenService"
 import { useTheme } from "next-themes"
 import { ProductCard } from "./ProductCard"
+import { SkeletonCards } from "./SkeletonCards"
 
 export function PurchasedList() {
   const onReloadData = async () => {
-    getPurchasedProducts()
-    refreshTVWTBalance()
+    setLoading(true)
+    await Promise.all([
+      loadPurchasedProducts(),
+      refreshTVWTBalance(),
+    ])
+    setLoading(false)
   }
 
   const [purchasedProducts, setPurchasedProducts] = useState<any[]>([])
@@ -23,17 +28,14 @@ export function PurchasedList() {
   const { setTheme } = useTheme()
 
   useEffect(() => {
-    refreshTVWTBalance()
-
-    getPurchasedProducts()
+    onReloadData()
   }, [])
 
   const handlePurchaseModalClose = (isSave: boolean) => {
     log('handle close call')
     setIsOpen(false)
     if (isSave) {
-      getPurchasedProducts()
-      refreshTVWTBalance()
+      onReloadData()
             
       // The theme product automatically changes the theme after purchase
       const p = product as any
@@ -55,7 +57,7 @@ export function PurchasedList() {
     setProduct(product)
   }
 
-  const getPurchasedProducts = async () => {
+  const loadPurchasedProducts = async () => {
     const {
       authenticatedHeader,
       desUsername,
@@ -80,24 +82,29 @@ export function PurchasedList() {
 
   return (
     <div className="mx-auto px-4 py-8">
-      {/* <h1 className="text-3xl font-bold mb-8">Marketplace</h1> */}
+      {
+        loading ? (
+          <SkeletonCards />
+        ) : (
+          <div className="grid grid-flow-row gap-8 grid-cols-[repeat(auto-fit,minmax(320px,1fr))]">
+            {
+              purchasedProducts.map((p: any) => {
+                return (
+                  <ProductCard
+                    key={p.id}
+                    tab='purchased'
+                    productItem={p}
+                    purchasedProducts={purchasedProducts}
+                    onReloadData={onReloadData}
+                    handleOpenModal={handleOpenModal}
+                  />
+                )
+              })
+            }
+          </div>
+        )
+      }
 
-      <div className="grid grid-flow-row gap-8 grid-cols-[repeat(auto-fit,minmax(320px,1fr))]">
-        {
-          purchasedProducts.map((p: any) => {
-            return (
-              <ProductCard
-                key={p.id}
-                tab='purchased'
-                productItem={p}
-                purchasedProducts={purchasedProducts}
-                onReloadData={onReloadData}
-                handleOpenModal={handleOpenModal}
-              />
-            )
-          })
-        }
-      </div>
 
       <PurchaseModal isOpen={isOpen} onClose={(isSave) => handlePurchaseModalClose(isSave)} product={product} balance={balance} />
     </div>

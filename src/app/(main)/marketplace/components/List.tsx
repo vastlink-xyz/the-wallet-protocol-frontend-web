@@ -8,6 +8,7 @@ import { TokenFactory } from "@/services/TokenService"
 import { Id, toast } from "react-toastify"
 import { useTheme } from "next-themes"
 import { ProductCard } from "./ProductCard"
+import { SkeletonCards } from "./SkeletonCards"
 
 export function List() {
   
@@ -26,10 +27,12 @@ export function List() {
   }, [])
 
   const onReloadData = async () => {
+    setLoading(true)
     await Promise.all([
       loadProducts(),
       refreshTVWTBalance(),
     ])
+    setLoading(false)
   }
 
   const loadProducts = async () => {
@@ -115,24 +118,28 @@ export function List() {
 
   return (
     <div className="px-4 py-8">
-      {/* <h1 className="text-3xl font-bold mb-8">Marketplace</h1> */}
-
-      <div className="grid grid-flow-row gap-8 grid-cols-[repeat(auto-fit,minmax(320px,1fr))]">
-        {
-          products.map((p: any) => {
-            return (
-              <ProductCard
-                key={p.id}
-                tab='all'
-                productItem={p}
-                purchasedProducts={purchasedProducts}
-                onReloadData={onReloadData}
-                handleOpenModal={handleOpenModal}
-              />
-            )
-          })
-        }
-      </div>
+      {
+        loading ? (
+          <SkeletonCards />
+        ) : (
+          <div className="grid grid-flow-row gap-8 grid-cols-[repeat(auto-fit,minmax(320px,1fr))]">
+            {
+              products.map((p: any) => {
+                return (
+                  <ProductCard
+                    key={p.id}
+                    tab='all'
+                    productItem={p}
+                    purchasedProducts={purchasedProducts}
+                    onReloadData={onReloadData}
+                    handleOpenModal={handleOpenModal}
+                  />
+                )
+              })
+            }
+          </div>
+        )
+      }
 
       <PurchaseModal isOpen={isOpen} onClose={(isSave) => handlePurchaseModalClose(isSave)} product={product} balance={balance} />
     </div>
