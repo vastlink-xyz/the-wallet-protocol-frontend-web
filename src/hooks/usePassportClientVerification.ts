@@ -7,9 +7,11 @@ import { createPassportClient } from '@0xpass/passport-viem';
 import { http } from 'viem';
 import { auth, log } from '@/lib/utils';
 import { sepolia } from 'viem/chains';
+import { useTranslations } from 'next-intl';
 
 export const usePassportClientVerification = () => {
   const router = useRouter();
+  const t = useTranslations('toastError')
 
   const verifyPassportClient = useCallback(async (chain=sepolia) => {
     const { authenticatedHeader, address } = auth.all();
@@ -20,7 +22,7 @@ export const usePassportClientVerification = () => {
       return client;
     } catch (error) {
       log('error', error);
-      toast.error('Authentication Error. Please sign in again.');
+      toast.error(t('authenticationError'));
       auth.clearAllAuthData();
       router.push('/');
       return null;

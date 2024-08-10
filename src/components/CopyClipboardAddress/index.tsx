@@ -1,4 +1,5 @@
 import { Copy } from "lucide-react";
+import { useTranslations } from "next-intl";
 import CopyToClipboard from "react-copy-to-clipboard"
 import { toast } from "react-toastify";
 import { Address } from "viem"
@@ -14,9 +15,11 @@ export function CopyClipboardAddress({
   address,
   ...props
 }: CopyboardAddressProps) {
+  const t = useTranslations('toastSuccess');
+
   return (
     <CopyToClipboard text={address} onCopy={() => {
-      toast.success('Copy success!', {
+      toast.success(t('copySuccess'), {
         autoClose: 1000,
         hideProgressBar: true,
       })

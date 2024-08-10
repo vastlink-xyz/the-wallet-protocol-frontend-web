@@ -102,7 +102,12 @@
     "transferFailed": "转账失败",
     "transferRejected": "转账被拒绝",
     "disconnected": "已断开连接"
+  },
+  "toastSuccess": {
+    "copySuccess": "复制成功!",
+    "connectSuccess": "连接成功!"
+  },
+  "toastError": {
+    "authenticationError": "认证错误，请重新登录。"
   }
-  
-  
 }

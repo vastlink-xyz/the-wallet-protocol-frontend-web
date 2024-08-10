@@ -102,6 +102,12 @@
     "transferFailed": "Transfer failed",
     "transferRejected": "Transfer rejected",
     "disconnected": "Disconnected"
+  },
+  "toastSuccess": {
+    "copySuccess": "Copy success!",
+    "connectSuccess": "Connected successfully!"
+  },
+  "toastError": {
+    "authenticationError": "Authentication Error. Please sign in again."
   }
-  
 }

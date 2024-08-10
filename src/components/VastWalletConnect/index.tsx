@@ -24,6 +24,7 @@ import { LogoLoading } from '../LogoLoading';
 
 export function VastWalletConnect() {
   const t = useTranslations('vastWalletConnect');
+  const t1 = useTranslations('toastSuccess')
 
   const router = useRouter();
 
@@ -197,7 +198,7 @@ export function VastWalletConnect() {
       setConnectOpen(false);
       setIsModalOpen(false)
       setSessionProposal(null);
-      toast.success('Connected successfully.')
+      toast.success(t1('connectSuccess'))
     } catch (error) {
       console.error("Error approving session:", error);
     } finally {
