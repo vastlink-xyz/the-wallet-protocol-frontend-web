@@ -4,7 +4,7 @@ import { List } from "./components/List";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useTranslations } from "next-intl";
 
-export default function page() {
+export default function MarketplacePage() {
   const t = useTranslations('/marketplace.tabs');
 
   return <div>
