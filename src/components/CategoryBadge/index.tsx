@@ -2,7 +2,7 @@
 
 enum CategoryColors {
   'Earning' = '#4CAF50',  
-  'Skin' = '#2196F3',    
+  'Theme' = '#2196F3',    
   'AI' = '#9C27B0',       
   'Team' = '#FF9800',     
   'Security' = '#F44336', 

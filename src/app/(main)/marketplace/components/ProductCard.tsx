@@ -73,7 +73,7 @@ export function ProductCard({
     }
 
     // skin category
-    if (p.category === 'Skin' && checkPurchaseStatus(p) === 'active') {
+    if (p.category === 'Theme' && checkPurchaseStatus(p) === 'active') {
       log('skin')
       handleSkinOpenModal(true)
       return
