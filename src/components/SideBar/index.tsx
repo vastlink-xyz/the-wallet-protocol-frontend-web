@@ -11,6 +11,7 @@ import { VastWalletConnect } from "../VastWalletConnect";
 import { useTheme } from "next-themes"
 import { useThemeLogoPath } from "@/hooks/useThemeLogoPath"
 import { useTranslations } from "next-intl"
+import { useUserSkin } from "@/providers/UserSkinProvider"
 
 const iconComponents = {
   House,
@@ -38,6 +39,7 @@ export function SideBar() {
   const pathname = usePathname()
   const { theme } = useTheme()
   const { logoPath } = useThemeLogoPath()
+  const { customLogo, customName } = useUserSkin()
   const t = useTranslations('sidebar')
   
   const routes: RouteItem[] = [
@@ -68,8 +70,8 @@ export function SideBar() {
       )}
     >
       <div className="flex items-center justify-center m-6">
-        <img src={logoPath} className="w-[32px] mr-2" alt="logo" />
-        <p className="font-extrabold hidden md:block text-primary text-xl">{t('title')}</p>
+        <img src={customLogo ? customLogo : logoPath} className="w-[32px] mr-2" alt="logo" />
+        <p className="font-extrabold hidden md:block text-primary text-xl">{ customName ? customName : t('title')}</p>
       </div>
 
       <ul

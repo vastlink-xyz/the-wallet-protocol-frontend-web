@@ -4,6 +4,7 @@ import { CldUploadWidget, CloudinaryUploadWidgetResults } from 'next-cloudinary'
 import React, { useState } from 'react';
 import { Upload } from 'lucide-react';
 import Image from 'next/image';
+import { log } from "@/lib/utils"
 
 interface CloudinaryUploadProps {
   onSuccess: (url: string | undefined) => void;
@@ -12,6 +13,17 @@ interface CloudinaryUploadProps {
 
 export function CloudinaryUpload({ onSuccess, initialImage }: CloudinaryUploadProps) {
   const [uploadedImage, setUploadedImage] = useState<string | undefined>(initialImage);
+  // return (
+  //   <CldUploadWidget signatureEndpoint="/api/sign-cloudinary-params">
+  //       {({ open }) => {
+  //         return (
+  //           <div onClick={() => open()}>
+  //             Upload an Image
+  //           </div>
+  //         );
+  //       }}
+  //     </CldUploadWidget>
+  // )
 
   return (
     <div className="flex flex-col items-center">
@@ -44,15 +56,19 @@ export function CloudinaryUpload({ onSuccess, initialImage }: CloudinaryUploadPr
       >
         {({ open }) => {
           return (
-            <button 
-              onClick={() => open()} 
-              className="text-sm text-blue-600 hover:text-blue-800 transition-colors"
+            <div 
+              onClick={(e) => {
+                e.preventDefault()
+                open()
+              }}
+              className="text-sm text-blue-600 hover:text-blue-800 transition-colors cursor-pointer"
             >
               {uploadedImage ? 'Change logo' : 'Upload logo'}
-            </button>
+            </div>
           )
         }}
       </CldUploadWidget>
+      
     </div>
   )
 }

@@ -12,6 +12,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { WalletConnectPairProvider } from "@/providers/WalletConnectPairProvider";
 import { ThemeProvider } from "@/providers/ThemeProvider"
 import ThemeAwareToastContainer from "@/components/ThemeAwareToastContainer";
+import { UserSkinProvider } from "@/providers/UserSkinProvider";
 
 const inter = Inter({
   subsets: ["latin"]
@@ -42,18 +43,20 @@ export default async function RootLayout({
         <main className="flex flex-col flex-grow">
           <Suspense>
           <NextIntlClientProvider messages={messages}>
-            <ProgressBarProvider>
-              <WalletConnectPairProvider>
-                <ThemeProvider
-                  attribute="class"
-                  enableSystem={true}
-                  defaultTheme="system"
-                >
-                  {children}
-                  <ThemeAwareToastContainer />
-                </ThemeProvider>
-              </WalletConnectPairProvider>
-            </ProgressBarProvider>
+            <UserSkinProvider>
+              <ProgressBarProvider>
+                <WalletConnectPairProvider>
+                  <ThemeProvider
+                    attribute="class"
+                    enableSystem={true}
+                    defaultTheme="system"
+                  >
+                    {children}
+                    <ThemeAwareToastContainer />
+                  </ThemeProvider>
+                </WalletConnectPairProvider>
+              </ProgressBarProvider>
+            </UserSkinProvider>
           </NextIntlClientProvider>
           </Suspense>
         </main>

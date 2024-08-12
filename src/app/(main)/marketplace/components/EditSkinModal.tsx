@@ -2,7 +2,7 @@
 
 import axios from 'axios'
 import { FormEvent, useEffect, useState } from "react"
-import { auth, cn, generateForegroundColor, hexToHsl, log, makeAuthenticatedApiRequest, ThemeColors, themeElements, updateTheme } from "@/lib/utils"
+import { auth, cn, customSkinStorage, generateForegroundColor, hexToHsl, log, makeAuthenticatedApiRequest, ThemeColors, themeElements, updateTheme } from "@/lib/utils"
 import { HexColorPicker } from "react-colorful"
 
 import { Button } from "@/components/ui/button"
@@ -27,9 +27,16 @@ export function EditSkinModal({
   const [name, setName] = useState('')
   const [logo, setLogo] = useState('')
   const [colorTheme, setColorTheme] = useState<ThemeColors>({})
+
   const [themeColors, setThemeColors] = useState<Record<string, string>>({})
   const [activeColorPicker, setActiveColorPicker] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (isOpen) {
+      init()
+    }
+  }, [isOpen])
 
   useEffect(() => {
     const colors = Object.entries(themeColors)
@@ -46,9 +53,32 @@ export function EditSkinModal({
       // saveThemeColors[name] = hexToHsl(value);
       saveThemeColors[name] = value
     });
-    log('themecolorlist', saveThemeColors)
+    log('saved theme colors', saveThemeColors)
     setColorTheme(saveThemeColors)
   }, [themeColors])
+
+  const init = async () => {
+    const {
+      authenticatedHeader,
+      desUsername,
+    } = auth.all()
+    const res = await axios.get(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/marketplace/product/customskin`, {
+      headers: {
+        "Content-Type": "application/json",
+        "X-Encrypted-Key": `${authenticatedHeader["X-Encrypted-Key" as keyof typeof authenticatedHeader]}`,
+        "X-Scope-Id": `${authenticatedHeader["X-Scope-Id" as keyof typeof authenticatedHeader]}`,
+        "X-Encrypted-User": `${authenticatedHeader["X-Encrypted-User" as keyof typeof authenticatedHeader]}`,
+        "X-Encrypted-Session": `${authenticatedHeader["X-Encrypted-Session" as keyof typeof authenticatedHeader]}`,
+        "X-Passport-Username": `${desUsername.username}`,
+      },
+    })
+    log('res is', res.data)
+    if (res.data) {
+      setName(res.data.name)
+      setLogo(res.data.logo)
+      setColorTheme(res.data.name)
+    }
+  }
 
   const handleSave = async (event: FormEvent) => {
     event.preventDefault()
@@ -64,6 +94,9 @@ export function EditSkinModal({
         data: saveData,
       })
       toast.success('Save successfully.')
+      updateTheme(colorTheme)
+      customSkinStorage.setData('true')
+      onClose(false)
     } catch(err) {
       log('err', err)
     } finally {
@@ -79,18 +112,12 @@ export function EditSkinModal({
     setThemeColors(prev => ({ ...prev, [element]: color }))
   }
 
-  const test = () => {
-    log('haha', colorTheme)
-  }
-
   return (
     <Modal
       isOpen={isOpen}
       onClose={() => handleClose(false)}
     >
-      <button onClick={() => test()}>test</button>
-
-      <form onSubmit={(e) => handleSave(e)}>
+      <form>
         <div className="mb-8">
           <label htmlFor="name" className="block mb-2 font-medium text-lg">Name</label>
           <Input
@@ -103,14 +130,18 @@ export function EditSkinModal({
 
         <div className="mb-10">
           <label htmlFor="name" className="block mb-2 font-medium text-lg">Logo</label>
-          <CloudinaryUpload
-            onSuccess={(url) => {
-              if (url) {
-                setLogo(url)
-              }
-            }}
-            initialImage={logo}
-          />
+          {
+            isOpen && (
+              <CloudinaryUpload
+                onSuccess={(url) => {
+                  if (url) {
+                    setLogo(url)
+                  }
+                }}
+                // initialImage={logo}
+              />
+            )
+          }
         </div>
 
         <div className="mb-6">

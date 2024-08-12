@@ -8,33 +8,20 @@ import { ArrowLeft, Moon, Sun } from "lucide-react";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
-import { Switch } from "../ui/switch";
 import { LanguageSwitch } from "./LanguageSwitch";
 import { useTranslations } from "next-intl";
+import { ThemeSwitch } from "./ThemeSwitch";
 
 export function Header() {
   const pathname = usePathname()
   const params = useParams()
   const router = useRouter()
-  const { theme, setTheme, systemTheme } = useTheme()
-  const [checked, setChecked] = useState<boolean>()
   const t = useTranslations('header')
 
   const titleMapper: Record<string, string> = {
     '/home': t('overview'),
     '/marketplace': t('marketplace'),
   };
-
-  useEffect(() => {
-    if (theme) {
-      setChecked(theme === 'dark')
-    }
-  }, [])
-  
-  const onCheckChange = (checked: boolean) => {
-    setTheme(checked ? 'dark' : 'light')
-    setChecked(checked)
-  }
 
   const title = () => {
     if (pathname.startsWith('/home/')) {
@@ -68,20 +55,7 @@ export function Header() {
       <LanguageSwitch />
 
       <div className="mr-4">
-        <Switch
-          checked={checked} 
-          onCheckedChange={onCheckChange}
-          iconChecked={(
-            <div className="text-primary">
-              <Moon className="h-3 w-3" />
-            </div>
-          )}
-          iconUnchecked={(
-            <div className="text-primary">
-              <Sun className="h-3 w-3" />
-            </div>
-          )}
-        />
+        <ThemeSwitch />
       </div>
 
 

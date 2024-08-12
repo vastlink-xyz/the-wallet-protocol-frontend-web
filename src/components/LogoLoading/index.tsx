@@ -2,6 +2,7 @@
 
 import { useThemeLogoPath } from "@/hooks/useThemeLogoPath";
 import { cn } from "@/lib/utils";
+import { useUserSkin } from "@/providers/UserSkinProvider";
 
 export function LogoLoading({ size = 24, className, type = 'spin' }: {
   size?: number;
@@ -9,6 +10,7 @@ export function LogoLoading({ size = 24, className, type = 'spin' }: {
   type?: 'breathe' | 'spin';
 }) {
   const { logoPath } = useThemeLogoPath()
+  const { customLogo } = useUserSkin()
 
   const renderSpin = () => (
     <div className={cn(
@@ -51,7 +53,7 @@ export function LogoLoading({ size = 24, className, type = 'spin' }: {
   const renderLogo = () => (
     <div className="flex items-center justify-center">
       <img
-        src={logoPath}
+        src={ customLogo ? customLogo : logoPath}
         alt="Loading"
         className={cn(
           'animate-[breathe_2s_cubic-bezier(0.4,0,0.6,1)_infinite]',
