@@ -1,6 +1,5 @@
 import { List } from "./components/List";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { PurchasedList } from "./components/PurchasedList";
 import { useTranslations } from "next-intl";
 
 export default function page() {
@@ -14,11 +13,11 @@ export default function page() {
         </TabsList>
 
         <TabsContent value="all">
-          <List />
+          <List tab={'all'} />
         </TabsContent>
 
         <TabsContent value="purchased">
-          <PurchasedList />
+          <List tab={'purchased'} />
         </TabsContent>
       </Tabs>
   </div>

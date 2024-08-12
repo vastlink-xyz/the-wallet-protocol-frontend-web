@@ -5,23 +5,24 @@ import axios from 'axios'
 import { auth, cn, log } from "@/lib/utils"
 import { PurchaseModal } from "./PurchaseModal"
 import { TokenFactory } from "@/services/TokenService"
-import { Id, toast } from "react-toastify"
 import { useTheme } from "next-themes"
 import { ProductCard } from "./ProductCard"
 import { SkeletonCards } from "./SkeletonCards"
 
-export function List() {
-  
+export function List({
+  tab,
+}: {
+  tab: 'all' | 'purchased'
+}) {
   const [products, setProducts] = useState<any[]>([])
   const [purchasedProducts, setPurchasedProducts] = useState<any[]>([])
   const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false)
   const [product, setProduct] = useState({})
   const [balance, setBalance] = useState('')
   const [loading, setLoading] = useState(false)
-  const toastId = useRef<Id>();
-  
+
   const { setTheme } = useTheme()
-  
+
   useEffect(() => {
     onReloadData()
   }, [])
@@ -29,13 +30,12 @@ export function List() {
   const onReloadData = async () => {
     setLoading(true)
     await Promise.all([
-      loadProducts(),
+      tab === 'all' ? loadAllProducts() : loadPurchasedProducts(),
       refreshTVWTBalance(),
     ])
     setLoading(false)
   }
-
-  const loadProducts = async () => {
+  const loadAllProducts = async () => {
     const products = await getProducts()
     const purchasedProducts = await getPurchasedProducts()
     const deletedPurchasedProductIds = purchasedProducts.filter((p: any) => p.status === 'deleted').map((p: any) => p.id)
@@ -65,7 +65,7 @@ export function List() {
     setPurchasedProducts(purchasedProducts)
     setProducts(sortedProducts)
   }
-  
+
   const getPurchasedProducts = async () => {
     const {
       authenticatedHeader,
@@ -83,7 +83,13 @@ export function List() {
     })
     return res.data
   }
-  
+
+  const loadPurchasedProducts = async () => {
+    const list = await getPurchasedProducts()
+    log('list', list)
+    setPurchasedProducts(list)
+    setProducts(list)
+  }
   const getProducts = async () => {
     const res = await axios.get(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/marketplace/products`)
     return res.data
@@ -105,9 +111,8 @@ export function List() {
     log('handle close call')
     setIsPurchaseModalOpen(false)
     if (isSave) {
-      loadProducts()
-      refreshTVWTBalance()
-      
+      onReloadData()
+            
       // The theme product automatically changes the theme after purchase
       const p = product as any
       if (p.integrationPoints.includes('theme')) {
@@ -128,7 +133,7 @@ export function List() {
                 return (
                   <ProductCard
                     key={p.id}
-                    tab='all'
+                    tab={tab}
                     productItem={p}
                     purchasedProducts={purchasedProducts}
                     onReloadData={onReloadData}
