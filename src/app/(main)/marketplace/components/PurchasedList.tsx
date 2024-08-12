@@ -20,7 +20,7 @@ export function PurchasedList() {
   }
 
   const [purchasedProducts, setPurchasedProducts] = useState<any[]>([])
-  const [isOpen, setIsOpen] = useState(false)
+  const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false)
   const [product, setProduct] = useState({})
   const [balance, setBalance] = useState('')
   const [loading, setLoading] = useState(false)
@@ -33,7 +33,7 @@ export function PurchasedList() {
 
   const handlePurchaseModalClose = (isSave: boolean) => {
     log('handle close call')
-    setIsOpen(false)
+    setIsPurchaseModalOpen(false)
     if (isSave) {
       onReloadData()
             
@@ -53,7 +53,7 @@ export function PurchasedList() {
 
   const handleOpenModal = (event: any, product: any) => {
     event.stopPropagation()
-    setIsOpen(true)
+    setIsPurchaseModalOpen(true)
     setProduct(product)
   }
 
@@ -106,7 +106,7 @@ export function PurchasedList() {
       }
 
 
-      <PurchaseModal isOpen={isOpen} onClose={(isSave) => handlePurchaseModalClose(isSave)} product={product} balance={balance} />
+      <PurchaseModal isOpen={isPurchaseModalOpen} onClose={(isSave) => handlePurchaseModalClose(isSave)} product={product} balance={balance} />
     </div>
   )
 }
