@@ -17,13 +17,15 @@ export function ProductCard({
   productItem,
   purchasedProducts,
   onReloadData,
-  handleOpenModal,
+  handlePurchaseOpenModal,
+  handleSkinOpenModal,
   tab,
 }: {
   productItem: any;
   purchasedProducts: any[];
   onReloadData: () => void;
-  handleOpenModal: (event: any, product: any) => void;
+  handlePurchaseOpenModal: (event: any, product: any) => void;
+  handleSkinOpenModal: (product: any) => void;
   tab: 'all' | 'purchased';
 }) {
   const t = useTranslations('/marketplace.productCard');
@@ -35,8 +37,6 @@ export function ProductCard({
     isConnected,
     setDisplayUriInput,
   } = useWalletConnectPair() as PairContextType
-  const [isOpen, setIsOpen] = useState(false)
-  const [product, setProduct] = useState({})
   const toastId = useRef<Id>();
   const [loading, setLoading] = useState(false)
   const { setTheme, theme } = useTheme()
@@ -69,6 +69,13 @@ export function ProductCard({
         setDisplayUriInput(false)
         setIsModalOpen(true)
       }
+      return
+    }
+
+    // skin category
+    if (p.category === 'Skin' && checkPurchaseStatus(p) === 'active') {
+      log('skin')
+      handleSkinOpenModal(true)
       return
     }
 
@@ -234,7 +241,7 @@ export function ProductCard({
             className={cn(
               "w-full bg-ink text-ink-foreground hover:bg-ink/80",
             )}
-            onClick={(e) => handleOpenModal(e, p)}
+            onClick={(e) => handlePurchaseOpenModal(e, p)}
             disabled={checkPurchaseStatus(p) === 'active'}
           >
             {

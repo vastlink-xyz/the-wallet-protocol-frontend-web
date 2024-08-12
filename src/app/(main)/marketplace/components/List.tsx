@@ -8,6 +8,7 @@ import { TokenFactory } from "@/services/TokenService"
 import { useTheme } from "next-themes"
 import { ProductCard } from "./ProductCard"
 import { SkeletonCards } from "./SkeletonCards"
+import { EditSkinModal } from "./EditSkinModal"
 
 export function List({
   tab,
@@ -17,6 +18,7 @@ export function List({
   const [products, setProducts] = useState<any[]>([])
   const [purchasedProducts, setPurchasedProducts] = useState<any[]>([])
   const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false)
+  const [isSkinModalOpen, setIsSkinModalOpen] = useState(false)
   const [product, setProduct] = useState({})
   const [balance, setBalance] = useState('')
   const [loading, setLoading] = useState(false)
@@ -35,6 +37,7 @@ export function List({
     ])
     setLoading(false)
   }
+
   const loadAllProducts = async () => {
     const products = await getProducts()
     const purchasedProducts = await getPurchasedProducts()
@@ -90,6 +93,7 @@ export function List({
     setPurchasedProducts(list)
     setProducts(list)
   }
+
   const getProducts = async () => {
     const res = await axios.get(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/marketplace/products`)
     return res.data
@@ -101,9 +105,14 @@ export function List({
     setBalance(b)
   }
 
-  const handleOpenModal = (event: any, product: any) => {
+  const handlePurchasedOpenModal = (event: any, product: any) => {
     event.stopPropagation()
     setIsPurchaseModalOpen(true)
+    setProduct(product)
+  }
+
+  const handleSkinOpenModal = (product: any) => {
+    setIsSkinModalOpen(true)
     setProduct(product)
   }
 
@@ -118,6 +127,14 @@ export function List({
       if (p.integrationPoints.includes('theme')) {
         setTheme('dark')
       }
+    }
+  }
+
+  const handleSkinModalClose = (isSave: boolean) => {
+    log('handle close call')
+    setIsSkinModalOpen(false)
+    if (isSave) {
+
     }
   }
 
@@ -137,7 +154,8 @@ export function List({
                     productItem={p}
                     purchasedProducts={purchasedProducts}
                     onReloadData={onReloadData}
-                    handleOpenModal={handleOpenModal}
+                    handlePurchaseOpenModal={handlePurchasedOpenModal}
+                    handleSkinOpenModal={handleSkinOpenModal}
                   />
                 )
               })
@@ -147,6 +165,8 @@ export function List({
       }
 
       <PurchaseModal isOpen={isPurchaseModalOpen} onClose={(isSave) => handlePurchaseModalClose(isSave)} product={product} balance={balance} />
+
+      <EditSkinModal isOpen={isSkinModalOpen} onClose={(isSave) => handleSkinModalClose(isSave)} product={product} balance={balance} />
     </div>
   )
 }
