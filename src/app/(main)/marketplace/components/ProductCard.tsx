@@ -171,10 +171,7 @@ export function ProductCard({
       {/* image part */}
       <div
         className={cn(
-          "w-full relative px-4 aspect-square flex items-center justify-center cursor-pointer group",
-          // 'bg-[linear-gradient(135deg,rgb(128,128,128)_0%,rgb(64,64,64)_50%,rgb(10,10,10)_100%)]'
-          // 'bg-black/90',
-          'bg-[#22212f]'
+          "w-full relative px-4 aspect-square flex items-center justify-center cursor-pointer group"
         )}
         onClick={() => handleClick(p)}
       >
