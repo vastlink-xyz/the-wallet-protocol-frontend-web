@@ -150,7 +150,7 @@ export function ProductCard({
         if (p.integrationPoints.includes('theme')) {
           // delete skin
           await deleteCustomSkin()
-          // window.location.reload()
+          window.location.reload()
         }
       } else {
         toast.error(response.data.message)

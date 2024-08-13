@@ -1,10 +1,10 @@
 'use client'
 
 import { Account } from "@/components/UserAccount";
-import { cn, log } from "@/lib/utils";
+import { auth, cn, customSkinStorage, log } from "@/lib/utils";
 import { TokenFactory } from "@/services/TokenService";
 import { TokenType } from "@/types/tokens";
-import { ArrowLeft, Moon, Sun } from "lucide-react";
+import { ArrowLeft, LogOut, Moon, Sun } from "lucide-react";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
@@ -47,6 +47,12 @@ export function Header() {
     }
   }
 
+  const handleSignout = () => {
+    auth.clearAllAuthData()
+    customSkinStorage.remove()
+    router.push('/')
+  }
+
   return <header className={cn(
     "px-2 md:px-6 md:py-2 w-full",
     "md:flex md:items-center md:justify-between md:flex-row-reverse",
@@ -60,6 +66,14 @@ export function Header() {
 
 
       <Account />
+
+      <div
+        className="ml-4 text-primary cursor-pointer"
+        title="sign out"
+        onClick={() => handleSignout()}
+      >
+        <LogOut size={20} />
+      </div>
     </div>
 
     <div className="text-2xl font-extrabold text-card-foreground mt-8 mx-4 md:mx-0 md:mt-0">

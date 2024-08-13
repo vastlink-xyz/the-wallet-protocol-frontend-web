@@ -13,12 +13,20 @@ import { Modal } from '@/components/Modal'
 import { Divide, Upload, X } from 'lucide-react'
 import { toast } from 'react-toastify'
 import { useUserSkin } from '@/providers/UserSkinProvider'
+import { useTheme } from 'next-themes'
 
-const defaultThemeColors = {
-  'background': '#f6f6f6',
+const defaultLightThemeColors = {
   'primary': '#20252d',
-  'card': '#ffffff',
+  'primary-foreground': '#e8e8e9',
   'brand': '#eef8f6',
+  'brand-foreground': '#7bcdc6',
+}
+
+const defaultDarkThemeColors = {
+  'primary': '#f7f8f8',
+  'primary-foreground': '#030303',
+  'brand': '#26544b',
+  'brand-foreground': '#7acbc3',
 }
 
 export function EditSkinModal({
@@ -32,11 +40,13 @@ export function EditSkinModal({
   onClose: (isSave: boolean) => void;
   balance: string;
 }) {
+  const {theme} = useTheme()
+
   const [name, setName] = useState('My Wallet')
   const [logo, setLogo] = useState('https://github.com/shadcn.png')
   const [colorTheme, setColorTheme] = useState<ThemeColors>({})
 
-  const [themeColors, setThemeColors] = useState<Record<string, string>>(defaultThemeColors)
+  const [themeColors, setThemeColors] = useState<Record<string, string>>({})
   const [activeColorPicker, setActiveColorPicker] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -50,13 +60,13 @@ export function EditSkinModal({
 
   useEffect(() => {
     const colors = Object.entries(themeColors)
-    const foregroundColors = colors.map(([name, value]) => [
-      `${name}-foreground`,
-      generateForegroundColor(value),
-    ])
+    // const foregroundColors = colors.map(([name, value]) => [
+    //   `${name}-foreground`,
+    //   generateForegroundColor(value),
+    // ])
     const themeColorList = [
       ...colors,
-      ...foregroundColors,
+      // ...foregroundColors,
     ]
     const saveThemeColors: ThemeColors = {}
     themeColorList.forEach(([name, value]) => {
@@ -87,12 +97,19 @@ export function EditSkinModal({
       if (res.data) {
         setName(res.data.name)
         setLogo(res.data.logo)
-        setColorTheme(res.data.name)
+        setColorTheme(res.data.colorTheme)
+
+        setThemeColors({
+          ...themeColors,
+          ...res.data.colorTheme
+        })
       }
     } catch(err) {
-      const message = (err as any).response.data
-      if (message) {
-        // toast.error(message)
+      // no custom skin
+      if (theme === 'light') {
+        setThemeColors(defaultLightThemeColors)
+      } else if (theme === 'dark') {
+        setThemeColors(defaultDarkThemeColors)
       }
     }
   }

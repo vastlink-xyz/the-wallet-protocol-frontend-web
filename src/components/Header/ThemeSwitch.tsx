@@ -19,7 +19,7 @@ const iconThemeMapper = {
   'custom': <Palette />,
 }
 
-type ThemeTypes = 'light' | 'dark' | 'custom'
+type ThemeTypes = 'light' | 'dark'
 
 export function ThemeSwitch() {
   const { theme, setTheme, systemTheme } = useTheme()
@@ -56,7 +56,7 @@ export function ThemeSwitch() {
           "X-Passport-Username": `${desUsername.username}`,
         },
       })
-      log('res is', res.data)
+      log('user customskin', res.data)
       if (res.data) {
         setCustomSkin(res.data.colorTheme)
         // 
@@ -66,7 +66,6 @@ export function ThemeSwitch() {
   
         if (customSkinStorage.getData() === 'true') {
           updateTheme(res.data.colorTheme)
-          setCurrentTheme('custom')
         }
       }
     } catch(err) {
@@ -77,17 +76,7 @@ export function ThemeSwitch() {
 
   const handleChange = (theme: ThemeTypes) => {
     setCurrentTheme(theme)
-    if (theme === 'light' || theme === 'dark') {
-      setTheme(theme)
-      customSkinStorage.remove()
-      if (currentTheme === 'custom') {
-        window.location.reload()
-      }
-    } else {
-      // custom type
-      updateTheme(customSkin)
-      customSkinStorage.setData('true')
-    }
+    setTheme(theme)
   }
 
   const currentIcon = () => {
@@ -110,10 +99,6 @@ export function ThemeSwitch() {
         <DropdownMenuItem onClick={() => handleChange('dark')}>
           <Moon size={20} />
           <p className="ml-2">Dark</p>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => handleChange('custom')}>
-          <Palette size={20} />
-          <p className="ml-2">Custom</p>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
