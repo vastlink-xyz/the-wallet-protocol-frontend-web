@@ -1,5 +1,6 @@
 'use client'
 
+import axios from 'axios'
 import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
@@ -147,7 +148,9 @@ export function ProductCard({
         // The theme product automatically changes the theme after purchase
         const p = product as any
         if (p.integrationPoints.includes('theme')) {
-          setTheme('light')
+          // delete skin
+          await deleteCustomSkin()
+          // window.location.reload()
         }
       } else {
         toast.error(response.data.message)
@@ -157,6 +160,30 @@ export function ProductCard({
     } finally {
       toast.dismiss(toastId.current)
       setLoading(false)
+    }
+  }
+
+  const deleteCustomSkin = async () => {
+    const {
+      authenticatedHeader,
+      desUsername,
+    } = auth.all()
+    try {
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/marketplace/product/customskin/delete`, {}, {
+        headers: {
+          "Content-Type": "application/json",
+          "X-Encrypted-Key": `${authenticatedHeader["X-Encrypted-Key" as keyof typeof authenticatedHeader]}`,
+          "X-Scope-Id": `${authenticatedHeader["X-Scope-Id" as keyof typeof authenticatedHeader]}`,
+          "X-Encrypted-User": `${authenticatedHeader["X-Encrypted-User" as keyof typeof authenticatedHeader]}`,
+          "X-Encrypted-Session": `${authenticatedHeader["X-Encrypted-Session" as keyof typeof authenticatedHeader]}`,
+          "X-Passport-Username": `${desUsername.username}`,
+        },
+      })
+    } catch(err) {
+      const message = (err as any).response.data
+      if (message) {
+        toast.error(message)
+      }
     }
   }
 

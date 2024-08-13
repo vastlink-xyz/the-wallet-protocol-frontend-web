@@ -14,6 +14,13 @@ import { Divide, Upload, X } from 'lucide-react'
 import { toast } from 'react-toastify'
 import { useUserSkin } from '@/providers/UserSkinProvider'
 
+const defaultThemeColors = {
+  'background': '#f6f6f6',
+  'primary': '#20252d',
+  'card': '#ffffff',
+  'brand': '#eef8f6',
+}
+
 export function EditSkinModal({
   isOpen,
   product,
@@ -25,11 +32,11 @@ export function EditSkinModal({
   onClose: (isSave: boolean) => void;
   balance: string;
 }) {
-  const [name, setName] = useState('')
-  const [logo, setLogo] = useState('')
+  const [name, setName] = useState('My Wallet')
+  const [logo, setLogo] = useState('https://github.com/shadcn.png')
   const [colorTheme, setColorTheme] = useState<ThemeColors>({})
 
-  const [themeColors, setThemeColors] = useState<Record<string, string>>({})
+  const [themeColors, setThemeColors] = useState<Record<string, string>>(defaultThemeColors)
   const [activeColorPicker, setActiveColorPicker] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 

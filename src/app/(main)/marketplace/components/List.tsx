@@ -121,12 +121,6 @@ export function List({
     setIsPurchaseModalOpen(false)
     if (isSave) {
       onReloadData()
-            
-      // The theme product automatically changes the theme after purchase
-      const p = product as any
-      if (p.integrationPoints.includes('theme')) {
-        setTheme('dark')
-      }
     }
   }
 

@@ -42,11 +42,6 @@ export function PurchaseModal({
   }, [])
 
   const handlePurchase = async () => {
-    const {
-      authenticatedHeader,
-      desUsername,
-    } = auth.all()
-
     try {
       setIsPurchasing(true)
       const client = await verifyPassportClient()
