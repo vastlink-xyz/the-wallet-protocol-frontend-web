@@ -164,14 +164,14 @@ export function ProductCard({
     <div
       key={p.id}
       className={cn(
-        "bg-white rounded-lg shadow-md shadow-card overflow-hidden flex flex-col h-full",
+        "bg-card rounded-lg shadow-md shadow-card overflow-hidden flex flex-col h-full",
         tab === 'purchased' && checkPurchaseStatus(p) === 'deleted' ? 'opacity-40' : '',
       )}
     >
       {/* image part */}
       <div
         className={cn(
-          "w-full relative px-4 aspect-square flex items-center justify-center cursor-pointer group"
+          "w-full bg-white relative px-4 aspect-square flex items-center justify-center cursor-pointer group"
         )}
         onClick={() => handleClick(p)}
       >
@@ -185,26 +185,26 @@ export function ProductCard({
         {/* product name */}
         {
           tab === 'all' && (
-            <h2 className="font-bold text-lg mb-2 w-fit cursor-pointer hover:underline" onClick={() => handleClick(p)}>{p.name}</h2>
+            <h2 className="font-bold text-primary text-lg mb-2 w-fit cursor-pointer hover:underline" onClick={() => handleClick(p)}>{p.name}</h2>
           )
         }
         {
           tab === 'purchased' && (
             <div className="flex justify-between">
-              <h2 className="font-bold text-lg mb-2 w-fit cursor-pointer hover:underline" onClick={() => handleClick(p)}>{p.name}</h2>
+              <h2 className="font-bold text-primary text-lg mb-2 w-fit cursor-pointer hover:underline" onClick={() => handleClick(p)}>{p.name}</h2>
               {statusBadge(p.status)}
             </div>
           )
         }
 
         {/* product description */}
-        <p className="text-gray-700 text-base mb-2 flex-grow">{p.description}</p>
+        <p className="text-primary opacity-80 text-base mb-2 flex-grow">{p.description}</p>
 
         {/* price */}
         {
           tab === 'all' && (
             <div className="flex items-center justify-start mb-4">
-              <p className="text-gray-600 text-sm font-medium mr-2">{t('price')}: </p>
+              <p className="text-primary text-sm font-medium mr-2">{t('price')}: </p>
               <p className="text-brand-foreground">
                 <span className="text-lg font-extrabold text-brand-foreground inline-block mr-[4px]">{p.price}</span>
                 <span className="font-medium text-sm">{t('currency')}</span>
@@ -219,11 +219,11 @@ export function ProductCard({
             <div className="my-2 pt-4">
               {
                 p.status === 'active' ? (
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-primary">
                     {t('purchased')}: {format(p.purchaseDate, 'yyyy-MM-dd HH:mm:ss')}
                   </p>
                 ) : (
-                  <p className="text-sm text-red-500 mt-1">
+                  <p className="text-sm text-destructive mt-1">
                     {t('deleted')}: {format(p.deleteDate, 'yyyy-MM-dd HH:mm:ss')}
                   </p>
                 )
@@ -236,7 +236,7 @@ export function ProductCard({
         <div className="flex justify-between items-center space-x-2 mt-auto">
           <Button
             className={cn(
-              "w-full bg-ink text-ink-foreground hover:bg-ink/80",
+              "w-full",
             )}
             onClick={(e) => handlePurchaseOpenModal(e, p)}
             disabled={checkPurchaseStatus(p) === 'active'}
@@ -251,7 +251,7 @@ export function ProductCard({
           <Button
             variant={'outline'}
             className={cn(
-              "w-full bg-transparent",
+              "w-full bg-transparent text-primary",
               checkPurchaseStatus(p) === 'deleted' && 'hidden'
             )}
             disabled={checkPurchaseStatus(p) === 'deleted' || checkPurchaseStatus(p) === ''}
