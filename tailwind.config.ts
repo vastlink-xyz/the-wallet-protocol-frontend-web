@@ -81,8 +81,8 @@ const config: Config = {
         "accordion-up": "accordion-up 0.2s ease-out",
       },
       backgroundImage: {
-        "warm-flame": "linear-gradient(to top left,#FF512F,#DD2476)",
-        "warm-flame-80": "linear-gradient(to top left, rgba(255,81,47,0.8), rgba(221,36,118,0.8))",
+        "cool-frosted-aqua": "linear-gradient(to top left, #7FBFBF, #5AA6A6)",
+        "cool-frosted-aqua-80": "linear-gradient(to top left, rgba(127,191,191,0.8), rgba(90,166,166,0.8))",
       },
     },
   },

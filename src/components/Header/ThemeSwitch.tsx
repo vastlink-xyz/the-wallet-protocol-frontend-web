@@ -65,6 +65,7 @@ export function ThemeSwitch() {
 
       if (customSkinStorage.getData() === 'true') {
         updateTheme(res.data.colorTheme)
+        setCurrentTheme('custom')
       }
     }
   }
