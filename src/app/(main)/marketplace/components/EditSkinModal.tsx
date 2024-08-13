@@ -43,7 +43,7 @@ export function EditSkinModal({
   const {theme} = useTheme()
 
   const [name, setName] = useState('My Wallet')
-  const [logo, setLogo] = useState('https://github.com/shadcn.png')
+  const [logo, setLogo] = useState('')
   const [colorTheme, setColorTheme] = useState<ThemeColors>({})
 
   const [themeColors, setThemeColors] = useState<Record<string, string>>({})
@@ -219,7 +219,7 @@ export function EditSkinModal({
 
         <Button
           className={cn('w-full')}
-          disabled={!name || !logo || Object.keys(colorTheme).length <= 0 || loading}
+          disabled={!name || Object.keys(colorTheme).length <= 0 || loading}
           onClick={(e) => handleSave(e)}
         >
           {loading ? (

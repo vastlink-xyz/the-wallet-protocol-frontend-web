@@ -1,16 +1,16 @@
 'use client'
 
 import { useThemeLogoPath } from "@/hooks/useThemeLogoPath";
-import { cn } from "@/lib/utils";
+import { auth, cn } from "@/lib/utils";
 import { useUserSkin } from "@/providers/UserSkinProvider";
 
-export function LogoLoading({ size = 24, className, type = 'spin' }: {
+export function LogoLoading({ size = 32, className, type = 'spin' }: {
   size?: number;
   className?: string;
   type?: 'breathe' | 'spin';
 }) {
   const { logoPath } = useThemeLogoPath()
-  const { customLogo } = useUserSkin()
+  const { customLogo, customName } = useUserSkin()
 
   const renderSpin = () => (
     <div className={cn(
@@ -50,47 +50,69 @@ export function LogoLoading({ size = 24, className, type = 'spin' }: {
     </div>
   )
 
-  const renderLogo = () => (
-    <div className="flex items-center justify-center">
-      <img
-        src={ customLogo ? customLogo : logoPath}
-        alt="Loading"
-        className={cn(
-          'animate-[breathe_2s_cubic-bezier(0.4,0,0.6,1)_infinite]',
-        )}
-        width={size}
-        height={size}
-        // style={{
-        //   animation: 'breathe 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        // }}
-      />
-      <style jsx>{`
-        @keyframes breathe {
-          0%, 100% {
-            opacity: 0.2;
-            transform: scale(0.9);
-          }
-          20% {
-            opacity: 1;
-            transform: scale(1.1);
-          }
-          30% {
-            opacity: 0.9;
-            transform: scale(1.05);
-          }
-          50% {
-            opacity: 0.5;
-            transform: scale(0.95);
-          }
-          70% {
-            opacity: 0.8;
-            transform: scale(1.03);
-          }
-        }
-      `}</style>
+  const renderLogo = () => {
+    const {
+      desUsername,
+    } = auth.all()
+    const letter = desUsername.username.length > 0 ? desUsername.username[0] : ''
 
-    </div>
-  );
+    return (
+      <div className="flex items-center justify-center">
+        {
+          (customName && !customLogo) ? (
+            <div
+              className={cn(
+                'bg-primary text-primary-foreground rounded-full flex items-center justify-center',
+                'animate-[breathe_2s_cubic-bezier(0.4,0,0.6,1)_infinite]',
+                `w-[${size}px] h-[${size}px]`,
+              )}
+            >
+              <div className={cn(
+                'flex items-center justify-center',
+              )}>
+                {letter}
+              </div>
+            </div>
+          ) : (
+            <img
+              src={ customLogo ? customLogo : logoPath}
+              alt="Loading"
+              className={cn(
+                'animate-[breathe_2s_cubic-bezier(0.4,0,0.6,1)_infinite]',
+              )}
+              width={size}
+              height={size}
+            />
+          )
+        }
+        <style jsx>{`
+          @keyframes breathe {
+            0%, 100% {
+              opacity: 0.2;
+              transform: scale(0.9);
+            }
+            20% {
+              opacity: 1;
+              transform: scale(1.1);
+            }
+            30% {
+              opacity: 0.9;
+              transform: scale(1.05);
+            }
+            50% {
+              opacity: 0.5;
+              transform: scale(0.95);
+            }
+            70% {
+              opacity: 0.8;
+              transform: scale(1.03);
+            }
+          }
+        `}</style>
+
+      </div>
+    );
+  }
   
 
   return type === 'breathe' ? renderLogo() : renderSpin()

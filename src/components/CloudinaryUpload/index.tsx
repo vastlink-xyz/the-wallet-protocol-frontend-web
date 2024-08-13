@@ -4,7 +4,7 @@ import { CldUploadWidget, CloudinaryUploadWidgetResults } from 'next-cloudinary'
 import React, { useEffect, useState } from 'react';
 import { Upload } from 'lucide-react';
 import Image from 'next/image';
-import { log } from "@/lib/utils"
+import { auth, cn, log } from "@/lib/utils"
 
 interface CloudinaryUploadProps {
   onSuccess: (url: string | undefined) => void;
@@ -13,6 +13,9 @@ interface CloudinaryUploadProps {
 
 export function CloudinaryUpload({ onSuccess, initialImage }: CloudinaryUploadProps) {
   const [uploadedImage, setUploadedImage] = useState<string | undefined>(initialImage);
+  const { desUsername } = auth.all()
+  const letter = desUsername.username.length > 0 ? desUsername.username[0] : ''
+
   // return (
   //   <CldUploadWidget signatureEndpoint="/api/sign-cloudinary-params">
   //       {({ open }) => {
@@ -38,8 +41,21 @@ export function CloudinaryUpload({ onSuccess, initialImage }: CloudinaryUploadPr
           <img src={uploadedImage} className="rounded-lg shadow-md w-8" alt="" />
         </div>
       ) : (
-        <div className=" bg-gray-200 rounded-lg flex items-center justify-center mb-4 p-2">
-          <Upload className="text-primary/60" size={20} />
+        // <div className=" bg-gray-200 rounded-lg flex items-center justify-center mb-4 p-2">
+        //   <Upload className="text-primary/60" size={20} />
+        // </div>
+        <div
+          className={cn(
+            'bg-primary text-primary-foreground rounded-full flex items-center justify-center',
+            'w-[32px] h-[32px]',
+            'mb-2'
+          )}
+        >
+          <div className={cn(
+            'flex items-center justify-center',
+          )}>
+            {letter}
+          </div>
         </div>
       )}
       

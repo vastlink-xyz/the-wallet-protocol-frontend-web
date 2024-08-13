@@ -8,10 +8,10 @@ export interface ThemeColors {
 }
 
 export const themeElements = [
-  'background',
   'primary',
-  'card',
+  'primary-foreground',
   'brand',
+  'brand-foreground',
 ]
 
 
