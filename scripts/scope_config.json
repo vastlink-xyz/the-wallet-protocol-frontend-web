@@ -1,7 +1,7 @@
 {
     "rp": {
-        "id": "the-wallet-protocol-app-poc-a611cfbc83a9.herokuapp.com",
-        "origin": "https://the-wallet-protocol-app-poc-a611cfbc83a9.herokuapp.com/",
+        "id": "poc.vastwallet.j-labs.xyz",
+        "origin": "https://poc.vastwallet.j-labs.xyz/",
         "name": "the wallet protocol"
     },
     "policies": []
