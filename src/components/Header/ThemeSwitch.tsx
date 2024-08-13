@@ -45,28 +45,33 @@ export function ThemeSwitch() {
     if (theme) {
       setCurrentTheme(theme as ThemeTypes)
     }
-    const res = await axios.get(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/marketplace/product/customskin`, {
-      headers: {
-        "Content-Type": "application/json",
-        "X-Encrypted-Key": `${authenticatedHeader["X-Encrypted-Key" as keyof typeof authenticatedHeader]}`,
-        "X-Scope-Id": `${authenticatedHeader["X-Scope-Id" as keyof typeof authenticatedHeader]}`,
-        "X-Encrypted-User": `${authenticatedHeader["X-Encrypted-User" as keyof typeof authenticatedHeader]}`,
-        "X-Encrypted-Session": `${authenticatedHeader["X-Encrypted-Session" as keyof typeof authenticatedHeader]}`,
-        "X-Passport-Username": `${desUsername.username}`,
-      },
-    })
-    log('res is', res.data)
-    if (res.data) {
-      setCustomSkin(res.data.colorTheme)
-      // 
-      setCustomName(res.data.name)
-      setCustomLogo(res.data.logo)
-      setCustomColorTheme(res.data.colorTheme)
-
-      if (customSkinStorage.getData() === 'true') {
-        updateTheme(res.data.colorTheme)
-        setCurrentTheme('custom')
+    try {
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/marketplace/product/customskin`, {
+        headers: {
+          "Content-Type": "application/json",
+          "X-Encrypted-Key": `${authenticatedHeader["X-Encrypted-Key" as keyof typeof authenticatedHeader]}`,
+          "X-Scope-Id": `${authenticatedHeader["X-Scope-Id" as keyof typeof authenticatedHeader]}`,
+          "X-Encrypted-User": `${authenticatedHeader["X-Encrypted-User" as keyof typeof authenticatedHeader]}`,
+          "X-Encrypted-Session": `${authenticatedHeader["X-Encrypted-Session" as keyof typeof authenticatedHeader]}`,
+          "X-Passport-Username": `${desUsername.username}`,
+        },
+      })
+      log('res is', res.data)
+      if (res.data) {
+        setCustomSkin(res.data.colorTheme)
+        // 
+        setCustomName(res.data.name)
+        setCustomLogo(res.data.logo)
+        setCustomColorTheme(res.data.colorTheme)
+  
+        if (customSkinStorage.getData() === 'true') {
+          updateTheme(res.data.colorTheme)
+          setCurrentTheme('custom')
+        }
       }
+    } catch(err) {
+      const message = (err as any).response.data
+      log('custom skin', message)
     }
   }
 

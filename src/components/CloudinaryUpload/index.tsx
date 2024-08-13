@@ -1,7 +1,7 @@
 'use client'
 
 import { CldUploadWidget, CloudinaryUploadWidgetResults } from 'next-cloudinary';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Upload } from 'lucide-react';
 import Image from 'next/image';
 import { log } from "@/lib/utils"
@@ -24,6 +24,12 @@ export function CloudinaryUpload({ onSuccess, initialImage }: CloudinaryUploadPr
   //       }}
   //     </CldUploadWidget>
   // )
+
+  useEffect(() => {
+    if (initialImage) {
+      setUploadedImage(initialImage)
+    }
+  }, [initialImage])
 
   return (
     <div className="flex flex-col items-center">

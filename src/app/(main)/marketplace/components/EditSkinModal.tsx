@@ -12,6 +12,7 @@ import { CloudinaryUpload } from '@/components/CloudinaryUpload'
 import { Modal } from '@/components/Modal'
 import { Divide, Upload, X } from 'lucide-react'
 import { toast } from 'react-toastify'
+import { useUserSkin } from '@/providers/UserSkinProvider'
 
 export function EditSkinModal({
   isOpen,
@@ -31,6 +32,8 @@ export function EditSkinModal({
   const [themeColors, setThemeColors] = useState<Record<string, string>>({})
   const [activeColorPicker, setActiveColorPicker] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+
+  const { setCurrentTheme } = useUserSkin()
 
   useEffect(() => {
     if (isOpen) {
@@ -62,21 +65,28 @@ export function EditSkinModal({
       authenticatedHeader,
       desUsername,
     } = auth.all()
-    const res = await axios.get(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/marketplace/product/customskin`, {
-      headers: {
-        "Content-Type": "application/json",
-        "X-Encrypted-Key": `${authenticatedHeader["X-Encrypted-Key" as keyof typeof authenticatedHeader]}`,
-        "X-Scope-Id": `${authenticatedHeader["X-Scope-Id" as keyof typeof authenticatedHeader]}`,
-        "X-Encrypted-User": `${authenticatedHeader["X-Encrypted-User" as keyof typeof authenticatedHeader]}`,
-        "X-Encrypted-Session": `${authenticatedHeader["X-Encrypted-Session" as keyof typeof authenticatedHeader]}`,
-        "X-Passport-Username": `${desUsername.username}`,
-      },
-    })
-    log('res is', res.data)
-    if (res.data) {
-      setName(res.data.name)
-      setLogo(res.data.logo)
-      setColorTheme(res.data.name)
+    try {
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/marketplace/product/customskin`, {
+        headers: {
+          "Content-Type": "application/json",
+          "X-Encrypted-Key": `${authenticatedHeader["X-Encrypted-Key" as keyof typeof authenticatedHeader]}`,
+          "X-Scope-Id": `${authenticatedHeader["X-Scope-Id" as keyof typeof authenticatedHeader]}`,
+          "X-Encrypted-User": `${authenticatedHeader["X-Encrypted-User" as keyof typeof authenticatedHeader]}`,
+          "X-Encrypted-Session": `${authenticatedHeader["X-Encrypted-Session" as keyof typeof authenticatedHeader]}`,
+          "X-Passport-Username": `${desUsername.username}`,
+        },
+      })
+      log('res is', res.data)
+      if (res.data) {
+        setName(res.data.name)
+        setLogo(res.data.logo)
+        setColorTheme(res.data.name)
+      }
+    } catch(err) {
+      const message = (err as any).response.data
+      if (message) {
+        // toast.error(message)
+      }
     }
   }
 
@@ -95,8 +105,10 @@ export function EditSkinModal({
       })
       toast.success('Save successfully.')
       updateTheme(colorTheme)
+      setCurrentTheme('custom')
       customSkinStorage.setData('true')
       onClose(false)
+      window.location.reload()
     } catch(err) {
       log('err', err)
     } finally {
@@ -138,7 +150,7 @@ export function EditSkinModal({
                     setLogo(url)
                   }
                 }}
-                // initialImage={logo}
+                initialImage={logo}
               />
             )
           }
