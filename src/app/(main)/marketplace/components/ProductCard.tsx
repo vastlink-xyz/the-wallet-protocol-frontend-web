@@ -180,7 +180,7 @@ export function ProductCard({
         },
       })
     } catch(err) {
-      const message = (err as any).response.data
+      const message = (err as any)?.response?.data
       if (message) {
         toast.error(message)
       }

@@ -69,7 +69,7 @@ export function ThemeSwitch() {
         }
       }
     } catch(err) {
-      const message = (err as any).response.data
+      const message = (err as any)?.response?.data
       log('custom skin', message)
     }
   }
