@@ -2,7 +2,7 @@
 
 import { RefAttributes, useEffect, useRef, useState } from "react"
 
-import { cn, log } from "@/lib/utils"
+import { auth, cn, log } from "@/lib/utils"
 import { House, Coins, NotebookText, Store, LucideProps } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -12,6 +12,7 @@ import { useTheme } from "next-themes"
 import { useThemeLogoPath } from "@/hooks/useThemeLogoPath"
 import { useTranslations } from "next-intl"
 import { useUserSkin } from "@/providers/UserSkinProvider"
+import { InitialNameLogo } from "../InitialNameLogo"
 
 const iconComponents = {
   House,
@@ -70,7 +71,13 @@ export function SideBar() {
       )}
     >
       <div className="flex items-center justify-center m-6">
-        <img src={customLogo ? customLogo : logoPath} className="w-[32px] mr-2" alt="logo" />
+        {
+          (customName && !customLogo) ? (
+            <InitialNameLogo className="mr-2" />
+          ) : (
+            <img src={customLogo ? customLogo : logoPath} className="w-[32px] mr-2" alt="logo" />
+          )
+        }
         <p className="font-extrabold hidden md:block text-primary text-xl">{ customName ? customName : t('title')}</p>
       </div>
 

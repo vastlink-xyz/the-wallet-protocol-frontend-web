@@ -3,6 +3,7 @@
 import { useThemeLogoPath } from "@/hooks/useThemeLogoPath";
 import { auth, cn } from "@/lib/utils";
 import { useUserSkin } from "@/providers/UserSkinProvider";
+import { InitialNameLogo } from "../InitialNameLogo";
 
 export function LogoLoading({ size = 32, className, type = 'spin' }: {
   size?: number;
@@ -51,28 +52,13 @@ export function LogoLoading({ size = 32, className, type = 'spin' }: {
   )
 
   const renderLogo = () => {
-    const {
-      desUsername,
-    } = auth.all()
-    const letter = desUsername.username.length > 0 ? desUsername.username[0] : ''
-
     return (
       <div className="flex items-center justify-center">
         {
           (customName && !customLogo) ? (
-            <div
-              className={cn(
-                'bg-primary text-primary-foreground rounded-full flex items-center justify-center',
-                'animate-[breathe_2s_cubic-bezier(0.4,0,0.6,1)_infinite]',
-                `w-[${size}px] h-[${size}px]`,
-              )}
-            >
-              <div className={cn(
-                'flex items-center justify-center',
-              )}>
-                {letter}
-              </div>
-            </div>
+            <InitialNameLogo className={cn(
+              'animate-[breathe_2s_cubic-bezier(0.4,0,0.6,1)_infinite]',
+            )} />
           ) : (
             <img
               src={ customLogo ? customLogo : logoPath}

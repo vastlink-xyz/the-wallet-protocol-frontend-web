@@ -36,15 +36,20 @@ export function ThemeSwitch() {
   useEffect(() => {
     init()
   }, [])
+
+  useEffect(() => {
+    if (theme !== 'system') {
+      setCurrentTheme(theme as ThemeTypes)
+    } else if (systemTheme) {
+      setCurrentTheme(systemTheme)
+    }
+  }, [theme, systemTheme])
   
   const init = async () => {
     const {
       authenticatedHeader,
       desUsername,
     } = auth.all()
-    if (theme) {
-      setCurrentTheme(theme as ThemeTypes)
-    }
     try {
       const res = await axios.get(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/marketplace/product/customskin`, {
         headers: {
