@@ -32,19 +32,46 @@ export function RampModal({
   const t = useTranslations('/marketplace.moonpayRamp')
   const [buyVisible, setBuyVisible] = useState(false)
   const [sellVisible, setSellVisible] = useState(false)
+
+  // moonpay ramp widget
   const { theme } = useTheme()
   const [email, setEmail] = useState<string | undefined>('')
+  const [walletAddresses, setWalletAddresses] = useState('')
 
   useEffect(() => {
+    init()
+  }, [])
+  
+  const init = async () => {
     const {
       desUsername,
+      address,
     } = auth.all()
+
+    // set email
     if (desUsername) {
       setEmail(desUsername?.username)
+      // kkktodo
+      // setEmail('xlstest@proton.me')
     } else {
       setEmail(undefined)
     }
-  }, [])
+
+    // set walletAddresses
+    const walletAddressesRaw = {
+      'eth': address,
+      'matic_polygon': address,
+    }
+    const wa = JSON.stringify(walletAddressesRaw)
+    setWalletAddresses(wa)
+    log('wa', wa)
+  }
+
+  const handleGetSignature = async (url: string): Promise<string> => {
+    const response = await fetch(`/api/sign-moonpay-params?url=${encodeURIComponent(url)}`);
+    const data = await response.json();
+    return data.signature;
+  }
 
   const handleClose = () => {
     onClose(false)
@@ -74,8 +101,9 @@ export function RampModal({
             email={email}
             onCloseOverlay={() => {
               setBuyVisible(false)
-              log('onclose buy')
             }}
+            walletAddresses={walletAddresses}
+            onUrlSignatureRequested={handleGetSignature}
           />
         )
       }
@@ -87,10 +115,11 @@ export function RampModal({
             visible={sellVisible}
             theme={theme}
             email={email}
+            walletAddresses={walletAddresses}
             onCloseOverlay={() => {
               setSellVisible(false)
-              log('onclose sell')
             }}
+            onUrlSignatureRequested={handleGetSignature}
           />
         )
       }
