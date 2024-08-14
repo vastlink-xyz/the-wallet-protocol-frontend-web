@@ -51,7 +51,6 @@ export function RampModal({
     // set email
     if (desUsername) {
       setEmail(desUsername?.username)
-      // kkktodo
       // setEmail('xlstest@proton.me')
     } else {
       setEmail(undefined)
@@ -103,6 +102,8 @@ export function RampModal({
               setBuyVisible(false)
             }}
             walletAddresses={walletAddresses}
+            showWalletAddressForm='true'
+            showAllCurrencies='true'
             onUrlSignatureRequested={handleGetSignature}
           />
         )
@@ -116,6 +117,8 @@ export function RampModal({
             theme={theme}
             email={email}
             walletAddresses={walletAddresses}
+            showWalletAddressForm='true'
+            showAllCurrencies='true'
             onCloseOverlay={() => {
               setSellVisible(false)
             }}
