@@ -20,6 +20,7 @@ export function ProductCard({
   onReloadData,
   handlePurchaseOpenModal,
   handleSkinOpenModal,
+  handleRampOpenModal,
   tab,
 }: {
   productItem: any;
@@ -27,6 +28,7 @@ export function ProductCard({
   onReloadData: () => void;
   handlePurchaseOpenModal: (event: any, product: any) => void;
   handleSkinOpenModal: (product: any) => void;
+  handleRampOpenModal: (product: any) => void;
   tab: 'all' | 'purchased';
 }) {
   const t = useTranslations('/marketplace.productCard');
@@ -75,8 +77,13 @@ export function ProductCard({
 
     // skin category
     if (p.category === 'Theme' && checkPurchaseStatus(p) === 'active') {
-      log('skin')
       handleSkinOpenModal(true)
+      return
+    }
+
+    // payment
+    if (p.category === 'Payment' && checkPurchaseStatus(p) === 'active') {
+      handleRampOpenModal(p)
       return
     }
 

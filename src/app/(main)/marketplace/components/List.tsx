@@ -9,6 +9,7 @@ import { useTheme } from "next-themes"
 import { ProductCard } from "./ProductCard"
 import { SkeletonCards } from "./SkeletonCards"
 import { EditSkinModal } from "./EditSkinModal"
+import { RampModal } from "./RampModal"
 
 export function List({
   tab,
@@ -17,8 +18,11 @@ export function List({
 }) {
   const [products, setProducts] = useState<any[]>([])
   const [purchasedProducts, setPurchasedProducts] = useState<any[]>([])
+
   const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false)
   const [isSkinModalOpen, setIsSkinModalOpen] = useState(false)
+  const [isRampModalOpen, setIsRampModalOpen] = useState(false)
+
   const [product, setProduct] = useState({})
   const [balance, setBalance] = useState('')
   const [loading, setLoading] = useState(false)
@@ -116,6 +120,11 @@ export function List({
     setProduct(product)
   }
 
+  const handleRampOpenModal = (product: any) => {
+    setIsRampModalOpen(true)
+    setProduct(product)
+  }
+
   const handlePurchaseModalClose = (isSave: boolean) => {
     log('handle close call')
     setIsPurchaseModalOpen(false)
@@ -127,9 +136,6 @@ export function List({
   const handleSkinModalClose = (isSave: boolean) => {
     log('handle close call')
     setIsSkinModalOpen(false)
-    if (isSave) {
-
-    }
   }
 
   return (
@@ -150,6 +156,7 @@ export function List({
                     onReloadData={onReloadData}
                     handlePurchaseOpenModal={handlePurchasedOpenModal}
                     handleSkinOpenModal={handleSkinOpenModal}
+                    handleRampOpenModal={handleRampOpenModal}
                   />
                 )
               })
@@ -161,6 +168,8 @@ export function List({
       <PurchaseModal isOpen={isPurchaseModalOpen} onClose={(isSave) => handlePurchaseModalClose(isSave)} product={product} balance={balance} />
 
       <EditSkinModal isOpen={isSkinModalOpen} onClose={(isSave) => handleSkinModalClose(isSave)} product={product} balance={balance} />
+
+      <RampModal isOpen={isRampModalOpen} onClose={() => setIsRampModalOpen(false)} product={product} />
     </div>
   )
 }

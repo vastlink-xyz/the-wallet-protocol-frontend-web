@@ -16,8 +16,10 @@ export function InitialNameLogo({
     const {
       desUsername,
     } = auth.all()
-    const letter = desUsername.username.length > 0 ? desUsername.username[0] : ''
-    setLetter(letter)
+    if (desUsername) {
+      const letter = desUsername.username.length > 0 ? desUsername.username[0] : ''
+      setLetter(letter)
+    }
   }, [])
 
   return (

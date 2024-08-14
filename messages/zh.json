@@ -67,6 +67,14 @@
         "cancel": "取消",
         "confirm": "删除"
       }
+    },
+    "moonpayRamp": {
+      "modalTitle": "加密货币交易",
+      "buyButton": "用法币购买加密货币",
+      "sellButton": "出售加密货币换取法币",
+      "buy": "购买",
+      "sell": "出售",
+      "openCryptoExchange": "打开加密货币交易"
     }
   },
   "vastWalletConnect": {

@@ -13,6 +13,7 @@ import { WalletConnectPairProvider } from "@/providers/WalletConnectPairProvider
 import { ThemeProvider } from "@/providers/ThemeProvider"
 import ThemeAwareToastContainer from "@/components/ThemeAwareToastContainer";
 import { UserSkinProvider } from "@/providers/UserSkinProvider";
+import { MoonPayProviderWrapper } from "@/providers/MoonPayProviderWrapper";
 
 const inter = Inter({
   subsets: ["latin"]
@@ -51,7 +52,9 @@ export default async function RootLayout({
                     enableSystem={true}
                     defaultTheme="system"
                   >
-                    {children}
+                    <MoonPayProviderWrapper>
+                      {children}
+                    </MoonPayProviderWrapper>
                     <ThemeAwareToastContainer />
                   </ThemeProvider>
                 </WalletConnectPairProvider>
