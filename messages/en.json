@@ -69,12 +69,12 @@
       }
     },
     "moonpayRamp": {
-      "modalTitle": "Crypto Exchange",
+      "modalTitle": "MoonPay on-ramp / off-ramp",
       "buyButton": "Buy Crypto with Fiat",
       "sellButton": "Sell Crypto for Fiat",
       "buy": "Buy",
       "sell": "Sell",
-      "openCryptoExchange": "Open Crypto Exchange"
+      "openCryptoExchange": "Open MoonPay"
     }
   },
   "vastWalletConnect": {
