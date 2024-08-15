@@ -5,10 +5,16 @@ import { auth, cn } from "@/lib/utils";
 import { useUserSkin } from "@/providers/UserSkinProvider";
 import { InitialNameLogo } from "../InitialNameLogo";
 
-export function LogoLoading({ size = 32, className, type = 'spin' }: {
+export function LogoLoading({ 
+  size = 32, 
+  className, 
+  type = 'spin', 
+  fullscreen = false 
+}: {
   size?: number;
   className?: string;
   type?: 'breathe' | 'spin';
+  fullscreen?: boolean;
 }) {
   const { logoPath } = useThemeLogoPath()
   const { customLogo, customName } = useUserSkin()
@@ -95,11 +101,19 @@ export function LogoLoading({ size = 32, className, type = 'spin' }: {
             }
           }
         `}</style>
-
       </div>
     );
   }
   
+  const content = type === 'breathe' ? renderLogo() : renderSpin();
 
-  return type === 'breathe' ? renderLogo() : renderSpin()
+  if (fullscreen) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">
+        {content}
+      </div>
+    );
+  }
+
+  return content;
 }
