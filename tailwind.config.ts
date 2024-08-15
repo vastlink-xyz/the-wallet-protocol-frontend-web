@@ -14,7 +14,11 @@ const config: Config = {
       center: true,
       padding: "2rem",
       screens: {
-        "2xl": "1400px",
+        // "2xl": "1400px",
+        '3xl': '1920px',  // Full HD
+        '4xl': '2560px',  // 2K / WQHD
+        '5xl': '3440px',  // Ultrawide
+        '6xl': '3840px',  // 4K / UHD
       },
     },
     extend: {

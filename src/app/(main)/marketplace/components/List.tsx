@@ -144,7 +144,11 @@ export function List({
         loading ? (
           <SkeletonCards />
         ) : (
-          <div className="grid grid-flow-row gap-8 grid-cols-[repeat(auto-fit,minmax(320px,1fr))]">
+          <div className={cn(
+            "grid grid-flow-row gap-8",
+            "grid-cols-[repeat(auto-fit,minmax(320px,1fr))]",
+            products.length <= 4 && 'lg:grid-cols-2 xl:grid-cols-3 3xl:grid-cols-4',
+          )}>
             {
               products.map((p: any) => {
                 return (
