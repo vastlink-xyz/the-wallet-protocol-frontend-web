@@ -90,6 +90,7 @@ export function RampModal({
   }
 
   const handleInitiateDeposit = async (props: OnInitiateDepositProps) => {
+    setSending(false)
     const confirmed = await handleConfirm(props)
     if (confirmed) {
       const token = TokenFactory.getInstance().createToken(props.cryptoCurrency.code.toUpperCase() as TokenType)
