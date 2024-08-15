@@ -74,7 +74,13 @@
       "sellButton": "Sell Crypto for Fiat",
       "buy": "Buy",
       "sell": "Sell",
-      "openCryptoExchange": "Open MoonPay"
+      "openCryptoExchange": "Open MoonPay",
+      "depositConfirmation": {
+        "title": "Confirm Deposit",
+        "message": "Are you sure you want to initiate this deposit?",
+        "confirmButton": "Confirm",
+        "cancelButton": "Cancel"
+      }
     }
   },
   "vastWalletConnect": {

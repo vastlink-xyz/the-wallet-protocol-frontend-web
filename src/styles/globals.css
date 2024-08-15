@@ -54,6 +54,8 @@
     --toastify-color-success: #58d68d; 
     --toastify-color-warning: #f4d03f; 
     --toastify-color-error: #ec7063;   
+
+    --toastify-z-index: 2147483647;
   }
 
   .dark {

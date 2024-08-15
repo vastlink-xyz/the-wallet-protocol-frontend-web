@@ -4,6 +4,8 @@ import { useThemeLogoPath } from "@/hooks/useThemeLogoPath";
 import { auth, cn } from "@/lib/utils";
 import { useUserSkin } from "@/providers/UserSkinProvider";
 import { InitialNameLogo } from "../InitialNameLogo";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 export function LogoLoading({ 
   size = 32, 
@@ -18,6 +20,12 @@ export function LogoLoading({
 }) {
   const { logoPath } = useThemeLogoPath()
   const { customLogo, customName } = useUserSkin()
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
 
   const renderSpin = () => (
     <div className={cn(
@@ -107,11 +115,12 @@ export function LogoLoading({
   
   const content = type === 'breathe' ? renderLogo() : renderSpin();
 
-  if (fullscreen) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">
+  if (fullscreen && mounted) {
+    return createPortal(
+      <div className="fixed inset-0 flex items-center justify-center bg-primary-foreground/80 z-[2147483646]">
         {content}
-      </div>
+      </div>,
+      document.body
     );
   }
 

@@ -5,6 +5,7 @@ import { forcedLightThemeRoutes } from "@/providers/ThemeProvider";
 import { useTheme } from "next-themes";
 import { usePathname } from "next/navigation";
 import { Flip, Zoom, Bounce, ToastContainer } from 'react-toastify';
+import '@/styles/react-toastify.css'
 
 export default function ThemeAwareToastContainer() {
   const { theme } = useTheme()
