@@ -34,6 +34,13 @@
           "amount": "Amount"
         },
         "noTransactions": "No transactions to display"
+      },
+      "sendModal": {
+        "title": "Send",
+        "to": "To",
+        "toPlaceholder": "Address or Email",
+        "amount": "Amount",
+        "balance": "Balance"
       }
     }
   },

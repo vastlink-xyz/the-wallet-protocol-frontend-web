@@ -125,6 +125,21 @@ export default function AuthRegister() {
       auth.saveAuthDataByKey('address', address)
       auth.saveAuthDataByKey('desUsername', JSON.parse(desUsername))
 
+      if (auth.all()?.desUsername?.username && address) {
+        await axios.post(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/address/bind`, {
+          address,
+        }, {
+          headers: {
+            "Content-Type": "application/json",
+            "X-Encrypted-Key": `${authenticatedHeader["X-Encrypted-Key" as keyof typeof authenticatedHeader]}`,
+            "X-Scope-Id": `${authenticatedHeader["X-Scope-Id" as keyof typeof authenticatedHeader]}`,
+            "X-Encrypted-User": `${authenticatedHeader["X-Encrypted-User" as keyof typeof authenticatedHeader]}`,
+            "X-Encrypted-Session": `${authenticatedHeader["X-Encrypted-Session" as keyof typeof authenticatedHeader]}`,
+            "X-Passport-Username": `${auth.all().desUsername.username}`,
+          },
+        })
+      }
+
       router.push('/home')
     } catch (error: any) {
       console.error("Error registering:", error);

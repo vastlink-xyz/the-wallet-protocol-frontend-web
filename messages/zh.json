@@ -34,6 +34,13 @@
           "amount": "金额"
         },
         "noTransactions": "暂无交易记录"
+      },
+      "sendModal": {
+        "title": "发送",
+        "to": "接收方",
+        "toPlaceholder": "地址或邮箱",
+        "amount": "金额",
+        "balance":"余额"
       }
     }
   },

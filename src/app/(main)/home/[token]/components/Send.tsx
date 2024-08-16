@@ -24,6 +24,7 @@ import { Token, TokenFactory } from "@/services/TokenService";
 import { makeAuthenticatedApiRequest } from "@/lib/utils";
 import { usePassportClientVerification } from "@/hooks/usePassportClientVerification";
 import { LogoLoading } from "@/components/LogoLoading";
+import { useTranslations } from "next-intl";
 
 export function Send({
   balance,
@@ -41,6 +42,7 @@ export function Send({
   const [symbol, setSymbol] = useState('')
   const tokenRef = useRef<Token>()
   const { verifyPassportClient } = usePassportClientVerification()
+  const t = useTranslations('/home.[token].sendModal')
 
   useEffect(() => {
     const token = TokenFactory.getInstance().createToken(tokenType)
@@ -48,7 +50,12 @@ export function Send({
     setSymbol(tokenRef.current.symbol)
   }, [])
 
-  async function signTransaction() {
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/;
+    return emailRegex.test(email);
+  };
+
+  async function signTransaction(toAddress: Address, toEmail?: string) {
     try {
       const amt = parseEther(amount).toString()
       log('amt', amt)
@@ -63,9 +70,10 @@ export function Send({
       const response = await makeAuthenticatedApiRequest({
         path: apiPath,
         data: {
-          to,
+          to: toAddress,
           amount: amt,
           token: tokenType,
+          toEmail,
         },
       })
 
@@ -120,7 +128,24 @@ export function Send({
 
   const handleSend = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    signTransaction();
+    if (validateEmail(to)) {
+      try {
+        setSending(true)
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/address/`, {
+          params: {
+            email: to,
+          }
+        })
+        const addr = res.data.address
+        signTransaction(addr, to)
+      } catch(err) {
+        setSending(false)
+        const errMsg = (err as any)?.response?.data
+        toast.error(errMsg)
+      }
+    } else {
+      signTransaction(to as Address);
+    }
   }
 
   const handleClickMax = async () => {
@@ -137,7 +162,7 @@ export function Send({
       <DialogTrigger>
         <div
           title="Send"
-          className="bg-primary hover:bg-primary/80 rounded-full w-[48px] h-[48px] flex items-center justify-center mr-4 cursor-pointer text-primary-foreground"
+          className="bg-foreground hover:bg-foreground/80 rounded-full w-[48px] h-[48px] flex items-center justify-center mr-4 cursor-pointer text-primary-foreground"
         >
           <MoveUpRight onClick={() => setOpen(true)} />
         </div>
@@ -145,25 +170,26 @@ export function Send({
 
       <DialogContent className="w-[360px] text-primary">
         <DialogTitle className="mb-4">
-          Send
+          {t('title')}
         </DialogTitle>
 
         <form
           onSubmit={(e) => handleSend(e)}>
           <div className="mb-5">
-            <label htmlFor="to" className="block mb-2 text-sm font-medium">To</label>
+            <label htmlFor="to" className="block mb-2 text-sm font-medium">{t('to')}</label>
             <Input
               value={to}
               onChange={e => setTo(e.target.value)}
               id="to"
               required
-              />
+              placeholder={t('toPlaceholder')}
+            />
           </div>
 
           <div className="mb-5">
             <div className="flex items-center justify-between">
-              <label htmlFor="amount" className="block mb-2 text-sm font-medium">Amount</label>
-              <p className="text-xs mb-2 text-gray-500">Balance: {formatDecimal(balance)} {symbol}</p>
+              <label htmlFor="amount" className="block mb-2 text-sm font-medium">{t('amount')}</label>
+              <p className="text-xs mb-2 text-gray-500">{t('balance')}: {formatDecimal(balance)} {symbol}</p>
             </div>
             <div className="relative">
               <Input
