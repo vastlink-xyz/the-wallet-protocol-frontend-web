@@ -93,24 +93,32 @@ export function EditSkinModal({
           "X-Passport-Username": `${desUsername.username}`,
         },
       })
-      log('res is', res.data)
-      if (res.data) {
-        setName(res.data.name)
-        setLogo(res.data.logo)
-        setColorTheme(res.data.colorTheme)
 
+      if (res?.data?.success) {
+        const skinData = res?.data?.skin
+        setName(skinData.name)
+        setLogo(skinData.logo)
+        setColorTheme(skinData.colorTheme)
+  
         setThemeColors({
           ...themeColors,
-          ...res.data.colorTheme
+          ...skinData.colorTheme
         })
+      } else {
+        // no custom skin
+        setupDefaultThemeColors()
       }
     } catch(err) {
       // no custom skin
-      if (theme === 'light') {
-        setThemeColors(defaultLightThemeColors)
-      } else if (theme === 'dark') {
-        setThemeColors(defaultDarkThemeColors)
-      }
+      setupDefaultThemeColors()
+    }
+  }
+  
+  const setupDefaultThemeColors = () => {
+    if (theme === 'light') {
+      setThemeColors(defaultLightThemeColors)
+    } else if (theme === 'dark') {
+      setThemeColors(defaultDarkThemeColors)
     }
   }
 

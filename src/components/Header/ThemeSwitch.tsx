@@ -61,16 +61,16 @@ export function ThemeSwitch() {
           "X-Passport-Username": `${desUsername.username}`,
         },
       })
-      log('user customskin', res.data)
-      if (res.data) {
-        setCustomSkin(res.data.colorTheme)
+      if (res.data?.success) {
+        const skinData = res.data?.skin
+        setCustomSkin(skinData.colorTheme)
         // 
-        setCustomName(res.data.name)
-        setCustomLogo(res.data.logo)
-        setCustomColorTheme(res.data.colorTheme)
+        setCustomName(skinData.name)
+        setCustomLogo(skinData.logo)
+        setCustomColorTheme(skinData.colorTheme)
   
         if (customSkinStorage.getData() === 'true') {
-          updateTheme(res.data.colorTheme)
+          updateTheme(skinData.colorTheme)
         }
       }
     } catch(err) {
