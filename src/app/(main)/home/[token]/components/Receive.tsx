@@ -13,10 +13,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { MoveDownLeft, Copy, CopyCheck } from "lucide-react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 import QRCode from 'react-qr-code'
 import { CopyClipboardAddress } from "@/components/CopyClipboardAddress"
 import { useTheme } from "next-themes"
+import { useTranslations } from "next-intl"
+import { auth } from "@/lib/utils"
 
 export function Receive({
   address,
@@ -24,8 +27,16 @@ export function Receive({
   address: Address;
 }) {
   const [open, setOpen] = useState(false)
-  const [copied, setCopied] = useState(false)
-  const { theme } = useTheme()
+  const [email, setEmail] = useState('')
+  const t = useTranslations('/home.[token].receiveModal')
+
+  useEffect(() => {
+    if (open) {
+      const { desUsername } = auth.all()
+      const email = desUsername?.username
+      setEmail(email)
+    }
+  }, [open])
 
   return(
     <Dialog open={open} onOpenChange={setOpen}>
@@ -39,22 +50,50 @@ export function Receive({
 
       <DialogContent className="w-[360px] text-primary">
         <DialogTitle>
-          Receive
+          {t('title')}
         </DialogTitle>
 
-        <div className="flex items-center justify-between w-full my-6">
-          <CopyClipboardAddress address={address} />
-        </div>
+        <Tabs defaultValue="crypto" className="w-full">
+          <TabsList className="w-full">
+            <TabsTrigger value="crypto" className="w-full">{t('Crypto')}</TabsTrigger>
+            <TabsTrigger value="email" className="w-full">{t('Email')}</TabsTrigger>
+          </TabsList>
 
-        <div className="w-full">
-          <QRCode
-            fgColor="#7bcdc6"
-            bgColor={theme === 'light' ? '#fff' : '#000'}
-            value={address}
-            style={{width: '100%'}}
-            size={320}
-          />
-        </div>
+          <TabsContent value="crypto">
+            <div className="flex items-center justify-between w-full mt-6 mb-2">
+              <CopyClipboardAddress address={address} />
+            </div>
+
+            <div className="w-full">
+              <QRCode
+                fgColor="#7bcdc6"
+                // bgColor={theme === 'light' ? '#fff' : '#000'}
+                bgColor="transparent"
+                value={address}
+                style={{width: '100%'}}
+                size={320}
+              />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="email">
+            <div className="flex items-center justify-between w-full my-6">
+              <CopyClipboardAddress address={email as any} />
+            </div>
+            <div className="w-full">
+              <QRCode
+                fgColor="#7bcdc6"
+                // bgColor={theme === 'light' ? '#fff' : '#000'}
+                bgColor="transparent"
+                value={email}
+                style={{width: '100%'}}
+                size={320}
+              />
+            </div>
+          </TabsContent>
+
+        </Tabs>
+
 
       </DialogContent>
     </Dialog>

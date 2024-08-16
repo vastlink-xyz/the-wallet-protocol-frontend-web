@@ -30,7 +30,7 @@ export function Header() {
         const token = TokenFactory.getInstance().createToken(tokenType as TokenType).symbol
         return <div className="flex items-center">
           <div
-            className="text-brand-foreground bg-brand p-2 rounded-lg mr-4 hover:scale-110 cursor-pointer"
+            className="bg-brand-foreground/80 text-brand p-2 rounded-lg mr-4 hover:scale-110 cursor-pointer"
             onClick={() => {
               router.push('/home')
             }}

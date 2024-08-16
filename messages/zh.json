@@ -41,6 +41,11 @@
         "toPlaceholder": "地址或邮箱",
         "amount": "金额",
         "balance":"余额"
+      },
+      "receiveModal": {
+        "title": "接收",
+        "Crypto": "加密货币地址",
+        "Email": "电子邮件地址"
       }
     }
   },

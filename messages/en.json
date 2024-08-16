@@ -41,6 +41,11 @@
         "toPlaceholder": "Address or Email",
         "amount": "Amount",
         "balance": "Balance"
+      },
+      "receiveModal": {
+        "title": "Receive",
+        "Crypto": "Crypto Address",
+        "Email": "Email Address"
       }
     }
   },
