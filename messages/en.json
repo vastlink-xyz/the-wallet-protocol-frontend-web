@@ -44,7 +44,7 @@
   "/marketplace": {
     "tabs": {
       "all": "All Products",
-      "purchased": "Purchased Products"
+      "purchased": "Installed Products"
     },
     "productCard": {
       "status": {
@@ -53,19 +53,19 @@
       },
       "price": "Price",
       "currency": "TVWT",
-      "purchased": "Purchased",
-      "deleted": "Deleted",
+      "purchased": "Installed",
+      "deleted": "Uninstalled",
       "buttons": {
-        "purchase": "Purchase",
-        "purchased": "Purchased",
-        "delete": "Delete",
-        "deleted": "Deleted"
+        "purchase": "Install",
+        "purchased": "Installed",
+        "delete": "Uninstall",
+        "deleted": "Uninstalled"
       },
       "deleteConfirmation": {
-        "title": "Confirm Deletion",
-        "message": "Are you sure you want to delete this item?",
+        "title": "Confirmation",
+        "message": "Are you sure you want to uninstall this item?",
         "cancel": "Cancel",
-        "confirm": "Delete"
+        "confirm": "Uninstall"
       }
     },
     "moonpayRamp": {

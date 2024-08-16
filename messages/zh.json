@@ -44,35 +44,35 @@
   "/marketplace": {
     "tabs": {
       "all": "所有产品",
-      "purchased": "已购买产品"
+      "purchased": "已安装产品"
     },
     "productCard": {
       "status": {
         "active": "已激活",
-        "deleted": "已删除"
+        "deleted": "已卸载"
       },
       "price": "价格",
       "currency": "TVWT",
-      "purchased": "购买时间",
-      "deleted": "删除时间",
+      "purchased": "安装时间",
+      "deleted": "卸载时间",
       "buttons": {
-        "purchase": "购买",
-        "purchased": "已购买",
-        "delete": "删除",
-        "deleted": "已删除"
+        "purchase": "安装",
+        "purchased": "已安装",
+        "delete": "卸载",
+        "deleted": "已卸载"
       },
       "deleteConfirmation": {
-        "title": "确认删除",
-        "message": "您确定要删除此项目吗？",
+        "title": "确认卸载",
+        "message": "您确定要卸载此项目吗？",
         "cancel": "取消",
-        "confirm": "删除"
+        "confirm": "卸载"
       }
     },
     "moonpayRamp": {
       "modalTitle": "加密货币交易",
-      "buyButton": "用法币购买加密货币",
+      "buyButton": "用法币安装加密货币",
       "sellButton": "出售加密货币换取法币",
-      "buy": "购买",
+      "buy": "安装",
       "sell": "出售",
       "openCryptoExchange": "打开加密货币交易",
       "depositConfirmation": {
