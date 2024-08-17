@@ -5,8 +5,6 @@ import { useTranslations } from 'next-intl'
 import axios from "axios";
 import { Address, formatEther } from "viem";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-
 import { auth, formatDecimal, log, truncateMiddle } from "@/lib/utils";
 
 import {
@@ -23,32 +21,26 @@ import { TokenType } from "@/types/tokens";
 import { MoveDownLeft, MoveUpRight } from "lucide-react";
 import { CopyClipboardAddress } from "@/components/CopyClipboardAddress";
 import { Card } from "@/components/ui/card";
+import { LogoLoading } from "@/components/LogoLoading";
 
 export function RecentTransactions({
   address,
   tokenType,
+  transactions,
+  loading,
 }: {
   address: Address;
   tokenType: TokenType;
+  transactions: any[];
+  loading: boolean;
 }) {
-  const [transactions, setTransactions] = useState<any>([])
   const tokenRef = useRef<Token>()
   const t = useTranslations('/home.[token].recentTransactions')
 
   useEffect(() => {
-    if (address) {
-      init()
-    }
-  }, [address])
-
-  const init = async () => {
-    log('addd', address)
     const token = TokenFactory.getInstance().createToken(tokenType)
     tokenRef.current = token
-    const txs = await token.getRecentTransactions(address)
-    log('txs', txs)
-    setTransactions(txs)
-  }
+  }, [tokenType])
 
   const openTxPage = (tx: any) => {
     log('tx open', tx)
@@ -74,50 +66,61 @@ export function RecentTransactions({
             <TableHead className="text-right">{t('table.amount')}</TableHead>
           </TableRow>
         </TableHeader>
+
         <TableBody>
           {
-            transactions.map((tx: any) => {
-              return (
-                <TableRow key={tx.hash}>
-                  <TableCell className="font-medium">
-                    {
-                      tx.from === address ? (
-                        <div className="border border-gray-400 rounded-full w-[32px] h-[32px] flex items-center justify-center">
-                          <MoveUpRight size={14} />
-                        </div>
-                      ) : (
-                        <div className="bg-brand-foreground rounded-full w-[32px] h-[32px] flex items-center justify-center">
-                          <MoveDownLeft size={14} color="#fff" />
-                        </div>
-                      )
-                    }
-                  </TableCell>
-                  <TableCell className="max-w-[300px]">
-                    <p onClick={() => openTxPage(tx)} className="cursor-pointer underline">
-                      <CopyClipboardAddress address={tx.hash} iconSize={28} />
-                    </p>
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    {new Date(Number(tx.timeStamp) * 1000).toLocaleString()}
-                  </TableCell>
-                  <TableCell className="max-w-[180px]">
-                    <p
-                      title={tx.from}
-                    >
-                      <CopyClipboardAddress address={tx.from} iconSize={28} />
-                    </p>
-                  </TableCell>
-                  <TableCell className="max-w-[180px]">
-                    <p
-                      title={tx.to}
+            loading ? (
+              <TableRow>
+                <TableCell colSpan={6} className="h-[200px]">
+                  <div className="w-full h-full flex items-center justify-center">
+                    <LogoLoading type={'breathe'} />
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : (
+              transactions.map((tx: any) => {
+                return (
+                  <TableRow key={tx.hash}>
+                    <TableCell className="font-medium">
+                      {
+                        tx.from === address ? (
+                          <div className="border border-gray-400 rounded-full w-[32px] h-[32px] flex items-center justify-center">
+                            <MoveUpRight size={14} />
+                          </div>
+                        ) : (
+                          <div className="bg-brand-foreground rounded-full w-[32px] h-[32px] flex items-center justify-center">
+                            <MoveDownLeft size={14} color="#fff" />
+                          </div>
+                        )
+                      }
+                    </TableCell>
+                    <TableCell className="max-w-[300px]">
+                      <p onClick={() => openTxPage(tx)} className="cursor-pointer underline">
+                        <CopyClipboardAddress address={tx.hash} iconSize={28} />
+                      </p>
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {new Date(Number(tx.timeStamp) * 1000).toLocaleString()}
+                    </TableCell>
+                    <TableCell className="max-w-[180px]">
+                      <p
+                        title={tx.from}
                       >
-                      <CopyClipboardAddress address={tx.to} iconSize={28} />
-                    </p>
-                  </TableCell>
-                  <TableCell className="text-right">{formatDecimal(formatEther(tx.value))}</TableCell>
-                </TableRow>
-              )
-            })
+                        <CopyClipboardAddress address={tx.from} iconSize={28} />
+                      </p>
+                    </TableCell>
+                    <TableCell className="max-w-[180px]">
+                      <p
+                        title={tx.to}
+                        >
+                        <CopyClipboardAddress address={tx.to} iconSize={28} />
+                      </p>
+                    </TableCell>
+                    <TableCell className="text-right">{formatDecimal(formatEther(tx.value))}</TableCell>
+                  </TableRow>
+                )
+              })
+            )
           }
         </TableBody>
       </Table>

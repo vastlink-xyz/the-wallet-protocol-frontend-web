@@ -15,6 +15,7 @@ import { auth, formatDecimal } from "@/lib/utils";
 import { LogoLoading } from "@/components/LogoLoading";
 import { Card } from "@/components/ui/card";
 import { useTranslations } from "next-intl";
+import { toast } from "react-toastify";
 
 export function TokenDetail({
   tokenType
@@ -25,6 +26,9 @@ export function TokenDetail({
   const [balance, setBalance] = useState('')
   const [address, setAddress] = useState('')
   const [loading, setLoading] = useState(false)
+  const [txloading, setTxLoading] = useState(false)
+  const [transactions, setTransactions] = useState<any>([])
+
   const t = useTranslations('/home.[token]')
 
   useEffect(() => {
@@ -36,7 +40,7 @@ export function TokenDetail({
     // const addr = '0xfee205a130850906687141bb2d1c7ff3245f1366'
     setAddress(addr)
 
-    syncBalance(addr)
+    refreshData(addr)
   }
   
   const syncBalance = async (address: Address) => {
@@ -46,6 +50,24 @@ export function TokenDetail({
     b = formatDecimal(b)
     setBalance(b)
     setLoading(false)
+  }
+
+  const syncTransactions = async (address: Address) => {
+    try {
+      setTxLoading(true)
+      const token = TokenFactory.getInstance().createToken(tokenType)
+      const txs = await token.getRecentTransactions(address)
+      setTransactions(txs)
+    } catch(err) {
+      toast.error('Transactions load failed')
+    } finally {
+      setTxLoading(false)
+    }
+  }
+
+  const refreshData = (address: Address) => {
+    syncBalance(address)
+    syncTransactions(address)
   }
 
   return (
@@ -70,7 +92,7 @@ export function TokenDetail({
               <RefreshCcw
                 size={16}
                 className="cursor-pointer ml-4 text-2xl hover:scale-125 hover:rotate-180 transition duration-300"
-                onClick={() => syncBalance(address as Address)}
+                onClick={() => refreshData(address as Address)}
               />
             </div>
           </div>
@@ -82,7 +104,12 @@ export function TokenDetail({
           </div>
         </Card>
 
-        <RecentTransactions address={address as Address} tokenType={tokenType} />
+        <RecentTransactions
+          address={address as Address}
+          tokenType={tokenType}
+          transactions={transactions}
+          loading={txloading}
+        />
       </div>
     </div>
   )
