@@ -40,7 +40,10 @@
         "to": "To",
         "toPlaceholder": "Address or Email",
         "amount": "Amount",
-        "balance": "Balance"
+        "balance": "Balance",
+        "invalidEmailOrAddress": "Invalid email or address format",
+        "invalidAddress": "Invalid address. Please check and try again.",
+        "sendError": "An error occurred while sending. Please try again."
       },
       "receiveModal": {
         "title": "Receive",
