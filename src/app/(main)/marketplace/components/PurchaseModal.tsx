@@ -20,6 +20,8 @@ import { Token, TokenFactory } from '@/services/TokenService'
 import { makeAuthenticatedApiRequest } from '@/lib/utils'
 import { usePassportClientVerification } from '@/hooks/usePassportClientVerification'
 import { LogoLoading } from '@/components/LogoLoading'
+import { useTransaction } from '@/components/VastWalletConnect/useTransaction'
+import { useTranslations } from 'next-intl'
 
 export function PurchaseModal({
   isOpen,
@@ -35,6 +37,8 @@ export function PurchaseModal({
   const [isPurchasing, setIsPurchasing] = useState(false)
   const tokenRef = useRef<Token>()
   const {verifyPassportClient} = usePassportClientVerification()
+  const { signTransaction, waitForTransactionExection } = useTransaction()
+  const t = useTranslations('/marketplace.productCard')
 
   useEffect(() => {
     const token = TokenFactory.getInstance().createToken('TVWT')
@@ -48,6 +52,7 @@ export function PurchaseModal({
       if (!client) {
         return
       }
+
       const response = await makeAuthenticatedApiRequest({
         path: 'user/purchase',
         data: {
@@ -55,16 +60,32 @@ export function PurchaseModal({
         }
       })
       log('response', response)
-      if (response.data.success) {
+
+      const result = response.data
+      if (result.success) {
         onClose(true)
-        toast.success(response.data.message)
+        toast.success(t('purchaseSuccess'))
+        setIsPurchasing(false)
+      } else if (result.needOtp) {
+        toast.warning(t('dailyLimitExceededOtpRequired'))
+        const hash = await waitForTransactionExection(result.transactionId)
+        const { data } = await makeAuthenticatedApiRequest({
+          path: 'user/purchase/saveProducts',
+          data: {
+            productId: product.id,
+          }
+        })
+        setIsPurchasing(false)
+        onClose(true)
+        toast.success(t('purchaseSuccess'))
       } else {
         toast.error(response.data.message)
+        setIsPurchasing(false)
       }
     } catch(err) {
       toast.error((err as any).response.data)
-    } finally {
       setIsPurchasing(false)
+    } finally {
     }
   }
 

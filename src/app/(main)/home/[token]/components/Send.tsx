@@ -115,7 +115,8 @@ export function Send({
         return
       }
 
-      const apiPath = tokenType === 'TVWT' ? `smartcontract/transferToken` : `transaction/sign`
+      // const apiPath = tokenType === 'TVWT' ? `smartcontract/transferToken` : `transaction/sign`
+      const apiPath = `transaction/sign`
       const response = await makeAuthenticatedApiRequest({
         path: apiPath,
         data: {

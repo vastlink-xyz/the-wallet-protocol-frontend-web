@@ -82,7 +82,9 @@
         "message": "Are you sure you want to uninstall this item?",
         "cancel": "Cancel",
         "confirm": "Uninstall"
-      }
+      },
+      "purchaseSuccess": "Product purchased successfully",
+      "dailyLimitExceededOtpRequired": "Daily limit exceeded. Check your email for OTP. DO NOT close this dialog to complete your purchase."
     },
     "moonpayRamp": {
       "modalTitle": "MoonPay on-ramp / off-ramp",

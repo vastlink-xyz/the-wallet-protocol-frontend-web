@@ -82,7 +82,9 @@
         "message": "您确定要卸载此项目吗？",
         "cancel": "取消",
         "confirm": "卸载"
-      }
+      },
+      "purchaseSuccess": "购买成功",
+      "dailyLimitExceededOtpRequired": "已超出每日限额。请查看邮箱获取验证码。请勿关闭此窗口，以完成购买。"
     },
     "moonpayRamp": {
       "modalTitle": "加密货币交易",
