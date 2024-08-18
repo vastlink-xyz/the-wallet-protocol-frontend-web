@@ -1,6 +1,7 @@
 {
   "/": {
-    "title": "注册或登录",
+    "signinTitle": "登录",
+    "signupTitle": "注册",
     "emailLabel": "电子邮箱",
     "emailPlaceholder": "请输入电子邮箱地址",
     "emailValidationError": "请输入有效的电子邮箱地址",
@@ -9,7 +10,7 @@
     "authenticating": "正在认证...",
     "registering": "正在注册...",
     "alreadyHaveAccount": "已有账户？",
-    "signUp": "注册？",
+    "signUp": "还没有账户吗？",
     "otpSentMessage": "请检查您的电子邮箱。我们已发送确认邮件。点击邮件中的链接完成注册。"
   },
   "sidebar": {

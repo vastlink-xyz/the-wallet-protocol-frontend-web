@@ -31,7 +31,7 @@ export default function AuthRegister() {
   const [username, setUsername] = useState("");
   const [authenticating, setAuthenticating] = useState(false);
   const [registering, setRegistering] = useState(false);
-  const [authenticateSetup, setAuthenticateSetup] = useState(false);
+  const [authenticateSetup, setAuthenticateSetup] = useState(true);
 
   const { passport } = usePassport(
     // "07907e39-63c6-4b0b-bca8-377d26445172" // original
@@ -178,7 +178,7 @@ export default function AuthRegister() {
     <div className="flex flex-grow flex-col items-center justify-center">
       <Card className="sm:w-[360px] py-4 border-none shadow-none mb-12 bg-white">
         <CardHeader>
-          <p className="mb-4 text-lg md:text-2xl m-0 p-0">{t('title')}</p>
+          <p className="mb-4 text-lg md:text-2xl m-0 p-0">{authenticateSetup ? t('signinTitle') : t('signupTitle')}</p>
         </CardHeader>
         <CardContent>
           <form onSubmit={(e) => processUserAccess(e)} className="group" noValidate>

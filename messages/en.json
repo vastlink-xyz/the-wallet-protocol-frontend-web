@@ -1,6 +1,7 @@
 {
   "/": {
-    "title": "Sign Up or Sign In",
+    "signinTitle": "Sign In",
+    "signupTitle": "Sign Up",
     "emailLabel": "Email",
     "emailPlaceholder": "Email Address",
     "emailValidationError": "Please enter a valid email address",
@@ -9,7 +10,7 @@
     "authenticating": "Authenticating...",
     "registering": "Registering...",
     "alreadyHaveAccount": "Already have an account?",
-    "signUp": "Sign up?",
+    "signUp": "Don't have an account yet?",
     "otpSentMessage": "Please check your email inbox. We've sent you a confirmation email. Click the link in the email to complete your registration."
   },
   "sidebar": {
