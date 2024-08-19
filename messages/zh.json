@@ -41,6 +41,7 @@
         "to": "接收方",
         "toPlaceholder": "地址或邮箱",
         "amount": "金额",
+        "note": "备注",
         "balance":"余额",
         "invalidEmailOrAddress": "无效的邮箱或地址格式",
         "invalidAddress": "无效地址。请检查后重试",
@@ -84,6 +85,7 @@
         "confirm": "卸载"
       },
       "purchaseSuccess": "购买成功",
+      "insufficientBalance": "余额不足",
       "dailyLimitExceededOtpRequired": "已超出每日限额。请查看邮箱获取验证码。请勿关闭此窗口，以完成购买。"
     },
     "moonpayRamp": {

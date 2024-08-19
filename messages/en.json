@@ -41,6 +41,7 @@
         "to": "To",
         "toPlaceholder": "Address or Email",
         "amount": "Amount",
+        "note": "Note",
         "balance": "Balance",
         "invalidEmailOrAddress": "Invalid email or address format",
         "invalidAddress": "Invalid address. Please check and try again.",
@@ -84,6 +85,7 @@
         "confirm": "Uninstall"
       },
       "purchaseSuccess": "Product purchased successfully",
+      "insufficientBalance": "Insufficient balance",
       "dailyLimitExceededOtpRequired": "Daily limit exceeded. Check your email for OTP. DO NOT close this dialog to complete your purchase."
     },
     "moonpayRamp": {

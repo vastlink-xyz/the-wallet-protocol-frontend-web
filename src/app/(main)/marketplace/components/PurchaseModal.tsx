@@ -22,6 +22,7 @@ import { usePassportClientVerification } from '@/hooks/usePassportClientVerifica
 import { LogoLoading } from '@/components/LogoLoading'
 import { useTransaction } from '@/components/VastWalletConnect/useTransaction'
 import { useTranslations } from 'next-intl'
+import { parseEther } from 'viem'
 
 export function PurchaseModal({
   isOpen,
@@ -46,6 +47,10 @@ export function PurchaseModal({
   }, [])
 
   const handlePurchase = async () => {
+    if (parseEther(balance) < parseEther(String(product.price))) {
+      toast.error(t('insufficientBalance'))
+      return
+    }
     try {
       setIsPurchasing(true)
       const client = await verifyPassportClient()

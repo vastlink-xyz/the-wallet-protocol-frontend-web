@@ -25,6 +25,7 @@ import { makeAuthenticatedApiRequest } from "@/lib/utils";
 import { usePassportClientVerification } from "@/hooks/usePassportClientVerification";
 import { LogoLoading } from "@/components/LogoLoading";
 import { useTranslations } from "next-intl";
+import { Textarea } from "@/components/ui/textarea";
 
 export function Send({
   balance,
@@ -37,6 +38,7 @@ export function Send({
 }) {
   const [to, setTo] = useState('')
   const [amount, setAmount] = useState('')
+  const [note, setNote] = useState('')
   const [sending, setSending] = useState(false)
   const [open, setOpen] = useState(false)
   const [symbol, setSymbol] = useState('')
@@ -104,7 +106,7 @@ export function Send({
     }
   };
 
-  async function signTransaction(toAddress: Address, toEmail?: string) {
+  async function signTransaction(toAddress: Address) {
     try {
       const amt = parseEther(amount).toString()
       log('amt', amt)
@@ -123,7 +125,7 @@ export function Send({
           to: toAddress,
           amount: amt,
           token: tokenType,
-          toEmail,
+          note,
         },
       })
 
@@ -198,17 +200,10 @@ export function Send({
         toEmail = to;
       }
   
-      await signTransaction(toAddress, toEmail);
+      await signTransaction(toAddress);
 
-      setAmount('');
-      setTo('');
-      setFullAddress('');
-      setError('');
-      setIsValidEmail(false);
-      setIsValidating(false);
-
+      initDefaults()
       setOpen(false);
-  
     } catch (error) {
       console.error('Send transaction error:', error);
       toast.error(t('sendError'));
@@ -222,16 +217,21 @@ export function Send({
     setAmount(balance)
   }
 
+  const initDefaults = () => {
+    setAmount('');
+    setTo('');
+    setNote('');
+    setFullAddress('');
+    setError('');
+    setIsValidEmail(false);
+    setIsValidating(false);
+  }
+
   return(
     <Dialog open={open} onOpenChange={opened => {
       setOpen(opened)
       // clear input data
-      setAmount('')
-      setTo('')
-      setFullAddress('')
-      setError('')
-      setIsValidEmail(false)
-      setIsValidating(false)
+      initDefaults()
     }}>
       <DialogTrigger>
         <div
@@ -301,6 +301,18 @@ export function Send({
                 className="absolute end-2.5 bottom-2.5 cursor-pointer text-brand-foreground"
                 onClick={() => handleClickMax()}
               >Max</p>
+            </div>
+          </div>
+
+          <div className="mb-5">
+            <label htmlFor="note" className="block mb-2 text-sm font-medium">{t('note')}</label>
+            <div className="relative">
+              <Textarea
+                className=" focus-visible:ring-0"
+                id="note"
+                value={note}
+                onChange={e => setNote(e.target.value)}
+              />
             </div>
           </div>
 
