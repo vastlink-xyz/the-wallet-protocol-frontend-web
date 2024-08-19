@@ -265,8 +265,10 @@ export function Send({
                   "pr-10"
                 )}
               />
-              {isValidating && (
-                <Loader className="absolute right-3 top-1/2 transform -translate-y-1/2 animate-spin" size={16} />
+              {(isValidating) && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <Loader className="animate-spin" size={16} />
+                </div>
               )}
               {isValidEmail && !isValidating && !error && (
                 <CircleCheck className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500" size={16} />
