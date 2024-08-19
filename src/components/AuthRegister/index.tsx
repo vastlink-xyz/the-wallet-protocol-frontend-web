@@ -154,6 +154,20 @@ export default function AuthRegister() {
     if (authenticateSetup) {
       await authenticate(username);
     } else {
+      // check if email is existed
+      try {
+        const { data } = await axios.get(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/address/check`, {
+          params: {
+            email: username,
+          }
+        })
+        if (data.exists) {
+          toast.error(t('emailAlreadySignedUp'))
+          return
+        }
+      } catch(err) {
+      }
+
       await preRegister();
     }
   }

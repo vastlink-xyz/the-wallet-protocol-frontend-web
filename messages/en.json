@@ -11,7 +11,8 @@
     "registering": "Registering...",
     "alreadyHaveAccount": "Already have an account?",
     "signUp": "Don't have an account yet?",
-    "otpSentMessage": "Please check your email inbox. We've sent you a confirmation email. Click the link in the email to complete your registration."
+    "otpSentMessage": "Please check your email inbox. We've sent you a confirmation email. Click the link in the email to complete your registration.",
+    "emailAlreadySignedUp": "This email address is already signed up. Please use a different email to sign up."
   },
   "sidebar": {
     "title": "Vast Wallet",
