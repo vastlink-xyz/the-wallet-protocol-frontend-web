@@ -21,6 +21,7 @@ import { PairContextType, useWalletConnectPair } from '@/providers/WalletConnect
 import { useRouter } from 'next/navigation';
 import { usePassportClientVerification } from '@/hooks/usePassportClientVerification';
 import { LogoLoading } from '../LogoLoading';
+import { TokenType } from '@/types/tokens';
 
 export function VastWalletConnect() {
   const t = useTranslations('vastWalletConnect');
@@ -46,9 +47,10 @@ export function VastWalletConnect() {
     to: string;
     value: string;
     data: string;
+    token: TokenType;
   } | null>(null);
    
-  const { signTransaction, waitForTransactionExection } = useTransaction()
+  const { signTransaction, waitForTransactionExection, tokenTypeByChainId } = useTransaction()
   const {
     setIsModalOpen,
     isConnected,
@@ -76,7 +78,7 @@ export function VastWalletConnect() {
   const onSessionRequest = useCallback(async (event: Web3WalletTypes.SessionRequest) => {
     log('event', event)
     const { topic, params, id } = event;
-    const { request } = params;
+    const { request, chainId } = params;
     const transactionRequest = request.params[0];
 
     if (request.method === 'eth_sendTransaction') {
@@ -85,6 +87,7 @@ export function VastWalletConnect() {
         to: transactionRequest.to,
         value: formatEther(hexToBigInt(transactionRequest.value || '')),
         data: transactionRequest.data,
+        token: tokenTypeByChainId(chainId),
       });
       setTransferOpen(true);
       setRequestContent({
@@ -93,6 +96,8 @@ export function VastWalletConnect() {
         topic,
         response: { id, jsonrpc: "2.0", result: '' },
       });
+    } else if (request.method === 'eth_signTypedData_v4') {
+      log('transferrequest', transactionRequest)
     } else {
       log('else')
     }
@@ -108,6 +113,7 @@ export function VastWalletConnect() {
 
   const onProposalExpire = (p: any) => {
     log('proposal_expire', p)
+    disconnectSession()
   }
 
   const onSessionDelete = useCallback(() => {
@@ -184,7 +190,7 @@ export function VastWalletConnect() {
         supportedNamespaces: {
           eip155: {
             chains: [`eip155:${chain.id}`],
-            methods: ["eth_sendTransaction", "personal_sign"],
+            methods: ["eth_sendTransaction", "personal_sign", "eth_signTypedData_v4"],
             events: ["accountsChanged", "chainChanged"],
             accounts: [`eip155:${chain.id}:${address}`],
           },
@@ -234,6 +240,7 @@ export function VastWalletConnect() {
         to: transferDetails?.to as Address,
         amount: transferDetails.value,
         data: transferDetails.data,
+        token: transferDetails.token,
       })
 
       if (result.needOtp) {

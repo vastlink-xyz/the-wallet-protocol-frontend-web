@@ -10,27 +10,24 @@ import { makeAuthenticatedApiRequest } from '@/lib/utils';
 import { usePassportClientVerification } from '@/hooks/usePassportClientVerification';
 import { Token, TokenFactory } from '@/services/TokenService';
 
-const tokenType: TokenType = 'ETH'
-
 export const useTransaction = () => {
   const [sending, setSending] = useState(false);
   const { verifyPassportClient } = usePassportClientVerification()
   const tokenRef = useRef<Token>()
 
-  useEffect(() => {
-    const token = TokenFactory.getInstance().createToken(tokenType)
-    tokenRef.current = token
-  }, [])
-
   const signTransaction = async ({
     to,
     amount,
     data,
+    token='ETH',
   }: {
     to: Address;
     amount: string;
     data: string;
+    token: TokenType;
   }) => {
+    tokenRef.current = TokenFactory.getInstance().createToken(token)
+
     try {
       const amt = parseEther(amount).toString();
       log('amt', amt);
@@ -48,7 +45,7 @@ export const useTransaction = () => {
           to,
           amount: amt,
           data,
-          token: tokenType,
+          token,
         }
       })
 
@@ -115,5 +112,12 @@ export const useTransaction = () => {
     );
   };
 
-  return { signTransaction, sending, waitForTransactionExection };
+  const tokenTypeByChainId = (chainId: string): TokenType => {
+    if (chainId === 'eip155:11155111') {
+      return 'ETH'
+    }
+    return 'ETH'
+  }
+
+  return { signTransaction, sending, waitForTransactionExection, tokenTypeByChainId };
 };
