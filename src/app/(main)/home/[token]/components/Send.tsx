@@ -27,6 +27,8 @@ import { LogoLoading } from "@/components/LogoLoading";
 import { useTranslations } from "next-intl";
 import { Textarea } from "@/components/ui/textarea";
 
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export function Send({
   balance,
   address,
@@ -66,7 +68,7 @@ export function Send({
       sending ||
       !isValidEmail ||
       isValidating ||
-      !!error ||
+      (!!error && error !== t('unregisteredEmailNotice')) ||
       parseFloat(amount) > parseFloat(balance)
     );
   }, [to, amount, sending, isValidEmail, isValidating, error, balance]);
@@ -82,9 +84,16 @@ export function Send({
         setIsValidEmail(true);
         setFullAddress(res.data.address);
       } catch (err) {
-        setIsValidEmail(false);
-        setFullAddress('');
-        setError(t('invalidEmailOrAddress'));
+        if (emailRegex.test(email)) {
+          // email foramt
+          setIsValidEmail(true);
+          setFullAddress('');
+          setError(t('unregisteredEmailNotice'));
+        } else {
+          setIsValidEmail(false);
+          setFullAddress('');
+          setError(t('invalidEmailFormat'));
+        }
       } finally {
         setIsValidating(false);
       }
@@ -191,13 +200,29 @@ export function Send({
       let toEmail: string | undefined;
   
       if (isAddress(to)) {
+        // send by address
         toAddress = to as Address;
-      } else {
-        if (!fullAddress || !isAddress(fullAddress)) {
-          throw new Error(t('invalidAddress'));
-        }
-        toAddress = fullAddress as Address;
+      } else if (emailRegex.test(to) && error === t('unregisteredEmailNotice')) {
+        // send register email to unregistered user
         toEmail = to;
+        const response = await makeAuthenticatedApiRequest({
+          path: 'invite/invite-register',
+          data: {
+            toEmail,
+            from: address,
+            amount: parseEther(amount).toString(),
+            token: tokenType,
+            note,
+          },
+        });
+        log('res', response)
+        toast.success(t('emailSentToUnregistered'));
+        initDefaults();
+        setOpen(false);
+        return;
+      } else {
+        // send by email
+        toAddress = fullAddress as Address;
       }
   
       await signTransaction(toAddress);

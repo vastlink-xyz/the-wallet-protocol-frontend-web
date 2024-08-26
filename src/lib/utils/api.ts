@@ -36,3 +36,18 @@ export async function makeAuthenticatedApiRequest<T=any>({ path, data }: Authent
     throw error;
   }
 }
+
+export function authenticatedHeaderForRequest() {
+  const { authenticatedHeader, desUsername } = auth.all();
+
+  const headers = {
+    "Content-Type": "application/json",
+    "X-Encrypted-Key": authenticatedHeader["X-Encrypted-Key"],
+    "X-Scope-Id": authenticatedHeader["X-Scope-Id"],
+    "X-Encrypted-User": authenticatedHeader["X-Encrypted-User"],
+    "X-Encrypted-Session": authenticatedHeader["X-Encrypted-Session"],
+    "X-Passport-Username": desUsername.username,
+  }
+
+  return headers
+}

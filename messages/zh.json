@@ -46,6 +46,9 @@
         "balance":"余额",
         "invalidEmailOrAddress": "无效的邮箱或地址格式",
         "invalidAddress": "无效地址。请检查后重试",
+        "unregisteredEmailNotice": "该邮箱尚未注册。如果继续，用户将收到一封邀请邮件。",
+        "invalidEmailFormat": "邮箱格式不正确",
+        "emailSentToUnregistered": "已发送邀请邮件",
         "sendError": "发送时出错。请重试"
       },
       "receiveModal": {
