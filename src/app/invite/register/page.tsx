@@ -86,10 +86,10 @@ export default function Page() {
 
     try {
       setRegistering(true);
-      const preRegistered = await preRegister(registerUsername)
-      if (!preRegistered) {
-        return
-      }
+      // const preRegistered = await preRegister(registerUsername)
+      // if (!preRegistered) {
+      //   return
+      // }
 
       await passport.setupEncryption();
       const res = await passport.register({
@@ -227,16 +227,16 @@ export default function Page() {
                     <div className="mb-8 text-center">
                       <h2 className="text-2xl font-bold mb-4">You've received a crypto transfer!</h2>
                       <p className="mb-2">{inviteInfo.fromEmail} sent you</p>
-                      <p className="text-3xl font-bold mb-2">{formatEther(BigInt(inviteInfo.amount))} TVWT</p>
+                      <p className="text-3xl font-bold mb-2">{formatEther(BigInt(inviteInfo.amount))} {inviteInfo.token}</p>
                     </div>
                     <div className="text-center">
-                      <p className="mb-4">To claim this transfer, please authorize your account.</p>
+                      <p className="mb-4">To accept this transfer, please confirm below.</p>
                       <Button
                         className="w-full mb-4"
                         onClick={() => handleSendEmail()}
                         disabled={sending}
                       >
-                        {authenticating ? <LogoLoading /> : 'Authorize Account'}
+                        {sending ? <LogoLoading /> : 'Accept Transfer'}
                       </Button>
                     </div>
                   </>

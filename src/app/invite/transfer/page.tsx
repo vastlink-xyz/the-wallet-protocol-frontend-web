@@ -145,6 +145,7 @@ export default function Page() {
       await updateInviteInfo(inviteInfo.id, {
         status: 'COMPLETED',
       })
+      initInviteInfo(inviteInfo.id)
 
       log('hash is', hash)
     } catch (error: any) {
