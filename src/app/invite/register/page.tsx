@@ -22,6 +22,7 @@ export default function Page() {
   const [authenticating, setAuthenticating] = useState(false);
   const [registering, setRegistering] = useState(false);
   const [sending, setSending] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   const [inviteInfo, setInviteInfo] = useState<InviteInfoData>();
   const [inviteStatus, setInviteStatus] = useState<InviteStatus>('PENDING');
@@ -46,26 +47,47 @@ export default function Page() {
   }, [inviteInfo])
   
   const init = async (inviteInfoId: string) => {
-    const info = await initInviteInfo(inviteInfoId)
-
-    // check if the user has registered
-    const res = await axios.get(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/address/check`, {
-      params: { email: info.toEmail }
-    });
-
-    if (res.data.exists && info.status === 'PENDING' && !info.to) {
-      // get user address
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/address/`, {
+    try {
+      setLoading(true)
+      const info = await initInviteInfo(inviteInfoId)
+  
+      // check if the user has registered
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/address/check`, {
         params: { email: info.toEmail }
-      })
-      if (response.data.success) {
-        // update current inviteInfo
-        await updateInviteInfo(info.id, {
-          status: 'REGISTERED',
-          to: response.data.address,
+      });
+  
+      if (res.data.exists && info.status === 'PENDING' && !info.to) {
+        // get user address
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/address/`, {
+          params: { email: info.toEmail }
         })
-        initInviteInfo(inviteInfoId)
+
+        if (response.data.success) {
+          // update current inviteInfo
+          await updateInviteInfo(info.id, {
+            status: 'REGISTERED',
+            to: response.data.address,
+          })
+          initInviteInfo(inviteInfoId)
+        } else {
+          // the user doesn't bind the address, but they have a passport account
+          const authenticated = await authenticate(info.toEmail, false)
+          if (authenticated) {
+            // update current inviteInfo
+            await updateInviteInfo(info.id, {
+              status: 'REGISTERED',
+              to: auth.all().address,
+            })
+            initInviteInfo(inviteInfoId)
+          } else {
+            // user doesn't have a passport account
+          }
+        }
       }
+    } catch(error) {
+      log('error', error)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -141,7 +163,7 @@ export default function Page() {
     return res
   }
 
-  async function authenticate(authUsername: string) {
+  async function authenticate(authUsername: string, toastError=true) {
     log('call authenticate', authUsername)
     // setAuthenticating(true);
     try {
@@ -174,7 +196,9 @@ export default function Page() {
         return false
       }
     } catch (error: any) {
-      toast.error(error.message)
+      if (toastError) {
+        toast.error(error.message)
+      }
       return false
     }
   }
@@ -205,7 +229,6 @@ export default function Page() {
         initInviteInfo(inviteInfo!.id)
       }
     } catch(error: any) {
-      // kkktodo
       log('error is', error)
       toast.error(error.message)
     } finally {
@@ -222,65 +245,73 @@ export default function Page() {
         </div>
 
         {
-          inviteInfo ? (
+          loading ? (
+            <LogoLoading type={'breathe'} />
+          ) : (
             <>
               {
-                inviteStatus === 'PENDING' && (
+                inviteInfo ? (
                   <>
-                    <div className="mb-6">
-                      <p className="text-xl font-medium text-primary mb-2">Welcome, {inviteInfo?.toEmail}</p>
-                      <p className="text-primary/80">This is your username for Vast Wallet</p>
-                    </div>
-                    <Button
-                      className="w-full"
-                      onClick={() => register()}
-                      disabled={registering || authenticating}
-                    >
-                      { registerBtnText() }
-                    </Button>
-                  </>
-                )
-              }
+                    {
+                      inviteStatus === 'PENDING' && (
+                        <>
+                          <div className="mb-6">
+                            <p className="text-xl font-medium text-primary mb-2">Welcome, {inviteInfo?.toEmail}</p>
+                            <p className="text-primary/80">This is your username for Vast Wallet</p>
+                          </div>
+                          <Button
+                            className="w-full"
+                            onClick={() => register()}
+                            disabled={registering || authenticating}
+                          >
+                            { registerBtnText() }
+                          </Button>
+                        </>
+                      )
+                    }
 
-              {
-                inviteStatus === 'REGISTERED' && (
-                  <>
-                    <div className="mb-8 text-center">
-                      <h2 className="text-2xl font-bold mb-4">You have received a crypto transfer!</h2>
-                      <p className="mb-2">{inviteInfo.fromEmail} sent you</p>
-                      <p className="text-3xl font-bold mb-2">{formatEther(BigInt(inviteInfo.amount))} {inviteInfo.token}</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="mb-4">To accept this transfer, please confirm below.</p>
-                      <Button
-                        className="w-full mb-4"
-                        onClick={() => handleSendEmail()}
-                        disabled={sending}
-                      >
-                        {sending ? <LogoLoading /> : 'Accept Transfer'}
-                      </Button>
-                    </div>
-                  </>
-                )
-              }
+                    {
+                      inviteStatus === 'REGISTERED' && (
+                        <>
+                          <div className="mb-8 text-center">
+                            <h2 className="text-2xl font-bold mb-4">You have received a crypto transfer!</h2>
+                            <p className="mb-2">{inviteInfo.fromEmail} sent you</p>
+                            <p className="text-3xl font-bold mb-2">{formatEther(BigInt(inviteInfo.amount))} {inviteInfo.token}</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="mb-4">To accept this transfer, please confirm below.</p>
+                            <Button
+                              className="w-full mb-4"
+                              onClick={() => handleSendEmail()}
+                              disabled={sending}
+                            >
+                              {sending ? <LogoLoading /> : 'Accept Transfer'}
+                            </Button>
+                          </div>
+                        </>
+                      )
+                    }
 
-              {
-                inviteStatus === 'WAITING' && (
-                  <>
-                    <p className="mb-4">Email sent successfully! Please wait for the inviter to complete the transfer.</p>
-                    <p className="mb-4">You will receive an email notification once the transfer is complete.</p>
-                    <Button
-                      className="w-full"
-                      onClick={() => router.push('/home')}
-                    >
-                      Go To Home
-                    </Button>
+                    {
+                      inviteStatus === 'WAITING' && (
+                        <>
+                          <p className="mb-4">Email sent successfully! Please wait for the inviter to complete the transfer.</p>
+                          <p className="mb-4">You will receive an email notification once the transfer is complete.</p>
+                          <Button
+                            className="w-full"
+                            onClick={() => router.push('/home')}
+                          >
+                            Go To Home
+                          </Button>
+                        </>
+                      )
+                    }
                   </>
+                ) : (
+                  <LogoLoading type={'breathe'} />
                 )
               }
             </>
-          ) : (
-            <LogoLoading type={'breathe'} />
           )
         }
 
