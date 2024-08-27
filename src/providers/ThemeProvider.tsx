@@ -9,6 +9,8 @@ export const forcedLightThemeRoutes = [
   '/',
   '/verify-registration',
   '/verify-transaction',
+  '/invite/transfer',
+  '/invite/register',
 ]
 
 export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
