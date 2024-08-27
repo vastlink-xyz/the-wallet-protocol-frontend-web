@@ -44,7 +44,7 @@
         "amount": "Amount",
         "note": "Note",
         "balance": "Balance",
-        "unregisteredEmailNotice": "This email is not registered. If you continue, the user will receive an invitation email.",
+        "unregisteredEmailNotice": "The recipient will receive an invitation email.",
         "invalidEmailFormat": "Invalid email format",
         "emailSentToUnregistered": "An invitation email has been sent",
         "sendError": "An error occurred while sending. Please try again."

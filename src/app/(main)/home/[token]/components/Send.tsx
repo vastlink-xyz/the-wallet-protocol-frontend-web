@@ -4,7 +4,7 @@ import { useState, useEffect, FormEvent, useRef, useMemo } from "react"
 import axios from "axios";
 import { Address, parseEther, isAddress } from 'viem'
 
-import { auth, cn, formatDecimal, log } from "@/lib/utils"
+import { auth, cn, emailRegex, formatDecimal, log } from "@/lib/utils"
 
 import {
   Dialog,
@@ -26,8 +26,6 @@ import { usePassportClientVerification } from "@/hooks/usePassportClientVerifica
 import { LogoLoading } from "@/components/LogoLoading";
 import { useTranslations } from "next-intl";
 import { Textarea } from "@/components/ui/textarea";
-
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function Send({
   balance,
@@ -285,8 +283,9 @@ export function Send({
                 required
                 placeholder={t('toPlaceholder')}
                 className={cn(
-                  isValidEmail && "bg-green-50 border-green-500",
+                  isValidEmail && "border-green-500",
                   error && "border-destructive",
+                  error === t('unregisteredEmailNotice') && 'border-blue-500',
                   "pr-10"
                 )}
               />
@@ -299,14 +298,21 @@ export function Send({
                 <CircleCheck className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500" size={16} />
               )}
               {error && !isValidating && (
-                <AlertCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 text-destructive" size={16} />
+                <AlertCircle className={cn(
+                  "absolute right-3 top-1/2 transform -translate-y-1/2 text-destructive",
+                  error === t('unregisteredEmailNotice') && 'text-blue-500'
+                )} size={16} />
               )}
             </div>
+
             {isValidEmail && fullAddress && (
               <p className="mt-1 text-xs text-primary/60">{fullAddress}</p>
             )}
             {error && (
-              <p className="mt-1 text-xs text-destructive">{error}</p>
+              <p className={cn(
+                "mt-1 text-xs text-destructive",
+                error === t('unregisteredEmailNotice') && 'text-blue-400'
+              )}>{error}</p>
             )}
           </div>
 
