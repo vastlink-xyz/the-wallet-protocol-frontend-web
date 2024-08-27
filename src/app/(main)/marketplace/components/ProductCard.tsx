@@ -13,6 +13,7 @@ import { useTheme } from "next-themes"
 import { CategoryBadge } from "@/components/CategoryBadge"
 import { makeAuthenticatedApiRequest } from "@/lib/utils"
 import { LogoLoading } from "@/components/LogoLoading";
+import { useRouter } from 'next/navigation';
 
 export function ProductCard({
   productItem,
@@ -32,6 +33,7 @@ export function ProductCard({
   tab: 'all' | 'purchased';
 }) {
   const t = useTranslations('/marketplace.productCard');
+  const router = useRouter()
 
   const p = productItem
   const {
@@ -84,6 +86,12 @@ export function ProductCard({
     // payment
     if (p.category === 'Payment' && checkPurchaseStatus(p) === 'active') {
       handleRampOpenModal(p)
+      return
+    }
+
+    // multisig
+    if (p.category === 'Team' && checkPurchaseStatus(p) === 'active') {
+      router.push('/marketplace/multisig-setting')
       return
     }
 
