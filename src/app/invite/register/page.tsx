@@ -34,22 +34,47 @@ export default function Page() {
     const inviteInfoId = params?.get('inviteInfoId')
 
     if (inviteInfoId) {
-      initInviteInfo(inviteInfoId)
+      init(inviteInfoId)
     }
   }, [params])
-
+  
   useEffect(() => {
     if (!inviteInfo) {
       return
     }
     setInviteStatus(inviteInfo.status)
   }, [inviteInfo])
+  
+  const init = async (inviteInfoId: string) => {
+    const info = await initInviteInfo(inviteInfoId)
+
+    // check if the user has registered
+    const res = await axios.get(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/address/check`, {
+      params: { email: info.toEmail }
+    });
+
+    if (res.data.exists && info.status === 'PENDING' && !info.to) {
+      // get user address
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/address/`, {
+        params: { email: info.toEmail }
+      })
+      if (response.data.success) {
+        // update current inviteInfo
+        await updateInviteInfo(info.id, {
+          status: 'REGISTERED',
+          to: response.data.address,
+        })
+        initInviteInfo(inviteInfoId)
+      }
+    }
+  }
 
   const initInviteInfo = async (id: string) => {
     const response = await axios.get(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/invite/invite-info/${id}`)
     if (response.data.success) {
       const info = response.data.inviteInfo
       setInviteInfo(info)
+      return info
     }
   }
 
@@ -60,21 +85,6 @@ export default function Page() {
       return 'authenticating...';
     }
     return 'Click To Sign Up'
-  }
-
-  async function preRegister(username: string) {
-    try {
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/auth/generate-otp`, 
-        {
-          email: username,
-        }
-      );
-      log('register res', response);
-      return response.status === 200
-    } catch(error) {
-      toast.error((error as any).message)
-      return false
-    }
   }
 
   async function register() {
@@ -170,9 +180,20 @@ export default function Page() {
   }
 
   const handleSendEmail = async () => {
+    
     try {
-      // notify the inviter to finish the transaction
       setSending(true)
+  
+      const { address, desUsername } = auth.all()
+      if (address !== inviteInfo?.to || desUsername?.username !== inviteInfo?.toEmail) {
+        // auth status is wrong, need to authenticate again
+        const success = await authenticate(inviteInfo?.toEmail!)
+        if (!success) {
+          return
+        }
+      }
+
+      // notify the inviter to finish the transaction
       const response = await axios.post(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/invite/send-inviter-transfer-email`, {
         inviteInfoId: inviteInfo?.id,
       }, {

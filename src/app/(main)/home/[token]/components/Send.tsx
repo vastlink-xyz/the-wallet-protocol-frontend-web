@@ -79,19 +79,32 @@ export function Send({
         const res = await axios.get(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/address/`, {
           params: { email }
         });
-        setIsValidEmail(true);
-        setFullAddress(res.data.address);
-      } catch (err) {
-        if (emailRegex.test(email)) {
-          // email foramt
+        if (res.data.success) {
           setIsValidEmail(true);
-          setFullAddress('');
-          setError(t('unregisteredEmailNotice'));
+          setFullAddress(res.data.address);
         } else {
-          setIsValidEmail(false);
-          setFullAddress('');
-          setError(t('invalidEmailFormat'));
+          if (emailRegex.test(email)) {
+            // email foramt
+            setIsValidEmail(true);
+            setFullAddress('');
+            setError(t('unregisteredEmailNotice'));
+          } else {
+            setIsValidEmail(false);
+            setFullAddress('');
+            setError(t('invalidEmailFormat'));
+          }
         }
+      } catch (err) {
+        // if (emailRegex.test(email)) {
+        //   // email foramt
+        //   setIsValidEmail(true);
+        //   setFullAddress('');
+        //   setError(t('unregisteredEmailNotice'));
+        // } else {
+        //   setIsValidEmail(false);
+        //   setFullAddress('');
+        //   setError(t('invalidEmailFormat'));
+        // }
       } finally {
         setIsValidating(false);
       }
