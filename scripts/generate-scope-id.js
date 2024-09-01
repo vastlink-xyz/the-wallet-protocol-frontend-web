@@ -11,7 +11,7 @@ async function runCommands() {
     if (stderr1) console.error('stderr:', stderr1);
 
     console.log('Creating scope...');
-    const network = 'testnet'
+    const network = 'devnet'
     const { stdout: stdout2, stderr: stderr2 } = await execPromise(`npx passport-scope create --config-path ./scripts/scope_config.json --private-key ./my_key_priv.der --network ${network} --verbose`);
     console.log('stdout:', stdout2);
     if (stderr2) console.error('stderr:', stderr2);

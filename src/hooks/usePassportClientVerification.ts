@@ -17,7 +17,7 @@ export const usePassportClientVerification = () => {
     const { authenticatedHeader, address } = auth.all();
     const transport = http();
     try {
-      const client = await createPassportClient(authenticatedHeader, transport, chain);
+      const client = await createPassportClient(authenticatedHeader, transport, chain, 'https://waffle.0xpass.io');
       log('Passport client created successfully');
       return client;
     } catch (error) {

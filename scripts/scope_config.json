@@ -1,8 +1,9 @@
 {
     "rp": {
-        "id": "poc.vastwallet.j-labs.xyz",
-        "origin": "https://poc.vastwallet.j-labs.xyz/",
-        "name": "the wallet protocol"
+      "id": "localhost",
+      "origin": "http://localhost:3000",
+      "name": "Text Relying Party"
     },
     "policies": []
-}
+  }
+  
