@@ -59,8 +59,9 @@ export const useTransaction = () => {
         toast.error(result.message);
       }
       return result
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
+      toast.error(error?.response?.data)
     } finally {
       setSending(false);
     }

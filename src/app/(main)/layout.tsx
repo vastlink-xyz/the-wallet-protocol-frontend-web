@@ -8,6 +8,7 @@ import { Header } from "@/components/Header"
 import { SideBar } from "@/components/SideBar"
 import { ThemeProvider } from "@/providers/ThemeProvider"
 import { useTheme } from 'next-themes'
+import ChatBot from '@/components/ChatBot'
 
 export default function MainLayout({
   children, // will be a page or nested layout
@@ -60,6 +61,8 @@ export default function MainLayout({
           {children}
         </div>
       </div>
+
+      <ChatBot />
     </section>
   )
 }
