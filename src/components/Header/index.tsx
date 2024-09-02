@@ -11,6 +11,7 @@ import { useTheme } from "next-themes";
 import { LanguageSwitch } from "./LanguageSwitch";
 import { useTranslations } from "next-intl";
 import { ThemeSwitch } from "./ThemeSwitch";
+import { BackArrow } from "../BackArrow";
 
 export function Header() {
   const pathname = usePathname()
@@ -29,17 +30,15 @@ export function Header() {
         const tokenType = (params.token as string).toUpperCase()
         const token = TokenFactory.getInstance().createToken(tokenType as TokenType).symbol
         return <div className="flex items-center">
-          <div
-            className="bg-brand-foreground/80 text-brand p-2 rounded-lg mr-4 hover:scale-110 cursor-pointer"
-            onClick={() => {
-              router.push('/home')
-            }}
-          >
-            <ArrowLeft />
-          </div>
+          <BackArrow />
           <span>{token}</span>
         </div>
       }
+    } else if (pathname === '/marketplace/multisig-setting') {
+      return <div className="flex items-center">
+        <BackArrow />
+        <span>Multisig Wallet Setting</span>
+      </div>
     } else {
       return <div>
         {titleMapper[pathname]}
