@@ -11,6 +11,7 @@ import { Send } from "@/app/(main)/home/[token]/components/Send";
 import { TokenType } from "@/types/tokens";
 import { TokenFactory } from "@/services/TokenService";
 import { ForcedLightThemeComponent } from "@/providers/ThemeProvider";
+import '@/styles/react-chatbotify.css'
 
 const ChatBot = lazy(() => import("react-chatbotify"));
 
@@ -63,6 +64,7 @@ export default function ChatBotComponent() {
     },
     tooltip: {
       mode: 'START',
+      text: 'Talk to me 🚀',
     },
     general: {
       showFooter: false,
@@ -204,13 +206,13 @@ export default function ChatBotComponent() {
       backgroundImage: 'linear-gradient(to right, #333, rgb(66, 176, 197))',
     },
     chatButtonStyle: {
-      background: 'transparent',
+      background: '#fff',
     },
     chatIconStyle: {
       backgroundImage: `url('/logo-alone.png')`,
     },
     tooltipStyle: {
-      
+      background: 'rgb(66, 176, 197)',
     },
   }
 
