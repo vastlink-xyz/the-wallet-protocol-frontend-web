@@ -6,7 +6,7 @@ import theWalletAuthenticaionService from "@/services/AuthenticationService";
 import { useEffect } from "react";
 import { stringToHex, verifyMessage } from "viem";
 
-export function TestMultisig() {
+export default function TestMultisig() {
 
   const { passport } = usePassport(
     // "07907e39-63c6-4b0b-bca8-377d26445172" // original
