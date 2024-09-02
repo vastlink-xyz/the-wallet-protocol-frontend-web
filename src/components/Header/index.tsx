@@ -33,6 +33,10 @@ export function Header() {
           <BackArrow />
           <span>{token}</span>
         </div>
+      } else if (pathname === '/home/transfer-confirmation') {
+        return <div className="flex items-center">
+          <BackArrow />
+        </div>
       }
     } else if (pathname === '/marketplace/multisig-setting') {
       return <div className="flex items-center">
