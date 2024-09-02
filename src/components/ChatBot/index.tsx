@@ -6,6 +6,7 @@ import { createContext, Dispatch, lazy, SetStateAction, Suspense, useEffect, use
 import { Params, Flow, Settings, getDefaultSettings } from "react-chatbotify"
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { parseEther } from "viem";
 
 const ChatBot = lazy(() => import("react-chatbotify"));
 
@@ -88,7 +89,7 @@ export default function ChatBotComponent() {
       toAddress = address
     }
 
-    const link = `/home/transfer-confirmation?token=${coin}&amount=${amount}&toEmail=${to}&toAddress=${toAddress}`
+    const link = `/home/transfer-confirmation?token=${coin}&amount=${parseEther(amount)}&toEmail=${to}&toAddress=${toAddress}`
     setLink(link)
 
     if (!action) {
