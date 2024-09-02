@@ -57,7 +57,8 @@ export default function ChatBotComponent() {
       disabled: true,
     },
     header: {
-      title: 'Chat bot',
+      title: 'Vast Wallet Bot',
+      avatar: '/logo-alone-dark.png',
     },
     notification: {
       disabled: true,
