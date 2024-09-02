@@ -21,3 +21,11 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
     {children}
   </NextThemesProvider>
 }
+
+export const ForcedLightThemeComponent = ({ children }: ThemeProviderProps) => {
+  return (
+    <ThemeProvider forcedTheme="light" attribute="class">
+      {children}
+    </ThemeProvider>
+  )
+}

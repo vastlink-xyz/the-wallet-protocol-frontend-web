@@ -31,10 +31,19 @@ export function Send({
   balance,
   address,
   tokenType,
+  defaultTo,
+  defaultAmount,
+  defaultNote,
+  onClose,
 }: {
   balance: string;
   address: Address;
   tokenType: TokenType;
+  // optional
+  defaultTo?: string;
+  defaultAmount?: string;
+  defaultNote?: string;
+  onClose?: () => void;
 }) {
   const [to, setTo] = useState('')
   const [amount, setAmount] = useState('')
@@ -58,6 +67,27 @@ export function Send({
     tokenRef.current = token
     setSymbol(tokenRef.current.symbol)
   }, [])
+
+  useEffect(() => {
+    if (open) {
+      if (defaultTo) {
+        setTo(defaultTo)
+      }
+      if (defaultAmount) {
+        setAmount(defaultAmount)
+      }
+      if (defaultNote) {
+        setNote(defaultNote)
+      }
+    }
+  }, [defaultTo, defaultAmount, defaultNote, open])
+
+  useEffect(() => {
+    // close callback
+    if (!open && onClose) {
+      onClose()
+    }
+  }, [open])
 
   const isDisabled = useMemo(() => {
     return (

@@ -1,12 +1,16 @@
 "use client";
 
 import axios from "axios";
-import { authenticatedHeaderForRequest, log } from "@/lib/utils";
+import { auth, authenticatedHeaderForRequest, formatDecimal, log } from "@/lib/utils";
 import { createContext, Dispatch, lazy, SetStateAction, Suspense, useEffect, useState } from "react";
-import { Params, Flow, Settings, getDefaultSettings } from "react-chatbotify"
+import { Params, Flow, Settings, getDefaultSettings, Styles, getDefaultStyles } from "react-chatbotify"
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { parseEther } from "viem";
+import { Address, parseEther } from "viem";
+import { Send } from "@/app/(main)/home/[token]/components/Send";
+import { TokenType } from "@/types/tokens";
+import { TokenFactory } from "@/services/TokenService";
+import { ForcedLightThemeComponent } from "@/providers/ThemeProvider";
 
 const ChatBot = lazy(() => import("react-chatbotify"));
 
@@ -25,6 +29,7 @@ interface SettingsContextType {
 }
 
 const defaultSettings = getDefaultSettings();
+const defaultStyles = getDefaultStyles();
 
 export const SettingsContext = createContext<SettingsContextType>({
   settings: defaultSettings,
@@ -32,6 +37,10 @@ export const SettingsContext = createContext<SettingsContextType>({
 });
 
 export default function ChatBotComponent() {
+  const [address, setAddress] = useState('')
+  const [balance, setBalance] = useState('')
+  const [open, setOpen] = useState(false)
+
   const [settings, setSettings] = useState<Settings>({
     ...defaultSettings,
     voice: {
@@ -52,10 +61,20 @@ export default function ChatBotComponent() {
     notification: {
       disabled: true,
     },
+    tooltip: {
+      mode: 'START',
+    },
     general: {
       showFooter: false,
     }
   });
+  // const [styles, setStyles] = useState({
+  //   ...defaultStyles,
+  //   chatWindowStyle: {
+  //     ...defaultStyles.chatWindowStyle,
+  //     zIndex: 49,
+  //   }
+  // })
 
   const [isLoaded, setIsLoaded] = useState(false);
   const [link, setLink] = useState('');
@@ -65,6 +84,18 @@ export default function ChatBotComponent() {
   useEffect(() => {
     setIsLoaded(true);
   }, [])
+
+  const initSendProps = async (tokenType: TokenType) => {
+    // address
+    const { address } = auth.all()
+    setAddress(address)
+
+    // balance
+    const tokenInstance = TokenFactory.getInstance().createToken(tokenType)
+    let b = await tokenInstance.getBalance(address)
+    b = formatDecimal(b)
+    setBalance(b)
+  }
 
   const handleQuestion = async (params: Params) => {
     log('handleQuestion params', params)
@@ -81,16 +112,16 @@ export default function ChatBotComponent() {
       to,
     } = response.data
 
-    let toAddress = ''
-    const { data: { success, address } } = await axios.get(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/address/`, {
-      params: { email: to }
-    })
-    if (success) {
-      toAddress = address
-    }
+    // let toAddress = ''
+    // const { data: { success, address } } = await axios.get(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/address/`, {
+    //   params: { email: to }
+    // })
+    // if (success) {
+    //   toAddress = address
+    // }
 
-    const link = `/home/transfer-confirmation?token=${coin}&amount=${parseEther(amount)}&toEmail=${to}&toAddress=${toAddress}`
-    setLink(link)
+    // const link = `/home/transfer-confirmation?token=${coin}&amount=${parseEther(amount)}&toEmail=${to}&toAddress=${toAddress}`
+    // setLink(link)
 
     if (!action) {
       setTransactionInfo({
@@ -100,11 +131,12 @@ export default function ChatBotComponent() {
     } else {
       setTransactionInfo({
         action,
-        toAddress,
         toEmail: to,
         token: coin,
         amount,
       })
+      setOpen(true)
+      await initSendProps(coin)
     }
   }
   
@@ -118,7 +150,7 @@ export default function ChatBotComponent() {
       message: (params: Params) => {
         log('end', transactionInfo)
         if (transactionInfo.action === 'transfer') {
-          return 'Your transfer request has been processed. Please confirm the details below.';
+          return 'Your transfer request has been processed. Click the button below to open the transfer confirmation dialog.';
         } else if (transactionInfo.action === 'other') {
           return transactionInfo.answer
         }
@@ -126,14 +158,32 @@ export default function ChatBotComponent() {
       function: handleQuestion,
       component: (params) => {
         if (transactionInfo.action === 'transfer') {
+          log('haha', open, address, balance, transactionInfo.token, transactionInfo.toEmail, transactionInfo.amount)
           return (
-            <div className="pl-4">
-              <Link 
+            <div className="pl-4 pt-2">
+              {/* <Link 
                 href={link}
                 className="inline-block px-2 py-1 mt-4 text-blue-600 font-medium text-sm transition duration-300 ease-in-out hover:text-blue-800 hover:underline  focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-opacity-50"
               >
                 Click here to confirm the transfer
-              </Link>
+              </Link> */}
+              {
+                (open && address && balance && transactionInfo.token && transactionInfo.toEmail && transactionInfo.amount) && (
+                  <Send
+                    address={address as Address}
+                    balance={balance}
+                    tokenType={transactionInfo.token}
+                    defaultTo={transactionInfo.toEmail}
+                    defaultAmount={transactionInfo.amount}
+                    defaultNote={''}
+                    onClose={() => {
+                      setAddress('')
+                      setBalance('')
+                      setOpen(false)
+                    }}
+                  />
+                )
+              }
             </div>
           )
         }
@@ -143,13 +193,36 @@ export default function ChatBotComponent() {
     },
   }
 
+  const styles: Styles = {
+    chatWindowStyle: {
+      zIndex: 49,
+    },
+    botBubbleStyle: {
+      backgroundColor: '#333',
+    },
+    headerStyle: {
+      backgroundImage: 'linear-gradient(to right, #333, rgb(66, 176, 197))',
+    },
+    chatButtonStyle: {
+      background: 'transparent',
+    },
+    chatIconStyle: {
+      backgroundImage: `url('/logo-alone.png')`,
+    },
+    tooltipStyle: {
+      
+    },
+  }
+
   return (
     <>
     {isLoaded && (
       <Suspense fallback={null}>
-        <SettingsContext.Provider value={{settings: settings, setSettings: setSettings}}>
-          <ChatBot settings={settings} flow={flow}/>
-        </SettingsContext.Provider>
+          <SettingsContext.Provider value={{settings: settings, setSettings: setSettings}}>
+            <ForcedLightThemeComponent>
+              <ChatBot settings={settings} flow={flow} styles={styles} />
+            </ForcedLightThemeComponent>
+          </SettingsContext.Provider>
       </Suspense>
     )}
     </>
