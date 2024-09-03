@@ -26,6 +26,7 @@ import { usePassportClientVerification } from "@/hooks/usePassportClientVerifica
 import { LogoLoading } from "@/components/LogoLoading";
 import { useTranslations } from "next-intl";
 import { Textarea } from "@/components/ui/textarea";
+import { TransactionType } from "@/types/transaction";
 
 export function Send({
   balance,
@@ -176,6 +177,7 @@ export function Send({
           amount: amt,
           token: tokenType,
           note,
+          transactionType: TransactionType.TRANSFER,
         },
       })
 

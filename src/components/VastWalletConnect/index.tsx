@@ -22,6 +22,7 @@ import { useRouter } from 'next/navigation';
 import { usePassportClientVerification } from '@/hooks/usePassportClientVerification';
 import { LogoLoading } from '../LogoLoading';
 import { TokenType } from '@/types/tokens';
+import { TransactionType } from '@/types/transaction';
 
 export function VastWalletConnect() {
   const t = useTranslations('vastWalletConnect');
@@ -241,6 +242,7 @@ export function VastWalletConnect() {
         amount: transferDetails.value,
         data: transferDetails.data,
         token: transferDetails.token,
+        transactionType: TransactionType.SWAP,
       })
 
       if (result.needOtp) {
