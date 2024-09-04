@@ -215,6 +215,9 @@ export default function ChatBotComponent() {
     tooltipStyle: {
       background: 'rgb(66, 176, 197)',
     },
+    sendButtonHoveredStyle: {
+      background: 'rgba(66, 176, 197, 0.8)',
+    },
   }
 
   return (
