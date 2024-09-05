@@ -61,6 +61,7 @@ export function Send({
   const [error, setError] = useState('');
 
   const t = useTranslations('/home.[token].sendModal')
+  const divRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const token = TokenFactory.getInstance().createToken(tokenType)
@@ -100,6 +101,18 @@ export function Send({
       parseFloat(amount) > parseFloat(balance)
     );
   }, [to, amount, sending, isValidEmail, isValidating, error, balance]);
+
+  // Workaround for input focus issues in chatbot interfaces
+  const hackFocus = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (!divRef.current) {
+      return
+    }
+    if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
+      event.target.focus()
+   } else {
+      handleBlur()
+    }
+  }
 
   const validateEmail = async (email: string) => {
     if (!isAddress(to)) {
@@ -315,80 +328,82 @@ export function Send({
 
         <form
           onSubmit={(e) => handleSend(e)}>
-          <div className="mb-5">
-            <label htmlFor="to" className="block mb-2 text-sm font-medium">{t('to')}</label>
-            <div className="relative">
-              <Input
-                value={to}
-                onChange={e => setTo(e.target.value)}
-                onBlur={handleBlur}
-                id="to"
-                required
-                placeholder={t('toPlaceholder')}
-                className={cn(
-                  isValidEmail && "border-green-500",
-                  error && "border-destructive",
-                  error === t('unregisteredEmailNotice') && 'border-blue-500',
-                  "pr-10"
+          <div ref={divRef} onClick={(e) => hackFocus(e)}>
+            <div className="mb-5">
+              <label htmlFor="to" className="block mb-2 text-sm font-medium">{t('to')}</label>
+              <div className="relative">
+                <Input
+                  value={to}
+                  onChange={e => setTo(e.target.value)}
+                  onBlur={handleBlur}
+                  id="to"
+                  required
+                  placeholder={t('toPlaceholder')}
+                  className={cn(
+                    isValidEmail && "border-green-500",
+                    error && "border-destructive",
+                    error === t('unregisteredEmailNotice') && 'border-blue-500',
+                    "pr-10"
+                  )}
+                />
+                {(isValidating) && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <Loader className="animate-spin" size={16} />
+                  </div>
                 )}
-              />
-              {(isValidating) && (
-                <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                  <Loader className="animate-spin" size={16} />
-                </div>
+                {isValidEmail && !isValidating && !error && (
+                  <CircleCheck className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500" size={16} />
+                )}
+                {error && !isValidating && (
+                  <AlertCircle className={cn(
+                    "absolute right-3 top-1/2 transform -translate-y-1/2 text-destructive",
+                    error === t('unregisteredEmailNotice') && 'text-blue-500'
+                  )} size={16} />
+                )}
+              </div>
+
+              {isValidEmail && fullAddress && (
+                <p className="mt-1 text-xs text-primary/60">{fullAddress}</p>
               )}
-              {isValidEmail && !isValidating && !error && (
-                <CircleCheck className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500" size={16} />
-              )}
-              {error && !isValidating && (
-                <AlertCircle className={cn(
-                  "absolute right-3 top-1/2 transform -translate-y-1/2 text-destructive",
-                  error === t('unregisteredEmailNotice') && 'text-blue-500'
-                )} size={16} />
+              {error && (
+                <p className={cn(
+                  "mt-1 text-xs text-destructive",
+                  error === t('unregisteredEmailNotice') && 'text-blue-400'
+                )}>{error}</p>
               )}
             </div>
 
-            {isValidEmail && fullAddress && (
-              <p className="mt-1 text-xs text-primary/60">{fullAddress}</p>
-            )}
-            {error && (
-              <p className={cn(
-                "mt-1 text-xs text-destructive",
-                error === t('unregisteredEmailNotice') && 'text-blue-400'
-              )}>{error}</p>
-            )}
-          </div>
-
-          <div className="mb-5">
-            <div className="flex items-center justify-between">
-              <label htmlFor="amount" className="block mb-2 text-sm font-medium">{t('amount')}</label>
-              <p className="text-xs mb-2 text-primary/60">{t('balance')}: {formatDecimal(balance)} {symbol}</p>
+            <div className="mb-5">
+              <div className="flex items-center justify-between">
+                <label htmlFor="amount" className="block mb-2 text-sm font-medium">{t('amount')}</label>
+                <p className="text-xs mb-2 text-primary/60">{t('balance')}: {formatDecimal(balance)} {symbol}</p>
+              </div>
+              <div className="relative">
+                <Input
+                  value={amount}
+                  onChange={e => setAmount(e.target.value)}
+                  type="number"
+                  id="amount"
+                  className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  required
+                />
+                <p
+                  className="absolute end-2.5 bottom-2.5 cursor-pointer text-brand-foreground"
+                  onClick={() => handleClickMax()}
+                >Max</p>
+              </div>
             </div>
-            <div className="relative">
-              <Input
-                value={amount}
-                onChange={e => setAmount(e.target.value)}
-                type="number"
-                id="amount"
-                className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                required
-              />
-              <p
-                className="absolute end-2.5 bottom-2.5 cursor-pointer text-brand-foreground"
-                onClick={() => handleClickMax()}
-              >Max</p>
-            </div>
-          </div>
 
-          <div className="mb-5">
-            <label htmlFor="note" className="block mb-2 text-sm font-medium">{t('note')}</label>
-            <div className="relative">
-              <Textarea
-                className=" focus-visible:ring-0"
-                id="note"
-                value={note}
-                onChange={e => setNote(e.target.value)}
-              />
+            <div className="mb-5">
+              <label htmlFor="note" className="block mb-2 text-sm font-medium">{t('note')}</label>
+              <div className="relative">
+                <Textarea
+                  className=" focus-visible:ring-0"
+                  id="note"
+                  value={note}
+                  onChange={e => setNote(e.target.value)}
+                />
+              </div>
             </div>
           </div>
 
