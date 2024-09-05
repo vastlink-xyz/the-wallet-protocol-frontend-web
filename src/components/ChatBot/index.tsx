@@ -197,9 +197,6 @@ export default function ChatBotComponent() {
   }
 
   const styles: Styles = {
-    chatWindowStyle: {
-      zIndex: 49,
-    },
     botBubbleStyle: {
       backgroundColor: '#333',
     },
