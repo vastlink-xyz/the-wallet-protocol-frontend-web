@@ -22,6 +22,8 @@ export function Header() {
   const titleMapper: Record<string, string> = {
     '/home': t('overview'),
     '/marketplace': t('marketplace'),
+    '/marketplace/kyb-flow': 'KYB Flow',
+    '/marketplace/multisig-setting': 'Multisig Setting',
   };
 
   const title = () => {
@@ -38,10 +40,10 @@ export function Header() {
           <BackArrow />
         </div>
       }
-    } else if (pathname === '/marketplace/multisig-setting') {
+    } else if (pathname.startsWith('/marketplace/')) {
       return <div className="flex items-center">
-        <BackArrow />
-        <span>Multisig Wallet Setting</span>
+        <BackArrow pathname={'/marketplace'} />
+        <span>{titleMapper[pathname]}</span>
       </div>
     } else {
       return <div>
