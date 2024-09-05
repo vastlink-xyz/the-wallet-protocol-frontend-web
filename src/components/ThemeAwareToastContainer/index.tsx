@@ -6,10 +6,18 @@ import { useTheme } from "next-themes";
 import { usePathname } from "next/navigation";
 import { Flip, Zoom, Bounce, ToastContainer } from 'react-toastify';
 import '@/styles/react-toastify.css'
+import { useEffect, useState } from "react";
 
 export default function ThemeAwareToastContainer() {
   const { theme } = useTheme()
   const pathname = usePathname()
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator?.userAgent || '');
+    setIsMobile(isMobile);
+  }, [])
+
 
   return (
     <ToastContainer
@@ -26,7 +34,10 @@ export default function ThemeAwareToastContainer() {
       // theme={currentTheme() as "light" | "dark"}
       theme={'colored'}
       transition={Zoom}
-      style={{width: 'auto', maxWidth: '400px'}}
+      style={ isMobile ? undefined : {
+        width: 'auto',
+        maxWidth: '400px',
+      }}
     />
   );
 }
