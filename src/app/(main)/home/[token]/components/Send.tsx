@@ -110,6 +110,9 @@ export function Send({
     }
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
       event.target.focus()
+      if (event.target.type !== 'number') {
+        event.target.setSelectionRange(event.target.value.length, event.target.value.length)
+      }
    } else {
       handleBlur()
     }
