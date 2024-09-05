@@ -16,6 +16,7 @@ import { InviteInfoData, InviteStatus } from "../util";
 import { useTransaction } from "@/components/VastWalletConnect/useTransaction";
 import { Token, TokenFactory } from "@/services/TokenService";
 import { TokenType } from "@/types/tokens";
+import { TransactionType } from "@/types/transaction";
 
 export default function Page() {
   const params = useSearchParams();
@@ -131,6 +132,7 @@ export default function Page() {
         amount: amt,
         token: inviteInfo?.token! as TokenType,
         data: '',
+        transactionType: TransactionType.INVITE_TRANSFER,
       })
 
       if (result.needOtp) {

@@ -15,6 +15,7 @@ import { Id, toast } from 'react-toastify';
 import { Token, TokenFactory } from '@/services/TokenService';
 import { TokenType } from '@/types/tokens';
 import { LogoLoading } from '@/components/LogoLoading';
+import { TransactionType } from '@/types/transaction';
 
 const MoonPayBuyWidget = dynamic(
   () => import('@moonpay/moonpay-react').then((mod) => mod.MoonPayBuyWidget),
@@ -172,6 +173,7 @@ export function RampModal({
           to: props.depositWalletAddress,
           amount: amt,
           token: props.cryptoCurrency.code.toUpperCase(),
+          transactionType: TransactionType.SELL,
         },
       })
 

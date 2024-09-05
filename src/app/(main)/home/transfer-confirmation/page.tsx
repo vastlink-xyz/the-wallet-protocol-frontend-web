@@ -10,6 +10,7 @@ import { Address, formatEther } from 'viem';
 import { useTransaction } from '@/components/VastWalletConnect/useTransaction';
 import { TokenType } from '@/types/tokens';
 import { toast } from 'react-toastify';
+import { TransactionType } from '@/types/transaction';
 
 export default function TransferConfirmationPage() {
   const params = useSearchParams()
@@ -58,6 +59,7 @@ export default function TransferConfirmationPage() {
         amount: formatEther(BigInt(amount)),
         data: '',
         token: token as TokenType,
+        transactionType: TransactionType.INVITE_TRANSFER,
       })
 
       if (result) {

@@ -9,6 +9,7 @@ import { TokenType } from '@/types/tokens';
 import { makeAuthenticatedApiRequest } from '@/lib/utils';
 import { usePassportClientVerification } from '@/hooks/usePassportClientVerification';
 import { Token, TokenFactory } from '@/services/TokenService';
+import { TransactionType } from '@/types/transaction';
 
 export const useTransaction = () => {
   const [sending, setSending] = useState(false);
@@ -20,11 +21,13 @@ export const useTransaction = () => {
     amount,
     data,
     token='ETH',
+    transactionType,
   }: {
     to: Address;
     amount: string;
     data: string;
     token: TokenType;
+    transactionType: TransactionType;
   }) => {
     tokenRef.current = TokenFactory.getInstance().createToken(token)
 
@@ -46,6 +49,7 @@ export const useTransaction = () => {
           amount: amt,
           data,
           token,
+          transactionType,
         }
       })
 
