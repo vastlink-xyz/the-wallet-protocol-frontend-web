@@ -38,7 +38,7 @@ export function CloudinaryUpload({ onSuccess, initialImage }: CloudinaryUploadPr
     <div className="flex flex-col items-center">
       {uploadedImage ? (
         <div className="mb-4">
-          <img src={uploadedImage} className="rounded-lg shadow-md w-8" alt="" />
+          <img src={uploadedImage} className="rounded-full shadow-md w-8" alt="" />
         </div>
       ) : (
         // <div className=" bg-gray-200 rounded-lg flex items-center justify-center mb-4 p-2">
