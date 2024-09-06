@@ -75,7 +75,7 @@ export function SideBar() {
           (customName && !customLogo) ? (
             <InitialNameLogo className="mr-2" />
           ) : (
-            <img src={customLogo ? customLogo : logoPath} className="w-[32px] mr-2" alt="logo" />
+            <img src={customLogo ? customLogo : logoPath} className="w-[32px] mr-2 rounded-full" alt="logo" />
           )
         }
         <p className="font-extrabold hidden md:block text-primary text-xl">{ customName ? customName : t('title')}</p>

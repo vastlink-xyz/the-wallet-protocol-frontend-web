@@ -25,7 +25,8 @@ export function Account() {
             src={ customLogo }
             alt="Loading"
             className={cn(
-              'w-8 h-8'
+              'w-8 h-8',
+              'rounded-full'
             )}
           />
         ) : (

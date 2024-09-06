@@ -79,6 +79,7 @@ export function LogoLoading({
               alt="Loading"
               className={cn(
                 'animate-[breathe_2s_cubic-bezier(0.4,0,0.6,1)_infinite]',
+                customLogo && 'rounded-full',
               )}
               width={size}
               height={size}
