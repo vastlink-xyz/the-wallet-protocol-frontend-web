@@ -12,7 +12,7 @@ export function BackArrow({
 
   return (
     <div
-      className="bg-brand-foreground/80 text-brand p-2 rounded-lg mr-4 hover:scale-110 cursor-pointer"
+      className="text-brand-foreground p-2 mr-4 hover:scale-105 hover:text-brand-foreground/80 cursor-pointer"
       onClick={() => {
         router.push(pathname)
       }}
