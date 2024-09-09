@@ -95,6 +95,12 @@ export function ProductCard({
       return
     }
 
+    // kyb
+    if (p.category === 'Compliance' && checkPurchaseStatus(p) === 'active') {
+      router.push('/marketplace/kyb-flow')
+      return
+    }
+
     // other types
     let url = p.website
     if (p.integrationPoints.includes("standalone") && checkPurchaseStatus(p) === 'active') {
