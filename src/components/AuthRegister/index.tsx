@@ -14,13 +14,9 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "react-toastify";
 import { useTranslations } from "next-intl";
+import { useKeyManagement } from "@/providers/KeyManagementProvider";
 
 export type PageType = 'login' | 'verify-registration'
-
-type UserInput = {
-  username: string;
-  userDisplayName: string;
-};
 
 export default function AuthRegister() {
   const params = useSearchParams();
@@ -32,25 +28,19 @@ export default function AuthRegister() {
   const [authenticating, setAuthenticating] = useState(false);
   const [registering, setRegistering] = useState(false);
   const [authenticateSetup, setAuthenticateSetup] = useState(true);
-
-  const { passport } = usePassport(
-    // "07907e39-63c6-4b0b-bca8-377d26445172" // original
-    // "43ca2cb8-886e-417f-9e31-0c0c5b3acd1e" // localhost:4943
-    // "4b8e66a2-bf1f-4d9d-8df8-7f7aa7502370" // localhost:3000
-    process.env.NEXT_PUBLIC_SCOPE_ID!,
-  );
+  const keyManagementService = useKeyManagement();
 
   // verify registration
   useEffect(() => {
     const email = params?.get('email')
     const otp = params?.get('otp')
 
-    if (email && otp) {
+    if (email && otp && keyManagementService) {
       console.log(`verify-registration ${email} ${otp}`);
       setUsername(email)
       register(email)
     }
-  }, [params]);
+  }, [params, keyManagementService]);
 
   async function preRegister() {
     log('call register')
@@ -80,15 +70,9 @@ export default function AuthRegister() {
     log('call register')
     setRegistering(true);
     try {
-      await passport.setupEncryption();
-      log('username is', registerUsername)
-      const res = await passport.register({
-        username: registerUsername,
-        userDisplayName: registerUsername,
-      });
-      log(res);
-  
-      if (res.result.account_id) {
+      const res = await keyManagementService?.signUp({username: registerUsername})
+
+      if (keyManagementService?.signUpSuccess(res)) {
         setRegistering(false);
         setAuthenticating(true);
         await authenticate(registerUsername);
@@ -108,37 +92,7 @@ export default function AuthRegister() {
     log('call authenticate', authUsername)
     setAuthenticating(true);
     try {
-      await passport.setupEncryption();
-      const [authenticatedHeader, address] = await passport.authenticate({
-        username: authUsername,
-        userDisplayName: authUsername,
-      })!;
-
-      const encryptedUsername = `${authenticatedHeader["X-Encrypted-User" as keyof typeof authenticatedHeader]}`
-      const aesKey = passport.aesKey;
-      const desUsername = await theWalletPassportService.aesDecrypt(encryptedUsername, aesKey);
-
-      // save authentication data locally so that don't have to reauthenticate every time refresh the page
-      auth.saveAuthDataByKey('authenticated', true)
-      auth.saveAuthDataByKey('aeskey', aesKey)
-      auth.saveAuthDataByKey('authenticatedHeader', authenticatedHeader)
-      auth.saveAuthDataByKey('address', address)
-      auth.saveAuthDataByKey('desUsername', JSON.parse(desUsername))
-
-      if (auth.all()?.desUsername?.username && address) {
-        await axios.post(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/address/bind`, {
-          address,
-        }, {
-          headers: {
-            "Content-Type": "application/json",
-            "X-Encrypted-Key": `${authenticatedHeader["X-Encrypted-Key" as keyof typeof authenticatedHeader]}`,
-            "X-Scope-Id": `${authenticatedHeader["X-Scope-Id" as keyof typeof authenticatedHeader]}`,
-            "X-Encrypted-User": `${authenticatedHeader["X-Encrypted-User" as keyof typeof authenticatedHeader]}`,
-            "X-Encrypted-Session": `${authenticatedHeader["X-Encrypted-Session" as keyof typeof authenticatedHeader]}`,
-            "X-Passport-Username": `${auth.all().desUsername.username}`,
-          },
-        })
-      }
+      await keyManagementService?.signIn({authUsername})
 
       router.push('/home')
     } catch (error: any) {
