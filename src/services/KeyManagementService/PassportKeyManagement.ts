@@ -7,18 +7,21 @@ import axios from 'axios';
 
 type RegisterResponse = Awaited<ReturnType<Passport['register']>>;
 
-class PassportKeyManagement extends KeyManagementService {
-  constructor(passport: Passport) {
+export class PassportKeyManagement extends KeyManagementService {
+  passport: any;
+
+  constructor() {
     super({
       serviceType: KeyManagementServiceType.PASSPORT,
-      dependencies: {
-        passport: passport,
-      }
     });
   }
 
+  init() {
+    this.passport = {} as any;
+  }
+
   async signUp({username}: {username: string}) {
-    const passport = this.getDependencyInstance();
+    const passport = this.passport;
     await passport.setupEncryption();
     log('username is', username)
     const res = await passport.register({
@@ -29,12 +32,8 @@ class PassportKeyManagement extends KeyManagementService {
     return res;
   }
   
-  signUpSuccess(res: RegisterResponse): boolean {
-    return Boolean(res.result.account_id);
-  }
-  
   async signIn({authUsername}: {authUsername: string}) {
-    const passport = this.getDependencyInstance();
+    const passport = this.passport;
     await passport.setupEncryption();
       const [authenticatedHeader, address] = await passport.authenticate({
         username: authUsername,
@@ -71,8 +70,4 @@ class PassportKeyManagement extends KeyManagementService {
   async bindAddress() {
 
   }
-}
-
-export {
-  PassportKeyManagement,
 }

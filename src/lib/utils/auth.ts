@@ -1,14 +1,17 @@
 import { CustomStorage } from "./storage";
 
-export type AuthStoreType = 'authenticatedHeader' | 'address' | 'authenticated' | 'desUsername' | 'aeskey';
+export type AuthStoreType = 'idToken' | 'address' | 'username' |
+'authenticatedHeader' | 'authenticated' | 'desUsername' | 'aeskey';
 
 class Auth {
   private storages: { [key in AuthStoreType]: CustomStorage };
 
   constructor() {
     this.storages = {
-      authenticatedHeader: new CustomStorage('authenticatedHeader'),
+      idToken: new CustomStorage('idToken'),
+      username: new CustomStorage('username'),
       address: new CustomStorage('address'),
+      authenticatedHeader: new CustomStorage('authenticatedHeader'),
       authenticated: new CustomStorage('authenticated'),
       desUsername: new CustomStorage('desUsername'),
       aeskey: new CustomStorage('aeskey')

@@ -3,9 +3,7 @@ import { KeyManagementServiceType } from '@/types/keymanagement';
 
 export interface KeyManagementServiceConfig {
   serviceType: KeyManagementServiceType;
-  dependencies: any;
 }
-
 abstract class KeyManagementService {
   config: KeyManagementServiceConfig;
 
@@ -17,32 +15,15 @@ abstract class KeyManagementService {
     this.config = config
   }
 
-  getDependencyInstance() {
-    if (this.config.serviceType === KeyManagementServiceType.PASSPORT) {
-      return this.config.dependencies.passport;
-    }
-    throw new Error(`Unsupported service type: ${this.config.serviceType}`);
-  }
+  abstract init(): void;
 
-  bindAddress() {
-    throw new Error('bindAddress method not implemented');
-  }
+  abstract test(): void;
 
-  signUp({username}: {username: string}): any {
-    throw new Error('signUp method not implemented');
-  }
+  abstract signUp({username, idToken}: {username: string, idToken: string}): any;
 
-  signUpSuccess(res: any): boolean {
-    throw new Error('signUpSuccess method not implemented');
-  }
+  abstract signIn({authUsername, idToken}: {authUsername: string, idToken: string}): any;
 
-  signIn({authUsername}: {authUsername: string}) {
-    throw new Error('signIn method not implemented');
-  }
-
-  signTransaction() {
-    throw new Error('signTransaction method not implemented');
-  }
+  abstract signTransaction(): any;
 }
 
 export {

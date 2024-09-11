@@ -6,7 +6,7 @@ import axios from "axios";
 
 import { usePassport } from "@/hooks/usePassport";
 import theWalletPassportService from "@/services/PassportService";
-import { log, auth, cn } from "@/lib/utils";
+import { log, auth, cn, handleError } from "@/lib/utils";
 
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "react-toastify";
 import { useTranslations } from "next-intl";
-import { useKeyManagement } from "@/providers/KeyManagementProvider";
+import keyManagementService from "@/services/KeyManagementService";
 
 export type PageType = 'login' | 'verify-registration'
 
@@ -28,19 +28,29 @@ export default function AuthRegister() {
   const [authenticating, setAuthenticating] = useState(false);
   const [registering, setRegistering] = useState(false);
   const [authenticateSetup, setAuthenticateSetup] = useState(true);
-  const keyManagementService = useKeyManagement();
 
-  // verify registration
   useEffect(() => {
-    const email = params?.get('email')
-    const otp = params?.get('otp')
+    const init = async () => {
+      // web3auth sdk need to be initialized
+      await keyManagementService.init()
 
-    if (email && otp && keyManagementService) {
-      console.log(`verify-registration ${email} ${otp}`);
-      setUsername(email)
-      register(email)
+      const email = params?.get('email')
+      const otp = params?.get('otp')
+      const type = params?.get('type')
+
+      if (email && otp) {
+        setUsername(email)
+  
+        if (type === 'login') {
+          authenticate(email, otp)
+        } else {
+          register(email, otp)
+        }
+      }
     }
-  }, [params, keyManagementService]);
+
+    init()
+  }, [params]);
 
   async function preRegister() {
     log('call register')
@@ -66,38 +76,82 @@ export default function AuthRegister() {
     }
   }
 
-  async function register(registerUsername: string) {
+  async function verifyOtp(username: string, otp: string) {
+    const response = await axios.post(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/auth/verify-otp`, 
+      {
+        email: username,
+        OTP: otp,
+      }
+    );
+    return response.data;
+  }
+
+  async function register(registerUsername: string, otp: string) {
     log('call register')
+    setAuthenticateSetup(false)
     setRegistering(true);
     try {
-      const res = await keyManagementService?.signUp({username: registerUsername})
+      // verify otp and get idToken
+      const idToken = await verifyOtp(registerUsername, otp)
 
-      if (keyManagementService?.signUpSuccess(res)) {
-        setRegistering(false);
-        setAuthenticating(true);
-        await authenticate(registerUsername);
-        setAuthenticating(false);
-      }
-    } catch (error) {
-      console.error("Error registering:", error);
-      toast.error((error as any).message)
+      // sign up with keyManagementService
+      await keyManagementService.signUp({
+        username: registerUsername,
+        idToken: idToken,
+      })
+
+      router.push('/home')
+      // setAuthenticating(true);
+      // await authenticate(registerUsername);
+      // setAuthenticating(false);
+    } catch (error: unknown) {
+      const errorInfo = handleError(error)
+      toast.error(errorInfo.message)
     } finally {
-      log('set authenticating finally')
+      log('register finally')
       setRegistering(false);
       setAuthenticating(false);
     }
   }
 
-  async function authenticate(authUsername: string) {
+  async function preAuthenticate() {
+    try {
+      setAuthenticating(true)
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/auth/generate-login-otp`, 
+        {
+          email: username,
+        }
+      );
+      if (response.status === 200) {
+        toast.info(
+          t('otpLoginSentMessage'),
+          {
+            autoClose: 10000,
+          }
+        )
+        setAuthenticating(false);
+      }
+    } catch(error) {
+      toast.error((error as any).message)
+    }
+  }
+
+  async function authenticate(authUsername: string, otp: string) {
     log('call authenticate', authUsername)
     setAuthenticating(true);
     try {
-      await keyManagementService?.signIn({authUsername})
+      // verify otp and get idToken
+      const idToken = await verifyOtp(authUsername, otp)
+
+      await keyManagementService.signIn({
+        authUsername,
+        idToken,
+      })
 
       router.push('/home')
-    } catch (error: any) {
-      console.error("Error registering:", error);
-      toast.error(error.message)
+    } catch (error: unknown) {
+      const errorInfo = handleError(error)
+      toast.error(errorInfo.message)
     } finally {
       setAuthenticating(false);
     }
@@ -106,7 +160,7 @@ export default function AuthRegister() {
   const processUserAccess = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (authenticateSetup) {
-      await authenticate(username);
+      await preAuthenticate();
     } else {
       // check if email is existed
       try {

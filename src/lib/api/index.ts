@@ -1,10 +1,9 @@
 import axios, { AxiosResponse } from 'axios'
-import { auth } from "./auth";
+import { auth } from "@/lib/utils";
 import { toast } from 'react-toastify';
 import { createPassportClient } from '@0xpass/passport-viem';
 import { http } from 'viem';
 import { sepolia } from 'viem/chains';
-import { log } from '.';
 
 interface AuthenticatedRequestConfig {
   path: string;
@@ -51,3 +50,20 @@ export function authenticatedHeaderForRequest() {
 
   return headers
 }
+
+const api = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL,
+});
+
+api.interceptors.request.use(
+  (config) => {
+    const token = auth.all().idToken;
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+export default api;
