@@ -25,7 +25,7 @@ export const chainConfigByToken = (tokenType: TokenType): CustomChainConfig | un
       tickerName: "Sepolia Testnet ETH",
       ticker: "ETH",
       decimals: 18,
-      rpcTarget: "https://rpc.ankr.com/eth_sepolia",
+      rpcTarget: process.env.NEXT_PUBLIC_ETH_JSON_RPC!,
       blockExplorerUrl: "https://sepolia.etherscan.io",
     };
   } else if (tokenType === 'MATIC' || tokenType === 'TVWT') {
@@ -36,7 +36,7 @@ export const chainConfigByToken = (tokenType: TokenType): CustomChainConfig | un
       tickerName: 'Amoy MATIC',
       ticker: 'MATIC',
       decimals: 18,
-      rpcTarget: 'https://rpc.ankr.com/polygon_amoy',
+      rpcTarget: process.env.NEXT_PUBLIC_POLYGON_JSON_RPC!,
       blockExplorerUrl: "https://amoy.polygonscan.com",
     }
   }

@@ -39,6 +39,14 @@ abstract class KeyManagementService {
     note: string;
     transactionType: TransactionType;
   }): Promise<any>;
+
+  abstract signTransactionWithOTP({
+    transactionId,
+    otp,
+  }: {
+    transactionId: string;
+    otp: string;
+  }): Promise<any>;
 }
 
 export {

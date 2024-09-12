@@ -3,15 +3,12 @@
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState, useEffect } from "react";
 
-import axios from "axios";
-import { auth, log } from '@/lib/utils';
-import { createPublicClient, http } from 'viem';
-import { polygonAmoy } from 'viem/chains';
+import { auth, handleError, log } from '@/lib/utils';
 import { TokenFactory } from '@/services/TokenService';
 import { toast } from 'react-toastify';
-import { makeAuthenticatedApiRequest } from '@/lib/utils';
 import { usePassportClientVerification } from '@/hooks/usePassportClientVerification';
 import { LogoLoading } from '@/components/LogoLoading';
+import keyManagementService from '@/services/KeyManagementService';
 
 export default function Page() {  
   const params = useSearchParams();
@@ -31,42 +28,23 @@ export default function Page() {
 
   async function verifyTransaction(id: string, otp: string) {
     try {
-      const client = await verifyPassportClient()
-      if (!client) {
-        return
-      }
-      const response = await makeAuthenticatedApiRequest({
-        path: 'transaction/verify-to-sign',
-        data: {
-          transactionId: id,
-          OTP: otp,
-        }
+      const { hash, token } = await keyManagementService.signTransactionWithOTP({
+        transactionId: id,
+        otp,
       })
-      log('res', response);
 
-      const txHash = response.data.hash
-      const tokenType = response.data.token
-
-      if (!txHash || !tokenType) {
-        setStatus('error')
-        toast.error(response.data)
-        return
-      }
-
-      const publicClient = TokenFactory.getInstance().createToken(tokenType).publicClient
-      const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash })
+      const publicClient = TokenFactory.getInstance().createToken(token).publicClient
+      const receipt = await publicClient.waitForTransactionReceipt({ hash })
       if (receipt.status === 'success') {
         setStatus('success')
         // jump to home page
         router.replace('/home')
       }
       log('receipt', receipt)
-    } catch(error) {
+    } catch(error: unknown) {
       setStatus('error')
-      const res = (error as any).response
-      if (res && res.data) {
-        toast.error(res.data)
-      }
+      const errorInfo = handleError(error)
+      toast.error(errorInfo.message)
     }
   }
 
@@ -76,14 +54,14 @@ export default function Page() {
         <LogoLoading size={48} type={'breathe'} />
       </div>
     } else if (status === 'success') {
-      return <div>Transaction confirmed, redirecting to the homepage...</div>
+      return <div className=''>Transaction confirmed, redirecting to the homepage...</div>
     } else {
-      return <div>Error processing transaction</div>
+      return <div className='text-destructive'>Error processing transaction</div>
     }
   }
 
   return (
-    <div className='m-auto text-destructive'> 
+    <div className='m-auto'> 
       {
         transactionStatus()
       }

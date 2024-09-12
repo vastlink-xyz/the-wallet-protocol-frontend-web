@@ -181,26 +181,24 @@ export function Send({
 
       setSending(true)
 
-      const response = await keyManagementService.signTransaction({
+      const {
+        needOtp,
+        hash,
+        message,
+      } = await keyManagementService.signTransaction({
         toAddress,
         amount: amt,
         token: tokenType,
         note,
         transactionType: TransactionType.TRANSFER,
       })
-      log('response', response)
-      return
 
-      const data = response.data
-      log('data', data)
-
-      const succeeded = typeof data.hash === 'string' && data.hash.startsWith('0x');
-      if (succeeded) {
+      if (hash) {
         setOpen(false)
-        notifyTransactionSubmitted(data.hash)
-      } else {
+        notifyTransactionSubmitted(hash)
+      } else if (needOtp) {
         // need to be verified
-        toast.error(data.message)
+        toast.error(message)
         setOpen(false)
       }
     } catch (error: unknown) {

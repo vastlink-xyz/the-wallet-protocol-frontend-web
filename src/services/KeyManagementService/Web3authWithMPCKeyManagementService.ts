@@ -4,9 +4,8 @@ import { auth, chainConfigByToken, log, viemChainByToken } from '@/lib/utils';
 import { COREKIT_STATUS, JWTLoginParams, makeEthereumSigner, parseToken, WEB3AUTH_NETWORK, Web3AuthMPCCoreKit } from '@web3auth/mpc-core-kit';
 import tssLib from '@toruslabs/tss-dkls-lib';
 import { EthereumSigningProvider } from '@web3auth/ethereum-mpc-provider';
-import { Address, createWalletClient, custom, Hex, TransactionRequest, WalletClient } from 'viem'
+import { Address, createPublicClient, createWalletClient, custom, Hex } from 'viem'
 import { TokenType } from '@/types/tokens';
-import { polygonAmoy, sepolia } from 'viem/chains';
 import api from '@/lib/api';
 import { TransactionType } from '@/types/transaction';
 
@@ -102,7 +101,7 @@ export class Web3authWithMPCKeyManagement extends KeyManagementService {
         // await coreKitInstance.commitChanges(); // Needed for new accounts
       }
 
-      const walletClient = this.createWalletClientByToken('ETH')
+      const { walletClient } = this.createClientByToken('ETH')
       const addresses = await walletClient.getAddresses()
       const address = addresses[0]
 
@@ -133,7 +132,14 @@ export class Web3authWithMPCKeyManagement extends KeyManagementService {
     note: string;
     transactionType: TransactionType;
   }) {
-    const response = await api.post('/transaction/sign', {
+    const { data: {
+      success,
+      needOtp,
+      message,
+      transactionPayload,
+      userEmail,
+      toEmail,
+    } } = await api.post('/transaction/sign', {
       from: auth.all().address,
       to: toAddress,
       amount,
@@ -141,30 +147,123 @@ export class Web3authWithMPCKeyManagement extends KeyManagementService {
       note,
       transactionType,
     })
-    const { transactionPayload } = response.data
-    const {
-      from,
-      to,
-      value,
-      data,
-    } = transactionPayload
-
-    const walletClient = this.createWalletClientByToken(token)
     log('transaction payload', transactionPayload)
 
+    // check daily limit failed
+    if (!success && needOtp) {
+      return {
+        success: false,
+        needOtp: true,
+        message,
+      }
+    }
+
+    // execute transaction by wallet client
+    const hash = await this.exectuteTransactionWithGas({
+      token,
+      ...transactionPayload,
+    })
+
+    // notify server to send transaction message
+    await api.post('/transaction/notify', { 
+      transaction: transactionPayload,
+      userEmail,
+      toEmail,
+      token,
+      note,
+      transactionType,
+      hash,
+    })
+
+    return {
+      success: true,
+      hash,
+    }
+  }
+
+  async signTransactionWithOTP({
+    transactionId,
+    otp,
+  }: {
+    transactionId: string;
+    otp: string;
+  }) {
+    const { data: {
+      transactionPayload,
+      userEmail,
+      toEmail,
+      token,
+      note,
+      transactionType,
+    } } = await api.post('/transaction/verify-to-sign', {
+      transactionId,
+      OTP: otp,
+    })
+
+    // execute transaction by wallet client
+    const hash = await this.exectuteTransactionWithGas({
+      token,
+      ...transactionPayload,
+    })
+
+    // notify server to send transaction message
+    await api.post('/transaction/notify', { 
+      transaction: transactionPayload,
+      userEmail,
+      toEmail,
+      token,
+      note,
+      transactionType,
+      hash,
+      transactionId,
+    })
+
+    return {
+      success: true,
+      hash,
+      token,
+    }
+  }
+
+  private async exectuteTransactionWithGas({
+    token,
+    from,
+    to,
+    value,
+    data,
+  }: {
+    token: TokenType,
+    from: Address,
+    to: Address,
+    value: string,
+    data: Hex,
+  }) {
+    const { walletClient, publicClient } = this.createClientByToken(token)
+    
     const transactionRequest = {
       account: from as Address,
       to: to as Address,
       value: BigInt(value),
       data,
     } as const;
-    log('transaction request', transactionRequest)
-    const hash = await walletClient.sendTransaction(transactionRequest)
-    log('hash', hash)
+
+    const estimatedGas = await publicClient.estimateGas(transactionRequest)
+    const gasPrice = await publicClient.getGasPrice()
+    const baseFee = await publicClient.getBlock().then(block => block.baseFeePerGas || BigInt(0))
+    const maxPriorityFeePerGas = gasPrice - baseFee + BigInt(25000000000)
+
+    const transactionRequestWithGas = {
+      ...transactionRequest,
+      gas: estimatedGas,
+      maxFeePerGas: gasPrice * BigInt(2),
+      maxPriorityFeePerGas: maxPriorityFeePerGas,
+    }
+
+    const hash = await walletClient.sendTransaction(transactionRequestWithGas)
     return hash
   }
 
-  private createWalletClientByToken(token: TokenType) {
+  private createClientByToken(token: TokenType) {
     const coreKitInstance = this.coreKitInstance!
     const chainConfig = chainConfigByToken(token)!
 
@@ -176,8 +275,15 @@ export class Web3authWithMPCKeyManagement extends KeyManagementService {
       chain: viemChainByToken(token),
       transport: custom(evmProvider),
     })
+    const publicClient = createPublicClient({
+      chain: viemChainByToken(token),
+      transport: custom(evmProvider),
+    })
 
-    return walletClient
+    return {
+      walletClient,
+      publicClient,
+    }
   }
 
   async test() {
