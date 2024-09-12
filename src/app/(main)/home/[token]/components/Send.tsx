@@ -4,7 +4,7 @@ import { useState, useEffect, FormEvent, useRef, useMemo } from "react"
 import axios from "axios";
 import { Address, parseEther, isAddress } from 'viem'
 
-import { auth, cn, emailRegex, formatDecimal, log } from "@/lib/utils"
+import { auth, cn, emailRegex, formatDecimal, handleError, log } from "@/lib/utils"
 
 import {
   Dialog,
@@ -27,6 +27,7 @@ import { LogoLoading } from "@/components/LogoLoading";
 import { useTranslations } from "next-intl";
 import { Textarea } from "@/components/ui/textarea";
 import { TransactionType } from "@/types/transaction";
+import keyManagementService from "@/services/KeyManagementService";
 
 export function Send({
   balance,
@@ -179,22 +180,16 @@ export function Send({
       log('amt', amt)
 
       setSending(true)
-      const client = await verifyPassportClient()
-      if (!client) {
-        return
-      }
 
-      const apiPath = `transaction/sign`
-      const response = await makeAuthenticatedApiRequest({
-        path: apiPath,
-        data: {
-          to: toAddress,
-          amount: amt,
-          token: tokenType,
-          note,
-          transactionType: TransactionType.TRANSFER,
-        },
+      const response = await keyManagementService.signTransaction({
+        toAddress,
+        amount: amt,
+        token: tokenType,
+        note,
+        transactionType: TransactionType.TRANSFER,
       })
+      log('response', response)
+      return
 
       const data = response.data
       log('data', data)
@@ -208,11 +203,10 @@ export function Send({
         toast.error(data.message)
         setOpen(false)
       }
-    } catch (error) {
-      const res = (error as any).response
-      if (res && res.data) {
-        toast.error(res.data)
-      }
+    } catch (error: unknown) {
+      const errorInfo = handleError(error)
+      log('errorInfo', errorInfo)
+      toast.error(errorInfo.message)
     } finally {
       setSending(false);
     }

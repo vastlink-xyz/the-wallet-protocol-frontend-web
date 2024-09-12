@@ -1,5 +1,8 @@
 import axios from 'axios';
 import { KeyManagementServiceType } from '@/types/keymanagement';
+import { Address } from 'viem';
+import { TokenType } from '@/types/tokens';
+import { TransactionType } from '@/types/transaction';
 
 export interface KeyManagementServiceConfig {
   serviceType: KeyManagementServiceType;
@@ -15,15 +18,27 @@ abstract class KeyManagementService {
     this.config = config
   }
 
-  abstract init(): void;
+  abstract init(): Promise<void>;
 
-  abstract test(): void;
+  abstract test(): Promise<void>;
 
-  abstract signUp({username, idToken}: {username: string, idToken: string}): any;
+  abstract signUp({username, idToken}: {username: string, idToken: string}): Promise<void>;
 
-  abstract signIn({authUsername, idToken}: {authUsername: string, idToken: string}): any;
+  abstract signIn({authUsername, idToken}: {authUsername: string, idToken: string}): Promise<void>;
 
-  abstract signTransaction(): any;
+  abstract signTransaction({
+    toAddress,
+    amount,
+    token,
+    note,
+    transactionType,
+  }: {
+    toAddress: Address;
+    amount: string;
+    token: TokenType;
+    note: string;
+    transactionType: TransactionType;
+  }): Promise<any>;
 }
 
 export {

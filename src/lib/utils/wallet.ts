@@ -41,3 +41,11 @@ export const chainConfigByToken = (tokenType: TokenType): CustomChainConfig | un
     }
   }
 }
+
+export function viemChainByToken(tokenType: TokenType) {
+  if (tokenType === 'ETH') {
+    return sepolia
+  } else if (tokenType === 'MATIC' || tokenType === 'TVWT') {
+    return polygonAmoy
+  }
+}

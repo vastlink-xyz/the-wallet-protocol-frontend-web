@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { log } from "@/lib/utils";
 import { tssLib } from "@toruslabs/tss-dkls-lib";
 /* eslint-disable @typescript-eslint/no-use-before-define */
+import bowser from "bowser";
 
 import { CHAIN_NAMESPACES, IProvider } from "@web3auth/base";
 import { CommonPrivateKeyProvider } from "@web3auth/base-provider";
@@ -260,6 +261,27 @@ function App() {
     if (!coreKitInstance) {
       throw new Error("coreKitInstance is not set");
     }
+
+    const browserInfo = bowser.parse(navigator.userAgent);
+    const browserName = `${browserInfo.browser.name}`;
+    const browserData = {
+      browserName,
+      browserVersion: browserInfo.browser.version!,
+      deviceName: browserInfo.os.name!,
+    };
+
+    const deviceFactorKey = new BN(
+      await coreKitInstance.createFactor({
+        shareType: TssShareType.DEVICE,
+        additionalMetadata: browserData,
+      }),
+      "hex",
+    );
+
+    const factor = await coreKitInstance.setDeviceFactor(deviceFactorKey);
+    log('factor', factor)
+    return
+
     uiConsole("export share type: ", TssShareType.DEVICE);
     const factorKey = generateFactorKey();
     await coreKitInstance.createFactor({

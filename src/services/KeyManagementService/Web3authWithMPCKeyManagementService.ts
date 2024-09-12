@@ -1,24 +1,19 @@
 import { KeyManagementServiceType } from '@/types/keymanagement';
-import { KeyManagementService, KeyManagementServiceConfig } from './KeyManagement';
-import { Network, Passport } from "@0xpass/passport";
-import { auth, chainConfigByToken, log } from '@/lib/utils';
-import theWalletPassportService from '../PassportService';
-import axios from 'axios';
+import { KeyManagementService } from './KeyManagement';
+import { auth, chainConfigByToken, log, viemChainByToken } from '@/lib/utils';
 import { COREKIT_STATUS, JWTLoginParams, makeEthereumSigner, parseToken, WEB3AUTH_NETWORK, Web3AuthMPCCoreKit } from '@web3auth/mpc-core-kit';
-import { CHAIN_NAMESPACES } from '@web3auth/base';
 import tssLib from '@toruslabs/tss-dkls-lib';
 import { EthereumSigningProvider } from '@web3auth/ethereum-mpc-provider';
-import { createWalletClient, custom, WalletClient } from 'viem'
+import { Address, createWalletClient, custom, Hex, TransactionRequest, WalletClient } from 'viem'
 import { TokenType } from '@/types/tokens';
 import { polygonAmoy, sepolia } from 'viem/chains';
-import Web3 from 'web3';
 import api from '@/lib/api';
+import { TransactionType } from '@/types/transaction';
 
 const chainConfig = chainConfigByToken('ETH')!
 
 export class Web3authWithMPCKeyManagement extends KeyManagementService {
   coreKitInstance: Web3AuthMPCCoreKit | undefined;
-  walletClient: WalletClient | undefined;
 
   constructor() {
     super({
@@ -82,8 +77,6 @@ export class Web3authWithMPCKeyManagement extends KeyManagementService {
       // save auth storage
       auth.saveAuthDataByKey('idToken', idToken)
       auth.saveAuthDataByKey('address', address)
-
-      return true;
     } catch (err) {
       throw err;
     }
@@ -109,15 +102,7 @@ export class Web3authWithMPCKeyManagement extends KeyManagementService {
         // await coreKitInstance.commitChanges(); // Needed for new accounts
       }
 
-      // Setup provider for EVM Chain
-      const evmProvider = new EthereumSigningProvider({ config: { chainConfig } });
-      evmProvider.setupProvider(makeEthereumSigner(coreKitInstance));
-
-      // generate address
-      const walletClient = createWalletClient({
-        transport: custom(evmProvider),
-      })
-      this.walletClient = walletClient
+      const walletClient = this.createWalletClientByToken('ETH')
       const addresses = await walletClient.getAddresses()
       const address = addresses[0]
 
@@ -127,26 +112,72 @@ export class Web3authWithMPCKeyManagement extends KeyManagementService {
       auth.saveAuthDataByKey('username', authUsername)
 
       // bind address
-      await this.bindAddress(address)
-
-      return true;
+      await api.post(`/address/bind`, {
+        address,
+      })
     } catch (err) {
       throw err;
     }
   }
 
-  getWalletClientByToken(token: TokenType) {
-
-  }
-
-  signTransaction() {
-    throw new Error('signTransaction method not implemented');
-  }
-
-  async bindAddress(address: string) {
-    await api.post(`/address/bind`, {
-      address,
+  async signTransaction({
+    toAddress,
+    amount,
+    token,
+    note,
+    transactionType,
+  }: {
+    toAddress: Address;
+    amount: string;
+    token: TokenType;
+    note: string;
+    transactionType: TransactionType;
+  }) {
+    const response = await api.post('/transaction/sign', {
+      from: auth.all().address,
+      to: toAddress,
+      amount,
+      token,
+      note,
+      transactionType,
     })
+    const { transactionPayload } = response.data
+    const {
+      from,
+      to,
+      value,
+      data,
+    } = transactionPayload
+
+    const walletClient = this.createWalletClientByToken(token)
+    log('transaction payload', transactionPayload)
+
+    const transactionRequest = {
+      account: from as Address,
+      to: to as Address,
+      value: BigInt(value),
+      data,
+    } as const;
+    log('transaction request', transactionRequest)
+    const hash = await walletClient.sendTransaction(transactionRequest)
+    log('hash', hash)
+    return hash
+  }
+
+  private createWalletClientByToken(token: TokenType) {
+    const coreKitInstance = this.coreKitInstance!
+    const chainConfig = chainConfigByToken(token)!
+
+    // Setup provider for EVM Chain
+    const evmProvider = new EthereumSigningProvider({ config: { chainConfig } });
+    evmProvider.setupProvider(makeEthereumSigner(coreKitInstance));
+
+    const walletClient = createWalletClient({
+      chain: viemChainByToken(token),
+      transport: custom(evmProvider),
+    })
+
+    return walletClient
   }
 
   async test() {
