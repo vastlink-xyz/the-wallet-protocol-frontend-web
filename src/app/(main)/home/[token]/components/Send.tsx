@@ -20,7 +20,6 @@ import { Input } from "@/components/ui/input";
 import { toast } from "react-toastify";
 import { TokenType } from "@/types/tokens";
 import { Token, TokenFactory } from "@/services/TokenService";
-import { usePassportClientVerification } from "@/hooks/usePassportClientVerification";
 import { LogoLoading } from "@/components/LogoLoading";
 import { useTranslations } from "next-intl";
 import { Textarea } from "@/components/ui/textarea";
@@ -53,7 +52,6 @@ export function Send({
   const [open, setOpen] = useState(false)
   const [symbol, setSymbol] = useState('')
   const tokenRef = useRef<Token>()
-  const { verifyPassportClient } = usePassportClientVerification()
 
   // email address validation
   const [isValidating, setIsValidating] = useState(false);

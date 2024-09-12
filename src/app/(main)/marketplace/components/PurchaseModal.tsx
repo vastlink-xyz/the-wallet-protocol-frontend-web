@@ -16,7 +16,6 @@ import {
 import { toast } from 'react-toastify'
 import { CircleCheck } from 'lucide-react'
 import { Token, TokenFactory } from '@/services/TokenService'
-import { usePassportClientVerification } from '@/hooks/usePassportClientVerification'
 import { LogoLoading } from '@/components/LogoLoading'
 import { useTransaction } from '@/components/VastWalletConnect/useTransaction'
 import { useTranslations } from 'next-intl'
@@ -37,7 +36,6 @@ export function PurchaseModal({
 }) {
   const [isPurchasing, setIsPurchasing] = useState(false)
   const tokenRef = useRef<Token>()
-  const {verifyPassportClient} = usePassportClientVerification()
   const { signTransaction, waitForTransactionExection } = useTransaction()
   const t = useTranslations('/marketplace.productCard')
 

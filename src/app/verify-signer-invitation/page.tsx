@@ -8,14 +8,12 @@ import { auth, log } from '@/lib/utils';
 import { TokenFactory } from '@/services/TokenService';
 import { toast } from 'react-toastify';
 import { makeAuthenticatedApiRequest } from '@/lib/utils';
-import { usePassportClientVerification } from '@/hooks/usePassportClientVerification';
 import { LogoLoading } from '@/components/LogoLoading';
 
 export default function Page() {  
   const params = useSearchParams();
   const router = useRouter();
   const [status, setStatus] = useState('pending')
-  const { verifyPassportClient } = usePassportClientVerification()
 
   useEffect(() => {
     const walletId = params?.get('walletId')
@@ -23,10 +21,6 @@ export default function Page() {
 
   async function verifyTransaction(id: string, otp: string) {
     try {
-      const client = await verifyPassportClient()
-      if (!client) {
-        return
-      }
       const response = await makeAuthenticatedApiRequest({
         path: 'transaction/verify-to-sign',
         data: {

@@ -5,8 +5,6 @@ import { toast } from 'react-toastify';
 import { CircleCheck } from 'lucide-react';
 import { Button } from '../ui/button';
 import { TokenType } from '@/types/tokens';
-import { makeAuthenticatedApiRequest } from '@/lib/utils';
-import { usePassportClientVerification } from '@/hooks/usePassportClientVerification';
 import { Token, TokenFactory } from '@/services/TokenService';
 import { TransactionType } from '@/types/transaction';
 import api from '@/lib/api';
@@ -14,7 +12,6 @@ import keyManagementService from '@/services/KeyManagementService';
 
 export const useTransaction = () => {
   const [sending, setSending] = useState(false);
-  const { verifyPassportClient } = usePassportClientVerification()
   const tokenRef = useRef<Token>()
 
   const signTransaction = async ({

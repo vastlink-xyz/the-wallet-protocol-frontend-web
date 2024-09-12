@@ -6,7 +6,6 @@ import { useState, useEffect } from "react";
 import { auth, handleError, log } from '@/lib/utils';
 import { TokenFactory } from '@/services/TokenService';
 import { toast } from 'react-toastify';
-import { usePassportClientVerification } from '@/hooks/usePassportClientVerification';
 import { LogoLoading } from '@/components/LogoLoading';
 import keyManagementService from '@/services/KeyManagementService';
 
@@ -14,7 +13,6 @@ export default function Page() {
   const params = useSearchParams();
   const router = useRouter();
   const [status, setStatus] = useState('pending')
-  const { verifyPassportClient } = usePassportClientVerification()
 
   useEffect(() => {
     const id = params?.get('id')

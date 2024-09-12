@@ -9,11 +9,9 @@ import { auth, log } from '@/lib/utils';
 import { sepolia } from 'viem/chains';
 import { useTranslations } from 'next-intl';
 
-// kkktodo
 export const usePassportClientVerification = () => {
   const router = useRouter();
   const t = useTranslations('toastError')
-  // kkktodo
   const verifyPassportClient = useCallback(async (chain=sepolia) => {
     const { authenticatedHeader, address } = auth.all();
     const transport = http();

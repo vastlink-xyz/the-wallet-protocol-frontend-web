@@ -19,7 +19,6 @@ import { useTransaction } from './useTransaction';
 import { WalletConnectModal } from './WalletConnectModal';
 import { PairContextType, useWalletConnectPair } from '@/providers/WalletConnectPairProvider';
 import { useRouter } from 'next/navigation';
-import { usePassportClientVerification } from '@/hooks/usePassportClientVerification';
 import { LogoLoading } from '../LogoLoading';
 import { TokenType } from '@/types/tokens';
 import { TransactionType } from '@/types/transaction';
@@ -61,8 +60,6 @@ export function VastWalletConnect() {
     web3walletRef,
     setDisplayUriInput,
   } = useWalletConnectPair() as PairContextType
-
-  const {verifyPassportClient} = usePassportClientVerification()
 
   const updateSessionStatus = useCallback(() => {
     const activeSessions = web3walletRef.current?.getActiveSessions();
@@ -123,14 +120,7 @@ export function VastWalletConnect() {
   }, [updateSessionStatus]);
 
   const generateAccount = async () => {
-    const transport = http();
-    const client = await verifyPassportClient(chain)
-    if (client) {
-      setAddress(address)
-      setWallet(client)
-      walletClientRef.current = client
-      log('set wallet client', client)
-    }
+    setAddress(address)
   }
 
   const init = async () => {
@@ -228,7 +218,6 @@ export function VastWalletConnect() {
   };
 
   const handleConfirmTransfer = async () => {
-    log('transferDetails', transferDetails, 'wallet', wallet, 'walletref', walletClientRef.current)
     if (!transferDetails) {
       return;
     }

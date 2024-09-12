@@ -10,7 +10,6 @@ import { auth, cn, log, makeAuthenticatedApiRequest } from '@/lib/utils';
 import { Modal } from '@/components/Modal';
 import { useTheme } from 'next-themes';
 import { OnInitiateDepositProps, OnInitiateDepositReplyProps } from '@/types/moonpayTypes';
-import { usePassportClientVerification } from '@/hooks/usePassportClientVerification';
 import { Id, toast } from 'react-toastify';
 import { Token, TokenFactory } from '@/services/TokenService';
 import { TokenType } from '@/types/tokens';
@@ -46,7 +45,6 @@ export function RampModal({
   const [walletAddresses, setWalletAddresses] = useState('')
 
   // sign transation
-  const { verifyPassportClient } = usePassportClientVerification()
   const [sending, setSending] = useState(false)
   const tokenRef = useRef<Token>()
   const toastId = useRef<Id>();
@@ -160,12 +158,6 @@ export function RampModal({
       log('amt', amt)
 
       setSending(true)
-      // return
-      const client = await verifyPassportClient()
-      if (!client) {
-        return
-      }
-
       // kkktodo
       const apiPath = `transaction/sign`
       const response = await makeAuthenticatedApiRequest({
