@@ -14,10 +14,10 @@ export function InitialNameLogo({
 
   useEffect(() => {
     const {
-      desUsername,
+      username,
     } = auth.all()
-    if (desUsername) {
-      const letter = desUsername.username.length > 0 ? desUsername.username[0] : ''
+    if (username) {
+      const letter = username.length > 0 ? username[0] : ''
       setLetter(letter)
     }
   }, [])

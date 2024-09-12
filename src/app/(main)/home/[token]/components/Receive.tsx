@@ -32,8 +32,8 @@ export function Receive({
 
   useEffect(() => {
     if (open) {
-      const { desUsername } = auth.all()
-      const email = desUsername?.username
+      const { username } = auth.all()
+      const email = username
       setEmail(email)
     }
   }, [open])

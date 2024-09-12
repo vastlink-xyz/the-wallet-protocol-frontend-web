@@ -77,6 +77,11 @@ export class Web3authWithMPCKeyManagement extends KeyManagementService {
       // save auth storage
       auth.saveAuthDataByKey('idToken', idToken)
       auth.saveAuthDataByKey('address', address)
+
+      // bind address
+      await api.post(`/address/bind`, {
+        address,
+      })
     } catch (err) {
       throw err;
     }

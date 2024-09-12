@@ -11,7 +11,7 @@ export function Account() {
   const { customLogo, customName } = useUserSkin()
 
   useEffect(() => {
-    const name = auth.all().desUsername?.userDisplayName
+    const name = auth.all().username
     setDisplayName(name)
   }, [])
 

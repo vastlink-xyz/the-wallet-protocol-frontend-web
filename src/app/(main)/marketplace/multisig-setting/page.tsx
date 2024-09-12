@@ -37,11 +37,11 @@ export default function MultisigSettingPage() {
   }, [])
 
   const init = async () => {
-    const { address, desUsername } = auth.all()
+    const { address, username } = auth.all()
     // add a default signer
     setSigners([{
       id: uuidv4(),
-      email: desUsername.username,
+      email: username,
       address,
       isValid: true,
     }])

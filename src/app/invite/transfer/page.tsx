@@ -17,6 +17,7 @@ import { Token, TokenFactory } from "@/services/TokenService";
 import { TokenType } from "@/types/tokens";
 import { TransactionType } from "@/types/transaction";
 import api from "@/lib/api";
+import keyManagementService from "@/services/KeyManagementService";
 
 export default function Page() {
   const params = useSearchParams();
@@ -34,11 +35,7 @@ export default function Page() {
 
 
   useEffect(() => {
-    const inviteInfoId = params?.get('inviteInfoId')
-
-    if (inviteInfoId) {
-      initInviteInfo(inviteInfoId)
-    }
+    init()
   }, [params])
 
   useEffect(() => {
@@ -47,6 +44,16 @@ export default function Page() {
     }
     setInviteStatus(inviteInfo.status)
   }, [inviteInfo])
+
+  const init = async () => {
+    // web3auth sdk need to be initialized
+    await keyManagementService.init()
+
+    const inviteInfoId = params?.get('inviteInfoId')
+    if (inviteInfoId) {
+      initInviteInfo(inviteInfoId)
+    }
+  }
 
   const initInviteInfo = async (id: string) => {
     const response = await api.get(`/invite/invite-info/${id}`)
@@ -57,6 +64,7 @@ export default function Page() {
     }
   }
 
+  // kkktodo
   async function authenticate(authUsername: string) {
     log('call authenticate', authUsername)
     // setAuthenticating(true);
@@ -71,6 +79,7 @@ export default function Page() {
       const aesKey = passport.aesKey;
       const desUsername = await theWalletPassportService.aesDecrypt(encryptedUsername, aesKey);
 
+      // kkktodo
       // save authentication data locally so that don't have to reauthenticate every time refresh the page
       auth.saveAuthDataByKey('authenticated', true)
       auth.saveAuthDataByKey('aeskey', aesKey)
@@ -88,28 +97,28 @@ export default function Page() {
   }
 
   const checkLoginedUser = () => {
-    const { desUsername, address } = auth.all()
-    if (desUsername) {
-      return desUsername.username === inviteInfo?.fromEmail
-    } else if (!desUsername || !address) {
+    const { username, address } = auth.all()
+    if (username) {
+      return username === inviteInfo?.fromEmail
+    } else if (!username || !address) {
       return false
     }
   }
 
   const handleConfirmTransfer = async () => {
     try {
-      // make sure that the user has been signed in correctly
-      let signinSuccessed = false
-      if (checkLoginedUser()) {
-        signinSuccessed = true
-      } else {
-        signinSuccessed = await authenticate(inviteInfo!.fromEmail)
-      }
+      // // make sure that the user has been signed in correctly
+      // let signinSuccessed = false
+      // if (checkLoginedUser()) {
+      //   signinSuccessed = true
+      // } else {
+      //   signinSuccessed = await authenticate(inviteInfo!.fromEmail)
+      // }
 
-      if (!signinSuccessed) {
-        toast.error('Signin error')
-        return
-      }
+      // if (!signinSuccessed) {
+      //   toast.error('Signin error')
+      //   return
+      // }
 
       handleSignTransaction()
     } catch(error: any) {
@@ -150,8 +159,8 @@ export default function Page() {
       initInviteInfo(inviteInfo.id)
 
       log('hash is', hash)
-    } catch (error: any) {
-      console.error('Error confirming transfer:', error.message);
+    } catch (error) {
+      console.error('Error confirming transfer:', error);
       toast.error('Transfer failed');
     } finally {
       setSending(false);

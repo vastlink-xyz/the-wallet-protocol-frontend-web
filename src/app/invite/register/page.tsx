@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from "react";
-
+import axios from "axios";
 import { usePassport } from "@/hooks/usePassport";
 import { auth, handleError, log } from "@/lib/utils";
 import theWalletPassportService from "@/services/PassportService";
@@ -13,6 +13,7 @@ import { LogoLoading } from "@/components/LogoLoading";
 import { formatEther } from "viem";
 import { InviteInfoData, InviteStatus } from "../util";
 import api from "@/lib/api";
+import keyManagementService from "@/services/KeyManagementService";
 
 export default function Page() {
   const params = useSearchParams();
@@ -26,27 +27,37 @@ export default function Page() {
 
   const [inviteInfo, setInviteInfo] = useState<InviteInfoData>();
   const [inviteStatus, setInviteStatus] = useState<InviteStatus>('PENDING');
+  const [otp, setOtp] = useState<string>('')
 
   const { passport } = usePassport(
     process.env.NEXT_PUBLIC_SCOPE_ID!,
   );
 
   useEffect(() => {
-    const inviteInfoId = params?.get('inviteInfoId')
-
-    if (inviteInfoId) {
-      init(inviteInfoId)
-    }
+    init()
   }, [params])
-  
+
   useEffect(() => {
     if (!inviteInfo) {
       return
     }
     setInviteStatus(inviteInfo.status)
   }, [inviteInfo])
+
+  const init = async () => {
+    // web3auth sdk need to be initialized
+    await keyManagementService.init()
+
+    const inviteInfoId = params?.get('inviteInfoId')
+    const otp = params?.get('otp')
+
+    if (inviteInfoId && otp) {
+      setOtp(otp)
+      initInviteStatus(inviteInfoId)
+    }
+  }
   
-  const init = async (inviteInfoId: string) => {
+  const initInviteStatus = async (inviteInfoId: string) => {
     try {
       setLoading(true)
       const info = await initInviteInfo(inviteInfoId)
@@ -70,18 +81,19 @@ export default function Page() {
           })
           initInviteInfo(inviteInfoId)
         } else {
-          // the user doesn't bind the address, but they have a passport account
-          const authenticated = await authenticate(info.toEmail, false)
-          if (authenticated) {
-            // update current inviteInfo
-            await updateInviteInfo(info.id, {
-              status: 'REGISTERED',
-              to: auth.all().address,
-            })
-            initInviteInfo(inviteInfoId)
-          } else {
-            // user doesn't have a passport account
-          }
+          // kkktodo
+          // // the user doesn't bind the address, but they have a keymanagement account
+          // const authenticated = await authenticate(info.toEmail, false)
+          // if (authenticated) {
+          //   // update current inviteInfo
+          //   await updateInviteInfo(info.id, {
+          //     status: 'REGISTERED',
+          //     to: auth.all().address,
+          //   })
+          //   initInviteInfo(inviteInfoId)
+          // } else {
+          //   // user doesn't have a passport account
+          // }
         }
       }
     } catch(error) {
@@ -109,6 +121,16 @@ export default function Page() {
     return 'Click To Sign Up'
   }
 
+  async function verifyOtp(username: string, otp: string) {
+    const response = await axios.post(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/auth/verify-otp`, 
+      {
+        email: username,
+        OTP: otp,
+      }
+    );
+    return response.data;
+  }
+
   async function register() {
     const registerUsername = inviteInfo?.toEmail
     if (!registerUsername) {
@@ -118,34 +140,30 @@ export default function Page() {
 
     try {
       setRegistering(true);
-      // const preRegistered = await preRegister(registerUsername)
-      // if (!preRegistered) {
-      //   return
-      // }
 
-      await passport.setupEncryption();
-      const res = await passport.register({
+      // verify otp and get idToken
+      const idToken = await verifyOtp(registerUsername, otp)
+
+      // sign up with keyManagementService
+      await keyManagementService.signUp({
         username: registerUsername,
-        userDisplayName: registerUsername,
-      });
-      log(res);
+        idToken: idToken,
+      })
 
-      if (res.result.account_id) {
-        setRegistering(false);
-        setAuthenticating(true)
-        const success = await authenticate(registerUsername)
-        if (!success) {
-          return
-        }
-
-        // update inviteInfo data, includes status and to address
-        const { address } = auth.all()
-        await updateInviteInfo(inviteInfo.id, {
-          status: 'REGISTERED',
-          to: address,
-        })
-        initInviteInfo(inviteInfo.id)
+      setRegistering(false);
+      setAuthenticating(true)
+      const success = await authenticate(registerUsername)
+      if (!success) {
+        return
       }
+
+      // update inviteInfo data, includes status and to address
+      const { address } = auth.all()
+      await updateInviteInfo(inviteInfo.id, {
+        status: 'REGISTERED',
+        to: address,
+      })
+      initInviteInfo(inviteInfo.id)
     } catch (error) {
       console.error("Error registering:", error);
       toast.error((error as any).message)
@@ -164,35 +182,16 @@ export default function Page() {
   }
 
   async function authenticate(authUsername: string, toastError=true) {
-    log('call authenticate', authUsername)
-    // setAuthenticating(true);
     try {
-      await passport.setupEncryption();
-      const [authenticatedHeader, address] = await passport.authenticate({
-        username: authUsername,
-        userDisplayName: authUsername,
-      })!;
+      // verify otp and get idToken
+      const idToken = await verifyOtp(authUsername, otp)
 
-      const encryptedUsername = `${authenticatedHeader["X-Encrypted-User" as keyof typeof authenticatedHeader]}`
-      const aesKey = passport.aesKey;
-      const desUsername = await theWalletPassportService.aesDecrypt(encryptedUsername, aesKey);
+      await keyManagementService.signIn({
+        authUsername,
+        idToken,
+      })
 
-      // save authentication data locally so that don't have to reauthenticate every time refresh the page
-      auth.saveAuthDataByKey('authenticated', true)
-      auth.saveAuthDataByKey('aeskey', aesKey)
-      auth.saveAuthDataByKey('authenticatedHeader', authenticatedHeader)
-      auth.saveAuthDataByKey('address', address)
-      auth.saveAuthDataByKey('desUsername', JSON.parse(desUsername))
-
-      // bind user address and username
-      if (address) {
-        await api.post(`/address/bind`, {
-          address,
-        })
-        return true
-      } else {
-        return false
-      }
+      return true
     } catch (error: any) {
       if (toastError) {
         toast.error(error.message)
@@ -206,8 +205,8 @@ export default function Page() {
     try {
       setSending(true)
   
-      const { address, desUsername } = auth.all()
-      if (address !== inviteInfo?.to || desUsername?.username !== inviteInfo?.toEmail) {
+      const { address, username } = auth.all()
+      if (address !== inviteInfo?.to || username !== inviteInfo?.toEmail) {
         // auth status is wrong, need to authenticate again
         const success = await authenticate(inviteInfo?.toEmail!)
         if (!success) {

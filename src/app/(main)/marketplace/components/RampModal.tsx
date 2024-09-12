@@ -58,14 +58,13 @@ export function RampModal({
   
   const init = async () => {
     const {
-      desUsername,
+      username,
       address,
     } = auth.all()
 
     // set email
-    if (desUsername) {
-      setEmail(desUsername?.username)
-      // setEmail('xlstest@proton.me')
+    if (username) {
+      setEmail(username)
     } else {
       setEmail(undefined)
     }

@@ -78,10 +78,6 @@ export function EditSkinModal({
   }, [themeColors])
 
   const init = async () => {
-    const {
-      authenticatedHeader,
-      desUsername,
-    } = auth.all()
     try {
       const res = await api.get(`/marketplace/product/customskin`)
 

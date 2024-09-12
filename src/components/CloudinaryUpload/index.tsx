@@ -13,8 +13,8 @@ interface CloudinaryUploadProps {
 
 export function CloudinaryUpload({ onSuccess, initialImage }: CloudinaryUploadProps) {
   const [uploadedImage, setUploadedImage] = useState<string | undefined>(initialImage);
-  const { desUsername } = auth.all()
-  const letter = desUsername.username.length > 0 ? desUsername.username[0] : ''
+  const { username } = auth.all()
+  const letter = username.length > 0 ? username[0] : ''
 
   // return (
   //   <CldUploadWidget signatureEndpoint="/api/sign-cloudinary-params">
