@@ -156,7 +156,6 @@ export function ProductCard({
         productId: product.id,
       })
         
-      log('response', response)
       if (response.data.success) {
         toast.success(response.data.message)
         // reload data
@@ -169,8 +168,6 @@ export function ProductCard({
           await deleteCustomSkin()
           window.location.reload()
         }
-      } else {
-        toast.error(response.data.message)
       }
     } catch(err) {
       const errorInfo = handleError(err)

@@ -148,7 +148,7 @@ export default function ChatBotComponent() {
       function: handleQuestion,
       component: (params) => {
         if (transactionInfo.action === 'transfer') {
-          log('haha', open, address, balance, transactionInfo.token, transactionInfo.toEmail, transactionInfo.amount)
+          log(open, address, balance, transactionInfo.token, transactionInfo.toEmail, transactionInfo.amount)
           return (
             <div className="pl-4 pt-2">
               {/* <Link 

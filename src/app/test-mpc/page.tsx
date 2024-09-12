@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { log } from "@/lib/utils";
 import { tssLib } from "@toruslabs/tss-dkls-lib";
-/* eslint-disable @typescript-eslint/no-use-before-define */
 import bowser from "bowser";
 
 import { CHAIN_NAMESPACES, IProvider } from "@web3auth/base";
@@ -45,8 +44,6 @@ const chainConfig = {
 
 let coreKitInstance: Web3AuthMPCCoreKit;
 let evmProvider: EthereumSigningProvider;
-
-log('haha', tssLib.keyType)
 
 if (typeof window !== "undefined") {
   coreKitInstance = new Web3AuthMPCCoreKit({
@@ -430,7 +427,6 @@ function App() {
     logout();
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function uiConsole(...args: any): void {
     const el = document.querySelector("#console>p");
     if (el) {

@@ -305,8 +305,6 @@ export class Web3authWithMPCKeyManagement extends KeyManagementService {
 
     await coreKitInstance.init()
 
-    log('haha', coreKitInstance.status)
-
     // const web3 = new Web3(evmProvider);
     // // Get user's Ethereum public address
     // const accounts = await web3.eth.getAccounts();
