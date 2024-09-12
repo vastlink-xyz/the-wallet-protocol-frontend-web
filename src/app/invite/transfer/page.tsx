@@ -1,6 +1,5 @@
 'use client'
 
-import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 
 import { usePassport } from "@/hooks/usePassport";
@@ -17,6 +16,7 @@ import { useTransaction } from "@/components/VastWalletConnect/useTransaction";
 import { Token, TokenFactory } from "@/services/TokenService";
 import { TokenType } from "@/types/tokens";
 import { TransactionType } from "@/types/transaction";
+import api from "@/lib/api";
 
 export default function Page() {
   const params = useSearchParams();
@@ -49,7 +49,7 @@ export default function Page() {
   }, [inviteInfo])
 
   const initInviteInfo = async (id: string) => {
-    const response = await axios.get(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/invite/invite-info/${id}`)
+    const response = await api.get(`/invite/invite-info/${id}`)
     if (response.data.success) {
       setInviteInfo(response.data.inviteInfo)
       const token = TokenFactory.getInstance().createToken(response.data.inviteInfo.token as TokenType)
@@ -159,7 +159,7 @@ export default function Page() {
   }
 
   const updateInviteInfo = async (inviteInfoId: string, updateData: Partial<InviteInfoData>) => {
-    const res = await axios.post(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/invite/update-invite-info`, {
+    const res = await api.post(`/invite/update-invite-info`, {
       id: inviteInfoId,
       ...updateData,
     })

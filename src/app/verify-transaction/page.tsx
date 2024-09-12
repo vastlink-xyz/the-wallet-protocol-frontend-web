@@ -39,7 +39,7 @@ export default function Page() {
         router.replace('/home')
       }
       log('receipt', receipt)
-    } catch(error: unknown) {
+    } catch(error) {
       setStatus('error')
       const errorInfo = handleError(error)
       toast.error(errorInfo.message)

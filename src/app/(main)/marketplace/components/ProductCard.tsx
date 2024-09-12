@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { auth, cn, log } from "@/lib/utils"
+import { auth, cn, handleError, log } from "@/lib/utils"
 import { format } from 'date-fns';
 import { Badge } from "@/components/ui/badge"
 import { Id, toast } from "react-toastify"
@@ -173,7 +173,8 @@ export function ProductCard({
         toast.error(response.data.message)
       }
     } catch(err) {
-      toast.error((err as Error).message)
+      const errorInfo = handleError(err)
+      toast.error(errorInfo.message)
     } finally {
       toast.dismiss(toastId.current)
       setLoading(false)

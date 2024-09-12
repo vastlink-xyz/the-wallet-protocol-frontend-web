@@ -9,9 +9,9 @@ import {
 import { useEffect, useState } from "react"
 import { useTheme } from "next-themes"
 import { ArrowLeft, Moon, Palette, Sun, SunMoon } from "lucide-react";
-import axios from 'axios'
-import { auth, customSkinStorage, log, ThemeColors, updateTheme } from "@/lib/utils"
+import { auth, customSkinStorage, handleError, log, ThemeColors, updateTheme } from "@/lib/utils"
 import { useUserSkin } from "@/providers/UserSkinProvider";
+import api from "@/lib/api";
 
 const iconThemeMapper = {
   'light': <Sun />,
@@ -46,21 +46,8 @@ export function ThemeSwitch() {
   }, [theme, systemTheme])
   
   const init = async () => {
-    const {
-      authenticatedHeader,
-      desUsername,
-    } = auth.all()
     try {
-      const res = await axios.get(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/marketplace/product/customskin`, {
-        headers: {
-          "Content-Type": "application/json",
-          "X-Encrypted-Key": `${authenticatedHeader["X-Encrypted-Key" as keyof typeof authenticatedHeader]}`,
-          "X-Scope-Id": `${authenticatedHeader["X-Scope-Id" as keyof typeof authenticatedHeader]}`,
-          "X-Encrypted-User": `${authenticatedHeader["X-Encrypted-User" as keyof typeof authenticatedHeader]}`,
-          "X-Encrypted-Session": `${authenticatedHeader["X-Encrypted-Session" as keyof typeof authenticatedHeader]}`,
-          "X-Passport-Username": `${desUsername.username}`,
-        },
-      })
+      const res = await api.get(`/marketplace/product/customskin`)
       if (res.data?.success) {
         const skinData = res.data?.skin
         setCustomSkin(skinData.colorTheme)
@@ -74,8 +61,8 @@ export function ThemeSwitch() {
         }
       }
     } catch(err) {
-      const message = (err as any)?.response?.data
-      log('custom skin', message)
+      const errorInfo = handleError(err)
+      log('custom skin', errorInfo.message)
     }
   }
 

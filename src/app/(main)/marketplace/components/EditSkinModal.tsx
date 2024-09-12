@@ -1,6 +1,5 @@
 'use client'
 
-import axios from 'axios'
 import { FormEvent, useEffect, useState } from "react"
 import { auth, cn, customSkinStorage, log, ThemeColors, themeElements, updateTheme } from "@/lib/utils"
 import { HexColorPicker } from "react-colorful"
@@ -84,16 +83,7 @@ export function EditSkinModal({
       desUsername,
     } = auth.all()
     try {
-      const res = await axios.get(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/marketplace/product/customskin`, {
-        headers: {
-          "Content-Type": "application/json",
-          "X-Encrypted-Key": `${authenticatedHeader["X-Encrypted-Key" as keyof typeof authenticatedHeader]}`,
-          "X-Scope-Id": `${authenticatedHeader["X-Scope-Id" as keyof typeof authenticatedHeader]}`,
-          "X-Encrypted-User": `${authenticatedHeader["X-Encrypted-User" as keyof typeof authenticatedHeader]}`,
-          "X-Encrypted-Session": `${authenticatedHeader["X-Encrypted-Session" as keyof typeof authenticatedHeader]}`,
-          "X-Passport-Username": `${desUsername.username}`,
-        },
-      })
+      const res = await api.get(`/marketplace/product/customskin`)
 
       if (res?.data?.success) {
         const skinData = res?.data?.skin

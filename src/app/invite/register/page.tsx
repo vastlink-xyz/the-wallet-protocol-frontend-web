@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { usePassport } from "@/hooks/usePassport";
-import { auth, log } from "@/lib/utils";
+import { auth, handleError, log } from "@/lib/utils";
 import theWalletPassportService from "@/services/PassportService";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
@@ -224,9 +224,9 @@ export default function Page() {
         toast.success('Transfer email sent successfully')
         initInviteInfo(inviteInfo!.id)
       }
-    } catch(error: any) {
-      log('error is', error)
-      toast.error(error.message)
+    } catch(error) {
+      const errorInfo = handleError(error)
+      toast.error(errorInfo.message)
     } finally {
       setSending(false)
     }

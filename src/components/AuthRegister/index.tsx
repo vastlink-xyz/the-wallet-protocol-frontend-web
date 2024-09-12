@@ -72,7 +72,8 @@ export default function AuthRegister() {
         setRegistering(false);
       }
     } catch(error) {
-      toast.error((error as any).message)
+      const errorInfo = handleError(error)
+      toast.error(errorInfo.message)
     }
   }
 
@@ -132,7 +133,8 @@ export default function AuthRegister() {
         setAuthenticating(false);
       }
     } catch(error) {
-      toast.error((error as any).message)
+      const errorInfo = handleError(error)
+      toast.error(errorInfo.message)
     }
   }
 

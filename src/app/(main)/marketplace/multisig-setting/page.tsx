@@ -1,6 +1,5 @@
 'use client'
 
-import axios from "axios";
 import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from 'uuid'
 
@@ -86,7 +85,7 @@ export default function MultisigSettingPage() {
     const newSigners = [...signers]
     const signer = newSigners[index];
     try {
-      const res = await axios.get(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/address/`, {
+      const res = await api.get(`/address/`, {
         params: { email: value }
       });
       if (res.data.success) {

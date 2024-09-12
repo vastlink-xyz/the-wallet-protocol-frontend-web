@@ -4,10 +4,25 @@ import { Network, Passport } from "@0xpass/passport";
 import { auth, log } from '@/lib/utils';
 import theWalletPassportService from '../PassportService';
 import axios from 'axios';
+import { TokenType } from '@/types/tokens';
+import { TransactionType } from '@/types/transaction';
+import { Address, TransactionReceipt } from 'viem';
 
 type RegisterResponse = Awaited<ReturnType<Passport['register']>>;
 
 export class PassportKeyManagement extends KeyManagementService {
+  test(): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
+  signTransaction({ toAddress, amount, token, note, transactionType, }: { toAddress: Address; amount: string; token: TokenType; note?: string; transactionType: TransactionType; }): Promise<any> {
+    throw new Error('Method not implemented.');
+  }
+  signTransactionWithOTP({ transactionId, otp, }: { transactionId: string; otp: string; }): Promise<any> {
+    throw new Error('Method not implemented.');
+  }
+  waitForTransactionReceipt(hash: `0x${string}`, token: TokenType): Promise<TransactionReceipt> {
+    throw new Error('Method not implemented.');
+  }
   passport: any;
 
   constructor() {
@@ -16,7 +31,7 @@ export class PassportKeyManagement extends KeyManagementService {
     });
   }
 
-  init() {
+  async init() {
     this.passport = {} as any;
   }
 

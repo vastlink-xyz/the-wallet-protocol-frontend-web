@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Address, formatEther, http } from 'viem'
 import { useTranslations } from 'next-intl'
 
-import { auth, formatDecimal, log } from "@/lib/utils"
+import { auth, formatDecimal, handleError, log } from "@/lib/utils"
 
 import { RefreshCcw } from "lucide-react"
 import Link from "next/link";
@@ -42,8 +42,9 @@ export function UserWallet() {
       setMaticBalance(matic);
       setEthBalance(eth);
       setTvwtBalance(tvwt);
-    } catch(error: any) {
-      toast.error(error.message)
+    } catch(error) {
+      const errorInfo = handleError(error)
+      toast.error(errorInfo.message)
     } finally {
       setLoading(false)
     }

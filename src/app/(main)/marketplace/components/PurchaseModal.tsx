@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from "react"
-import { auth, log } from "@/lib/utils"
+import { auth, handleError, log } from "@/lib/utils"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -61,7 +61,7 @@ export function PurchaseModal({
         toast.success(t('purchaseSuccess'))
         setIsPurchasing(false)
       } else {
-        // sign transaction by sdk
+        // sign transaction by keymanagement
         const {
           needOtp,
           transactionId,
@@ -72,6 +72,7 @@ export function PurchaseModal({
           token: transactionPayload.token,
           transactionType: transactionPayload.transactionType,
         })
+
         if (hash) {
           await keyManagementService.waitForTransactionReceipt(hash, transactionPayload.token)
           // sign transaction success, save product to user
@@ -97,7 +98,8 @@ export function PurchaseModal({
         }
       }
     } catch(err) {
-      toast.error((err as any).response.data)
+      const errorInfo = handleError(err)
+      toast.error(errorInfo.message)
       setIsPurchasing(false)
     } finally {
     }
