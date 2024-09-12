@@ -23,7 +23,7 @@ export const useTransaction = () => {
   }: {
     to: Address;
     amount: string;
-    data: string;
+    data?: string;
     token: TokenType;
     transactionType: TransactionType;
   }) => {

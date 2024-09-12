@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import { ArrowLeftRight, CircleCheck, ShoppingCart } from 'lucide-react';
-import { auth, cn, log, makeAuthenticatedApiRequest } from '@/lib/utils';
+import { auth, cn, log } from '@/lib/utils';
 import { Modal } from '@/components/Modal';
 import { useTheme } from 'next-themes';
 import { OnInitiateDepositProps, OnInitiateDepositReplyProps } from '@/types/moonpayTypes';
@@ -15,6 +15,8 @@ import { Token, TokenFactory } from '@/services/TokenService';
 import { TokenType } from '@/types/tokens';
 import { LogoLoading } from '@/components/LogoLoading';
 import { TransactionType } from '@/types/transaction';
+import { useTransaction } from '@/components/VastWalletConnect/useTransaction';
+import { Address } from 'viem';
 
 const MoonPayBuyWidget = dynamic(
   () => import('@moonpay/moonpay-react').then((mod) => mod.MoonPayBuyWidget),
@@ -48,6 +50,7 @@ export function RampModal({
   const [sending, setSending] = useState(false)
   const tokenRef = useRef<Token>()
   const toastId = useRef<Id>();
+  const { signTransaction, waitForTransactionExection } = useTransaction()
 
   useEffect(() => {
     init();
@@ -94,7 +97,7 @@ export function RampModal({
     if (confirmed) {
       const token = TokenFactory.getInstance().createToken(props.cryptoCurrency.code.toUpperCase() as TokenType)
       tokenRef.current = token
-      const hash = await signTransaction(props)
+      const hash = await handleSignTransaction(props)
       return {
         // depositId: hash ? hash : '',
         depositId: '',
@@ -152,35 +155,21 @@ export function RampModal({
   };
   
 
-  async function signTransaction(props: OnInitiateDepositProps) {
+  async function handleSignTransaction(props: OnInitiateDepositProps) {
     try {
+      const token = props.cryptoCurrency.code.toUpperCase() as TokenType
       const amt = props.cryptoCurrencyAmountSmallestDenomination
       log('amt', amt)
 
       setSending(true)
-      // kkktodo
-      const apiPath = `transaction/sign`
-      const response = await makeAuthenticatedApiRequest({
-        path: apiPath,
-        data: {
-          to: props.depositWalletAddress,
-          amount: amt,
-          token: props.cryptoCurrency.code.toUpperCase(),
-          transactionType: TransactionType.SELL,
-        },
+
+      const result = await signTransaction({
+        to: props.depositWalletAddress as Address,
+        amount: amt,
+        token: token,
+        transactionType: TransactionType.SELL,
+        data: '',
       })
-
-      const data = response.data
-      log('data', data)
-
-      const succeeded = typeof data.hash === 'string' && data.hash.startsWith('0x');
-      if (succeeded) {
-        notifyTransactionSubmitted(data.hash)
-        return data.hash
-      } else {
-        // need to be verified
-        toast.error(data.message)
-      }
     } catch (error) {
       const res = (error as any).response
       if (res && res.data) {
@@ -189,33 +178,6 @@ export function RampModal({
     } finally {
       setSending(false);
     }
-  }
-
-  const openTxPage = (txHash: string) => {
-    const url = `${tokenRef.current?.openUrl}/${txHash}`
-    window.open(url, '_blank')
-  }
-
-  const notifyTransactionSubmitted = (txHash: string) => {
-    toast(<div className="w-full">
-          <div className="flex items-center">
-            <CircleCheck color="#2edc82" size={16} className="mr-2" />
-            <p className="flex items-center">
-              Transaction submitted, 
-              <Button
-                className="text-brand-foreground"
-                variant={'link'}
-                size={'sm'}
-                onClick={() => {
-                  openTxPage(txHash)
-                }}
-              >
-                View Detail
-              </Button>
-            </p>
-          </div>
-      </div>
-    )
   }
 
   return (

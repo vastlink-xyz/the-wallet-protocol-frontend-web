@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-import { auth, log, makeAuthenticatedApiRequest } from "@/lib/utils";
+import { auth, log } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import { CirclePlus, Trash2 } from "lucide-react";
 import {
@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import api from "@/lib/api";
 
 interface Signer {
   address: string;
@@ -67,12 +68,9 @@ export default function MultisigSettingPage() {
 
   const handleSave = async () => {
     try {
-      const res = await makeAuthenticatedApiRequest({
-        path: 'multisig/create',
-        data: {
+      const res = await api.post('/multisig/create', {
           signers: signers.map(s => ({ email: s.email, address: s.address })),
           threshold,
-        },
       })
       log('res', res.data)
     } catch(err) {

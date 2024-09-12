@@ -1,7 +1,6 @@
 "use client";
 
-import axios from "axios";
-import { auth, authenticatedHeaderForRequest, formatDecimal, log } from "@/lib/utils";
+import { auth, formatDecimal, log } from "@/lib/utils";
 import { createContext, Dispatch, lazy, SetStateAction, Suspense, useEffect, useState } from "react";
 import { Params, Flow, Settings, getDefaultSettings, Styles, getDefaultStyles } from "react-chatbotify"
 import { useRouter } from "next/navigation";
@@ -12,6 +11,7 @@ import { TokenType } from "@/types/tokens";
 import { TokenFactory } from "@/services/TokenService";
 import { ForcedLightThemeComponent } from "@/providers/ThemeProvider";
 import '@/styles/react-chatbotify.css'
+import api from "@/lib/api";
 
 const ChatBot = lazy(() => import("react-chatbotify"));
 
@@ -102,10 +102,8 @@ export default function ChatBotComponent() {
 
   const handleQuestion = async (params: Params) => {
     log('handleQuestion params', params)
-    const response = await axios.post(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/ai/chat`, {
+    const response = await api.post('/ai/chat', {
       question: params.userInput,
-    }, {
-      headers: authenticatedHeaderForRequest(),
     });
 
     const {
@@ -114,17 +112,6 @@ export default function ChatBotComponent() {
       amount,
       to,
     } = response.data
-
-    // let toAddress = ''
-    // const { data: { success, address } } = await axios.get(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/address/`, {
-    //   params: { email: to }
-    // })
-    // if (success) {
-    //   toAddress = address
-    // }
-
-    // const link = `/home/transfer-confirmation?token=${coin}&amount=${parseEther(amount)}&toEmail=${to}&toAddress=${toAddress}`
-    // setLink(link)
 
     if (!action) {
       setTransactionInfo({

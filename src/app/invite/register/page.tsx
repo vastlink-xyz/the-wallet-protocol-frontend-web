@@ -1,10 +1,9 @@
 'use client'
 
-import axios from "axios";
 import { useEffect, useState } from "react";
 
 import { usePassport } from "@/hooks/usePassport";
-import { auth, authenticatedHeaderForRequest, log } from "@/lib/utils";
+import { auth, log } from "@/lib/utils";
 import theWalletPassportService from "@/services/PassportService";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
@@ -13,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { LogoLoading } from "@/components/LogoLoading";
 import { formatEther } from "viem";
 import { InviteInfoData, InviteStatus } from "../util";
+import api from "@/lib/api";
 
 export default function Page() {
   const params = useSearchParams();
@@ -52,13 +52,13 @@ export default function Page() {
       const info = await initInviteInfo(inviteInfoId)
   
       // check if the user has registered
-      const res = await axios.get(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/address/check`, {
+      const res = await api.get(`/address/check`, {
         params: { email: info.toEmail }
       });
   
       if (res.data.exists && info.status === 'PENDING' && !info.to) {
         // get user address
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/address/`, {
+        const response = await api.get(`/address/`, {
           params: { email: info.toEmail }
         })
 
@@ -92,7 +92,7 @@ export default function Page() {
   }
 
   const initInviteInfo = async (id: string) => {
-    const response = await axios.get(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/invite/invite-info/${id}`)
+    const response = await api.get(`/invite/invite-info/${id}`)
     if (response.data.success) {
       const info = response.data.inviteInfo
       setInviteInfo(info)
@@ -156,7 +156,7 @@ export default function Page() {
   }
 
   const updateInviteInfo = async (inviteInfoId: string, updateData: Partial<InviteInfoData>) => {
-    const res = await axios.post(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/invite/update-invite-info`, {
+    const res = await api.post(`/invite/update-invite-info`, {
       id: inviteInfoId,
       ...updateData,
     })
@@ -186,10 +186,8 @@ export default function Page() {
 
       // bind user address and username
       if (address) {
-        await axios.post(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/address/bind`, {
+        await api.post(`/address/bind`, {
           address,
-        }, {
-          headers: authenticatedHeaderForRequest(),
         })
         return true
       } else {
@@ -218,10 +216,8 @@ export default function Page() {
       }
 
       // notify the inviter to finish the transaction
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/invite/send-inviter-transfer-email`, {
+      const response = await api.post(`/invite/send-inviter-transfer-email`, {
         inviteInfoId: inviteInfo?.id,
-      }, {
-        headers: authenticatedHeaderForRequest(),
       })
   
       if (response.data.success) {

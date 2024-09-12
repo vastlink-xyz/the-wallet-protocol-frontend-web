@@ -4,7 +4,7 @@ import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 
 import { usePassport } from "@/hooks/usePassport";
-import { auth, authenticatedHeaderForRequest, log, makeAuthenticatedApiRequest } from "@/lib/utils";
+import { auth, log } from "@/lib/utils";
 import theWalletPassportService from "@/services/PassportService";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
