@@ -1,6 +1,5 @@
 'use client'
 
-import axios from 'axios'
 import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
@@ -11,9 +10,9 @@ import { Id, toast } from "react-toastify"
 import { PairContextType, useWalletConnectPair } from "@/providers/WalletConnectPairProvider"
 import { useTheme } from "next-themes"
 import { CategoryBadge } from "@/components/CategoryBadge"
-import { makeAuthenticatedApiRequest } from "@/lib/utils"
 import { LogoLoading } from "@/components/LogoLoading";
 import { useRouter } from 'next/navigation';
+import api from '@/lib/api';
 
 export function ProductCard({
   productItem,
@@ -153,11 +152,8 @@ export function ProductCard({
   const onDelete = async (product: any) => {
     try {
       setLoading(true)
-      const response = await makeAuthenticatedApiRequest({
-        path: 'user/deleteProducts',
-        data: {
-          productId: product.id,
-        }
+      const response = await api.post('/user/deleteProducts', {
+        productId: product.id,
       })
         
       log('response', response)
@@ -185,21 +181,8 @@ export function ProductCard({
   }
 
   const deleteCustomSkin = async () => {
-    const {
-      authenticatedHeader,
-      desUsername,
-    } = auth.all()
     try {
-      const res = await axios.post(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/marketplace/product/customskin/delete`, {}, {
-        headers: {
-          "Content-Type": "application/json",
-          "X-Encrypted-Key": `${authenticatedHeader["X-Encrypted-Key" as keyof typeof authenticatedHeader]}`,
-          "X-Scope-Id": `${authenticatedHeader["X-Scope-Id" as keyof typeof authenticatedHeader]}`,
-          "X-Encrypted-User": `${authenticatedHeader["X-Encrypted-User" as keyof typeof authenticatedHeader]}`,
-          "X-Encrypted-Session": `${authenticatedHeader["X-Encrypted-Session" as keyof typeof authenticatedHeader]}`,
-          "X-Passport-Username": `${desUsername.username}`,
-        },
-      })
+      const res = await api.post('/marketplace/product/customskin/delete')
     } catch(err) {
       const message = (err as any)?.response?.data
       if (message) {

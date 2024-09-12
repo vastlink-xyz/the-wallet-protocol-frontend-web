@@ -71,7 +71,8 @@ export class Web3authWithMPCKeyManagement extends KeyManagementService {
       const walletClient = createWalletClient({
         transport: custom(evmProvider),
       })
-      const address = walletClient.account
+      const addresses = await walletClient.getAddresses()
+      const address = addresses[0]
 
       // save auth storage
       auth.saveAuthDataByKey('idToken', idToken)
@@ -129,7 +130,7 @@ export class Web3authWithMPCKeyManagement extends KeyManagementService {
     toAddress: Address;
     amount: string;
     token: TokenType;
-    note: string;
+    note?: string;
     transactionType: TransactionType;
   }) {
     const { data: {
@@ -139,6 +140,7 @@ export class Web3authWithMPCKeyManagement extends KeyManagementService {
       transactionPayload,
       userEmail,
       toEmail,
+      transactionId,
     } } = await api.post('/transaction/sign', {
       from: auth.all().address,
       to: toAddress,
@@ -155,6 +157,7 @@ export class Web3authWithMPCKeyManagement extends KeyManagementService {
         success: false,
         needOtp: true,
         message,
+        transactionId,
       }
     }
 
@@ -284,6 +287,14 @@ export class Web3authWithMPCKeyManagement extends KeyManagementService {
       walletClient,
       publicClient,
     }
+  }
+
+  async waitForTransactionReceipt(hash: `0x${string}`, token: TokenType) {
+    const { publicClient } = this.createClientByToken(token)
+    const receipt = await publicClient.waitForTransactionReceipt({
+      hash,
+    })
+    return receipt
   }
 
   async test() {

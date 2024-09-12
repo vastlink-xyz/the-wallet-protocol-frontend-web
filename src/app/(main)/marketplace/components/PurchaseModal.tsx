@@ -1,6 +1,5 @@
 'use client'
 
-import axios from 'axios'
 import { useEffect, useRef, useState } from "react"
 import { auth, log } from "@/lib/utils"
 
@@ -17,12 +16,13 @@ import {
 import { toast } from 'react-toastify'
 import { CircleCheck } from 'lucide-react'
 import { Token, TokenFactory } from '@/services/TokenService'
-import { makeAuthenticatedApiRequest } from '@/lib/utils'
 import { usePassportClientVerification } from '@/hooks/usePassportClientVerification'
 import { LogoLoading } from '@/components/LogoLoading'
 import { useTransaction } from '@/components/VastWalletConnect/useTransaction'
 import { useTranslations } from 'next-intl'
 import { parseEther } from 'viem'
+import api from '@/lib/api'
+import keyManagementService from '@/services/KeyManagementService'
 
 export function PurchaseModal({
   isOpen,
@@ -53,39 +53,50 @@ export function PurchaseModal({
     }
     try {
       setIsPurchasing(true)
-      const client = await verifyPassportClient()
-      if (!client) {
-        return
-      }
 
-      const response = await makeAuthenticatedApiRequest({
-        path: 'user/purchase',
-        data: {
-          productId: product.id,
-        }
+      const { data: { success, ...transactionPayload } } = await api.post('/user/purchase', {
+        productId: product.id,
       })
-      log('response', response)
 
-      const result = response.data
-      if (result.success) {
+      if (success) {
         onClose(true)
         toast.success(t('purchaseSuccess'))
         setIsPurchasing(false)
-      } else if (result.needOtp) {
-        toast.warning(t('dailyLimitExceededOtpRequired'))
-        const hash = await waitForTransactionExection(result.transactionId)
-        const { data } = await makeAuthenticatedApiRequest({
-          path: 'user/purchase/saveProducts',
-          data: {
-            productId: product.id,
-          }
-        })
-        setIsPurchasing(false)
-        onClose(true)
-        toast.success(t('purchaseSuccess'))
       } else {
-        toast.error(response.data.message)
-        setIsPurchasing(false)
+        // sign transaction by sdk
+        const {
+          needOtp,
+          transactionId,
+          hash,
+        } = await keyManagementService.signTransaction({
+          toAddress: transactionPayload.to,
+          amount: transactionPayload.amount,
+          token: transactionPayload.token,
+          transactionType: transactionPayload.transactionType,
+        })
+        if (hash) {
+          await keyManagementService.waitForTransactionReceipt(hash, transactionPayload.token)
+          // sign transaction success, save product to user
+          await api.post('/user/purchase/saveProducts', {
+            productId: product.id,
+          })
+          setIsPurchasing(false)
+          onClose(true)
+          toast.success(t('purchaseSuccess'))
+        } else if (needOtp) {
+          // daily limit exceeded, need otp
+          toast.warning(t('dailyLimitExceededOtpRequired'))
+
+          // Wait for the user to complete the transaction, polling the current transaction status
+          const hash = await waitForTransactionExection(transactionId)
+          await keyManagementService.waitForTransactionReceipt(hash, transactionPayload.token)
+          await api.post('/user/purchase/saveProducts', {
+            productId: product.id,
+          })
+          setIsPurchasing(false)
+          onClose(true)
+          toast.success(t('purchaseSuccess'))
+        }
       }
     } catch(err) {
       toast.error((err as any).response.data)

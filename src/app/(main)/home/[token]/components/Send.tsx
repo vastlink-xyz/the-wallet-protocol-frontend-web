@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, FormEvent, useRef, useMemo } from "react"
-import axios from "axios";
 import { Address, parseEther, isAddress } from 'viem'
 
 import { auth, cn, emailRegex, formatDecimal, handleError, log } from "@/lib/utils"
@@ -21,13 +20,13 @@ import { Input } from "@/components/ui/input";
 import { toast } from "react-toastify";
 import { TokenType } from "@/types/tokens";
 import { Token, TokenFactory } from "@/services/TokenService";
-import { makeAuthenticatedApiRequest } from "@/lib/utils";
 import { usePassportClientVerification } from "@/hooks/usePassportClientVerification";
 import { LogoLoading } from "@/components/LogoLoading";
 import { useTranslations } from "next-intl";
 import { Textarea } from "@/components/ui/textarea";
 import { TransactionType } from "@/types/transaction";
 import keyManagementService from "@/services/KeyManagementService";
+import api from "@/lib/api"
 
 export function Send({
   balance,
@@ -124,7 +123,7 @@ export function Send({
       setIsValidating(true);
       setError('');
       try {
-        const res = await axios.get(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/address/`, {
+        const res = await api.get(`/address/`, {
           params: { email }
         });
         if (res.data.success) {
@@ -255,15 +254,12 @@ export function Send({
       } else if (emailRegex.test(to) && error === t('unregisteredEmailNotice')) {
         // send register email to unregistered user
         toEmail = to;
-        const response = await makeAuthenticatedApiRequest({
-          path: 'invite/invite-register',
-          data: {
-            toEmail,
-            from: address,
-            amount: parseEther(amount).toString(),
-            token: tokenType,
-            note,
-          },
+        const response = await api.post('/invite/invite-register', {
+          toEmail,
+          from: address,
+          amount: parseEther(amount).toString(),
+          token: tokenType,
+          note,
         });
         log('res', response)
         toast.success(t('emailSentToUnregistered'));
@@ -280,7 +276,8 @@ export function Send({
       initDefaults()
       setOpen(false);
     } catch (error) {
-      console.error('Send transaction error:', error);
+      const errorInfo = handleError(error)
+      log('errorInfo', errorInfo)
       toast.error(t('sendError'));
     } finally {
       setSending(false);

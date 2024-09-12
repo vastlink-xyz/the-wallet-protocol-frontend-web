@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { KeyManagementServiceType } from '@/types/keymanagement';
-import { Address } from 'viem';
+import { Address, TransactionReceipt } from 'viem';
 import { TokenType } from '@/types/tokens';
 import { TransactionType } from '@/types/transaction';
 
@@ -36,7 +36,7 @@ abstract class KeyManagementService {
     toAddress: Address;
     amount: string;
     token: TokenType;
-    note: string;
+    note?: string;
     transactionType: TransactionType;
   }): Promise<any>;
 
@@ -47,6 +47,8 @@ abstract class KeyManagementService {
     transactionId: string;
     otp: string;
   }): Promise<any>;
+
+  abstract waitForTransactionReceipt(hash: `0x${string}`, token: TokenType): Promise<TransactionReceipt>;
 }
 
 export {

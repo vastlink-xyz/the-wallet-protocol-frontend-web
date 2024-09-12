@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { auth, log } from "@/lib/utils";
+import { auth, handleError, log } from "@/lib/utils";
 import { Address, parseEther } from "viem";
-import axios from 'axios';
 import { toast } from 'react-toastify';
 import { CircleCheck } from 'lucide-react';
 import { Button } from '../ui/button';
@@ -10,6 +9,8 @@ import { makeAuthenticatedApiRequest } from '@/lib/utils';
 import { usePassportClientVerification } from '@/hooks/usePassportClientVerification';
 import { Token, TokenFactory } from '@/services/TokenService';
 import { TransactionType } from '@/types/transaction';
+import api from '@/lib/api';
+import keyManagementService from '@/services/KeyManagementService';
 
 export const useTransaction = () => {
   const [sending, setSending] = useState(false);
@@ -36,36 +37,31 @@ export const useTransaction = () => {
       log('amt', amt);
 
       setSending(true);
-      const client = await verifyPassportClient()
-      if (!client) {
-        return
-      }
 
-      const apiPath = `transaction/sign`;
-      const response = await makeAuthenticatedApiRequest({
-        path: apiPath,
-        data: {
-          to,
-          amount: amt,
-          data,
-          token,
-          transactionType,
-        }
+      const result = await keyManagementService.signTransaction({
+        toAddress: to,
+        amount: amt,
+        token: token,
+        transactionType: transactionType,
       })
 
-      log('data', response.data);
-      const result = response.data
+      const {
+        needOtp,
+        hash,
+        message,
+      } = result
 
-      const succeeded = typeof result.hash === 'string' && result.hash.startsWith('0x');
-      if (succeeded) {
-        notifyTransactionSubmitted(result.hash);
-      } else {
-        toast.error(result.message);
+      if (hash) {
+        notifyTransactionSubmitted(hash)
+      } else if (needOtp) {
+        // need to be verified
+        toast.error(message)
       }
+
       return result
-    } catch (error: any) {
-      console.error(error);
-      toast.error(error?.response?.data)
+    } catch (error: unknown) {
+      const errorInfo = handleError(error)
+      toast.error(errorInfo.message)
     } finally {
       setSending(false);
     }
@@ -73,13 +69,10 @@ export const useTransaction = () => {
 
   const waitForTransactionExection = async (transactionId: string) => {
     try {
-      const apiPath = `transaction/wait-for-execution`;
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/${apiPath}`,
-        {
-          transactionId,
-        },
-      );
+      const apiPath = `/transaction/wait-for-execution`;
+      const response = await api.post(apiPath, {
+        transactionId,
+      });
 
       log('data', response.data);
       const result = response.data

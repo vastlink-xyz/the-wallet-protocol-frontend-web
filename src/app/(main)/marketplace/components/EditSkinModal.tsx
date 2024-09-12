@@ -2,7 +2,7 @@
 
 import axios from 'axios'
 import { FormEvent, useEffect, useState } from "react"
-import { auth, cn, customSkinStorage, generateForegroundColor, hexToHsl, log, makeAuthenticatedApiRequest, ThemeColors, themeElements, updateTheme } from "@/lib/utils"
+import { auth, cn, customSkinStorage, log, ThemeColors, themeElements, updateTheme } from "@/lib/utils"
 import { HexColorPicker } from "react-colorful"
 
 import { Button } from "@/components/ui/button"
@@ -14,6 +14,7 @@ import { Divide, Upload, X } from 'lucide-react'
 import { toast } from 'react-toastify'
 import { useUserSkin } from '@/providers/UserSkinProvider'
 import { useTheme } from 'next-themes'
+import api from '@/lib/api'
 
 const defaultLightThemeColors = {
   'primary': '#20252d',
@@ -131,8 +132,7 @@ export function EditSkinModal({
     }
     setLoading(true)
     try {
-      await makeAuthenticatedApiRequest({
-        path: 'marketplace/product/customskin/save',
+      await api.post('/marketplace/product/customskin/save', {
         data: saveData,
       })
       toast.success('Save successfully.')

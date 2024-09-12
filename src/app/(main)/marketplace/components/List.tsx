@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useRef, useState } from "react"
-import axios from 'axios'
 import { auth, cn, log } from "@/lib/utils"
 import { PurchaseModal } from "./PurchaseModal"
 import { TokenFactory } from "@/services/TokenService"
@@ -10,6 +9,7 @@ import { ProductCard } from "./ProductCard"
 import { SkeletonCards } from "./SkeletonCards"
 import { EditSkinModal } from "./EditSkinModal"
 import { RampModal } from "./RampModal"
+import api from "@/lib/api"
 
 export function List({
   tab,
@@ -74,20 +74,7 @@ export function List({
   }
 
   const getPurchasedProducts = async () => {
-    const {
-      authenticatedHeader,
-      desUsername,
-    } = auth.all()
-    const res = await axios.get(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/user/purchasedProducts`, {
-      headers: {
-        "Content-Type": "application/json",
-        "X-Encrypted-Key": `${authenticatedHeader["X-Encrypted-Key" as keyof typeof authenticatedHeader]}`,
-        "X-Scope-Id": `${authenticatedHeader["X-Scope-Id" as keyof typeof authenticatedHeader]}`,
-        "X-Encrypted-User": `${authenticatedHeader["X-Encrypted-User" as keyof typeof authenticatedHeader]}`,
-        "X-Encrypted-Session": `${authenticatedHeader["X-Encrypted-Session" as keyof typeof authenticatedHeader]}`,
-        "X-Passport-Username": `${desUsername.username}`,
-      },
-    })
+    const res = await api.get('/user/purchasedProducts')
     return res.data
   }
 
@@ -99,7 +86,7 @@ export function List({
   }
 
   const getProducts = async () => {
-    const res = await axios.get(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/marketplace/products`)
+    const res = await api.get('/marketplace/products')
     return res.data
   }
 
