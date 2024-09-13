@@ -77,6 +77,7 @@ export class Web3authWithMPCKeyManagement extends KeyManagementService {
       // save auth storage
       auth.saveAuthDataByKey('idToken', idToken)
       auth.saveAuthDataByKey('address', address)
+      auth.saveAuthDataByKey('username', username)
 
       // bind address
       await api.post(`/address/bind`, {
@@ -255,15 +256,21 @@ export class Web3authWithMPCKeyManagement extends KeyManagementService {
       data,
     } as const;
 
+    // Estimate gas (keep consistent with frontend)
     const estimatedGas = await publicClient.estimateGas(transactionRequest)
     const gasPrice = await publicClient.getGasPrice()
     const baseFee = await publicClient.getBlock().then(block => block.baseFeePerGas || BigInt(0))
-    const maxPriorityFeePerGas = gasPrice - baseFee + BigInt(25000000000)
+    
+    // Calculate maxPriorityFeePerGas (tip)
+    const maxPriorityFeePerGas = gasPrice > baseFee ? gasPrice - baseFee : BigInt(1000000000) // 1 gwei minimum
+
+    // Ensure maxFeePerGas is always greater than maxPriorityFeePerGas
+    const maxFeePerGas = baseFee + maxPriorityFeePerGas * BigInt(2)
 
     const transactionRequestWithGas = {
       ...transactionRequest,
       gas: estimatedGas,
-      maxFeePerGas: gasPrice * BigInt(2),
+      maxFeePerGas: maxFeePerGas,
       maxPriorityFeePerGas: maxPriorityFeePerGas,
     }
 

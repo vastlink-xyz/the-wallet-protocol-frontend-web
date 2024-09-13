@@ -150,12 +150,12 @@ export default function Page() {
         idToken: idToken,
       })
 
-      setRegistering(false);
-      setAuthenticating(true)
-      const success = await authenticate(registerUsername)
-      if (!success) {
-        return
-      }
+      // setRegistering(false);
+      // setAuthenticating(true)
+      // const success = await authenticate(registerUsername)
+      // if (!success) {
+      //   return
+      // }
 
       // update inviteInfo data, includes status and to address
       const { address } = auth.all()
@@ -184,7 +184,8 @@ export default function Page() {
   async function authenticate(authUsername: string, toastError=true) {
     try {
       // verify otp and get idToken
-      const idToken = await verifyOtp(authUsername, otp)
+      // const idToken = await verifyOtp(authUsername, otp)
+      const { idToken } = auth.all()
 
       await keyManagementService.signIn({
         authUsername,
@@ -201,18 +202,17 @@ export default function Page() {
   }
 
   const handleSendEmail = async () => {
-    
     try {
       setSending(true)
   
-      const { address, username } = auth.all()
-      if (address !== inviteInfo?.to || username !== inviteInfo?.toEmail) {
-        // auth status is wrong, need to authenticate again
-        const success = await authenticate(inviteInfo?.toEmail!)
-        if (!success) {
-          return
-        }
-      }
+      // const { address, username } = auth.all()
+      // if (address !== inviteInfo?.to || username !== inviteInfo?.toEmail) {
+      //   // auth status is wrong, need to authenticate again
+      //   const success = await authenticate(inviteInfo?.toEmail!)
+      //   if (!success) {
+      //     return
+      //   }
+      // }
 
       // notify the inviter to finish the transaction
       const response = await api.post(`/invite/send-inviter-transfer-email`, {

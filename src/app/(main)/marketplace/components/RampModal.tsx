@@ -16,7 +16,7 @@ import { TokenType } from '@/types/tokens';
 import { LogoLoading } from '@/components/LogoLoading';
 import { TransactionType } from '@/types/transaction';
 import { useTransaction } from '@/components/VastWalletConnect/useTransaction';
-import { Address } from 'viem';
+import { Address, formatEther } from 'viem';
 
 const MoonPayBuyWidget = dynamic(
   () => import('@moonpay/moonpay-react').then((mod) => mod.MoonPayBuyWidget),
@@ -157,7 +157,7 @@ export function RampModal({
   async function handleSignTransaction(props: OnInitiateDepositProps) {
     try {
       const token = props.cryptoCurrency.code.toUpperCase() as TokenType
-      const amt = props.cryptoCurrencyAmountSmallestDenomination
+      const amt = formatEther(BigInt(props.cryptoCurrencyAmountSmallestDenomination))
       log('amt', amt)
 
       setSending(true)

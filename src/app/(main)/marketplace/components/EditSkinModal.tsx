@@ -40,7 +40,7 @@ export function EditSkinModal({
   onClose: (isSave: boolean) => void;
   balance: string;
 }) {
-  const {theme} = useTheme()
+  const {theme, systemTheme} = useTheme()
 
   const [name, setName] = useState('My Wallet')
   const [logo, setLogo] = useState('')
@@ -92,10 +92,12 @@ export function EditSkinModal({
           ...skinData.colorTheme
         })
       } else {
+        log('else')
         // no custom skin
         setupDefaultThemeColors()
       }
     } catch(err) {
+      log('catch')
       // no custom skin
       setupDefaultThemeColors()
     }
@@ -105,6 +107,10 @@ export function EditSkinModal({
     if (theme === 'light') {
       setThemeColors(defaultLightThemeColors)
     } else if (theme === 'dark') {
+      setThemeColors(defaultDarkThemeColors)
+    } else if (theme === 'system' && systemTheme === 'light') {
+      setThemeColors(defaultLightThemeColors)
+    } else if (theme === 'system' && systemTheme === 'dark') {
       setThemeColors(defaultDarkThemeColors)
     }
   }
@@ -119,7 +125,7 @@ export function EditSkinModal({
     setLoading(true)
     try {
       await api.post('/marketplace/product/customskin/save', {
-        data: saveData,
+        ...saveData,
       })
       toast.success('Save successfully.')
       updateTheme(colorTheme)
