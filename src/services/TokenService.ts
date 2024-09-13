@@ -1,6 +1,5 @@
 import axios from "axios";
 
-import { createPassportClient } from "@0xpass/passport-viem";
 import { Address, createPublicClient, formatEther, http, PublicClient } from "viem";
 import { mainnet, polygonAmoy, sepolia } from "viem/chains";
 import { ERC20_TVWT_ABI } from "@/abis/TheVastWalletToken";

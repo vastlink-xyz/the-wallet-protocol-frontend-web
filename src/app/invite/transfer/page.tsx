@@ -64,62 +64,8 @@ export default function Page() {
     }
   }
 
-  // kkktodo
-  async function authenticate(authUsername: string) {
-    log('call authenticate', authUsername)
-    // setAuthenticating(true);
-    try {
-      await passport.setupEncryption();
-      const [authenticatedHeader, address] = await passport.authenticate({
-        username: authUsername,
-        userDisplayName: authUsername,
-      })!;
-
-      const encryptedUsername = `${authenticatedHeader["X-Encrypted-User" as keyof typeof authenticatedHeader]}`
-      const aesKey = passport.aesKey;
-      const desUsername = await theWalletPassportService.aesDecrypt(encryptedUsername, aesKey);
-
-      // kkktodo
-      // save authentication data locally so that don't have to reauthenticate every time refresh the page
-      auth.saveAuthDataByKey('authenticated', true)
-      auth.saveAuthDataByKey('aeskey', aesKey)
-      auth.saveAuthDataByKey('authenticatedHeader', authenticatedHeader)
-      auth.saveAuthDataByKey('address', address)
-      auth.saveAuthDataByKey('desUsername', JSON.parse(desUsername))
-
-      return true
-    } catch (error: any) {
-      toast.error(error.message)
-      return false
-    } finally {
-      // setAuthenticating(false);
-    }
-  }
-
-  const checkLoginedUser = () => {
-    const { username, address } = auth.all()
-    if (username) {
-      return username === inviteInfo?.fromEmail
-    } else if (!username || !address) {
-      return false
-    }
-  }
-
   const handleConfirmTransfer = async () => {
     try {
-      // // make sure that the user has been signed in correctly
-      // let signinSuccessed = false
-      // if (checkLoginedUser()) {
-      //   signinSuccessed = true
-      // } else {
-      //   signinSuccessed = await authenticate(inviteInfo!.fromEmail)
-      // }
-
-      // if (!signinSuccessed) {
-      //   toast.error('Signin error')
-      //   return
-      // }
-
       handleSignTransaction()
     } catch(error: any) {
 

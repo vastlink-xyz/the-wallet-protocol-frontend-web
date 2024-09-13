@@ -80,20 +80,6 @@ export default function Page() {
             to: response.data.address,
           })
           initInviteInfo(inviteInfoId)
-        } else {
-          // kkktodo
-          // // the user doesn't bind the address, but they have a keymanagement account
-          // const authenticated = await authenticate(info.toEmail, false)
-          // if (authenticated) {
-          //   // update current inviteInfo
-          //   await updateInviteInfo(info.id, {
-          //     status: 'REGISTERED',
-          //     to: auth.all().address,
-          //   })
-          //   initInviteInfo(inviteInfoId)
-          // } else {
-          //   // user doesn't have a passport account
-          // }
         }
       }
     } catch(error) {
