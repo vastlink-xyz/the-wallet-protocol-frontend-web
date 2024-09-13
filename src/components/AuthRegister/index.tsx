@@ -135,6 +135,8 @@ export default function AuthRegister() {
     } catch(error) {
       const errorInfo = handleError(error)
       toast.error(errorInfo.message)
+    } finally {
+      setAuthenticating(false);
     }
   }
 
