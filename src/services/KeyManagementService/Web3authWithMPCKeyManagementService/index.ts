@@ -1,5 +1,5 @@
 import { KeyManagementServiceType } from '@/types/keymanagement';
-import { KeyManagementService } from './KeyManagement';
+import { KeyManagementService } from '../KeyManagement';
 import { auth, chainConfigByToken, log, viemChainByToken } from '@/lib/utils';
 import { COREKIT_STATUS, JWTLoginParams, makeEthereumSigner, parseToken, WEB3AUTH_NETWORK, Web3AuthMPCCoreKit } from '@web3auth/mpc-core-kit';
 import tssLib from '@toruslabs/tss-dkls-lib';

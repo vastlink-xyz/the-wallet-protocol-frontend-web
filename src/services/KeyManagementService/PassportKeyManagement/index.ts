@@ -1,8 +1,12 @@
+/**
+ * @deprecated All files in this directory are deprecated and should not be used.
+ */
+
 import { KeyManagementServiceType } from '@/types/keymanagement';
-import { KeyManagementService, KeyManagementServiceConfig } from './KeyManagement';
+import { KeyManagementService, KeyManagementServiceConfig } from '../KeyManagement';
 import { Network, Passport } from "@0xpass/passport";
 import { auth, log } from '@/lib/utils';
-import theWalletPassportService from '../PassportService';
+import theWalletPassportService from './PassportService';
 import axios from 'axios';
 import { TokenType } from '@/types/tokens';
 import { TransactionType } from '@/types/transaction';
