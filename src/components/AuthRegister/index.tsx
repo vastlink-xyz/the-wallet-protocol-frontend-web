@@ -4,8 +4,6 @@ import { FormEvent, useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 
-import { usePassport } from "@/hooks/usePassport";
-import theWalletPassportService from "@/services/PassportService";
 import { log, auth, cn, handleError } from "@/lib/utils";
 
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
