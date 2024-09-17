@@ -44,83 +44,34 @@ export class Web3authWithMPCKeyManagement extends KeyManagementService {
   }
 
   async signUp({username, idToken}: {username: string, idToken: string}) {
-    const coreKitInstance = this.coreKitInstance;
     try {
-      if (!coreKitInstance) {
-        throw new Error("initiated to login");
-      }
-      const parsedToken = parseToken(idToken);
-
-      const idTokenLoginParams = {
-        verifier: process.env.NEXT_PUBLIC_WEB3AUTH_VERIFIER!,
-        verifierId: parsedToken.email,
+      const {data} = await api.post('/auth/signup', {
+        username,
         idToken,
-      } as JWTLoginParams;
-      log('idtokenloginparams', idTokenLoginParams)
-
-      await coreKitInstance.loginWithJWT(idTokenLoginParams);
-      if (coreKitInstance.status === COREKIT_STATUS.LOGGED_IN) {
-        await coreKitInstance.commitChanges(); // Needed for new accounts
-      }
-
-      // Setup provider for EVM Chain
-      const evmProvider = new EthereumSigningProvider({ config: { chainConfig } });
-      evmProvider.setupProvider(makeEthereumSigner(coreKitInstance));
-
-      // generate address
-      const walletClient = createWalletClient({
-        transport: custom(evmProvider),
       })
-      const addresses = await walletClient.getAddresses()
-      const address = addresses[0]
+      const { address } = data
 
       // save auth storage
       auth.saveAuthDataByKey('idToken', idToken)
       auth.saveAuthDataByKey('address', address)
       auth.saveAuthDataByKey('username', username)
-
-      // bind address
-      await api.post(`/address/bind`, {
-        address,
-      })
     } catch (err) {
       throw err;
     }
   }
   
   async signIn({authUsername, idToken}: {authUsername: string, idToken: string}) {
-    const coreKitInstance = this.coreKitInstance;
     try {
-      if (!coreKitInstance) {
-        throw new Error("initiated to login");
-      }
-      const parsedToken = parseToken(idToken);
-
-      const idTokenLoginParams = {
-        verifier: process.env.NEXT_PUBLIC_WEB3AUTH_VERIFIER!,
-        verifierId: parsedToken.email,
+      const {data} = await api.post('/keymanagement/signin', {
+        username: authUsername,
         idToken,
-      } as JWTLoginParams;
-      log('idtokenloginparams', idTokenLoginParams)
-
-      await coreKitInstance.loginWithJWT(idTokenLoginParams);
-      if (coreKitInstance.status === COREKIT_STATUS.LOGGED_IN) {
-        // await coreKitInstance.commitChanges(); // Needed for new accounts
-      }
-
-      const { walletClient } = this.createClientByToken('ETH')
-      const addresses = await walletClient.getAddresses()
-      const address = addresses[0]
+      })
+      const { address } = data
 
       // save auth storage
       auth.saveAuthDataByKey('idToken', idToken)
       auth.saveAuthDataByKey('address', address)
       auth.saveAuthDataByKey('username', authUsername)
-
-      // bind address
-      await api.post(`/address/bind`, {
-        address,
-      })
     } catch (err) {
       throw err;
     }
