@@ -52,17 +52,20 @@ export function UserWallet() {
   }
   
   const getETHBalanceByAddress = async (address: Address) => {
-    const b = await TokenFactory.getInstance().createToken('ETH').getBalance(address)
+    let b = await TokenFactory.getInstance().createToken('ETH').getBalance(address)
+    b = formatDecimal(b)
     return b
   }
   
   const getMaticBalanceByAddress = async (address: Address) => {
-    const b = await TokenFactory.getInstance().createToken('MATIC').getBalance(address)
+    let b = await TokenFactory.getInstance().createToken('MATIC').getBalance(address)
+    b = formatDecimal(b)
     return b
   }
   
   const getTVWTBalanceByAddress = async (address: Address) => {
-    const b = await TokenFactory.getInstance().createToken('TVWT').getBalance(address)
+    let b = await TokenFactory.getInstance().createToken('TVWT').getBalance(address)
+    b = formatDecimal(b)
     return b
   }
 
