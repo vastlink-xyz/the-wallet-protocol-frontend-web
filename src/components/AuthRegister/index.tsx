@@ -29,9 +29,6 @@ export default function AuthRegister() {
 
   useEffect(() => {
     const init = async () => {
-      // web3auth sdk need to be initialized
-      await keyManagementService.init()
-
       const email = params?.get('email')
       const otp = params?.get('otp')
       const type = params?.get('type')

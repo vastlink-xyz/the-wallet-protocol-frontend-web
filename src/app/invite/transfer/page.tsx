@@ -45,9 +45,6 @@ export default function Page() {
   }, [inviteInfo])
 
   const init = async () => {
-    // web3auth sdk need to be initialized
-    await keyManagementService.init()
-
     const inviteInfoId = params?.get('inviteInfoId')
     if (inviteInfoId) {
       initInviteInfo(inviteInfoId)
@@ -88,6 +85,8 @@ export default function Page() {
         data: '',
         transactionType: TransactionType.INVITE_TRANSFER,
       })
+
+      log('result', result)
 
       if (result.needOtp) {
         // Transaction requires OTP verification

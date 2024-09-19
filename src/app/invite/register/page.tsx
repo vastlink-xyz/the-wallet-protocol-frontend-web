@@ -44,9 +44,6 @@ export default function Page() {
   }, [inviteInfo])
 
   const init = async () => {
-    // web3auth sdk need to be initialized
-    await keyManagementService.init()
-
     const inviteInfoId = params?.get('inviteInfoId')
     const otp = params?.get('otp')
 

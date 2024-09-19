@@ -65,20 +65,15 @@ export const useTransaction = () => {
   };
 
   const waitForTransactionExection = async (transactionId: string) => {
-    try {
-      const apiPath = `/transaction/wait-for-execution`;
-      const response = await api.post(apiPath, {
-        transactionId,
-      });
+    const apiPath = `/transaction/wait-for-execution`;
+    const response = await api.post(apiPath, {
+      transactionId,
+    });
 
-      log('data', response.data);
-      const result = response.data
+    log('data', response.data);
+    const result = response.data
 
-      return result.hash
-    } catch (error) {
-      console.error(error);
-    } finally {
-    }
+    return result.hash
   };
 
   const openTxPage = (txHash: string) => {

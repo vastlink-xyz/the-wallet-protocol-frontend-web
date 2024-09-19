@@ -18,34 +18,13 @@ export class Web3authWithMPCKeyManagement extends KeyManagementService {
     super({
       serviceType: KeyManagementServiceType.WEB3AUTH_WITH_MPC,
     });
-    if (typeof window !== "undefined") {
-      const coreKitInstance = new Web3AuthMPCCoreKit({
-        web3AuthClientId: process.env.NEXT_PUBLIC_WEB3AUTH_CLIENT_ID!,
-        web3AuthNetwork: WEB3AUTH_NETWORK.DEVNET,
-        storage: window.localStorage,
-        sessionTime: 86400, // default is 24 hours
-        manualSync: true, // This is the recommended approach
-        tssLib: {
-          lib: tssLib.loadSync(),
-          keyType: tssLib.keyType,
-        },
-        enableLogging: true,
-      });
-  
-      this.coreKitInstance = coreKitInstance
-      coreKitInstance.init()
-    }
   }
 
-  async init() {
-    if (this.coreKitInstance?.status === COREKIT_STATUS.NOT_INITIALIZED) {
-      await this.coreKitInstance.init()
-    }
-  }
+  async init() {}
 
   async signUp({username, idToken}: {username: string, idToken: string}) {
     try {
-      const {data} = await api.post('/auth/signup', {
+      const {data} = await api.post('/keymanagement/signup', {
         username,
         idToken,
       })
@@ -93,11 +72,13 @@ export class Web3authWithMPCKeyManagement extends KeyManagementService {
     const { data: {
       success,
       needOtp,
+      hash,
       message,
+      transactionId,
+      // not used
       transactionPayload,
       userEmail,
       toEmail,
-      transactionId,
     } } = await api.post('/transaction/sign', {
       from: auth.all().address,
       to: toAddress,
@@ -106,38 +87,13 @@ export class Web3authWithMPCKeyManagement extends KeyManagementService {
       note,
       transactionType,
     })
-    log('transaction payload', transactionPayload)
-
-    // check daily limit failed
-    if (!success && needOtp) {
-      return {
-        success: false,
-        needOtp: true,
-        message,
-        transactionId,
-      }
-    }
-
-    // execute transaction by wallet client
-    const hash = await this.exectuteTransactionWithGas({
-      token,
-      ...transactionPayload,
-    })
-
-    // notify server to send transaction message
-    await api.post('/transaction/notify', { 
-      transaction: transactionPayload,
-      userEmail,
-      toEmail,
-      token,
-      note,
-      transactionType,
-      hash,
-    })
 
     return {
-      success: true,
+      success,
+      needOtp,
       hash,
+      message,
+      transactionId,
     }
   }
 
@@ -149,10 +105,12 @@ export class Web3authWithMPCKeyManagement extends KeyManagementService {
     otp: string;
   }) {
     const { data: {
+      token,
+      hash,
+      // not used
       transactionPayload,
       userEmail,
       toEmail,
-      token,
       note,
       transactionType,
     } } = await api.post('/transaction/verify-to-sign', {
@@ -160,73 +118,11 @@ export class Web3authWithMPCKeyManagement extends KeyManagementService {
       OTP: otp,
     })
 
-    // execute transaction by wallet client
-    const hash = await this.exectuteTransactionWithGas({
-      token,
-      ...transactionPayload,
-    })
-
-    // notify server to send transaction message
-    await api.post('/transaction/notify', { 
-      transaction: transactionPayload,
-      userEmail,
-      toEmail,
-      token,
-      note,
-      transactionType,
-      hash,
-      transactionId,
-    })
-
     return {
       success: true,
       hash,
       token,
     }
-  }
-
-  private async exectuteTransactionWithGas({
-    token,
-    from,
-    to,
-    value,
-    data,
-  }: {
-    token: TokenType,
-    from: Address,
-    to: Address,
-    value: string,
-    data: Hex,
-  }) {
-    const { walletClient, publicClient } = this.createClientByToken(token)
-    
-    const transactionRequest = {
-      account: from as Address,
-      to: to as Address,
-      value: BigInt(value),
-      data,
-    } as const;
-
-    // Estimate gas (keep consistent with frontend)
-    const estimatedGas = await publicClient.estimateGas(transactionRequest)
-    const gasPrice = await publicClient.getGasPrice()
-    const baseFee = await publicClient.getBlock().then(block => block.baseFeePerGas || BigInt(0))
-    
-    // Calculate maxPriorityFeePerGas (tip)
-    const maxPriorityFeePerGas = gasPrice > baseFee ? gasPrice - baseFee : BigInt(1000000000) // 1 gwei minimum
-
-    // Ensure maxFeePerGas is always greater than maxPriorityFeePerGas
-    const maxFeePerGas = baseFee + maxPriorityFeePerGas * BigInt(2)
-
-    const transactionRequestWithGas = {
-      ...transactionRequest,
-      gas: estimatedGas,
-      maxFeePerGas: maxFeePerGas,
-      maxPriorityFeePerGas: maxPriorityFeePerGas,
-    }
-
-    const hash = await walletClient.sendTransaction(transactionRequestWithGas)
-    return hash
   }
 
   private createClientByToken(token: TokenType) {
@@ -261,23 +157,7 @@ export class Web3authWithMPCKeyManagement extends KeyManagementService {
   }
 
   async test() {
-    const coreKitInstance = this.coreKitInstance!
-    const chainConfig = chainConfigByToken('MATIC')!
-    const evmProvider = new EthereumSigningProvider({ config: { chainConfig } });
-    evmProvider.setupProvider(makeEthereumSigner(coreKitInstance));
-
-    await coreKitInstance.init()
-
-    // const web3 = new Web3(evmProvider);
-    // // Get user's Ethereum public address
-    // const accounts = await web3.eth.getAccounts();
-    // const address = accounts[0]
-
-    // const balance = web3.utils.fromWei(
-    //   await web3.eth.getBalance(address), // Balance is in wei
-    //   "ether"
-    // );
-
-    // log('balance', balance)
+    const res = await api.post('/keymanagement/test-mpc')
+    return
   }
 }

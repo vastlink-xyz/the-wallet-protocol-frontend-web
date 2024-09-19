@@ -52,7 +52,7 @@ export function PurchaseModal({
     try {
       setIsPurchasing(true)
 
-      const { data: { success, ...transactionPayload } } = await api.post('/user/purchase', {
+      const { data: { success, needOtp, message, transactionId } } = await api.post('/user/purchase', {
         productId: product.id,
       })
 
@@ -60,36 +60,14 @@ export function PurchaseModal({
         onClose(true)
         toast.success(t('purchaseSuccess'))
         setIsPurchasing(false)
-      } else {
-        // sign transaction by keymanagement
-        const {
-          needOtp,
-          transactionId,
-          hash,
-        } = await keyManagementService.signTransaction({
-          toAddress: transactionPayload.to,
-          amount: transactionPayload.amount,
-          token: transactionPayload.token,
-          transactionType: transactionPayload.transactionType,
-        })
+      } else if (needOtp) {
+        // daily limit exceeded, need otp
+        toast.warning(t('dailyLimitExceededOtpRequired'))
 
+        // Wait for the user to complete the transaction, polling the current transaction status
+        const hash = await waitForTransactionExection(transactionId)
         if (hash) {
-          await keyManagementService.waitForTransactionReceipt(hash, transactionPayload.token)
-          // sign transaction success, save product to user
-          await api.post('/user/purchase/saveProducts', {
-            productId: product.id,
-          })
-          setIsPurchasing(false)
-          onClose(true)
-          toast.success(t('purchaseSuccess'))
-        } else if (needOtp) {
-          // daily limit exceeded, need otp
-          toast.warning(t('dailyLimitExceededOtpRequired'))
-
-          // Wait for the user to complete the transaction, polling the current transaction status
-          const hash = await waitForTransactionExection(transactionId)
-          await keyManagementService.waitForTransactionReceipt(hash, transactionPayload.token)
-          await api.post('/user/purchase/saveProducts', {
+          const { data } = await api.post('/user/purchase/saveProducts', {
             productId: product.id,
           })
           setIsPurchasing(false)
