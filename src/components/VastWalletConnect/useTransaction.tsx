@@ -65,15 +65,25 @@ export const useTransaction = () => {
   };
 
   const waitForTransactionExection = async (transactionId: string) => {
-    const apiPath = `/transaction/wait-for-execution`;
-    const response = await api.post(apiPath, {
-      transactionId,
-    });
+    const apiPath = `/transaction/execution-status`;
+    let result;
 
-    log('data', response.data);
-    const result = response.data
+    while (true) {
+      const response = await api.post(apiPath, {
+        transactionId,
+      });
 
-    return result.hash
+      log('data', response.data);
+      result = response.data;
+
+      if (result.hash) {
+        break;
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 5000)); // wait for 5 seconds before next poll
+    }
+
+    return result.hash;
   };
 
   const openTxPage = (txHash: string) => {
