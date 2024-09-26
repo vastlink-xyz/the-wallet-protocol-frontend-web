@@ -11,6 +11,7 @@ export const forcedLightThemeRoutes = [
   '/verify-transaction',
   '/invite/transfer',
   '/invite/register',
+  // '/kyb',
 ]
 
 export function ThemeProvider({ children, ...props }: ThemeProviderProps) {

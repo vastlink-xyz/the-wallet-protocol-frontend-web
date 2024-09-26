@@ -8,6 +8,7 @@ enum CategoryColors {
   'Security' = '#F44336', 
   'Payment' = '#607D8B',
   'Music' = '#00BCD4',
+  'Compliance' = '#673AB7',
 }
 
 interface CategoryBadgeProps {
