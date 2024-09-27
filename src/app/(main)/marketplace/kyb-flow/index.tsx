@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { AustralianKYBFlow } from "./AustralianKYBFlow";
 import { ExternalLink } from "lucide-react";
+import { InternationalKYBFlow } from "./InternationalKYBFlow";
 
 export function KYBFlow({
   showExternalLink = true,
@@ -12,7 +13,7 @@ export function KYBFlow({
   showExternalLink?: boolean
 }) {
   // kkktodo: default value should be null
-  const [isAustralianBusiness, setIsAustralianBusiness] = useState<boolean | null>(null);
+  const [isAustralianBusiness, setIsAustralianBusiness] = useState<boolean | null>(false);
 
   const handleBusinessTypeSelection = (isAustralian: boolean) => {
     setIsAustralianBusiness(isAustralian);
@@ -43,33 +44,13 @@ export function KYBFlow({
       </div>
     </Card>
   );
-
-  if (isAustralianBusiness === null) {
-    return renderBusinessTypeConfirmation();
-  }
-
+  
   if (isAustralianBusiness) {
     return <AustralianKYBFlow />;
+  } else if (isAustralianBusiness === false) {
+    // return <InternationalKYBFlow />;
+    return <div>International KYB Flow</div>;
   }
-
-  // For non-Australian businesses
-  return (
-    <Card className="p-8 relative">
-      {showExternalLink && (
-        <Button
-          variant="ghost"
-        size="icon"
-        className="absolute top-2 right-2"
-        onClick={openInNewTab}
-        title="Open in new window"
-      >
-          <ExternalLink className="h-4 w-4" />
-        </Button>
-      )}
-
-      <h2 className="text-2xl font-bold mb-4">International KYB Flow</h2>
-      <p>Please complete the international KYB process.</p>
-      {/* Add international KYB flow here */}
-    </Card>
-  );
+  
+  return renderBusinessTypeConfirmation();
 }
