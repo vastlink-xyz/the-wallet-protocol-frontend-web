@@ -6,12 +6,13 @@ import { Params, Flow, Settings, getDefaultSettings, Styles, getDefaultStyles } 
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Address, parseEther } from "viem";
-import { Send } from "@/app/(main)/home/[token]/components/Send";
 import { TokenType } from "@/types/tokens";
 import { TokenFactory } from "@/services/TokenService";
 import { ForcedLightThemeComponent } from "@/providers/ThemeProvider";
 import '@/styles/react-chatbotify.css'
 import api from "@/lib/api";
+import { SendButton } from "@/app/(main)/home/[token]/components/SendButton";
+import { SendModal } from "@/app/(main)/home/[token]/components/SendModal";
 
 const ChatBot = lazy(() => import("react-chatbotify"));
 
@@ -34,13 +35,14 @@ const defaultStyles = getDefaultStyles();
 
 export const SettingsContext = createContext<SettingsContextType>({
   settings: defaultSettings,
-  setSettings: () => {},
+  setSettings: () => { },
 });
 
 export default function ChatBotComponent() {
   const [address, setAddress] = useState('')
   const [balance, setBalance] = useState('')
   const [open, setOpen] = useState(false)
+  const [displaySendButton, setDisplaySendButton] = useState(false)
 
   const [settings, setSettings] = useState<Settings>({
     ...defaultSettings,
@@ -83,7 +85,7 @@ export default function ChatBotComponent() {
   const [link, setLink] = useState('');
   const router = useRouter()
   const [transactionInfo, setTransactionInfo] = useState<any>({})
-  
+
   useEffect(() => {
     setIsLoaded(true);
   }, [])
@@ -125,11 +127,11 @@ export default function ChatBotComponent() {
         token: coin,
         amount,
       })
-      setOpen(true)
       await initSendProps(coin)
+      setDisplaySendButton(true)
     }
   }
-  
+
   const flow: Flow = {
     start: {
       message: "Welcome! I can help you transfer cryptocurrencies. You can send ETH, MATIC, or TVWT to any email address. For example, you can say: 'Send 0.01 ETH to example@gmail.com'. How can I assist you today?",
@@ -148,30 +150,12 @@ export default function ChatBotComponent() {
       function: handleQuestion,
       component: (params) => {
         if (transactionInfo.action === 'transfer') {
-          log(open, address, balance, transactionInfo.token, transactionInfo.toEmail, transactionInfo.amount)
+          log(displaySendButton, address, balance, transactionInfo.token, transactionInfo.toEmail, transactionInfo.amount)
           return (
             <div className="pl-4 pt-2">
-              {/* <Link 
-                href={link}
-                className="inline-block px-2 py-1 mt-4 text-blue-600 font-medium text-sm transition duration-300 ease-in-out hover:text-blue-800 hover:underline  focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-opacity-50"
-              >
-                Click here to confirm the transfer
-              </Link> */}
               {
-                (open && address && balance && transactionInfo.token && transactionInfo.toEmail && transactionInfo.amount) && (
-                  <Send
-                    address={address as Address}
-                    balance={balance}
-                    tokenType={transactionInfo.token}
-                    defaultTo={transactionInfo.toEmail}
-                    defaultAmount={transactionInfo.amount}
-                    defaultNote={''}
-                    onClose={() => {
-                      setAddress('')
-                      setBalance('')
-                      setOpen(false)
-                    }}
-                  />
+                (displaySendButton && address && balance && transactionInfo.token && transactionInfo.toEmail && transactionInfo.amount) && (
+                  <SendButton onClick={() => setOpen(true)} />
                 )
               }
             </div>
@@ -206,15 +190,32 @@ export default function ChatBotComponent() {
 
   return (
     <>
-    {isLoaded && (
-      <Suspense fallback={null}>
-          <SettingsContext.Provider value={{settings: settings, setSettings: setSettings}}>
-            <ForcedLightThemeComponent>
-              <ChatBot settings={settings} flow={flow} styles={styles} />
-            </ForcedLightThemeComponent>
-          </SettingsContext.Provider>
-      </Suspense>
-    )}
+      {isLoaded && (
+        <Suspense fallback={null}>
+          <div>
+            <SettingsContext.Provider value={{ settings: settings, setSettings: setSettings }}>
+              <ForcedLightThemeComponent>
+                <ChatBot settings={settings} flow={flow} styles={styles} />
+              </ForcedLightThemeComponent>
+            </SettingsContext.Provider>
+
+            <SendModal
+              open={open}
+              setOpen={setOpen}
+              balance={balance}
+              address={address as Address}
+              tokenType={transactionInfo.token}
+              defaultTo={transactionInfo.toEmail}
+              defaultAmount={transactionInfo.amount}
+              defaultNote={''}
+              onClose={() => {
+                setAddress('')
+                setBalance('')
+              }}
+            />
+          </div>
+        </Suspense>
+      )}
     </>
   );
 }

@@ -26,6 +26,7 @@ export default function AuthRegister() {
   const [authenticating, setAuthenticating] = useState(false);
   const [registering, setRegistering] = useState(false);
   const [authenticateSetup, setAuthenticateSetup] = useState(true);
+  const [redirecting, setRedirecting] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -96,10 +97,8 @@ export default function AuthRegister() {
         idToken: idToken,
       })
 
-      router.push('/home')
-      // setAuthenticating(true);
-      // await authenticate(registerUsername);
-      // setAuthenticating(false);
+      setRedirecting(true);
+      router.push('/home');
     } catch (error: unknown) {
       const errorInfo = handleError(error)
       toast.error(errorInfo.message)
@@ -147,7 +146,8 @@ export default function AuthRegister() {
         idToken,
       })
 
-      router.push('/home')
+      setRedirecting(true);
+      router.push('/home');
     } catch (error: unknown) {
       const errorInfo = handleError(error)
       toast.error(errorInfo.message)
@@ -197,46 +197,53 @@ export default function AuthRegister() {
 
   return (
     <div className="flex flex-grow flex-col items-center justify-center">
-      <Card className="sm:w-[360px] py-4 border-none shadow-none mb-12 bg-white">
-        <CardHeader>
-          <p className="mb-4 text-lg md:text-2xl m-0 p-0">{authenticateSetup ? t('signinTitle') : t('signupTitle')}</p>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={(e) => processUserAccess(e)} className="group" noValidate>
-            <div className="mb-4 relative">
-              <Label htmlFor="email">{t('emailLabel')}</Label>
-              <Input
-                className="w-full mb-2 rounded border border-gray-300 bg-inherit p-3 shadow shadow-gray-100 ring-offset-transparent mt-2 appearance-none outline-none text-neutral-800 invalid:[&:not(:placeholder-shown):not(:focus)]:border-red-500 peer"
-                type="email"
-                id="email"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder={t('emailPlaceholder')}
-                required
-                pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
-              />
-              <span className="absolute -bottom-5 hidden text-xs text-red-500 peer-[&:not(:placeholder-shown):not(:focus):invalid]:block">
-                {t('emailValidationError')}
-              </span>
-            </div>
-            <Button
-              type="submit"
-              className="w-full mt-2 rounded-full group-invalid:pointer-events-none group-invalid:opacity-30"
-              disabled={registering || authenticating}
-            >
-              { submitBtnText() }
-            </Button>
-          </form>
-        </CardContent>
+      {redirecting ? (
+        <div className="text-center">
+          <p className="text-lg">Redirecting to home...</p>
+        </div>
+      ) : (
+        <Card className="sm:w-[360px] py-4 border-none shadow-none mb-12 bg-white">
+          <CardHeader>
+            <p className="mb-4 text-lg md:text-2xl m-0 p-0">{authenticateSetup ? t('signinTitle') : t('signupTitle')}</p>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={(e) => processUserAccess(e)} className="group" noValidate>
+              <div className="mb-4 relative">
+                <Label htmlFor="email">{t('emailLabel')}</Label>
+                <Input
+                  className="w-full mb-2 rounded border border-gray-300 bg-inherit p-3 shadow shadow-gray-100 ring-offset-transparent mt-2 appearance-none outline-none text-neutral-800 invalid:[&:not(:placeholder-shown):not(:focus)]:border-red-500 peer"
+                  type="email"
+                  id="email"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder={t('emailPlaceholder')}
+                  required
+                  pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+                  disabled={registering || authenticating}
+                />
+                <span className="absolute -bottom-5 hidden text-xs text-red-500 peer-[&:not(:placeholder-shown):not(:focus):invalid]:block">
+                  {t('emailValidationError')}
+                </span>
+              </div>
+              <Button
+                type="submit"
+                className="w-full mt-2 rounded-full group-invalid:pointer-events-none group-invalid:opacity-30"
+                disabled={registering || authenticating}
+              >
+                { submitBtnText() }
+              </Button>
+            </form>
+          </CardContent>
 
-        <CardFooter>
-          <p className="cursor-pointer select-none" onClick={() => setAuthenticateSetup(!authenticateSetup)}>
-            {
-              authenticateSetup ? t('signUp') : t('alreadyHaveAccount')
-            }
-          </p>
-        </CardFooter>
-      </Card>
+          <CardFooter>
+            <p className="cursor-pointer select-none" onClick={() => setAuthenticateSetup(!authenticateSetup)}>
+              {
+                authenticateSetup ? t('signUp') : t('alreadyHaveAccount')
+              }
+            </p>
+          </CardFooter>
+        </Card>
+      )}
     </div>
   );
 }
