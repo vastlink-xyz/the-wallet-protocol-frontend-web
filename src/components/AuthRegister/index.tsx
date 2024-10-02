@@ -215,7 +215,7 @@ export default function AuthRegister() {
                   type="email"
                   id="email"
                   value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  onChange={(e) => setUsername(e.target.value.trim())}
                   placeholder={t('emailPlaceholder')}
                   required
                   pattern={emailRegex.source}

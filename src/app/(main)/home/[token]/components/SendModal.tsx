@@ -304,7 +304,7 @@ export function SendModal({
             <div className="relative">
               <Input
                 value={to}
-                onChange={e => setTo(e.target.value)}
+                onChange={e => setTo(e.target.value.trim())}
                 onBlur={handleBlur}
                 id="to"
                 required
@@ -351,7 +351,7 @@ export function SendModal({
             <div className="relative">
               <Input
                 value={amount}
-                onChange={e => setAmount(e.target.value)}
+                onChange={e => setAmount(e.target.value.trim())}
                 type="number"
                 id="amount"
                 className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
