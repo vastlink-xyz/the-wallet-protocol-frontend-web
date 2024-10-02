@@ -4,7 +4,7 @@ import { FormEvent, useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 
-import { log, auth, cn, handleError } from "@/lib/utils";
+import { log, auth, cn, handleError, emailRegex } from "@/lib/utils";
 
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -218,7 +218,7 @@ export default function AuthRegister() {
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder={t('emailPlaceholder')}
                   required
-                  pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+                  pattern={emailRegex.source}
                   disabled={registering || authenticating}
                 />
                 <span className="absolute -bottom-5 hidden text-xs text-red-500 peer-[&:not(:placeholder-shown):not(:focus):invalid]:block">
