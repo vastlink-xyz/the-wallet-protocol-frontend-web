@@ -50,6 +50,8 @@ export default function Page() {
     if (inviteInfoId && otp) {
       setOtp(otp)
       initInviteStatus(inviteInfoId)
+    } else {
+      toast.error('inviteInfoId or otp is not existed.')
     }
   }
   
