@@ -1,6 +1,6 @@
 'use client'
 
-import { KYBFlow } from "../(main)/marketplace/kyb-flow";
+import { KYBFlow } from "./kyb-flow";
 
 export default function KYBPage() {
   return (
