@@ -23,6 +23,7 @@ export function Header() {
     '/home': t('overview'),
     '/marketplace': t('marketplace'),
     '/marketplace/kyb-flow': 'KYB Flow',
+    '/marketplace/kyc-flow': 'KYC Flow',
     '/marketplace/multisig-setting': 'Multisig Setting',
   };
 

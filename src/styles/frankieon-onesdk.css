@@ -5,3 +5,7 @@
 #form-container .f1-w-full.ff-form-field .f1-w-full .f1-w-full.f1-bg-white.f1-border {
     border-width: 0px;
 }
+
+#form-container input {
+    background-color: white;
+}

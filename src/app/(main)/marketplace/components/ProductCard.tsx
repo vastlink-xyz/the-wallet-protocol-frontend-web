@@ -94,9 +94,14 @@ export function ProductCard({
       return
     }
 
-    // kyb
+    // kyb / kyc
     if (p.category === 'Compliance' && checkPurchaseStatus(p) === 'active') {
-      router.push('/marketplace/kyb-flow')
+      log('p.id', p.id)
+      if (p.id === '000009') {
+        router.push('/marketplace/kyb-flow')
+      } else if (p.id === '000010') {
+        router.push('/marketplace/kyc-flow')
+      }
       return
     }
 
