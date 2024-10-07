@@ -174,6 +174,7 @@ export const AustralianKYBFlow: React.FC = () => {
           if (business) {
             setBusinessDetail(prev => ({ ...prev, ...business }))
           }
+          setContinueLoading(false);
           setKybStep(2);
         } else {
           // Assume any other status is an error
@@ -182,7 +183,6 @@ export const AustralianKYBFlow: React.FC = () => {
       } catch (error) {
         const errorInfo = handleError(error);
         toast.error(errorInfo.message);
-      } finally {
         setContinueLoading(false);
       }
     };
