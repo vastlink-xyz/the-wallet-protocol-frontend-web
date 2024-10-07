@@ -329,3 +329,9 @@ export const countryCodes = [
   { code: "CA-NU", name: "Canada - Nunavut" },
   { code: "CA-YT", name: "Canada - Yukon" },
 ];
+
+
+export enum KYBStatus {
+  VERIFIED = 'VERIFIED',
+  UNVERIFIED = 'UNVERIFIED'
+}

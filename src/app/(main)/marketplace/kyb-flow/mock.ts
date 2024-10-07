@@ -1,3 +1,44 @@
+export const mockSearchResult = {
+    "legalNames": [],
+    "businessNames": [
+        {
+            "name": "SIDEBAR ESPRESSO",
+            "effectiveFrom": "2017-08-15"
+        },
+        {
+            "name": "GREENGROCER CYCLING",
+            "effectiveFrom": "2011-10-27"
+        }
+    ],
+    "historicalBusinessNames": [],
+    "mainNames": [
+        "GREEN GROCER CAFE PTY. LIMITED"
+    ],
+    "tradingNames": [
+        "GREEN GROCER CAFE PTY LIMITED"
+    ],
+    "score": null,
+    "state": "NSW",
+    "postalCode": "2580",
+    "type": "PRV",
+    "abn": "97120399448",
+    "acn": "120399448",
+    "isActive": false,
+    "abnStatus": {
+        "status": "Cancelled",
+        "effectiveFrom": "2024-08-07"
+    },
+    "name": "GREEN GROCER CAFE PTY. LIMITED"
+}
+
+export const mockBusinessDetail = {
+    "registered_name": "GREEN GROCER CAFE PTY. LIMITED",
+    "ABN": "97120399448",
+    "ACN": "120399448",
+    "date_registered_with_asic": "2006-06-27",
+    "state_registered_with_asic": "NSW"
+}
+
 
 export const mockToken = 'eyJhbGciOiJIUzI1NiJ9.eyJkYXRhIjp7Im9yZ2FuaXNhdGlvbiI6eyJpZCI6MTE5OSwicGFyZW50SWQiOm51bGwsImN1c3RvbWVySWQiOiI0ZjBmMzg0Mi1lZGExLTVhZDctZGYzOC0wYzE5ODQzMTI3ZGYiLCJjdXN0b21lckNoaWxkSWQiOm51bGwsIm5hbWUiOiJtZWdhbGl0aCIsIm5pY2tOYW1lIjoibWVnYWxpdGgiLCJpc1Jvb3QiOnRydWUsInRpbWV6b25lIjoiQXVzdHJhbGlhL01lbGJvdXJuZSJ9LCJpc01hY2hpbmVUb2tlbiI6dHJ1ZSwicmVmZXJyZXIiOm51bGwsInBlcm1pc3Npb25zIjpbImNyZWF0ZTo6YXBwbGljYW50IiwidXBkYXRlOjphcHBsaWNhbnQ6cmVmZXJlbmNlOnRlc3QxQGFiYy5jb20iLCJ2aWV3OjphcHBsaWNhbnQ6cmVmZXJlbmNlOnRlc3QxQGFiYy5jb20iLCJsaXN0OjphcHBsaWNhbnQ6cmVmZXJlbmNlOnRlc3QxQGFiYy5jb20iLCJmZnBvcnRhbF90cmlnZ2VyX2V4dGVybmFsX2lkdiIsImZmcG9ydGFsX2FwcGxpY2FudF9taWR2X3VwbG9hZCIsImZmcG9ydGFsX2FwcGxpY2FudF9tYW51YWxfa3ljX3VwZGF0ZSIsImxpc3Q6OmFkZHJlc3MiLCJjcmVhdGU6OmV2ZW50Il0sInNlc3Npb25JZCI6IjZhNmI1MzViLTY1ODktNGVmNy04ODg5LWM4ZWQwN2NkOGI3OSIsImVudmlyb25tZW50IjoiaHR0cHM6Ly9iYWNrZW5kLmt5Y2FtbC51YXQuZnJhbmtpZWZpbmFuY2lhbC5pbyIsInJlZmVyZW5jZSI6InRlc3QxQGFiYy5jb20iLCJleHRyYURhdGEiOm51bGx9LCJleHAiOjE3MjcxNTMyODh9.kANpqTB2tbC6dO8dn6fKigatiy5PEYAMZT_pjStpP1I'
 

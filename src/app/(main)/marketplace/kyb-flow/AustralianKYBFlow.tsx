@@ -1,18 +1,18 @@
 'use client'
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import api from '@/lib/api';
 import { handleError, log } from '@/lib/utils';
 import { toast } from 'react-toastify';
 import { LogoLoading } from '@/components/LogoLoading';
-import { ProgressIndicator } from './ProgressIndicator';
-import { handleDownload } from './helper';
-import { mockEntityId, mockKybStep, mockSelectedBusiness } from './mock';
+import { KYBStatus } from './helper';
+import { mockBusinessDetail, mockEntityId, mockKybStep, mockSearchResult, mockSelectedBusiness } from './mock';
+import { ChevronLeft } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface SearchResult {
   name: string;
@@ -24,131 +24,139 @@ interface SearchResult {
   type: string | null;
 }
 
-interface ReportDoc {
-  scanData: string;
-  scanMIME: string;
+interface BusinessDetail {
+  registered_name: string;
+  ABN: string;
+  ACN: string;
+  date_registered_with_asic: string;
+  state_registered_with_asic: string;
 }
 
-interface ReportData {
-  asicExtract: ReportDoc | null;
-  uboReport: ReportDoc | null;
+const defaultBusinessDetail: BusinessDetail = {
+  registered_name: '',
+  ABN: '',
+  ACN: '',
+  date_registered_with_asic: '',
+  state_registered_with_asic: '',
 }
 
-interface ReportStatus {
-  asicExtract: 'idle' | 'loading' | 'complete' | 'error';
-  uboReport: 'idle' | 'loading' | 'complete' | 'error';
+interface AdditionalBusinessDetail {
+  sourceOfCapital: string;
+  industry: string;
+  websiteUrl: string;
+  socialMediaUrl: string;
+  officePhone: string;
 }
 
 export const AustralianKYBFlow: React.FC = () => {
-  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
   const [kybStep, setKybStep] = useState(1);
   const [search, setSearch] = useState<string>('');
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
-  const [selectedBusiness, setSelectedBusiness] = useState<SearchResult | null>(null);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [continueLoading, setContinueLoading] = useState(false);
+
+  const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
+  const [businessDetail, setBusinessDetail] = useState<BusinessDetail>(defaultBusinessDetail);
+  const [additionalBusinessDetail, setAdditionalBusinessDetail] = useState<AdditionalBusinessDetail>({
+    sourceOfCapital: '',
+    industry: '',
+    websiteUrl: '',
+    socialMediaUrl: '',
+    officePhone: '',
+  });
+
   const [entityId, setEntityId] = useState<string | null>(null);
 
-  const [reportStatus, setReportStatus] = useState<ReportStatus>({
-    asicExtract: 'idle',
-    uboReport: 'idle',
-  });
-  const [reportData, setReportData] = useState<ReportData>({
-    asicExtract: null,
-    uboReport: null,
-  });
+  const handleBack = () => {
+    setKybStep(kybStep - 1);
+  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(e.target.value);
+    // Only allow numeric input
+    const value = e.target.value.replace(/\D/g, '');
+    setSearch(value);
+  };
+
+  const isValidABNACN = (value: string) => {
+    // ABN is 11 digits, ACN is 9 digits
+    return value.length === 11 || value.length === 9;
   };
 
   const handleSearch = async () => {
+    if (!isValidABNACN(search)) {
+      toast.error('Please enter a valid ABN (11 digits) or ACN (9 digits)');
+      return;
+    }
+
     try {
-      setLoading(true);
+      setSearchLoading(true);
       const response = await api.post('/marketplace/product/frankieone/get-token');
       const token = response.data;
       const { data } = await api.post('/marketplace/product/frankieone/business-lookup', {
         search: search,
         token: token,
       });
-      log('data', data)
-      setSearchResults(data);
-      setKybStep(2);
+      log('lookup business response data', data)
+      if (data.length > 0) {
+        setSearchResult(data[0]);
+      }
     } catch (error) {
       const errorInfo = handleError(error);
       toast.error(errorInfo.message);
     } finally {
-      setLoading(false);
+      setSearchLoading(false);
     }
   };
 
-  const handleSelectBusiness = (result: SearchResult) => {
-    log('business', result)
-    setSelectedBusiness(result);
-    setKybStep(3);
+  const handleBusinessDetailFormInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setBusinessDetail(prev => ({ ...prev, [name]: value }));
   };
 
-  const fetchReportData = async (documentId: string, reportType: keyof ReportStatus) => {
-    try {
-      const response = await api.get(`/marketplace/product/frankieone/retrieve-document?documentId=${documentId}`);
-      log('response data', response.data)
-      const docScan = response.data?.document?.docScan
-      if (docScan && docScan.length > 0) {
-        const doc = docScan[docScan.length - 1] as ReportDoc
-        setReportData(prev => ({ ...prev, [reportType]: doc }));
-      }
-      return
-
-    } catch (error) {
-      const errorInfo = handleError(error);
-      toast.error(`Failed to fetch ${reportType} data: ${errorInfo.message}`);
-    }
+  const handleAdditionalBusinessDetailFormInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setAdditionalBusinessDetail(prev => ({ ...prev, [name]: value }));
   };
 
-  const generateReport = async (reportType: keyof ReportStatus) => {
-    // await pollForReportCompletion('01J8MAR6JXXWBY03S73MS7FXC8', reportType)
-    // return
-    if (!selectedBusiness) return;
-
-    setReportStatus(prev => ({ ...prev, [reportType]: 'loading' }));
-
+  const handleBusinessDetail = async () => {
     try {
-      let endpoint = '/marketplace/product/frankieone/business-ownership-query';
-      let params: any = {
-        abn: selectedBusiness.abn,
-        acn: selectedBusiness.acn,
-      };
+      setContinueLoading(true);
+      const {data} = await api.post('/marketplace/product/frankieone/query-asic-report', {
+        abn: searchResult?.abn,
+        acn: searchResult?.acn,
+        resultLevel: 'summary',
+      });
 
-      if (reportType === 'asicExtract') {
-        endpoint = '/marketplace/product/frankieone/query-asic-report';
-      } else if (reportType === 'uboReport') {
-        endpoint = '/marketplace/product/frankieone/query-ubo-report';
-      }
-
-      const response = await api.post(endpoint, params);
-      log('response', response)
-      // 
-      const { data } = response;
-      log('data', data)
+      // const data = {
+      //   "checkId": "16032321-a5c9-7f86-8dc5-8eb4eeddfc22",
+      //   "entityId": "a2802ea2-bf3a-dd0e-6274-0d64f3601d9b",
+      //   "function": "ownership",
+      //   "requestId": "01J9BKQXB4SRCP5DHABKZSRNB1"
+      // }
       setEntityId(data.entityId)
-      toast.info(`${reportType} report generation initiated. This may take a few minutes.`);
 
       // Poll for report completion
-      await pollForReportCompletion(data.requestId, reportType);
-
+      await pollForReportCompletion(data.requestId);
     } catch (error) {
       const errorInfo = handleError(error);
       toast.error(errorInfo.message);
-      setReportStatus(prev => ({ ...prev, [reportType]: 'error' }));
+      setContinueLoading(false);
     }
-  };
+  }
 
-  const pollForReportCompletion = async (requestId: string, reportType: keyof ReportStatus) => {
+  const handleAdditionalBusinessDetail = async () => {
+    setKybStep(3);
+  }
+
+  const pollForReportCompletion = async (requestId: string) => {
     const maxAttempts = 60; // 5 minutes maximum polling time
     let attempts = 0;
 
     const poll = async (): Promise<void> => {
       try {
         const response = await api.get(`/marketplace/product/frankieone/retrieve-response?requestId=${requestId}`);
-        log('response', response.data);
+        log('response retrieve', response.data);
 
         if (response.status === 202 || response.data.status === 'pending') {
           // Report is still processing, continue polling
@@ -157,29 +165,25 @@ export const AustralianKYBFlow: React.FC = () => {
             setTimeout(poll, 5000); // Poll again after 5 seconds
           } else {
             // Exceeded maximum polling time
-            setReportStatus(prev => ({ ...prev, [reportType]: 'error' }));
-            toast.error(`Timeout while generating ${reportType} report`);
+            toast.error(`Timeout while generating report`);
           }
         } else if (response.data.status === 'success') {
-          // Report is ready
-          setReportStatus(prev => ({ ...prev, [reportType]: 'complete' }));
-          // Fetch the actual report data
-          const payload = response.data.data.payload
-          if (payload.reportResult && payload.reportResult.documentId) {
-            await fetchReportData(payload.reportResult.documentId, reportType);
-          } else {
-            toast.error(`No document ID found for ${reportType} report`);
+          log('report complete', response.data.data.payload)
+          const payload = response?.data?.data?.payload
+          const business = payload?.uboResponse?.business_details
+          if (business) {
+            setBusinessDetail(prev => ({ ...prev, ...business }))
           }
-          toast.success(`${reportType} report is ready`);
+          setKybStep(2);
         } else {
           // Assume any other status is an error
-          setReportStatus(prev => ({ ...prev, [reportType]: 'error' }));
-          toast.error(`Failed to generate ${reportType} report: ${response.data.status}`);
+          toast.error(`Failed to generate report: ${response.data.status}`);
         }
       } catch (error) {
         const errorInfo = handleError(error);
         toast.error(errorInfo.message);
-        setReportStatus(prev => ({ ...prev, [reportType]: 'error' }));
+      } finally {
+        setContinueLoading(false);
       }
     };
 
@@ -187,118 +191,233 @@ export const AustralianKYBFlow: React.FC = () => {
     await poll();
   };
 
-  const handleDownloadReport = (reportType: keyof ReportStatus) => {
-    const report = reportData[reportType]
-    if (!report) {
-      toast.error('Report data is not available');
-      return
+  const handleSubmit = async () => {
+    try {
+      setContinueLoading(true);
+      const {data} = await api.post('/marketplace/product/frankieone/save-kyb-data', {
+        businessName: businessDetail.registered_name,
+        countryCode: 'AU',
+        status: KYBStatus.VERIFIED,
+        entityId: entityId,
+        ...additionalBusinessDetail,
+      });
+      log('save kyb data', data)
+      setKybStep(4);
+    } catch (error) {
+      const errorInfo = handleError(error);
+      toast.error(errorInfo.message);
+    } finally {
+      setContinueLoading(false);
     }
-    const doc = report as ReportDoc
-    handleDownload(doc.scanData, `${reportType}-${selectedBusiness?.name}.pdf`, doc.scanMIME)
-  };
+    log('additional business detail', additionalBusinessDetail)
+  }
 
   return (
-    <div>
-      <ProgressIndicator steps={["Search Business", "Select Business", "Generate Reports"]} currentStep={kybStep} />
-
-      {kybStep === 1 && (
-        <Card className="p-8">
-          <h2 className="text-2xl font-bold mb-4">Search for Business</h2>
-          <div className="space-y-4">
-            <Label htmlFor="search" className="text-sm font-medium">Enter Business Name or ABN / ACN</Label>
-            <Input id="search" name="search" placeholder="Business name or ABN / ACN" onChange={handleInputChange} />
-            <Button onClick={handleSearch} disabled={loading}>
-              {loading ? <LogoLoading /> : 'Search'}
-            </Button>
+    <div className='light'>
+      <Card className="p-8 pt-6">
+        {/* back button */}
+        {kybStep > 1 && (
+          <div className='flex items-center gap-1 text-xs mb-4 cursor-pointer' onClick={() => handleBack()}>
+            <ChevronLeft size={14} />
+            <span>Back</span>
           </div>
-        </Card>
-      )}
+        )}
 
-      {kybStep === 2 && (
-        <Card className="p-8">
-          <h2 className="text-2xl font-bold mb-4">Business Search Results</h2>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>ABN</TableHead>
-                <TableHead>ACN</TableHead>
-                <TableHead>State</TableHead>
-                <TableHead>Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {searchResults.map((result, index) => (
-                <TableRow key={index}>
-                  <TableCell>{result.name}</TableCell>
-                  <TableCell>{result.abn}</TableCell>
-                  <TableCell>{result.acn || 'N/A'}</TableCell>
-                  <TableCell>{result.state}</TableCell>
-                  <TableCell>
-                    <Button onClick={() => handleSelectBusiness(result)}>Select</Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
-      )}
-
-      {kybStep === 3 && selectedBusiness && (
-        <Card className="p-8">
-          <h2 className="text-2xl font-bold mb-4">Generate Reports for {selectedBusiness.name}</h2>
-          <div className="space-y-4">
-            <div className="border rounded-lg p-4 flex justify-between items-center">
-              <div className="flex-grow">
-                <h3 className="text-lg font-semibold">ASIC Extract with AML Screening</h3>
-                <p className="text-sm text-primary/80 mr-4">This report includes a single level business ownership check and AML screening (PEP, sanctions, and adverse media check) on the organisation.</p>
-              </div>
-              <div className="flex flex-col space-y-2">
-                {
-                  reportStatus.asicExtract !== 'complete' && (
-                    <Button
-                      onClick={() => generateReport('asicExtract')}
-                      disabled={reportStatus.asicExtract === 'loading'}
-                      className="w-40"
-                    >
-                      {reportStatus.asicExtract === 'loading' ? 'Generating...' : 'Generate Report'}
-                    </Button>
-                  )}
-
-                {(reportStatus.asicExtract === 'complete' && reportData.asicExtract) && (
-                  <Button onClick={() => handleDownloadReport('asicExtract')} className="w-40">
-                    Download Report
-                  </Button>
-                )}
+        {kybStep === 1 && (
+          <>
+            <h2 className="text-2xl font-bold mb-4">Search Business</h2>
+            <div className="space-y-4">
+              <Label htmlFor="search" className="text-sm font-medium">Enter ABN or ACN</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  id="search"
+                  name="search"
+                  placeholder="Enter 11-digit ABN or 9-digit ACN"
+                  value={search}
+                  onChange={handleInputChange}
+                  maxLength={11}
+                />
+                <Button onClick={handleSearch} disabled={searchLoading || !isValidABNACN(search)}>
+                  {searchLoading ? <LogoLoading /> : 'Search'}
+                </Button>
               </div>
             </div>
 
-            <div className="border rounded-lg p-4 flex justify-between items-center">
-              <div className="flex-grow">
-                <h3 className="text-lg font-semibold">UBO Report</h3>
-                <p className="text-sm text-primary/80 mr-4">This report will identify the ultimate owner(s) of this company and help you understand what role (direct or indirect) individuals play within simple or complex corporate structures</p>
+            {searchResult && (
+              <div className="mt-6">
+                <p className='mb-2 text-sm font-medium text-primary/50'>We've found the following:</p>
+                <div className='border border-primary/20 rounded-md p-6'>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="col-span-2">
+                      <p className="text-sm font-medium text-primary/50">Name</p>
+                      <p className="text-base font-semibold text-primary/80">{searchResult.name}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-primary/50">ABN</p>
+                      <p className="text-base font-semibold text-primary/80">{searchResult.abn}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-primary/50">ACN</p>
+                      <p className="text-base font-semibold text-primary/80">{searchResult.acn || 'N/A'}</p>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="flex flex-col space-y-2">
-                {reportStatus.uboReport !== 'complete' && (
-                  <Button
-                    onClick={() => generateReport('uboReport')}
-                    className="w-40"
-                    disabled={reportStatus.uboReport === 'loading'}
-                  >
-                    {reportStatus.uboReport === 'loading' ? 'Generating...' : 'Generate Report'}
-                  </Button>
-                )}
+            )}
 
-                {(reportStatus.uboReport === 'complete' && reportData.uboReport) && (
-                  <Button onClick={() => handleDownloadReport('uboReport')} className="w-40">
-                    Download Report
-                  </Button>
-                )}
+            {searchResult && (
+              <div className='mt-4 text-right'>
+                <Button className='' onClick={() => handleBusinessDetail()} disabled={!searchResult || continueLoading}>
+                  {continueLoading ? <LogoLoading /> : 'Continue'}
+                </Button>
               </div>
+            )}
+          </>
+        )}
+
+        {kybStep === 2 && (
+          <>
+            <h2 className="text-2xl font-bold mb-4">Business Detail</h2>
+            <p className='text-sm text-primary/50 mb-4'>We've imported some of your business information from the ASIC registry. Please review and update any information that is incorrect.</p>
+            <form>
+              <div className="mb-8">
+                <label htmlFor="registered_name" className="block mb-2 font-medium text-lg">Full registered business name</label>
+                <Input
+                  id="registered_name"
+                  name="registered_name"
+                  value={businessDetail.registered_name}
+                  onChange={handleBusinessDetailFormInputChange}
+                />
+              </div>
+              <div className="mb-8">
+                <label htmlFor="ABN" className="block mb-2 font-medium text-lg">ABN</label>
+                <Input
+                  id="ABN"
+                  name="ABN"
+                  value={businessDetail.ABN}
+                  onChange={handleBusinessDetailFormInputChange}
+                />
+              </div>
+              <div className="mb-8">
+                <label htmlFor="ACN" className="block mb-2 font-medium text-lg">ACN</label>
+                <Input
+                  id="ACN"
+                  name="ACN"
+                  value={businessDetail.ACN}
+                  onChange={handleBusinessDetailFormInputChange}
+                />
+              </div>
+              <div className="mb-8">
+                <label htmlFor="date_registered_with_asic" className="block mb-2 font-medium text-lg">Date registered with ASIC</label>
+                <Input
+                  id="date_registered_with_asic"
+                  name="date_registered_with_asic"
+                  value={businessDetail.date_registered_with_asic}
+                  onChange={handleBusinessDetailFormInputChange}
+                />
+              </div>
+              <div className="mb-8">
+                <label htmlFor="state_registered_with_asic" className="block mb-2 font-medium text-lg">State registered with ASIC</label>
+                <Input
+                  id="state_registered_with_asic"
+                  name="state_registered_with_asic"
+                  value={businessDetail.state_registered_with_asic}
+                  onChange={handleBusinessDetailFormInputChange}
+                />
+              </div>
+            </form>
+
+            <div className='mt-4 text-right'>
+              <Button className='' onClick={() => handleAdditionalBusinessDetail()} disabled={continueLoading}>
+                {continueLoading ? <LogoLoading /> : 'Continue'}
+              </Button>
             </div>
-          </div>
-        </Card>
-      )}
+          </>
+        )}
+
+        {kybStep === 3 && (
+          <>
+            <h2 className="text-2xl font-bold mb-4">Additional Business Detail</h2>
+            <form>
+              <div className="mb-8">
+                <label htmlFor="sourceOfCapital" className="block mb-2 font-medium text-lg">Source of Capital</label>
+                <Input
+                  id="sourceOfCapital"
+                  name="sourceOfCapital"
+                  value={additionalBusinessDetail.sourceOfCapital}
+                  onChange={handleAdditionalBusinessDetailFormInputChange}
+                />
+              </div>
+              <div className="mb-8">
+                <label htmlFor="industry" className="block mb-2 font-medium text-lg">Industry</label>
+                <Input
+                  id="industry"
+                  name="industry"
+                  value={additionalBusinessDetail.industry}
+                  onChange={handleAdditionalBusinessDetailFormInputChange}
+                />
+              </div>
+              <div className="mb-8">
+                <label htmlFor="websiteUrl" className="block mb-2 font-medium text-lg">Website URL</label>
+                <Input
+                  id="websiteUrl"
+                  name="websiteUrl"
+                  value={additionalBusinessDetail.websiteUrl}
+                  onChange={handleAdditionalBusinessDetailFormInputChange}
+                />
+              </div>
+              <div className="mb-8">
+                <label htmlFor="socialMediaUrl" className="block mb-2 font-medium text-lg">Social Media URL</label>
+                <Input
+                  id="socialMediaUrl"
+                  name="socialMediaUrl"
+                  value={additionalBusinessDetail.socialMediaUrl}
+                  onChange={handleAdditionalBusinessDetailFormInputChange}
+                />
+              </div>
+              <div className="mb-8">
+                <label htmlFor="officePhone" className="block mb-2 font-medium text-lg">Office Phone</label>
+                <Input
+                  id="officePhone"
+                  name="officePhone"
+                  value={additionalBusinessDetail.officePhone}
+                  onChange={handleAdditionalBusinessDetailFormInputChange}
+                />
+              </div>
+            </form>
+
+            <div className='mt-4 text-right'>
+              <Button className='' onClick={() => handleSubmit()} disabled={continueLoading}>
+                {continueLoading ? <LogoLoading /> : 'Submit'}
+              </Button>
+            </div>
+          </>
+        )}
+
+        {kybStep === 4 && (
+          <>
+            <div className="text-center">
+              <h2 className="text-2xl font-bold mb-4">KYB Completed Successfully</h2>
+              <p className="text-lg text-green-600 mb-6">Your business verification process has been completed successfully.</p>
+              <Button onClick={() => {
+                router.push('/home')
+                setSearch('');
+                setSearchResult(null);
+                setBusinessDetail(defaultBusinessDetail);
+                setAdditionalBusinessDetail({
+                  sourceOfCapital: '',
+                  industry: '',
+                  websiteUrl: '',
+                  socialMediaUrl: '',
+                  officePhone: '',
+                });
+              }}>
+                Return to Home
+              </Button>
+            </div>
+          </>
+        )}
+      </Card>
     </div>
   );
 };
