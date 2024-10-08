@@ -163,12 +163,12 @@ export default function AuthRegister() {
     } else {
       // check if email is existed
       try {
-        const { data } = await axios.get(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/address/check`, {
+        const { data } = await axios.get(`${process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL}/address/`, {
           params: {
             email: username,
           }
         })
-        if (data.exists) {
+        if (data.success) {
           toast.error(t('emailAlreadySignedUp'))
           return
         }

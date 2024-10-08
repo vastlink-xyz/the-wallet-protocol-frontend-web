@@ -149,8 +149,8 @@ export default function Page() {
       })
       initInviteInfo(inviteInfo.id)
     } catch (error) {
-      console.error("Error registering:", error);
-      toast.error((error as any).message)
+      const errorInfo = handleError(error)
+      toast.error(errorInfo.message)
     } finally {
       setRegistering(false);
       setAuthenticating(false)
