@@ -1,6 +1,6 @@
 'use client'
 
-import { KYBFlow } from ".";
+import { KYBFlow } from "../components/kyb/index";
 
 export default function KYBFlowPage() {
   return (
