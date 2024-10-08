@@ -97,12 +97,7 @@ export function ProductCard({
     // kyb / kyc
     // We don't open products this way, as product id will be randomly generated. Please refer to `TODO 2024-10-08-001`
     if (p.category === 'Compliance' && checkPurchaseStatus(p) === 'active') {
-      log('p.id', p.id)
-      if (p.id === '000009') {
-        router.push('/marketplace/kyb-flow')
-      } else if (p.id === '000010') {
-        router.push('/marketplace/kyc-flow')
-      }
+      router.push(p.serviceUrl)
       return
     }
 
