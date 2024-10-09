@@ -61,6 +61,15 @@ export function ProductCard({
   }
 
   const handleClick = (p: any) => {
+    // product flow
+    if (p.products && p.followOrder && checkPurchaseStatus(p) === 'active') {
+      const params = new URLSearchParams()
+      params.set('flowId', p.id)
+      params.set('flowIndex', '0')
+      router.push(`${p.serviceUrl}?${params.toString()}`)
+      return
+    }
+
     // wallet connect
     if (p.integrationPoints.includes('walletconnect') && checkPurchaseStatus(p) === 'active') {
       if (isConnected) {
@@ -95,17 +104,8 @@ export function ProductCard({
     }
 
     // kyb / kyc
-    if (p.category === 'Compliance' && checkPurchaseStatus(p) === 'active') {
+    if (p.category === 'Compliance' && !p.products && checkPurchaseStatus(p) === 'active') {
       router.push(p.serviceUrl)
-      return
-    }
-
-    // product flow
-    if (p.category === 'ProductFlow' && checkPurchaseStatus(p) === 'active') {
-      const params = new URLSearchParams()
-      params.set('flowId', p.id)
-      params.set('flowIndex', '0')
-      router.push(`${p.serviceUrl}?${params.toString()}`)
       return
     }
 
