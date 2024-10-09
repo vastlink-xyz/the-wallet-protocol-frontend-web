@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,8 @@ import { LogoLoading } from '@/components/LogoLoading';
 import { KYBStatus } from './helper';
 import { mockBusinessDetail, mockEntityId, mockKybStep, mockSearchResult, mockSelectedBusiness } from './mock';
 import { ChevronLeft } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useFlowData } from './useFlowData';
 
 interface SearchResult {
   name: string;
@@ -67,6 +68,7 @@ export const AustralianKYBFlow: React.FC = () => {
   });
 
   const [entityId, setEntityId] = useState<string | null>(null);
+  const { flowId, flowIndex, serviceUrl, nextIndex } = useFlowData()
 
   const handleBack = () => {
     setKybStep(kybStep - 1);
@@ -210,6 +212,31 @@ export const AustralianKYBFlow: React.FC = () => {
       setContinueLoading(false);
     }
     log('additional business detail', additionalBusinessDetail)
+  }
+
+  const handleDone = async () => {
+    if (flowId && flowIndex) {
+      // continue to kyc
+      const params = new URLSearchParams()
+      params.set('flowId', flowId)
+      params.set('flowIndex', flowIndex)
+      if (nextIndex > 0) {
+        params.set('nextIndex', nextIndex.toString())
+      }
+      router.push(`${serviceUrl}?${params.toString()}`)
+    } else {
+      router.push('/home')
+      setSearch('');
+      setSearchResult(null);
+      setBusinessDetail(defaultBusinessDetail);
+      setAdditionalBusinessDetail({
+        sourceOfCapital: '',
+        industry: '',
+        websiteUrl: '',
+        socialMediaUrl: '',
+        officePhone: '',
+      });
+    }
   }
 
   return (
@@ -399,20 +426,10 @@ export const AustralianKYBFlow: React.FC = () => {
             <div className="text-center">
               <h2 className="text-2xl font-bold mb-4">KYB Completed Successfully</h2>
               <p className="text-lg text-green-600 mb-6">Your business verification process has been completed successfully.</p>
-              <Button onClick={() => {
-                router.push('/home')
-                setSearch('');
-                setSearchResult(null);
-                setBusinessDetail(defaultBusinessDetail);
-                setAdditionalBusinessDetail({
-                  sourceOfCapital: '',
-                  industry: '',
-                  websiteUrl: '',
-                  socialMediaUrl: '',
-                  officePhone: '',
-                });
-              }}>
-                Return to Home
+              <Button onClick={() => handleDone()}>
+                {
+                  flowId && flowIndex ? 'Continue to KYC' : 'Return to Home'
+                }
               </Button>
             </div>
           </>

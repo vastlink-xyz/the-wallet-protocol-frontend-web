@@ -75,6 +75,7 @@
       },
       "price": "价格",
       "currency": "TVWT",
+      "discount": "折扣",
       "purchased": "安装时间",
       "deleted": "卸载时间",
       "buttons": {

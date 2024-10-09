@@ -10,7 +10,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from 'react-toastify';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LogoLoading } from '@/components/LogoLoading';
-import { ProgressIndicator } from './ProgressIndicator';
 import { SearchableSelect } from "@/components/SearchableSelect"
 
 import api from '@/lib/api';
@@ -268,7 +267,6 @@ export const InternationalKYBFlow: React.FC = () => {
 
   return (
     <div>
-      <ProgressIndicator steps={["Search Business", "Select Business", "Generate Reports"]} currentStep={kybStep} />
 
       {kybStep === 1 && (
         <Card className="p-8">

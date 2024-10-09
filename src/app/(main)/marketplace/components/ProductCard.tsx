@@ -95,9 +95,17 @@ export function ProductCard({
     }
 
     // kyb / kyc
-    // We don't open products this way, as product id will be randomly generated. Please refer to `TODO 2024-10-08-001`
     if (p.category === 'Compliance' && checkPurchaseStatus(p) === 'active') {
       router.push(p.serviceUrl)
+      return
+    }
+
+    // product flow
+    if (p.category === 'ProductFlow' && checkPurchaseStatus(p) === 'active') {
+      const params = new URLSearchParams()
+      params.set('flowId', p.id)
+      params.set('flowIndex', '0')
+      router.push(`${p.serviceUrl}?${params.toString()}`)
       return
     }
 
@@ -230,15 +238,27 @@ export function ProductCard({
         {/* product description */}
         <p className="text-primary opacity-80 text-base mb-2 flex-grow">{p.description}</p>
 
-        {/* price */}
+        {/* price and discount */}
         {
           tab === 'all' && (
-            <div className="flex items-center justify-start mb-4">
-              <p className="text-primary text-sm font-medium mr-2">{t('price')}: </p>
-              <p className="text-brand-foreground">
-                <span className="text-lg font-extrabold text-brand-foreground inline-block mr-[4px]">{p.price}</span>
-                <span className="font-medium text-sm">{t('currency')}</span>
-              </p>
+            <div className="mb-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <p className="text-primary text-sm font-medium mr-2">{t('price')}: </p>
+                  <p className="text-brand-foreground">
+                    <span className="text-lg font-extrabold text-brand-foreground inline-block mr-[4px]">{p.price}</span>
+                    <span className="font-medium text-sm">{t('currency')}</span>
+                  </p>
+                </div>
+                {p.discount && (
+                  <div className="flex items-center mt-1">
+                    <p className="text-primary text-sm font-medium mr-2">{t('discount')}: </p>
+                    <p className="text-green-500 font-medium">
+                      {`${p.discount}%`}
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           )
         }

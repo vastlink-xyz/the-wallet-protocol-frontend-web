@@ -73,6 +73,7 @@
       },
       "price": "Price",
       "currency": "TVWT",
+      "discount": "Discount",
       "purchased": "Installed",
       "deleted": "Uninstalled",
       "buttons": {

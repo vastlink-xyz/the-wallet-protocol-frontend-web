@@ -1,16 +1,29 @@
 'use client'
 
 import { log } from "@/lib/utils"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useState, useRef } from "react"
 import '@/styles/frankieon-onesdk.css'
 import api from "@/lib/api"
 import { LogoLoading } from "@/components/LogoLoading"
 import { useRouter } from "next/navigation"
+import { useFlowData } from "@/app/(main)/marketplace/components/kyb/useFlowData"
+
+interface EventListener {
+  component: any;
+  eventName: string;
+  listener: (...args: any[]) => void;
+}
 
 export function KYC() {
   const router = useRouter()
+  const sdkComponentRef = useRef<any>(null);
+  const eventListenersRef = useRef<EventListener[]>([]);
+  const { serviceEndingUrl, nextIndex } = useFlowData()
+
   const [sdkInitialized, setSdkInitialized] = useState(false);
   const [scriptLoaded, setScriptLoaded] = useState(false);
+  const [flowId, setFlowId] = useState<string | null>(null);
+  const [flowIndex, setFlowIndex] = useState<string | null>(null);
 
   const loadScript = useCallback(() => {
     if (document.getElementById('frankieone-sdk')) {
@@ -30,6 +43,25 @@ export function KYC() {
   }, []);
 
   useEffect(() => {
+    return () => {
+      if (sdkComponentRef.current) {
+        // unmount all components
+        Object.values(sdkComponentRef.current).forEach((component: any) => {
+          component.unmount();
+          log('unmount', component)
+        });
+      }
+
+      if (eventListenersRef.current) {
+        // remove all event listeners
+        eventListenersRef.current.forEach(({ component, eventName, listener }) => {
+          component.off(eventName, listener);
+        });
+      }
+    }
+  }, [])
+
+  useEffect(() => {
     loadScript()
   }, [loadScript])
 
@@ -43,11 +75,19 @@ export function KYC() {
   }, [scriptLoaded])
 
   const fetchSession = async () => {
+    return {
+      "token": "eyJhbGciOiJIUzI1NiJ9.eyJkYXRhIjp7Im9yZ2FuaXNhdGlvbiI6eyJpZCI6MTE5OSwicGFyZW50SWQiOm51bGwsImN1c3RvbWVySWQiOiI0ZjBmMzg0Mi1lZGExLTVhZDctZGYzOC0wYzE5ODQzMTI3ZGYiLCJjdXN0b21lckNoaWxkSWQiOm51bGwsIm5hbWUiOiJtZWdhbGl0aCIsIm5pY2tOYW1lIjoibWVnYWxpdGgiLCJpc1Jvb3QiOnRydWUsInRpbWV6b25lIjoiQXVzdHJhbGlhL01lbGJvdXJuZSJ9LCJpc01hY2hpbmVUb2tlbiI6dHJ1ZSwicmVmZXJyZXIiOm51bGwsInBlcm1pc3Npb25zIjpbImNyZWF0ZTo6YXBwbGljYW50IiwidXBkYXRlOjphcHBsaWNhbnQ6cmVmZXJlbmNlOnRlc3QxIiwidmlldzo6YXBwbGljYW50OnJlZmVyZW5jZTp0ZXN0MSIsImxpc3Q6OmFwcGxpY2FudDpyZWZlcmVuY2U6dGVzdDEiLCJjcmVhdGU6Om9jcjpyZWZlcmVuY2U6dGVzdDEiLCJ1cGRhdGU6Om9jcjpyZWZlcmVuY2U6dGVzdDEiLCJ2aWV3OjpvY3J0b2tlbjpyZWZlcmVuY2U6dGVzdDEiLCJjcmVhdGU6OmlkdnByb2Nlc3M6cmVmZXJlbmNlOnRlc3QxIiwiZmZwb3J0YWxfdHJpZ2dlcl9leHRlcm5hbF9pZHYiLCJmZnBvcnRhbF9hcHBsaWNhbnRfbWlkdl91cGxvYWQiLCJmZnBvcnRhbF9hcHBsaWNhbnRfbWFudWFsX2t5Y191cGRhdGUiLCJjcmVhdGU6OmlkdnRva2VuIiwiY3JlYXRlOjpldmVudCJdLCJzZXNzaW9uSWQiOiI0ZGRiY2Q2MC1lYmI2LTQwZjYtODE2NC1mODNmNjM5OWY0ODMiLCJlbnZpcm9ubWVudCI6Imh0dHBzOi8vYmFja2VuZC5reWNhbWwudWF0LmZyYW5raWVmaW5hbmNpYWwuaW8iLCJyZWZlcmVuY2UiOiJ0ZXN0MSIsImV4dHJhRGF0YSI6bnVsbH0sImV4cCI6MTcyODQ0NjcyNn0.pI6QzNKqo7iejK1e9Jkf04YgV2yZXI7oJON9wqHgNbM"
+    }
     const response = await api.post('/marketplace/product/frankieone/get-session');
     const data = await response.data
     log("session", data)
     return data
   }
+
+  const addEventListenerWithCleanup = (component: any, eventName: string, listener: (...args: any[]) => void) => {
+    component.on(eventName, listener);
+    eventListenersRef.current.push({ component, eventName, listener });
+  };
 
   const init = async () => {
     const sessionObject = await fetchSession()
@@ -132,31 +172,38 @@ export function KYC() {
       cta: { label: 'Close' }
     });
 
+    sdkComponentRef.current = {
+      welcome,
+      consent,
+      personal,
+      document,
+      review,
+      retry,
+      result_fail,
+    }
+
     welcome.mount("#form-container");
-    welcome.on("form:welcome:ready", () => {
+    addEventListenerWithCleanup(welcome, "form:welcome:ready", () => {
       consent.mount("#form-container");
     });
-    welcome.on("form:welcome:failed", () => {
-      // display error message
-    });
 
-    consent.on("form:consent:ready", async () => {
+    addEventListenerWithCleanup(consent, "form:consent:ready", () => {
       personal.mount("#form-container");
     });
 
-    personal.on("form:personal:ready", async () => {
+    addEventListenerWithCleanup(personal, "form:personal:ready", () => {
       document.mount("#form-container");
     });
 
-    document.on("form:document:ready", async ({ inputInfo }: any) => {
+    addEventListenerWithCleanup(document, "form:document:ready", ({ inputInfo }: any) => {
       review.mount("#form-container");
     });
-    document.on("form:document:back", async ({ inputInfo }: any) => {
+    addEventListenerWithCleanup(document, "form:document:back", ({ inputInfo }: any) => {
       personal.mount("#form-container");
     });
 
     let count = 0;
-    review.on("form:result:partial", async () => {
+    addEventListenerWithCleanup(review, "form:result:partial", () => {
       if (count < 2) {
         retry.mount("#form-container");
         count += 1;
@@ -165,14 +212,14 @@ export function KYC() {
       }
     });
 
-    review.on("form:result:success", async () => {
+    addEventListenerWithCleanup(review, "form:result:success", async () => {
       log("review success")
       const { getValue } = individual.access('entityId')
       const entityId = getValue()
       await api.post('/marketplace/product/frankieone/save-kyc-entity-id', {
         entityId,
       })
-      router.push('/home')
+      router.push(`${serviceEndingUrl}`)
     });
   }
 
