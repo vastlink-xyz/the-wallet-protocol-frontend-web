@@ -335,3 +335,8 @@ export enum KYBStatus {
   VERIFIED = 'VERIFIED',
   UNVERIFIED = 'UNVERIFIED'
 }
+
+export enum KYCStatus {
+  VERIFIED = 'VERIFIED',
+  UNVERIFIED = 'UNVERIFIED'
+}

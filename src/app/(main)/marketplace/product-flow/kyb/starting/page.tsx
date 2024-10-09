@@ -7,7 +7,8 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { handleError, log } from '@/lib/utils'
 import { toast } from 'react-toastify'
 import api from '@/lib/api'
-import { useFlowData } from '@/app/(main)/marketplace/components/kyb/useFlowData'
+import { useFlowData } from '@/app/(main)/marketplace/kyb/components/useFlowData'
+import { ExternalLink } from 'lucide-react'
 
 export default function StartingPage() {
   const router = useRouter()
@@ -19,9 +20,22 @@ export default function StartingPage() {
     router.push(`${serviceUrl}?flowId=${flowId}&flowIndex=${nextIndex}`)
   }
 
+  const openInNewTab = () => {
+    window.open(window.location.href, '_blank');
+  };
+
   return (
-    <div className="max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Welcome to the Business Verification Flow</h1>
+    <div className="max-w-3xl mx-auto relative">
+      <h1 className="text-2xl font-bold mb-4">Welcome to the Business Verification Flow</h1>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="absolute top-0 right-2"
+        onClick={openInNewTab}
+        title="Open in new window"
+      >
+        <ExternalLink className="h-4 w-4" />
+      </Button>
       <Card>
         <CardContent className="pt-6">
           <p className="mb-6">

@@ -1,12 +1,15 @@
 'use client'
 
-import { log } from "@/lib/utils"
+import { handleError, log } from "@/lib/utils"
 import { useCallback, useEffect, useState, useRef } from "react"
 import '@/styles/frankieon-onesdk.css'
 import api from "@/lib/api"
 import { LogoLoading } from "@/components/LogoLoading"
 import { useRouter } from "next/navigation"
-import { useFlowData } from "@/app/(main)/marketplace/components/kyb/useFlowData"
+import { useFlowData } from "@/app/(main)/marketplace/kyb/components/useFlowData"
+import { toast } from "react-toastify"
+import { Button } from "@/components/ui/button"
+import { ExternalLink } from "lucide-react"
 
 interface EventListener {
   component: any;
@@ -214,17 +217,30 @@ export function KYC() {
 
     addEventListenerWithCleanup(review, "form:result:success", async () => {
       log("review success")
-      const { getValue } = individual.access('entityId')
-      const entityId = getValue()
-      await api.post('/marketplace/product/frankieone/save-kyc-entity-id', {
-        entityId,
-      })
-      router.push(`${serviceEndingUrl}`)
+      try {
+        const { getValue } = individual.access('entityId')
+        const entityId = getValue()
+        await api.post('/marketplace/product/frankieone/save-kyc-entity-id', {
+          entityId,
+        })
+        if (flowId && serviceEndingUrl) {
+          router.push(`${serviceEndingUrl}?flowId=${flowId}&step=${nextIndex}`)
+        } else {
+          router.push(`/home`)
+        }
+      } catch (error) {
+        const errorInfo = handleError(error)
+        toast.error(errorInfo.message)
+      }
     });
   }
 
+  const openInNewTab = () => {
+    window.open(window.location.href, '_blank');
+  };
+
   return (
-    <div className="pt-4">
+    <div className="pt-4 relative">
       {
         !sdkInitialized && (
           <div className="flex justify-center items-center h-screen">
@@ -232,6 +248,16 @@ export function KYC() {
           </div>
         )
       }
+
+      <Button
+        variant="ghost"
+        size="icon"
+        className="absolute top-4 right-2"
+        onClick={openInNewTab}
+        title="Open in new window"
+      >
+        <ExternalLink className="h-4 w-4" />
+      </Button>
       <div id="form-container"></div>
     </div>
   )

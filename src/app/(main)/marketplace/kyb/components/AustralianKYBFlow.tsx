@@ -49,7 +49,7 @@ interface AdditionalBusinessDetail {
   officePhone: string;
 }
 
-export const AustralianKYBFlow: React.FC = () => {
+export function AustralianKYBFlow() {
   const router = useRouter();
 
   const [kybStep, setKybStep] = useState(1);
