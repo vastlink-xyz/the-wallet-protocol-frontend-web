@@ -21,12 +21,10 @@ export function KYC() {
   const router = useRouter()
   const sdkComponentRef = useRef<any>(null);
   const eventListenersRef = useRef<EventListener[]>([]);
-  const { serviceEndingUrl, nextIndex } = useFlowData()
+  const { serviceEndingUrl, nextIndex, flowId } = useFlowData()
 
   const [sdkInitialized, setSdkInitialized] = useState(false);
   const [sdkReady, setSdkReady] = useState(false);
-  const [flowId, setFlowId] = useState<string | null>(null);
-  const [flowIndex, setFlowIndex] = useState<string | null>(null);
 
   const loadScript = useCallback(() => {
     if (document.getElementById('frankieone-sdk')) {

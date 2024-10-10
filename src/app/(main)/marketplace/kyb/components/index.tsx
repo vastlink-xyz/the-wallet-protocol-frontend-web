@@ -116,8 +116,8 @@ export function KYBFlow({
   if (isAustralianBusiness) {
     return <AustralianKYBFlow />;
   } else if (isAustralianBusiness === false) {
-    // return <InternationalKYBFlow />;
-    return <div>International KYB Flow</div>;
+    return <InternationalKYBFlow />;
+    // return <div>International KYB Flow</div>;
   }
 
   return <div>

@@ -1,34 +1,12 @@
 export const mockSearchResult = {
-    "legalNames": [],
-    "businessNames": [
-        {
-            "name": "SIDEBAR ESPRESSO",
-            "effectiveFrom": "2017-08-15"
-        },
-        {
-            "name": "GREENGROCER CYCLING",
-            "effectiveFrom": "2011-10-27"
-        }
-    ],
-    "historicalBusinessNames": [],
-    "mainNames": [
-        "GREEN GROCER CAFE PTY. LIMITED"
-    ],
-    "tradingNames": [
-        "GREEN GROCER CAFE PTY LIMITED"
-    ],
-    "score": null,
-    "state": "NSW",
-    "postalCode": "2580",
-    "type": "PRV",
-    "abn": "97120399448",
-    "acn": "120399448",
-    "isActive": false,
-    "abnStatus": {
-        "status": "Cancelled",
-        "effectiveFrom": "2024-08-07"
+    "Addresses": {
+        "Addresses": [
+            {}
+        ]
     },
-    "name": "GREEN GROCER CAFE PTY. LIMITED"
+    "Code": "26.692.9390001-58",
+    "CompanyID": "26.692.9390001-58",
+    "Name": "Soccer Esporte & Calcados LTDA"
 }
 
 export const mockBusinessDetail = {
@@ -174,7 +152,7 @@ export const mockSearchResults = [
     }
 ]
 
-export const mockCountry = 'IE'
+export const mockCountry = 'BR'
 
 export const mockRequestId = '01J8J8DW8DMBZMNB50ERRWTKPZ';
 

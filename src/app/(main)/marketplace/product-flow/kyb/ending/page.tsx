@@ -3,8 +3,12 @@
 import React from 'react';
 import { CheckCircle } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/navigation';
 
 export default function EndingPage() {
+  const router = useRouter()
+
   return (
     <Card className="w-full">
       <CardHeader>
@@ -22,6 +26,14 @@ export default function EndingPage() {
         <p className="text-center text-primary/50 mt-4">
           Thank you for your cooperation. You may now proceed with using our services.
         </p>
+
+        <div className="flex justify-center mt-4">
+          <Button onClick={() => {
+              router.push('/home')
+            }}>
+            Back to Home
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
