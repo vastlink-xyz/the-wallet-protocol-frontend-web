@@ -9,4 +9,9 @@ declare global {
 
   // Declare the OneSdk variable
   declare const OneSdk: any;
+
+  interface Window {
+    OneSdk?: any;
+  }
 }
+

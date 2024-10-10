@@ -10,7 +10,7 @@ import { KYCStatus } from "@/app/(main)/marketplace/kyb/components/helper";
 import { LogoLoading } from "@/components/LogoLoading";
 
 export default function KYCFlowPage() {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [verified, setVerified] = useState(false);
   const [verifedData, setVerifedData] = useState<any>(null);
 

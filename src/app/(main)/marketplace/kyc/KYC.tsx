@@ -24,14 +24,13 @@ export function KYC() {
   const { serviceEndingUrl, nextIndex } = useFlowData()
 
   const [sdkInitialized, setSdkInitialized] = useState(false);
-  const [scriptLoaded, setScriptLoaded] = useState(false);
+  const [sdkReady, setSdkReady] = useState(false);
   const [flowId, setFlowId] = useState<string | null>(null);
   const [flowIndex, setFlowIndex] = useState<string | null>(null);
 
   const loadScript = useCallback(() => {
     if (document.getElementById('frankieone-sdk')) {
-      // Script already loaded
-      setScriptLoaded(true);
+      setSdkReady(true);
       return;
     }
 
@@ -40,7 +39,16 @@ export function KYC() {
     script.id = 'frankieone-sdk';
     script.async = true;
     script.onload = () => {
-      setScriptLoaded(true);
+      setTimeout(() => {
+        if (typeof window.OneSdk !== 'undefined') {
+          setSdkReady(true);
+        } else {
+          console.error("OneSdk failed to initialize after load");
+        }
+      }, 100); // 100ms delay
+    };
+    script.onerror = (error) => {
+      console.error("Failed to load OneSdk script:", error);
     };
     document.body.appendChild(script);
   }, []);
@@ -65,17 +73,17 @@ export function KYC() {
   }, [])
 
   useEffect(() => {
-    loadScript()
-  }, [loadScript])
+    loadScript();
+  }, [loadScript]);
 
   useEffect(() => {
-    if (scriptLoaded && typeof OneSdk !== 'undefined') {
-      log("KYC", OneSdk)
+    if (sdkReady && typeof window.OneSdk !== 'undefined') {
+      log("KYC", window.OneSdk)
       init()
     } else {
-      log("OneSdk not found")
+      log("OneSdk not found", sdkReady, typeof window.OneSdk);
     }
-  }, [scriptLoaded])
+  }, [sdkReady]);
 
   const fetchSession = async () => {
     // return {
@@ -94,7 +102,7 @@ export function KYC() {
 
   const init = async () => {
     const sessionObject = await fetchSession()
-    const oneSdk = await OneSdk({
+    const oneSdk = await window.OneSdk({
       session: sessionObject,
       mode: 'development',
       recipe: {
