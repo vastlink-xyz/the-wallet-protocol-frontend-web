@@ -20,7 +20,7 @@ export function KYBFlow({
   };
 
   const openInNewTab = () => {
-    window.open('/kyb', '_blank');
+    window.open(window.location.href, '_blank');
   };
 
   const renderBusinessTypeConfirmation = () => (
@@ -44,12 +44,15 @@ export function KYBFlow({
       </div>
     </Card>
   );
+
+  const resetFlow = () => {
+    setIsAustralianBusiness(null);
+  };
   
   if (isAustralianBusiness) {
-    return <AustralianKYBFlow />;
+    return <AustralianKYBFlow resetFlow={resetFlow} />;
   } else if (isAustralianBusiness === false) {
-    // return <InternationalKYBFlow />;
-    return <div>International KYB Flow</div>;
+    return <InternationalKYBFlow resetFlow={resetFlow} />;
   }
   
   return renderBusinessTypeConfirmation();

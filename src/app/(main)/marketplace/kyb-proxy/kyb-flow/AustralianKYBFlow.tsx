@@ -39,7 +39,11 @@ interface ReportStatus {
   uboReport: 'idle' | 'loading' | 'complete' | 'error';
 }
 
-export const AustralianKYBFlow: React.FC = () => {
+export function AustralianKYBFlow({
+  resetFlow,
+}: {
+  resetFlow: () => void
+}) {
   const [loading, setLoading] = useState(false);
   const [kybStep, setKybStep] = useState(1);
   const [search, setSearch] = useState<string>('');
@@ -204,6 +208,7 @@ export const AustralianKYBFlow: React.FC = () => {
       {kybStep === 1 && (
         <Card className="p-8">
           <h2 className="text-2xl font-bold mb-4">Search for Business</h2>
+          <p className="text-sm text-primary/80 mb-4">Enter the business name, ABN, or ACN to search for the company you want to verify.</p>
           <div className="space-y-4">
             <Label htmlFor="search" className="text-sm font-medium">Enter Business Name or ABN / ACN</Label>
             <Input id="search" name="search" placeholder="Business name or ABN / ACN" onChange={handleInputChange} />
@@ -217,6 +222,7 @@ export const AustralianKYBFlow: React.FC = () => {
       {kybStep === 2 && (
         <Card className="p-8">
           <h2 className="text-2xl font-bold mb-4">Business Search Results</h2>
+          <p className="text-sm text-primary/80 mb-4">Select the correct business from the search results to proceed with report generation.</p>
           <Table>
             <TableHeader>
               <TableRow>
@@ -247,6 +253,11 @@ export const AustralianKYBFlow: React.FC = () => {
       {kybStep === 3 && selectedBusiness && (
         <Card className="p-8">
           <h2 className="text-2xl font-bold mb-4">Generate Reports for {selectedBusiness.name}</h2>
+          <div className="text-sm text-primary/80 mb-6 space-y-2">
+            <p>Choose which reports you'd like to generate for the selected business. You can generate one or both reports.</p>
+            <p>After generating the reports, download and review them carefully for your KYB process.</p>
+          </div>
+  
           <div className="space-y-4">
             <div className="border rounded-lg p-4 flex justify-between items-center">
               <div className="flex-grow">
@@ -296,6 +307,11 @@ export const AustralianKYBFlow: React.FC = () => {
                 )}
               </div>
             </div>
+          </div>
+
+          <div className="mt-6">
+            <Button onClick={resetFlow}>Search Another Business</Button>
+            <p className="text-sm text-primary/80 mt-2">Reset and start a new business search</p>
           </div>
         </Card>
       )}
