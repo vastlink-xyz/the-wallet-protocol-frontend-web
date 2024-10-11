@@ -7,7 +7,7 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { handleError, log } from '@/lib/utils'
 import { toast } from 'react-toastify'
 import api from '@/lib/api'
-import { useFlowData } from '@/app/(main)/marketplace/kyb/components/useFlowData'
+import { useFlowData } from '@/app/(main)/marketplace/kyb-self/components/useFlowData'
 import { ExternalLink } from 'lucide-react'
 
 export default function StartingPage() {

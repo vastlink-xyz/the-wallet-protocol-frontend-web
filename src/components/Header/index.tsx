@@ -22,7 +22,7 @@ export function Header() {
   const titleMapper: Record<string, string> = {
     '/home': t('overview'),
     '/marketplace': t('marketplace'),
-    '/marketplace/kyb-flow': 'KYB Flow',
+    '/marketplace/kyb-self': 'KYB Flow',
     '/marketplace/kyc-flow': 'KYC Flow',
     '/marketplace/multisig-setting': 'Multisig Setting',
   };

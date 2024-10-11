@@ -6,7 +6,7 @@ import { CheckCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
-import { KYCStatus } from "@/app/(main)/marketplace/kyb/components/helper";
+import { KYCStatus } from "@/app/(main)/marketplace/kyb-self/components/helper";
 import { LogoLoading } from "@/components/LogoLoading";
 
 export default function KYCFlowPage() {

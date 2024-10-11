@@ -6,7 +6,7 @@ import '@/styles/frankieon-onesdk.css'
 import api from "@/lib/api"
 import { LogoLoading } from "@/components/LogoLoading"
 import { useRouter } from "next/navigation"
-import { useFlowData } from "@/app/(main)/marketplace/kyb/components/useFlowData"
+import { useFlowData } from "@/app/(main)/marketplace/kyb-self/components/useFlowData"
 import { toast } from "react-toastify"
 import { Button } from "@/components/ui/button"
 import { ExternalLink } from "lucide-react"
