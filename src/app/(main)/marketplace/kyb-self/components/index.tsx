@@ -46,7 +46,7 @@ export function KYBFlow({
   };
 
   const openInNewTab = () => {
-    window.open('/kyb', '_blank');
+    window.open(window.location.href, '_blank');
   };
 
   const handleReVerify = () => {

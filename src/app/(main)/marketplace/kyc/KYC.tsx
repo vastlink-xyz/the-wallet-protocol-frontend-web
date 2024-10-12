@@ -229,6 +229,7 @@ export function KYC() {
         await api.post('/marketplace/product/frankieone/save-kyc-entity-id', {
           entityId,
         })
+        log('flowid', flowId, 'serviceEndingUrl', serviceEndingUrl)
         if (flowId && serviceEndingUrl) {
           router.push(`${serviceEndingUrl}?flowId=${flowId}&step=${nextIndex}`)
         } else {
