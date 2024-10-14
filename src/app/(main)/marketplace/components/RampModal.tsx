@@ -70,6 +70,7 @@ export function RampModal({
     }
 
     // set walletAddresses
+    // TODO by JJ: is there a way to verify the address again here to make sure it is the user's actual address from the private key, in order to avoid potential risks.
     const walletAddressesRaw = {
       'eth': address,
       'matic_polygon': address,
