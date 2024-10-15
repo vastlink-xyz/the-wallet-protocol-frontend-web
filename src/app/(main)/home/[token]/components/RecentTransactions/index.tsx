@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import { useTranslations } from 'next-intl'
 import axios from "axios";
-import { Address, formatEther } from "viem";
+import { Address, formatEther, isAddressEqual } from "viem";
 
 import { auth, formatDecimal, log, truncateMiddle } from "@/lib/utils";
 
@@ -83,7 +83,7 @@ export function RecentTransactions({
                   <TableRow key={tx.hash}>
                     <TableCell className="font-medium">
                       {
-                        tx.from === address ? (
+                        isAddressEqual(tx.from, address) ? (
                           <div className="border border-gray-400 rounded-full w-[32px] h-[32px] flex items-center justify-center">
                             <MoveUpRight size={14} />
                           </div>

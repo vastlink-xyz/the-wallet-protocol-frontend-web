@@ -179,6 +179,10 @@ export function RampModal({
     }
   }
 
+  const handleTransactionCreated = async (props: any) => {
+    log('transactionCreated', props)
+  }
+
   return (
     <Modal
       className={cn(
@@ -226,6 +230,7 @@ export function RampModal({
             }}
             onInitiateDeposit={handleInitiateDeposit}
             onUrlSignatureRequested={handleGetSignature}
+            onTransactionCreated={handleTransactionCreated}
           />
         )
       }
