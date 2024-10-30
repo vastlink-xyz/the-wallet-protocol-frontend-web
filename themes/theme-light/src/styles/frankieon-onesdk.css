@@ -1,0 +1,15 @@
+#form-container .f1-border-2 {
+    border-width: 0px;
+}
+
+#form-container .f1-w-full.ff-form-field .f1-w-full .f1-w-full.f1-bg-white.f1-border {
+    border-width: 0px;
+}
+
+#form-container input {
+    background-color: white;
+}
+
+#form-container .f1-text-tertiary-grey-700.ff-instructions .f1-flex.f1-items-start.f1-mb-4.ff-instruction-item:last-of-type {
+    display: none;
+}

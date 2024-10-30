@@ -1,0 +1,16 @@
+:root {
+  --toastify-toast-min-height: 22px;
+}
+
+.moonpay-widget__overlay-container {
+    z-index: 1147483647 !important;
+}
+
+.Toastify__toast-body {
+  padding: 0;
+}
+.Toastify__toast {
+  padding: 10px 16px;
+  box-shadow: 0px 2px 8px 0px rgba(0, 0, 0, 0.15);
+  border-radius: 2px;
+}
