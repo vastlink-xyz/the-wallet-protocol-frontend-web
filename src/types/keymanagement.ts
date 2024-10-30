@@ -1,5 +1,0 @@
-
-export enum KeyManagementServiceType {
-  PASSPORT = 'PASSPORT',
-  WEB3AUTH_WITH_MPC = 'WEB3AUTH_WITH_MPC',
-}

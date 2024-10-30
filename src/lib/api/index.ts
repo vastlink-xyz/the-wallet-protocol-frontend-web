@@ -1,14 +1,5 @@
-import axios, { AxiosResponse, AxiosError } from 'axios'
+import axios, { AxiosError } from 'axios'
 import { auth } from "@/lib/utils";
-import { toast } from 'react-toastify';
-import { useRouter } from 'next/navigation';
-
-// Create a router that can be used in non-React components
-let router: ReturnType<typeof useRouter> | null = null;
-
-export function setRouter(newRouter: ReturnType<typeof useRouter>) {
-  router = newRouter;
-}
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_WALLET_PROTOCAL_API_BASEURL,
@@ -37,15 +28,9 @@ api.interceptors.response.use(
       auth.clearAllAuthData();
       
       if (typeof window !== 'undefined') {
-        // Show toast notification
-        toast.error(errorMessage);
         // Redirect to login page using router
-        if (router) {
-          router.push('/');
-        } else {
-          console.warn('Router not set, falling back to window.location');
-          window.location.href = '/';
-        }
+        console.warn('Router not set, falling back to window.location');
+        window.location.href = '/';
       }
     }
     // Return the original error to preserve the error message

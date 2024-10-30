@@ -1,69 +1,34 @@
 import type { Metadata } from "next";
-import { Inter, Varela_Round } from "next/font/google";
-import "@/styles/globals.css";
-import { cn } from "@/lib/utils";
-import { Suspense } from "react";
-import ProgressBarProvider from "@/providers/ProgressBarProvider";
+import localFont from "next/font/local";
+import "./globals.css";
 
-import {NextIntlClientProvider} from 'next-intl';
-import {getLocale, getMessages} from 'next-intl/server';
-
-import 'react-toastify/dist/ReactToastify.css';
-import { WalletConnectPairProvider } from "@/providers/WalletConnectPairProvider";
-import { ThemeProvider } from "@/providers/ThemeProvider"
-import ThemeAwareToastContainer from "@/components/ThemeAwareToastContainer";
-import { UserSkinProvider } from "@/providers/UserSkinProvider";
-import { MoonPayProviderWrapper } from "@/providers/MoonPayProviderWrapper";
-
-const inter = Inter({
-  subsets: ["latin"]
+const geistSans = localFont({
+  src: "./fonts/GeistVF.woff",
+  variable: "--font-geist-sans",
+  weight: "100 900",
+});
+const geistMono = localFont({
+  src: "./fonts/GeistMonoVF.woff",
+  variable: "--font-geist-mono",
+  weight: "100 900",
 });
 
-const varela = Varela_Round({
-  weight: '400',
-  subsets: ['latin'],
-})
-
 export const metadata: Metadata = {
-  title: "Vast Wallet",
-  description: "Vast Wallet",
+  title: "Vastlink",
+  description: "Vastlink",
 };
 
-
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const locale = await getLocale();
-  const messages = await getMessages();
-
   return (
-    <html lang={locale} suppressHydrationWarning>
-      <body className={cn(varela.className, 'min-h-screen bg-white text-black', 'flex flex-col')}>
-        <main className="flex flex-col flex-grow">
-          <Suspense>
-          <NextIntlClientProvider messages={messages}>
-            <UserSkinProvider>
-              <ProgressBarProvider>
-                <WalletConnectPairProvider>
-                  <ThemeProvider
-                    attribute="class"
-                    enableSystem={true}
-                    defaultTheme="system"
-                  >
-                    <MoonPayProviderWrapper>
-                      {children}
-                    </MoonPayProviderWrapper>
-                    <ThemeAwareToastContainer />
-                  </ThemeProvider>
-                </WalletConnectPairProvider>
-              </ProgressBarProvider>
-            </UserSkinProvider>
-          </NextIntlClientProvider>
-          </Suspense>
-        </main>
-
+    <html lang="en">
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        {children}
       </body>
     </html>
   );

@@ -32,15 +32,17 @@ class Auth {
 
   clearAllAuthData(): void {
     for (const key in this.storages) {
+      // eslint-disable-next-line no-prototype-builtins
       if (this.storages.hasOwnProperty(key)) {
         this.storages[key as AuthStoreType].remove();
       }
     }
   }
-
+  
   all(): { [key in AuthStoreType]?: any } {
     const allData: { [key in AuthStoreType]?: any } = {};
     for (const key in this.storages) {
+      // eslint-disable-next-line no-prototype-builtins
       if (this.storages.hasOwnProperty(key)) {
         allData[key as AuthStoreType] = this.storages[key as AuthStoreType].getData();
       }

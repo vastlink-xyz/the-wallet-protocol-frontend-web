@@ -63,3 +63,5 @@ export class CustomStorage {
   //   }
   // }
 }
+
+export const languageStorage = new CustomStorage('language')
