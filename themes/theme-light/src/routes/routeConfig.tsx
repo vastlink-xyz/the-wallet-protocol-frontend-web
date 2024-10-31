@@ -15,11 +15,12 @@ import {
   MultisigSettingPage,
   FeatureDetailPage,
 
-  // KYB related
+  // KYB & KYC related
   KYBProxyPage,
   KYBSelfPage,
   ProductFlowKYBStartingPage,
   ProductFlowKYBEndingPage,
+  ProductKYCPage,
   
   // Invite related
   InviteTransferPage,
@@ -95,6 +96,10 @@ const router = createBrowserRouter([
           {
             path: 'kyb-self',
             element: <KYBSelfPage />,
+          },
+          {
+            path: 'kyc',
+            element: <ProductKYCPage />,
           },
           {
             path: 'product-flow',

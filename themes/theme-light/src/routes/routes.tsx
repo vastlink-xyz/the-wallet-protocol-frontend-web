@@ -12,11 +12,13 @@ export const MarketplacePage = lazy(() => import('@/pages/marketplace/page'))
 export const MultisigSettingPage = lazy(() => import('@/pages/marketplace/multisig-setting/page'))
 export const SearchResultPage = lazy(() => import('@/pages/marketplace/search-result/page'))
 export const FeatureDetailPage = lazy(() => import('@/pages/marketplace/feature-detail/page'))
-// KYB
+
+//  KYB & KYC
 export const KYBProxyPage = lazy(() => import('@/pages/marketplace/kyb-proxy/page'))
 export const KYBSelfPage = lazy(() => import('@/pages/marketplace/kyb-self/page'))
 export const ProductFlowKYBStartingPage = lazy(() => import('@/pages/marketplace/product-flow/kyb/starting/page'))
 export const ProductFlowKYBEndingPage = lazy(() => import('@/pages/marketplace/product-flow/kyb/ending/page'))
+export const ProductKYCPage = lazy(() => import('@/pages/marketplace/kyc/page'))
 
 // invite
 export const InviteTransferPage = lazy(() => import('@/pages/invite/transfer'))
