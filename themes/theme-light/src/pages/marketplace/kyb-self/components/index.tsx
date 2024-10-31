@@ -7,7 +7,7 @@ import { AustralianKYBFlow } from "./AustralianKYBFlow";
 import { CheckCircle, ExternalLink, RefreshCw } from "lucide-react";
 import { InternationalKYBFlow } from "./InternationalKYBFlow";
 import api from "@/lib/api";
-import { log } from "@/lib/utils";
+import { cn, log } from "@/lib/utils";
 import { KYBStatus } from "./helper";
 import { LogoLoading } from "@/components/LogoLoading";
 
@@ -54,16 +54,16 @@ export function KYBFlow({
   };
 
   const renderBusinessTypeConfirmation = () => (
-    <Card className="p-8 relative">
+    <div className="p-0 relative">
       {showExternalLink && (
         <Button
           variant="ghost"
-        size="icon"
-        className="absolute top-2 right-2"
-        onClick={openInNewTab}
-        title="Open in new window"
-      >
-        <ExternalLink className="h-4 w-4" />
+          size="icon"
+          className="absolute top-2 right-2"
+          onClick={openInNewTab}
+          title="Open in new window"
+        >
+          <ExternalLink className="h-4 w-4" />
         </Button>
       )}
       <h2 className="text-2xl font-bold mb-4">Confirm Business Type</h2>
@@ -72,39 +72,46 @@ export function KYBFlow({
         <Button onClick={() => handleBusinessTypeSelection(true)}>Yes, Australian Business</Button>
         <Button onClick={() => handleBusinessTypeSelection(false)}>No, International Business</Button>
       </div>
-    </Card>
+    </div>
   );
 
   const renderVerifiedStatus = () => (
-    <Card className="w-full">
-      <CardHeader>
-        <div className="flex items-center justify-center mb-4">
-          <CheckCircle className="w-16 h-16 text-green-500" />
-        </div>
-        <CardTitle className="text-2xl font-bold text-center text-primary">
-          Verification Complete
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-center text-primary/80 mb-4">
-          Your business has been successfully verified.
+    <>
+      <div className="mt-[48px] mb-[27px] text-center text-black text-[28px] font-bold leading-[36.96px]">
+        Verification Complete
+      </div>
+
+      <div className="h-4 flex justify-center items-center">
+        <p className="text-center">
+          <span className="text-[#979797] text-sm font-medium font-['Roboto'] leading-none">Your business has been successfully verified.</span>
         </p>
-        <p className="text-center text-primary/80 mb-2">
-          <span className="font-semibold">Business Name:</span> {verifedData.businessName}
+      </div>
+
+      <div className="p-4 text-[#979797] text-sm font-medium font-['Roboto'] leading-none">
+        <p className="text-center mb-2">
+          <span className="font-medium">Business Name:</span> {verifedData.businessName}
         </p>
-        <p className="text-center text-primary/80">
-          <span className="font-semibold">Verification Time:</span> {verifedData.verificationTimestamp}
+        <p className="text-center">
+          <span className="font-medium">Verification Time:</span> {verifedData.verificationTimestamp}
         </p>
-      </CardContent>
-      <CardFooter className="flex justify-center">
-        <Button 
-          onClick={() => handleReVerify()} 
-          className="flex items-center justify-center"
+      </div>
+
+      <div className={cn([
+        'tablet:w-[548px] w-[334px]',
+        'tablet:px-4 px-0',
+        'mt-[56px] mx-auto',
+        'flex flex-col items-center'
+      ])}>
+        <img src="/imgs/icons/success_added.png" alt="success" />
+
+        <Button
+          className="w-full mt-[46px]"
+          onClick={() => handleReVerify()}
         >
           <RefreshCw className="mr-2 h-4 w-4" /> Re-verify Business
         </Button>
-      </CardFooter>
-    </Card>
+      </div>
+    </>
   );
 
   if (isLoading) {

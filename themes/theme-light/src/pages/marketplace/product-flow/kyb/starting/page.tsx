@@ -22,19 +22,21 @@ export default function StartingPage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto relative">
-      <h1 className="text-2xl font-bold mb-4">Welcome to the Business Verification Flow</h1>
+    <div className="max-w-3xl mx-auto relative mt-[120px]">
+      <div className="mt-[48px] mb-[27px] text-center text-black text-[28px] font-bold leading-[36.96px]">
+        Welcome to the Business Verification Flow
+      </div>
       <Button
         variant="ghost"
-        size="icon"
-        className="absolute top-0 right-2"
+        size="lg"
+        className="absolute -top-10 right-2"
         onClick={openInNewTab}
         title="Open in new window"
       >
         <ExternalLink className="h-4 w-4" />
       </Button>
-      <Card>
-        <CardContent className="pt-6">
+      <div className="px-6">
+        <div className="pt-6">
           <p className="mb-6">
             This flow consists of two main parts: Know Your Business (KYB) and Know Your Customer (KYC). We'll guide you through each part to ensure a smooth verification experience.
           </p>
@@ -52,13 +54,13 @@ export default function StartingPage() {
           <p className="mb-6">
             The entire flow typically takes 15-20 minutes. You can save your progress and continue later if needed.
           </p>
-        </CardContent>
-        <CardFooter>
+        </div>
+        <div className="mt-6">
           <Button onClick={handleStart} disabled={isLoading} className="w-full">
             {isLoading ? 'Preparing...' : 'Start Verification Flow'}
           </Button>
-        </CardFooter>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 }

@@ -62,7 +62,7 @@ export function Detail({
       'tablet:mt-[76px] mt-[34px]',
       'mx-auto',
     ])}>
-      <div className="text-black text-sm font-normal leading-none">Version {product?.version}</div>
+      <div className="text-black text-sm font-bold leading-none mb-2">Version {product?.version}</div>
       <div className="text-black text-sm font-normal leading-none">{product?.description}</div>
     </div>
 
