@@ -1,5 +1,3 @@
-'use client'
-
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { log } from "@/lib/utils";
