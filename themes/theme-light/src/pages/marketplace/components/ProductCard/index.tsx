@@ -105,7 +105,7 @@ export function ProductCard({
     <div
       className={cn([
         'laptop:w-[392px] tablet:w-[346px] mobile:w-[346px] w-[346px]',
-        'h-[200px] p-5 bg-white rounded-[20px] border border-[#ebebeb] relative overflow-hidden',
+        'h-[200px] p-5 bg-white rounded-[20px] border-[1.5px] border-[#ebebeb] relative overflow-hidden',
         'hover:border-[#111111] cursor-pointer',
         className
       ])}

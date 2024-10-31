@@ -100,7 +100,6 @@ export default function MarketplacePage() {
       'desktop:w-[1224px] laptop:w-[936px] tablet:w-[720px] w-[346px]',
       'mx-auto pb-12'
     ])}>
-      {loading && <Loading />}
 
       <SearchInput
         className="my-[52px] mx-auto"

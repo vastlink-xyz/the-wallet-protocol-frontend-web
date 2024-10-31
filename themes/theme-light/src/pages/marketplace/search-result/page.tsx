@@ -54,8 +54,6 @@ export default function SearchResultPage() {
         }}
       />
 
-      {loading && <Loading />}
-
       <ContentContainer>
         <SearchInput
           className="mb-[52px] mt-[24px] mx-auto"
