@@ -1,6 +1,7 @@
 import { Header } from "@/components/Header"
 import ChatBot from '@/components/ChatBot'
 import { Outlet } from "react-router-dom"
+import { MarketplaceProvider } from "@/providers/MarketplaceProvider"
 
 export default function MainLayout() {
   return (
@@ -18,7 +19,9 @@ export default function MainLayout() {
         </div>
       </div> */}
       <div className='flex-grow'>
-        <Outlet />
+        <MarketplaceProvider>
+          <Outlet />
+        </MarketplaceProvider>
       </div>
 
       <ChatBot />

@@ -25,7 +25,7 @@ export function HeaderActions() {
           'justify-start items-center gap-6'
         )}>
           <div className="py-2 justify-start items-center gap-2 flex">
-            <div className="text-[#a1a1a1] text-sm font-medium leading-none">Learn</div>
+            <div className="text-[#a1a1a1] text-base font-medium leading-none">Learn</div>
           </div>
         </div>
 
@@ -37,8 +37,8 @@ export function HeaderActions() {
             onOpenChange={setOpen}
           >
             <DropdownMenuTrigger asChild>
-              <button className="w-5 h-5 flex items-center justify-center">
-                <img src="/imgs/icons/menu.svg" className="w-5 h-5" />
+              <button className="w-6 h-6 flex items-center justify-center">
+                <img src="/imgs/icons/menu.svg" className="w-6 h-6" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="bg-white border-none">
@@ -73,7 +73,7 @@ export function HeaderActions() {
           'flex tablet:hidden laptop:flex',
           'justify-start items-center gap-6 flex-shrink-0'
         )}>
-          <img className="w-[20px] h-[20px] flex-shrink-0" src="/imgs/icons/profile.png" />
+          <img className="w-[24px] h-[24px] flex-shrink-0" src="/imgs/icons/profile.png" />
         </div>
 
         <div className={cn(
@@ -86,7 +86,7 @@ export function HeaderActions() {
           'hidden laptop:flex',
           'justify-start items-start gap-6 flex-shrink-0'
         )}>
-          <img className="w-[20px] h-[20px] flex-shrink-0" src="/imgs/icons/message.svg" />
+          <img className="w-[24px] h-[24px] flex-shrink-0" src="/imgs/icons/message.svg" />
         </div>
 
         <div className={cn(

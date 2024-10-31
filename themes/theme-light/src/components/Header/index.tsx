@@ -33,7 +33,7 @@ export function Header() {
   const currentRouteName = currentRoute?.name || routes[0].name // default show first route name
 
   return <div className={cn(
-    'w-full h-[52px] bg-[#111111] shadow justify-between items-center inline-flex',
+    'w-full h-[60px] bg-[#111111] shadow justify-between items-center inline-flex',
     'tablet:px-10 px-4'
   )}>
     <div className="items-center flex">
@@ -43,7 +43,7 @@ export function Header() {
       )}>
         <img src="/imgs/logos/logo.svg" />
         <div className={cn(
-          'text-white text-xl font-bold font-["Roboto_Mono"] leading-none',
+          'text-white text-xl font-bold font-["Roboto_Mono"] leading-4',
           'hidden tablet:block'
         )}>Vastlink</div>
       </div>

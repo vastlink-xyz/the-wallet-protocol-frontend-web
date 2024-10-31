@@ -22,9 +22,12 @@ export const PurchaseModal: React.FC<ModalProps> = ({ isOpen, onClose, product, 
   const [isPurchasing, setIsPurchasing] = useState(false)
   const { signTransaction, waitForTransactionExection } = useTransaction()
   const { t } = useTranslation()
+  const finalPrice = product.discount 
+    ? product.price * (1 - product.discount / 100)
+    : product.price
 
   const handlePurchase = async () => {
-    if (parseEther(balance) < parseEther(String(product.price))) {
+    if (parseEther(balance) < parseEther(String(finalPrice))) {
       toast.error(t('/marketplace.productCard.insufficientBalance'))
       return
     }
@@ -85,7 +88,7 @@ export const PurchaseModal: React.FC<ModalProps> = ({ isOpen, onClose, product, 
           </header>
 
           <div className="p-6 border-b border-[#EBEBEB]">
-            <div className="text-black text-sm font-normal leading-none">{balance}V will be deducted from your Asset. This is a monthly recurring charge.You can find the purchased product under the "Added" tab in the Marketplace. To manage your subscription, go to the "Profile" page, navigate to "Purchases," and select "Manage."</div>
+            <div className="text-black text-sm font-normal leading-none">{finalPrice}V will be deducted from your Asset. This is a monthly recurring charge.You can find the purchased product under the "Added" tab in the Marketplace. To manage your subscription, go to the "Profile" page, navigate to "Purchases," and select "Manage."</div>
           </div>
 
           <footer className="flex justify-end items-center gap-2 px-5 py-[14px]">
@@ -109,7 +112,7 @@ export const PurchaseModal: React.FC<ModalProps> = ({ isOpen, onClose, product, 
         <div className="bg-background text-primary rounded-[6px] w-full">
           <div className="px-6 py-7 border-b border-[#EBEBEB]">
             <p className="text-black text-lg font-bold font-['Roboto'] leading-normal mb-2">Confirmation</p>
-            <div className="text-black text-sm font-normal leading-tight">{balance}V will be deducted from your Asset. This is a monthly recurring charge.You can find the purchased product under the "Added" tab in the Marketplace. To manage your subscription, go to the "Profile" page, navigate to "Purchases," and select "Manage."</div>
+            <div className="text-black text-sm font-normal leading-tight">{finalPrice}V will be deducted from your Asset. This is a monthly recurring charge.You can find the purchased product under the "Added" tab in the Marketplace. To manage your subscription, go to the "Profile" page, navigate to "Purchases," and select "Manage."</div>
           </div>
 
           <footer className="">

@@ -93,8 +93,7 @@ export default function MarketplacePage() {
     });
   }
 
-  return <MarketplaceProvider>
-
+  return (
     <div className={cn([
       'desktop:w-[1224px] laptop:w-[936px] tablet:w-[720px] w-[346px]',
       'mx-auto pb-12'
@@ -144,5 +143,5 @@ export default function MarketplacePage() {
 
       <ScrollToTop />
     </div>
-  </MarketplaceProvider>
+  )
 }

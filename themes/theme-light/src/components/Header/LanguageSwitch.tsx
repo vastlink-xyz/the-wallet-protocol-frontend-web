@@ -135,7 +135,7 @@ export function LanguageSwitch({
         {/* desktop */}
         <img
           className={cn(
-            'w-[20px] h-[20px] cursor-pointer',
+            'w-[24px] h-[24px] cursor-pointer',
             'hidden laptop:flex'
           )}
           src="/imgs/icons/language.svg"

@@ -34,7 +34,7 @@ export function NavigationMenu({ routes, currentRouteName }: NavigationMenuProps
               key={route.name}
             >
               <Link className={cn(
-                "text-[#a1a1a1] text-sm font-medium leading-none cursor-pointer",
+                "text-[#a1a1a1] text-base font-medium leading-none cursor-pointer",
                 actived && 'text-white'
               )} to={route.href}>
                 {route.name}
@@ -52,7 +52,7 @@ export function NavigationMenu({ routes, currentRouteName }: NavigationMenuProps
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <div className="h-7 justify-start items-center gap-1 inline-flex">
-              <div className="text-neutral-50 text-sm font-medium leading-none">
+              <div className="text-neutral-50 text-base font-medium leading-none">
                 {currentRouteName}
               </div>
               <img src="/imgs/icons/center_down.svg" />

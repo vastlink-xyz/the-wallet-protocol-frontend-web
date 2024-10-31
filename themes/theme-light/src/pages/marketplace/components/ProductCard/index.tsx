@@ -166,12 +166,12 @@ export function ProductCard({
               }
               {/* discounted price */}
               <span className="text-[#111111] text-base font-bold leading-none ml-1">
-                {product.discount ? product.price * (product.discount / 100) : product.price} V
+                {product.discount ? product.price * (100 - product.discount) / 100 : product.price} V
               </span>
               {/* discount */}
               {product.discount && (
                 <div className="ml-1 h-4 px-2 py-[5px] bg-black/5 rounded-[54px] justify-center items-center gap-2.5 inline-flex">
-                  <div className="text-center text-black text-xs font-medium leading-none">-{100 - product.discount}%</div>
+                  <div className="text-center text-black text-xs font-medium leading-none">-{product.discount}%</div>
                 </div>
               )}
             </div>
