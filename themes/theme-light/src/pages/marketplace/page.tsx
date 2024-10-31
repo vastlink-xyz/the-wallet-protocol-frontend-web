@@ -110,7 +110,10 @@ export default function MarketplacePage() {
       <Banner />
 
       {/* Title outside of sticky container */}
-      <div className="mt-[60px] mb-[16px] text-black text-[28px] font-bold leading-[36.96px]">
+      <div className={cn([
+        'mt-[60px] mb-[16px] text-black text-[28px] font-bold leading-[36.96px]',
+        'desktop:w-[1224px] laptop:w-[816px] mx-auto'
+      ])}>
         All features
       </div>
 

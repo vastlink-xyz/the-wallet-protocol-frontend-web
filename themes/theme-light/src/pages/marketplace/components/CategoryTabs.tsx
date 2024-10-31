@@ -80,7 +80,10 @@ export function CategoryTabs({
   };
 
   return (
-    <div className="relative w-full">
+    <div className={cn([
+      'relative w-full',
+      'desktop:w-[1224px] laptop:w-[816px] mx-auto'
+    ])}>
       {showLeftArrow && (
         <button 
           onClick={scrollLeft}
