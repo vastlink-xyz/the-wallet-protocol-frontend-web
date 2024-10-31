@@ -49,7 +49,7 @@ export function ProductCard({
       navigate(`/marketplace/feature-detail/${product.id}`)
       return
     }
-    
+
     // mark as viewed
     if ((product as PurchasedProduct).unread) {
       try {
@@ -102,84 +102,90 @@ export function ProductCard({
   }
 
   return (
-    <div
-      className={cn([
-        'laptop:w-[392px] tablet:w-[346px] mobile:w-[346px] w-[346px]',
-        'h-[200px] p-5 bg-white rounded-[20px] border-[1.5px] border-[#ebebeb] relative overflow-hidden',
-        'hover:border-[#111111] cursor-pointer',
-        className
-      ])}
-      onClick={() => handleClick()}
-    >
-      {/* featured or free tag */}
-      {product.isFeatured ? <Tag variant="featured" /> : product.price === 0 && <Tag variant="free" />}
+    <TooltipProvider>
+      <Tooltip delayDuration={100}>
+        <TooltipTrigger asChild>
+          <div
+            className={cn([
+              'laptop:w-[392px] tablet:w-[346px] mobile:w-[346px] w-[346px]',
+              'h-[200px] p-5 bg-white rounded-[20px] border-[1.5px] border-[#ebebeb] relative overflow-hidden',
+              'hover:border-[#111111] cursor-pointer',
+              className
+            ])}
+            onClick={() => handleClick()}
+          >
+            {/* featured or free tag */}
+            {product.isFeatured ? <Tag variant="featured" /> : product.price === 0 && <Tag variant="free" />}
 
-      {/* logo and title */}
-      <div className="justify-start items-center gap-4 inline-flex mb-5">
-        <img src={product.logoUrl} alt={product.name} className="w-[52px] h-[52px] object-contain rounded-full" />
-        <div className="flex-col justify-center items-start inline-flex">
-          <div className="text-[#111111] text-base font-bold leading-normal">{product.name}</div>
-          <div className="h-4 p-0.5 bg-[#f2f2f2] rounded-sm justify-center items-center gap-2.5 inline-flex">
-            <div className="text-[#4f4f4f] text-[10px] font-normal leading-none">{product.category}</div>
-          </div>
-        </div>
-      </div>
+            {/* logo and title */}
+            <div className="justify-start items-center gap-4 inline-flex mb-5">
+              <img src={product.logoUrl} alt={product.name} className="w-[52px] h-[52px] object-contain rounded-full" />
+              <div className="flex-col justify-center items-start inline-flex">
+                <div className="text-[#111111] text-base font-bold leading-normal">{product.name}</div>
+                <div className="h-4 p-0.5 bg-[#f2f2f2] rounded-sm justify-center items-center gap-2.5 inline-flex">
+                  <div className="text-[#4f4f4f] text-[10px] font-normal leading-none">{product.category}</div>
+                </div>
+              </div>
+            </div>
 
-      {/* description */}
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
+            {/* description */}
             <div className="self-stretch max-h-[32px] text-[#828282] text-sm font-normal leading-4 line-clamp-2">
               {product.description}
             </div>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p className="max-w-[300px] break-words">{product.description}</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
 
-      {/* developer */}
-      <div className="h-4 flex items-center mt-1 mb-5">
-        <span className="text-[#979797] text-sm font-normal inline-block mr-1">Developer:</span>
-        <span
-          className="text-black text-sm font-bold underline cursor-pointer"
-          onClick={() => {
-            window.open(product.website, '_blank')
-          }}
-        >
-          {product.vendor}
-        </span>
-      </div>
+            {/* developer */}
+            <div className="h-4 flex items-center mt-1 mb-5">
+              <span className="text-[#979797] text-sm font-normal inline-block mr-1">Developer:</span>
+              <span
+                className="text-black text-sm font-bold underline cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.open(product.website, '_blank')
+                }}
+              >
+                {product.vendor}
+              </span>
+            </div>
 
-      {/* price */}
-      <div className="absolute bottom-5 right-5 h-4 flex items-center">
-        {/* added */}
-        {
-          selectedCategory === 'Added' && (
-            <span className="text-[#c4c4c4] text-sm font-medium leading-none inline-block mr-[10px]">Added</span>
-          )
-        }
-        <span className="text-[#979797] text-sm font-medium leading-none">Price: </span>
-        {/* original price */}
-        {
-          product.discount && (
-            <>
-              <span className="text-[#979797] text-sm font-normal line-through leading-none">{product.price} V</span>
-            </>
-          )
-        }
-        {/* discounted price */}
-        <span className="text-[#111111] text-base font-bold leading-none ml-1">
-          {product.discount ? product.price * (product.discount / 100) : product.price} V 
-        </span>
-        {/* discount */}
-        {product.discount && (
-          <div className="ml-1 h-4 px-2 py-[5px] bg-black/5 rounded-[54px] justify-center items-center gap-2.5 inline-flex">
-            <div className="text-center text-black text-xs font-medium leading-none">-{100 - product.discount}%</div>
+            {/* price */}
+            <div className="absolute bottom-5 right-5 h-4 flex items-center">
+              {/* added */}
+              {
+                selectedCategory === 'Added' && (
+                  <span className="text-[#c4c4c4] text-sm font-medium leading-none inline-block mr-[10px]">Added</span>
+                )
+              }
+              <span className="text-[#979797] text-sm font-medium leading-none">Price: </span>
+              {/* original price */}
+              {
+                product.discount && (
+                  <>
+                    <span className="text-[#979797] text-sm font-normal line-through leading-none">{product.price} V</span>
+                  </>
+                )
+              }
+              {/* discounted price */}
+              <span className="text-[#111111] text-base font-bold leading-none ml-1">
+                {product.discount ? product.price * (product.discount / 100) : product.price} V
+              </span>
+              {/* discount */}
+              {product.discount && (
+                <div className="ml-1 h-4 px-2 py-[5px] bg-black/5 rounded-[54px] justify-center items-center gap-2.5 inline-flex">
+                  <div className="text-center text-black text-xs font-medium leading-none">-{100 - product.discount}%</div>
+                </div>
+              )}
+            </div>
           </div>
-        )}
-      </div>
-    </div>
+        </TooltipTrigger>
+        <TooltipContent
+          side="top"
+          align="center"
+          alignOffset={0}  // justify-center
+          sideOffset={-80}    // make it align with the description
+        >
+          <p className="max-w-[300px] break-words">{product.description}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }

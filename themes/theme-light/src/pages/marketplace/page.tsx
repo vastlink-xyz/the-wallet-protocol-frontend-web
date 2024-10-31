@@ -11,7 +11,6 @@ import { usePagination } from '@/components/Pagination/usePagination';
 import api from '@/lib/api';
 import { toast } from 'react-toastify';
 import { CATEGORIES, Category, IProduct, SearchProductsParams } from '@/pages/marketplace/types';
-import { Loading } from '@/components/Loading';
 import { Empty } from "@/components/Empty";
 import { MarketplaceProvider } from '@/providers/MarketplaceProvider';
 import { ScrollToTop } from '@/components/ScrollToTop';
