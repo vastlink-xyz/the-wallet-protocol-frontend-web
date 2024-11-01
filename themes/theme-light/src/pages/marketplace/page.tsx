@@ -115,7 +115,7 @@ export default function MarketplacePage() {
       </div>
 
       {/* Sticky container only for tabs */}
-      <div className="sticky top-[0px] bg-white z-20 mb-8">
+      <div className="sticky top-[16px] bg-white z-20 mb-8">
         <CategoryTabs
           onSelect={handleCategorySelect}
           selectedValue={selectedCategory}

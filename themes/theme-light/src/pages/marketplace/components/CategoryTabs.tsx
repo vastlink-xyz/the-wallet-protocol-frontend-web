@@ -21,6 +21,7 @@ export function CategoryTabs({
   const [showRightArrow, setShowRightArrow] = useState(false);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [isSticky, setIsSticky] = useState(false);
 
   const updateArrows = () => {
     const container = scrollContainerRef.current;
@@ -79,61 +80,86 @@ export function CategoryTabs({
     }
   };
 
+  useEffect(() => {
+    const handleScroll = () => {
+      const container = scrollContainerRef.current;
+      if (container) {
+        const { top } = container.getBoundingClientRect();
+        // need to be same as the parent container's top
+        setIsSticky(top <= 16);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
-    <div className={cn([
-      'relative w-full',
-      'desktop:w-[1224px] laptop:w-[816px] mx-auto'
-    ])}>
-      {showLeftArrow && (
-        <button 
-          onClick={scrollLeft}
-          className="absolute left-0 top-0 h-full flex items-center z-10"
-        >
-          <div className="bg-gradient-to-r from-white via-white to-transparent h-full flex items-center">
-            <ChevronLeft className="w-5 h-5 text-gray-500" />
-          </div>
-        </button>
+    <>
+      {/* Sticky background layer */}
+      {isSticky && (
+        <div className="fixed top-0 left-0 right-0 h-[68px] bg-white shadow z-30" />
       )}
+      
+      {/* Original tabs container */}
       <div 
-        ref={scrollContainerRef}
-        className="w-full h-9 flex items-center gap-7 overflow-x-auto scrollbar-hide"
+        className={cn([
+          'w-full sticky z-40',  // 提高 z-index
+          'desktop:w-[1224px] laptop:w-[816px] mx-auto',
+        ])}
+        style={{ top: isSticky ? '16px' : 0 }}
       >
-        {categories.map((category, index) => {
-          const isActive = selectedValue === category;
-          return (
-            <div 
-              key={index}
-              onClick={() => onSelect?.(category)}
-              className={cn(
-                "text-center text-sm font-medium font-['Roboto'] leading-none whitespace-nowrap relative shrink-0",
-                isActive 
-                  ? "h-9 w-[110px] bg-black rounded-[60px] justify-center items-center gap-2 flex" 
-                  : "h-9 flex items-center justify-center"
-              )}
-            >
-              <div className={cn(
-                "cursor-pointer relative",
-                isActive ? "text-white" : "text-black"
-              )}>
-                {category}
-                {category === 'Added' && hasNewProducts && (
-                  <div className="absolute -top-1 -right-4 w-2 h-2 bg-red-500 rounded-full" />
-                )}
-              </div>
+        {showLeftArrow && (
+          <button 
+            onClick={scrollLeft}
+            className="absolute left-0 top-0 h-full flex items-center z-10"
+          >
+            <div className="bg-gradient-to-r from-white via-white to-transparent h-full flex items-center">
+              <ChevronLeft className="w-5 h-5 text-gray-500" />
             </div>
-          );
-        })}
-      </div>
-      {showRightArrow && (
-        <button 
-          onClick={scrollRight}
-          className="absolute right-0 top-0 h-full flex items-center z-10"
+          </button>
+        )}
+        <div 
+          ref={scrollContainerRef}
+          className="w-full h-9 flex items-center gap-7 overflow-x-auto scrollbar-hide"
         >
-          <div className="bg-gradient-to-l from-white via-white to-transparent h-full flex items-center">
-            <ChevronRight className="w-5 h-5 text-gray-500" />
-          </div>
-        </button>
-      )}
-    </div>
+          {categories.map((category, index) => {
+            const isActive = selectedValue === category;
+            return (
+              <div 
+                key={index}
+                onClick={() => onSelect?.(category)}
+                className={cn(
+                  "text-center text-sm font-medium font-['Roboto'] leading-none whitespace-nowrap relative shrink-0",
+                  isActive 
+                    ? "h-9 w-[110px] bg-black rounded-[60px] justify-center items-center gap-2 flex" 
+                    : "h-9 flex items-center justify-center"
+                )}
+              >
+                <div className={cn(
+                  "cursor-pointer relative",
+                  isActive ? "text-white" : "text-black"
+                )}>
+                  {category}
+                  {category === 'Added' && hasNewProducts && (
+                    <div className="absolute -top-1 -right-4 w-2 h-2 bg-red-500 rounded-full" />
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        {showRightArrow && (
+          <button 
+            onClick={scrollRight}
+            className="absolute right-0 top-0 h-full flex items-center z-10"
+          >
+            <div className="bg-gradient-to-l from-white via-white to-transparent h-full flex items-center">
+              <ChevronRight className="w-5 h-5 text-gray-500" />
+            </div>
+          </button>
+        )}
+      </div>
+    </>
   );
 }
