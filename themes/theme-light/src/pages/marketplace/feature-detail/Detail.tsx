@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { PurchaseModal } from './PurchaseModal';
 import { useState } from "react";
+import { ZoomableImage } from './ZoomableImage';
 
 export function Detail({
   product,
@@ -50,7 +51,21 @@ export function Detail({
         {
           product?.banners?.map(banner => (
             <div key={banner} className="w-[312px] shrink-0 p-2.5 bg-[#161616] rounded-[20px]">
-              <img src={banner} alt={product?.name} className="w-full h-auto object-cover" />
+              {/* not enlarge on mobile */}
+              <img className={cn([
+                'w-full h-auto object-cover',
+                'tablet:hidden',
+              ])} src={banner} alt={product?.name} />
+
+              {/* enlarge on desktop */}
+              <ZoomableImage
+                src={banner}
+                alt={product?.name}
+                className={cn([
+                  'w-full h-auto object-cover',
+                  'tablet:block hidden',
+                ])}
+              />
             </div>
           ))
         }
