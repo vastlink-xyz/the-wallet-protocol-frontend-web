@@ -1,11 +1,27 @@
 export function Banner() {
     return (
         <div className="w-full relative rounded-[20px] overflow-hidden">
+            {/* Tablet image (default) */}
             <img 
-                className="w-full h-full object-contain" 
-                src="/imgs/banners/marketplace_banner_1.jpg" 
-                alt="banner" 
+                src="/imgs/banners/marketplace_banner_1.mobile.svg"
+                alt="Marketplace Banner"
+                className="w-full h-full object-contain tablet:hidden" 
             />
+
+            {/* Laptop image */}
+            <img 
+                src="/imgs/banners/marketplace_banner_1.laptop.svg"
+                alt="Marketplace Banner"
+                className="hidden tablet:block laptop:hidden w-full h-full object-contain" 
+            />
+
+            {/* Desktop image */}
+            <img 
+                src="/imgs/banners/marketplace_banner_1.desktop.svg"
+                alt="Marketplace Banner"
+                className="hidden laptop:block w-full h-full object-contain" 
+            />
+
             <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex-col justify-start items-center gap-5 inline-flex">
                 <div className="justify-start items-center gap-2.5 inline-flex">
                     <div className="w-[9.50px] h-[9.50px] bg-white rounded-full" />
