@@ -12,7 +12,6 @@ import api from '@/lib/api';
 import { toast } from 'react-toastify';
 import { CATEGORIES, Category, IProduct, SearchProductsParams } from '@/pages/marketplace/types';
 import { Empty } from "@/components/Empty";
-import { MarketplaceProvider } from '@/providers/MarketplaceProvider';
 import { ScrollToTop } from '@/components/ScrollToTop';
 
 // kkktodo
@@ -21,9 +20,9 @@ const emptyText = 'It looks like you haven’t added any items yet. Head over to
 
 
 export default function MarketplacePage() {
+  const navigate = useNavigate();
   const { t } = useTranslation()
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
   const [products, setProducts] = useState<IProduct[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<Category>(CATEGORIES[0]);
   const {
@@ -81,7 +80,6 @@ export default function MarketplacePage() {
   };
 
   const handleSearch = (value: string) => {
-    console.log("Search value:", value);
     navigate(`/marketplace/search-result?search=${value}`);
   };
 

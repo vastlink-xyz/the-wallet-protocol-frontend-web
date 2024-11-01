@@ -7,11 +7,11 @@ import {
 } from "@/components/ui/tooltip";
 import { Tag } from '@/pages/marketplace/components/ProductCard/Tag';
 import { IProduct, PurchasedProduct } from "@/pages/marketplace/types";
-import { useNavigate } from "react-router-dom";
 import { PairContextType } from "@/providers/WalletConnectPairProvider";
 import { useWalletConnectPair } from "@/providers/WalletConnectPairProvider";
 import api from "@/lib/api";
 import { useMarketplace } from '@/providers/MarketplaceProvider';
+import { useNavigate } from "react-router-dom";
 
 type ProductCardProps = (IProduct | PurchasedProduct) & {
   className?: string;
@@ -27,7 +27,8 @@ export function ProductCard({
   selectedCategory,
   ...product
 }: ProductCardProps) {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+
   const {
     setIsModalOpen,
     setDappInfo,
@@ -67,7 +68,7 @@ export function ProductCard({
       const params = new URLSearchParams()
       params.set('flowId', product.id)
       params.set('flowIndex', '0')
-      navigate(`${product.serviceUrl}?${params.toString()}`)
+      navigate(`${product.serviceUrl}?${params.toString()}`);
       return
     }
 

@@ -5,6 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { PurchaseModal } from './PurchaseModal';
 import { useState } from "react";
 import { ZoomableImage } from './ZoomableImage';
+import { Back } from "@/components/Back";
 
 export function Detail({
   product,
@@ -42,8 +43,23 @@ export function Detail({
   if (!product) return null;
 
   return <>
-    <div className="mt-[48px] mb-[60px] text-center text-black text-[28px] font-bold leading-[36.96px]">
-      {product?.name}
+    {/* back button on mobile */}
+    <Back className={cn([
+      'mb-[16px] mt-[20px]',
+      'tablet:hidden',
+    ])} />
+
+    {/* title */}
+    <div className={cn([
+      'mb-[60px] text-center text-black text-[28px] font-bold leading-[36.96px] mx-auto relative',
+      'tablet:w-[646px]',
+    ])}>
+      {/* back button on desktop */}
+      <Back className={cn([
+        'absolute left-0 top-1/2 -translate-y-1/2 cursor-pointer',
+        'hidden tablet:block',
+      ])} />
+      <span>{product?.name}</span>
     </div>
 
     <div className="overflow-x-auto">
@@ -91,30 +107,30 @@ export function Detail({
     </div>
 
     <div className={cn([
-        'tablet:w-[548px] w-[334px]',
-        'tablet:px-4 px-0',
-        'mt-[56px] mx-auto',
-      ])}>
-        <label className="flex items-center gap-x-2 cursor-pointer">
-          <Checkbox checked={isChecked} onCheckedChange={() => setIsChecked(!isChecked)} />
-          <div className="text-center text-black text-xs font-normal leading-none select-none">
-            I have read and agree the above terms and conditions
-          </div>
-        </label>
-        <Button
-          className="w-full mt-4"
-          disabled={!isChecked}
-          onClick={() => handlePurchase()}
-        >
-          {buttonText()}
-        </Button>
-      </div>
+      'tablet:w-[548px] w-[334px]',
+      'tablet:px-4 px-0',
+      'mt-[56px] mx-auto',
+    ])}>
+      <label className="flex items-center gap-x-2 cursor-pointer">
+        <Checkbox checked={isChecked} onCheckedChange={() => setIsChecked(!isChecked)} />
+        <div className="text-center text-black text-xs font-normal leading-none select-none">
+          I have read and agree the above terms and conditions
+        </div>
+      </label>
+      <Button
+        className="w-full mt-4"
+        disabled={!isChecked}
+        onClick={() => handlePurchase()}
+      >
+        {buttonText()}
+      </Button>
+    </div>
 
-      {product && <PurchaseModal
-        isOpen={isOpen}
-        onClose={handleClose}
-        product={product}
-        balance={balance}
-      />}
+    {product && <PurchaseModal
+      isOpen={isOpen}
+      onClose={handleClose}
+      product={product}
+      balance={balance}
+    />}
   </>
 }

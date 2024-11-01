@@ -22,7 +22,6 @@ export default function FeatureDetailPage() {
 
   const init = async () => {
     const res = await api.get(`/marketplace/product/product/${productId}`)
-    log('res', res)
     setProduct(res.data)
     // refresh TVWT balance
     refreshTVWTBalance()
@@ -39,17 +38,7 @@ export default function FeatureDetailPage() {
   }
 
   return <div>
-    <Breadcrumb
-      primaryRoute={{
-        path: '/marketplace',
-        name: 'Marketplace',
-      }}
-      secondaryRoute={{
-        name: product?.name || 'Feature detail',
-      }}
-    />
-
-    <ContentContainer className="laptop:w-[1000px]">
+    <ContentContainer className="laptop:w-[1000px] tablet:mt-[76px]">
       {!showSuccess ? (
         <Detail
           product={product}

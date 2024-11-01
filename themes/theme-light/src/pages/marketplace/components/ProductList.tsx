@@ -7,10 +7,12 @@ import { IProduct } from "@/pages/marketplace/types";
 import { RampModal } from "@/pages/marketplace/components/RampModal";
 
 export function ProductList({
+  loading,
   products,
   empty,
   selectedCategory,
 }: {
+  loading?: boolean,
   products: IProduct[],
   empty: React.ReactNode,
   selectedCategory?: string
@@ -39,8 +41,12 @@ export function ProductList({
     setCurrentProduct(product)
   }
 
+  if (loading) {
+    return null
+  }
+
   return <>
-    {products.length === 0 ? (
+    {(products.length === 0) ? (
       empty
     ) : (
       <div className={cn([

@@ -7,15 +7,16 @@ import { IProduct } from '@/pages/marketplace/types';
 import api from '@/lib/api';
 import { ContentContainer } from '@/components/ContentContainer';
 import { Loading } from '@/components/Loading';
-import { handleError } from '@/lib/utils';
+import { cn, handleError } from '@/lib/utils';
 import { toast } from 'react-toastify';
 import { Empty } from '@/components/Empty';
+import { Back } from '@/components/Back';
 
 const emptyText = 'We couldn’t find what you’re looking for. Try using different keywords or explore other options.'
 const imgSrc = '/imgs/icons/empty_search.png'
 
 export default function SearchResultPage() {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState<IProduct[]>([]);
   const searchKeyword = searchParams.get('search') || '';
@@ -23,7 +24,6 @@ export default function SearchResultPage() {
   const handleSearch = useCallback(async (value: string) => {
     try {
       setLoading(true);
-      setSearchParams({ search: value });
       const res = await api.post('/marketplace/product/search-products', {
         keyword: value,
       });
@@ -34,7 +34,7 @@ export default function SearchResultPage() {
     } finally {
       setLoading(false);
     }
-  }, [setSearchParams]);
+  }, []);
 
   useEffect(() => {
     if (searchKeyword) {
@@ -44,24 +44,30 @@ export default function SearchResultPage() {
 
   return (
     <div>
-      <Breadcrumb
-        primaryRoute={{
-          path: '/marketplace',
-          name: 'Marketplace',
-        }}
-        secondaryRoute={{
-          name: 'Search results',
-        }}
-      />
+      <ContentContainer className="relative">
+        {/* back button on mobile */}
+        <Back className={cn([
+          'mb-[16px] mt-[20px]',
+          'tablet:hidden',
+        ])} />
 
-      <ContentContainer>
+        {/* back button on desktop */}
+        <Back className={cn([
+          'absolute top-[16px] left-[0px]',
+          'tablet:block hidden',
+        ])} />
+
         <SearchInput
-          className="mb-[52px] mt-[24px] mx-auto"
+          className={cn([
+            'mb-[52px]',
+            'tablet:mx-auto tablet:mt-[60px]',
+          ])}
           onSearch={handleSearch}
           defaultValue={searchKeyword}
         />
 
         <ProductList
+          loading={loading}
           products={products}
           empty={<Empty className="mt-[96px] mx-auto" text={emptyText} imgSrc={imgSrc} />}
         />
