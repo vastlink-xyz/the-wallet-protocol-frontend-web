@@ -160,7 +160,7 @@ export function LanguageSwitch({
           {/* Rest of your modal content */}
           {modalContent}
         </div>,
-        document.body  // 将 modal 直接挂载到 body 上
+        document.body  // mount to body to avoid layout shift
       )}
     </>
   )

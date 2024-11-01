@@ -62,7 +62,7 @@ export function Detail({
       'tablet:mt-[76px] mt-[34px]',
       'mx-auto',
     ])}>
-      <div className="text-black text-sm font-bold leading-none mb-2">Version {product?.version}</div>
+      <div className="text-black text-xl font-bold leading-none mb-2">Version {product?.version}</div>
       <div className="text-black text-sm font-normal leading-none">{product?.description}</div>
     </div>
 
@@ -70,7 +70,7 @@ export function Detail({
       'tablet:w-[548px] w-[334px]',
       'mt-[40px] mx-auto',
     ])}>
-      <div className="text-black text-base font-bold leading-none mb-2">Subscription plan</div>
+      <div className="text-black text-xl font-bold leading-none mb-2">Subscription plan</div>
       <div className="text-black text-sm font-bold leading-none mb-1">{product?.price}V</div>
       <div className="text-black text-sm font-normal leading-none">To manage your plan, go to Profile page, under purchase and select manage.</div>
     </div>

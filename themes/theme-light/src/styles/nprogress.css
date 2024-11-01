@@ -1,6 +1,6 @@
 #nprogress .bar {
     background: hsl(var(--brand-foreground)) !important;
-    height: 5px;
+    height: 12px;
 }
 
 #nprogress .peg {

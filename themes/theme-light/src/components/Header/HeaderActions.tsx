@@ -46,7 +46,7 @@ export function HeaderActions() {
                 className={cn('flex tablet:hidden')}
                 onSelect={(e) => e.preventDefault()}
               >
-                <VastWalletConnect className="p-0" />
+                <VastWalletConnect className="p-0 bg-transparent" />
               </DropdownMenuItem>
               <DropdownMenuItem 
                 className={cn('hidden tablet:flex')}
