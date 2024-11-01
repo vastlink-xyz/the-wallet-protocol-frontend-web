@@ -2,6 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import Script from 'next/script';
+import { log } from '@/lib/utils';
+import NProgress from 'nprogress';
+import 'nprogress/nprogress.css';
+
+NProgress.configure({ 
+  showSpinner: false,
+  minimum: 0.1,
+  easing: 'ease',
+  speed: 500
+});
 
 const ThemeProd = () => {
   const [themeLoaded, setThemeLoaded] = useState(false);
@@ -10,9 +20,17 @@ const ThemeProd = () => {
 
   useEffect(() => {
     initLoadTheme();
+    NProgress.start();
   }, [])
 
   useEffect(() => {
+    if (themeLoaded) {
+      NProgress.done();
+    }
+  }, [themeLoaded])
+
+  useEffect(() => {
+    log('useEffect', appName, themeLoaded)
     if (appName && themeLoaded) {
       const mountFn = window[`mount_${appName}`];
       if (mountFn) {
@@ -22,12 +40,14 @@ const ThemeProd = () => {
   }, [appName, themeLoaded]);
 
   const initLoadTheme = async () => {
+    log('initLoadTheme')
     const theme = 'theme_light';
     const themePath = `/dist/${theme}`;
-
+    
     setThemePath(themePath);
     setAppName(theme);
     document.cookie = `current-theme=${theme}; path=/`
+    log('initLoadTheme set')
   }
 
   return (
