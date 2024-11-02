@@ -1,0 +1,209 @@
+import { j as e } from "./vendor-radix-CjL5_ZCn.js";
+import { C as Y, a as D, d as F, b as A, c as B } from "./card-CbHBAfSW.js";
+import { l as i } from "./main-DrvVrxeO.js";
+import { h as U } from "./error-DDWKB78C.js";
+import { k as z, a as s } from "./vendor-react-D6ZgZFQ5.js";
+import { a as C } from "./index-Dr7PNsrq.js";
+import { L as O } from "./index-BO59AZ-D.js";
+import { u as K } from "./useFlowData-CZY9Bhrk.js";
+import { B as P } from "./vendor-utils-RvkaSVWD.js";
+import { B as R } from "./button-CQRi4ddT.js";
+import { E as M, p as W, l as $ } from "./vendor-ui-utils-CwlQOkPE.js";
+import { a as _ } from "./helper-C3A8L7vk.js";
+function H() {
+  const p = z(), c = s.useRef(null), l = s.useRef([]), { serviceEndingUrl: d, nextIndex: w, flowId: f } = K(), [k, j] = s.useState(!1), [m, r] = s.useState(!1), b = s.useCallback(() => {
+    if (document.getElementById("frankieone-sdk")) {
+      r(!0);
+      return;
+    }
+    const n = document.createElement("script");
+    n.src = "https://assets.frankiefinancial.io/one-sdk/v1/oneSdk.umd.js", n.id = "frankieone-sdk", n.async = !0, n.onload = () => {
+      setTimeout(() => {
+        typeof window.OneSdk < "u" ? r(!0) : console.error("OneSdk failed to initialize after load");
+      }, 100);
+    }, n.onerror = (t) => {
+      console.error("Failed to load OneSdk script:", t);
+    }, document.body.appendChild(n);
+  }, []);
+  s.useEffect(() => () => {
+    c.current && Object.values(c.current).forEach((n) => {
+      n.unmount(), i("unmount", n);
+    }), l.current && l.current.forEach(({ component: n, eventName: t, listener: a }) => {
+      n.off(t, a);
+    });
+  }, []), s.useEffect(() => {
+    b();
+  }, [b]), s.useEffect(() => {
+    m && typeof window.OneSdk < "u" ? (i("KYC", window.OneSdk), T()) : i("OneSdk not found", m, typeof window.OneSdk);
+  }, [m]);
+  const L = async () => {
+    const t = await (await C.post("/marketplace/product/frankieone/get-session")).data;
+    return i("session", t), t;
+  }, o = (n, t, a) => {
+    n.on(t, a), l.current.push({ component: n, eventName: t, listener: a });
+  }, T = async () => {
+    const n = await L(), t = await window.OneSdk({
+      session: n,
+      mode: "development",
+      recipe: {
+        form: {
+          provider: {
+            name: "react"
+          }
+        }
+      }
+    });
+    i("oneSdk", t), j(!0);
+    const a = t.individual();
+    a.setProfileType("auto");
+    const v = t.component("form", {
+      name: "WELCOME",
+      type: "manual"
+    }), E = t.component("form", { name: "CONSENT" }), y = t.component("form", {
+      name: "PERSONAL",
+      type: "manual",
+      personal: {
+        countries: {
+          default: {
+            default: {
+              fields: [
+                {
+                  fieldType: "address",
+                  name: "address.fullAddress",
+                  hide: !0
+                }
+              ]
+            }
+          },
+          AUS: {
+            default: {
+              fields: [
+                {
+                  fieldType: "address",
+                  name: "address.fullAddress",
+                  hide: !0
+                }
+              ]
+            }
+          }
+        }
+      }
+    }), h = t.component("form", {
+      name: "DOCUMENT",
+      type: "manual",
+      numberOfIDs: 1
+    }), x = t.component("form", {
+      name: "REVIEW",
+      type: "manual",
+      verify: !0
+    }), g = t.component("form", {
+      name: "RETRY",
+      type: "manual"
+    }), N = t.component("form", {
+      name: "RESULT",
+      type: "manual",
+      state: "FAIL",
+      title: { label: "Max attempt reached" },
+      descriptions: [{ label: "You have reached all the attempts. Our officer will review your details and get in touch." }, { label: "Please close the browser" }],
+      cta: { label: "Close" }
+    });
+    c.current = {
+      welcome: v,
+      consent: E,
+      personal: y,
+      document: h,
+      review: x,
+      retry: g,
+      result_fail: N
+    }, v.mount("#form-container"), o(v, "form:welcome:ready", () => {
+      E.mount("#form-container");
+    }), o(E, "form:consent:ready", () => {
+      y.mount("#form-container");
+    }), o(y, "form:personal:ready", () => {
+      h.mount("#form-container");
+    }), o(h, "form:document:ready", ({ inputInfo: u }) => {
+      x.mount("#form-container");
+    }), o(h, "form:document:back", ({ inputInfo: u }) => {
+      y.mount("#form-container");
+    });
+    let I = 0;
+    o(x, "form:result:partial", () => {
+      I < 2 ? (g.mount("#form-container"), I += 1) : N.mount("#form-container");
+    }), o(x, "form:result:success", async () => {
+      i("review success");
+      try {
+        const { getValue: u } = a.access("entityId"), S = u();
+        await C.post("/marketplace/product/frankieone/save-kyc-entity-id", {
+          entityId: S
+        }), i("flowid", f, "serviceEndingUrl", d), p(f && d ? `${d}?flowId=${f}&step=${w}` : "/dashboard");
+      } catch (u) {
+        const S = U(u);
+        P.error(S.message);
+      }
+    });
+  }, V = () => {
+    window.open(window.location.href, "_blank");
+  };
+  return /* @__PURE__ */ e.jsxs("div", { className: "pt-4 relative", children: [
+    !k && /* @__PURE__ */ e.jsx("div", { className: "flex justify-center items-center h-screen", children: /* @__PURE__ */ e.jsx(O, { type: "breathe" }) }),
+    /* @__PURE__ */ e.jsx(
+      R,
+      {
+        variant: "ghost",
+        size: "icon",
+        className: "absolute top-4 right-2",
+        onClick: V,
+        title: "Open in new window",
+        children: /* @__PURE__ */ e.jsx(M, { className: "h-4 w-4" })
+      }
+    ),
+    /* @__PURE__ */ e.jsx("div", { id: "form-container" })
+  ] });
+}
+function ae() {
+  const [p, c] = s.useState(!0), [l, d] = s.useState(!1), [w, f] = s.useState(null);
+  s.useEffect(() => {
+    k();
+  }, []);
+  const k = async () => {
+    try {
+      c(!0);
+      const { data: r } = await C.get("/marketplace/product/frankieone/get-kyc-status");
+      r && r.status === _.VERIFIED && (d(!0), f(r));
+    } catch (r) {
+      console.error(r);
+    } finally {
+      c(!1);
+    }
+  }, j = () => {
+    d(!1);
+  }, m = () => /* @__PURE__ */ e.jsxs(Y, { className: "w-full", children: [
+    /* @__PURE__ */ e.jsxs(D, { children: [
+      /* @__PURE__ */ e.jsx("div", { className: "flex items-center justify-center mb-4", children: /* @__PURE__ */ e.jsx(W, { className: "w-16 h-16 text-green-500" }) }),
+      /* @__PURE__ */ e.jsx(F, { className: "text-2xl font-bold text-center text-primary", children: "Verification Complete" })
+    ] }),
+    /* @__PURE__ */ e.jsxs(A, { children: [
+      /* @__PURE__ */ e.jsx("p", { className: "text-center text-primary/80 mb-4", children: "Your identity has been successfully verified." }),
+      /* @__PURE__ */ e.jsxs("p", { className: "text-center text-primary/80", children: [
+        /* @__PURE__ */ e.jsx("span", { className: "font-semibold", children: "Verification Time:" }),
+        " ",
+        w.verificationTimestamp
+      ] })
+    ] }),
+    /* @__PURE__ */ e.jsx(B, { className: "w-full flex justify-center", children: /* @__PURE__ */ e.jsxs(
+      R,
+      {
+        onClick: () => j(),
+        className: "flex items-center justify-center",
+        children: [
+          /* @__PURE__ */ e.jsx($, { className: "mr-2 h-4 w-4" }),
+          " Re-verify Identity"
+        ]
+      }
+    ) })
+  ] });
+  return p ? /* @__PURE__ */ e.jsx("div", { className: "flex items-center justify-center h-screen", children: /* @__PURE__ */ e.jsx(O, { type: "breathe" }) }) : /* @__PURE__ */ e.jsx("div", { children: l ? m() : /* @__PURE__ */ e.jsx(H, {}) });
+}
+export {
+  ae as default
+};
