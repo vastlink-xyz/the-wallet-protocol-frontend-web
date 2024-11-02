@@ -122,7 +122,8 @@ export default function MarketplacePage() {
 
       <div className={cn([
         'mb-[32px] mx-auto relative',
-        'desktop:w-[1224px] laptop:w-[816px]'
+        'desktop:w-[1224px] laptop:w-[816px]',
+        'min-h-[800px]',
       ])}>
 
         <ProductList

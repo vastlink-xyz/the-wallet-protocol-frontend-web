@@ -22,6 +22,7 @@ export function CategoryTabs({
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [isSticky, setIsSticky] = useState(false);
+  const savedScrollPosition = useRef<number>(0);
 
   const updateArrows = () => {
     const container = scrollContainerRef.current;
@@ -94,6 +95,30 @@ export function CategoryTabs({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => {
+    // restore scroll position when switching tabs
+    const observer = new MutationObserver(() => {
+      window.scrollTo({
+        top: savedScrollPosition.current,
+        behavior: 'instant'
+      });
+      
+      observer.disconnect();
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+
+    return () => observer.disconnect();
+  }, [selectedValue]);
+
+  const handleTabChange = (category: Category) => {
+    savedScrollPosition.current = window.scrollY;
+    onSelect?.(category);
+  };
+
   return (
     <>
       {/* Sticky background layer */}
@@ -128,7 +153,7 @@ export function CategoryTabs({
             return (
               <div 
                 key={index}
-                onClick={() => onSelect?.(category)}
+                onClick={() => handleTabChange(category)}
                 className={cn(
                   "text-center text-sm font-medium font-['Roboto'] leading-none whitespace-nowrap relative shrink-0",
                   isActive 
