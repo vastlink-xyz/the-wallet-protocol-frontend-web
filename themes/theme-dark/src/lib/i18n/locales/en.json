@@ -1,0 +1,148 @@
+{
+  "/": {
+    "signinTitle": "Sign In",
+    "signupTitle": "Sign Up",
+    "emailLabel": "Email",
+    "emailPlaceholder": "Email Address",
+    "emailValidationError": "Please enter a valid email address",
+    "signUpButton": "Sign Up",
+    "signInButton": "Sign In",
+    "authenticating": "Authenticating...",
+    "registering": "Registering...",
+    "alreadyHaveAccount": "Already have an account?",
+    "signUp": "Don't have an account yet?",
+    "otpSentMessage": "Please check your email inbox. We've sent you a confirmation email. Click the link in the email to complete your registration.",
+    "otpLoginSentMessage": "A login link has been sent to your email. Please check your inbox and click the link to sign in.",
+    "emailAlreadySignedUp": "This email address is already signed up. Please use a different email to sign up."
+  },
+  "/dashboard": {
+    "userWallet": {
+      "syncTitle": "Sync"
+    },
+    "[token]": {
+      "balance": "Balance",
+      "recentTransactions": {
+        "title": "Recent Transactions",
+        "seeAll": "See all",
+        "table": {
+          "transactionHash": "Transaction Hash",
+          "time": "Time",
+          "from": "From",
+          "to": "To",
+          "amount": "Amount"
+        },
+        "noTransactions": "No transactions to display"
+      },
+      "sendModal": {
+        "title": "Send",
+        "to": "To",
+        "toPlaceholder": "Address or Email",
+        "amount": "Amount",
+        "note": "Note",
+        "balance": "Balance",
+        "unregisteredEmailNotice": "The recipient will receive an invitation email.",
+        "invalidEmailFormat": "Invalid email format",
+        "emailSentToUnregistered": "An invitation email has been sent",
+        "sendError": "An error occurred while sending. Please try again."
+      },
+      "receiveModal": {
+        "title": "Receive",
+        "Crypto": "Crypto Address",
+        "Email": "Email Address"
+      }
+    }
+  },
+  "header": {
+    "overview": "Overview",
+    "dashboard": "Dashboard",
+    "marketplace": "Marketplace",
+    "community": "Community"
+  },
+  "/marketplace": {
+    "tabs": {
+      "all": "All Products",
+      "purchased": "Added Products"
+    },
+    "productCard": {
+      "status": {
+        "active": "Active",
+        "deleted": "Deleted"
+      },
+      "price": "Price",
+      "currency": "TVWT",
+      "discount": "Discount",
+      "purchased": "Added",
+      "deleted": "Uninstalled",
+      "buttons": {
+        "purchase": "Install",
+        "purchased": "Added",
+        "delete": "Uninstall",
+        "deleted": "Uninstalled"
+      },
+      "deleteConfirmation": {
+        "title": "Confirmation",
+        "message": "Are you sure you want to uninstall this item?",
+        "cancel": "Cancel",
+        "confirm": "Uninstall"
+      },
+      "purchaseSuccess": "Product purchased successfully",
+      "insufficientBalance": "Insufficient balance",
+      "dailyLimitExceededOtpRequired": "Daily limit exceeded. Check your email for OTP. DO NOT close this dialog to complete your purchase."
+    },
+    "moonpayRamp": {
+      "modalTitle": "MoonPay on-ramp / off-ramp",
+      "buyButton": "Buy Crypto with Fiat",
+      "sellButton": "Sell Crypto for Fiat",
+      "buy": "Buy",
+      "sell": "Sell",
+      "openCryptoExchange": "Open MoonPay",
+      "depositConfirmation": {
+        "title": "Confirm Deposit",
+        "message": "Are you sure you want to initiate this deposit?",
+        "confirmButton": "Confirm",
+        "cancelButton": "Cancel"
+      }
+    }
+  },
+  "vastWalletConnect": {
+    "pairModal": {
+      "title": "Connect Account",
+      "instructions": "To pair your wallet with the DApp using WalletConnect, please follow these steps:",
+      "steps": {
+        "1": "Visit the Dapp website",
+        "2": "Look for a \"Connect Wallet\" or similar option",
+        "3": "Choose \"WalletConnect\" as the connection method",
+        "4": "Copy the provided WalletConnect URI",
+        "5a": "Paste the URI in the input field below",
+        "5b": "Return to this page - the URI will be automatically detected and processed"
+      },
+      "clipboardError": "Clipboard access denied. To use this feature, please click the lock icon to the left of the address bar, find the 'Clipboard' option, set it to 'Allow', then refresh the page.",
+      "goToDapp": "Go to the Dapp",
+      "enterUri": "Enter URI",
+      "pair": "Pair"
+    },
+    "connectDApps": "Connect dApps",
+    "disconnectSession": "Disconnect Session",
+    "connectAccount": "Connect Account",
+    "reject": "Reject",
+    "approve": "Approve",
+    "confirmTransfer": "Confirm Transfer",
+    "reviewTransferDetails": "Please review the transfer details below",
+    "from": "From:",
+    "to": "To:",
+    "amount": "Amount:",
+    "data": "Data:",
+    "confirm": "Confirm",
+    "connectionSuccess": "Connected successfully.",
+    "transferFailed": "Transfer failed",
+    "transferRejected": "Transfer rejected",
+    "disconnected": "Disconnected"
+  },
+  "toastSuccess": {
+    "copySuccess": "Copy success!",
+    "connectSuccess": "Connected successfully!"
+  },
+  "toastError": {
+    "authenticationError": "Authentication Error. Please sign in again."
+  }
+}
