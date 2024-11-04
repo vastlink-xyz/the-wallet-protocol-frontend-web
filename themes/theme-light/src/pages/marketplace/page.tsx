@@ -102,7 +102,7 @@ export default function MarketplacePage() {
         onSearch={handleSearch}
       />
 
-      <Banner />
+      {/* <Banner /> */}
 
       {/* Title outside of sticky container */}
       <div className={cn([

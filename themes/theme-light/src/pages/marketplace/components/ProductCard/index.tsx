@@ -93,6 +93,11 @@ export function ProductCard({
       return
     }
 
+    if (product.category === 'Security') {
+      window.open(product.website, '_blank')
+      return
+    }
+
     if (product.serviceUrl.startsWith('http')) {
       // open in new tab
       window.open(product.serviceUrl, '_blank')

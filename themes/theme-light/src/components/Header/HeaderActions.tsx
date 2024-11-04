@@ -24,9 +24,9 @@ export function HeaderActions() {
           'hidden tablet:flex',
           'justify-start items-center gap-6'
         )}>
-          <div className="py-2 justify-start items-center gap-2 flex">
+          {/* <div className="py-2 justify-start items-center gap-2 flex">
             <div className="text-[#a1a1a1] text-base font-medium leading-none">Learn</div>
-          </div>
+          </div> */}
         </div>
 
         {/* mobile show menu icon */}
