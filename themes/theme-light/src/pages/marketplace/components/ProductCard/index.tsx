@@ -1,4 +1,4 @@
-import { cn, log } from "@/lib/utils";
+import { cn, isDev, log } from "@/lib/utils";
 import {
   Tooltip,
   TooltipContent,
@@ -90,6 +90,13 @@ export function ProductCard({
     // payment Moonpay
     if (product.vendor === 'Moonpay') {
       handleRampOpenModal(product)
+      return
+    }
+
+    // switch theme
+    if (product.integrationPoints.includes('theme')) {
+      // refresh to the new url
+      window.location.href = product.serviceUrl;
       return
     }
 

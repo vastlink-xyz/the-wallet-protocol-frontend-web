@@ -9,43 +9,42 @@
        URL: https://gradient.page */
 
     /* CSS: .bg-gradient { background: var(--gradient) } */
-    --gradient: #000C40;
-    --background: 0, 0%, 100.00%;
-    --foreground: 243 10% 0.52%;
+    --gradient: #F7F8F8;
 
-    --muted: 243 10% 91.3%;
-    --muted-foreground: 243 5% 41.3%;
+    --background: 250, 21.43%, 10.98%;
+    --foreground: 191 0.7000000000000001% 99.85%;
 
-    --popover: 243 10% 91.3%;
-    --popover-foreground: 243 10% 0.65%;
+    --muted: 191 3.5000000000000004% 29.099999999999998%;
+    --muted-foreground: 191 0.7000000000000001% 59.7%;
 
-    --card: 0, 0%, 100%;
-    --card-foreground: 243 10% 0.65%;
+    --popover: 191 63.6% 12.61%;
+    --popover-foreground: 191 0.7000000000000001% 99.85%;
 
-    --border: 243 15% 89.52%;
-    --input: 243 15% 89.52%;
+    --card: 244, 18.52%, 15.88%;
+    --card-foreground: 191 0.7000000000000001% 99.85%;
 
-    --primary: 216.92 16.88% 15.1%;
-    --primary-foreground: 0 0% 100%;
+    --border: 191 3.5000000000000004% 29.099999999999998%;
+    --input: 191 3.5000000000000004% 29.099999999999998%;
 
-    --secondary: 243 5% 95.65%;
-    --secondary-foreground: 243 7% 11.3%;
+    --primary: 191 7% 97%;
+    --primary-foreground: 191 0.7000000000000001% 9.7%;
 
-    --accent: 243 5% 95.65%;
-    --accent-foreground: 243 7% 11.3%;
+    --secondary: 191 3.5000000000000004% 29.099999999999998%;
+    --secondary-foreground: 191 0.7000000000000001% 99.85%;
+
+    --accent: 191 3.5000000000000004% 29.099999999999998%;
+    --accent-foreground: 191 0.7000000000000001% 99.85%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive-foreground: 191 0.7000000000000001% 99.85%;
 
-    --ring: 243 100% 13%;
+    --ring: 191 7% 97%;
 
-    --radius: 0.5rem;
-
-    --brand: 168 41.67% 95.29%;
+    --brand: 168.26 37.7% 23.92%;
     --brand-foreground: 100.24 76.58% 43.53%;
 
     --ink: 243 10% 0.52%;
-    --ink-foreground: 0, 0%, 96.47%;
+    --ink-foreground: 191 0.7000000000000001% 99.85%;
 
     /* toast theme */
     --toastify-toast-min-height: 32px;

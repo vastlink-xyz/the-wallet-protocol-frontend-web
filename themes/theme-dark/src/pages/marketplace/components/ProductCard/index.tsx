@@ -93,6 +93,13 @@ export function ProductCard({
       return
     }
 
+    // switch theme
+    if (product.integrationPoints.includes('theme')) {
+      // refresh to the new url
+      window.location.href = product.serviceUrl;
+      return
+    }
+
     if (product.category === 'Security') {
       window.open(product.website, '_blank')
       return

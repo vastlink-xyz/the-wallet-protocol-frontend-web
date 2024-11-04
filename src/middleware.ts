@@ -2,13 +2,32 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { isDev, log } from '@/lib/utils';
 
+const themePorts = {
+  theme_light: 5173,
+  theme_dark: 5174,
+}
+
 export function middleware(request: NextRequest) {
-  // log('middleware', request.url)
+  log('middleware', request.url)
+
   if (isDev) {
+    // get theme from url params or cookie
+    const themeFromUrl = request.nextUrl.searchParams.get('theme')
+    const themeFromCookie = request.cookies.get('current-theme')?.value
+    const currentTheme = themeFromUrl || themeFromCookie || 'theme_light'
+
     // get the request url
     const url = request.nextUrl.clone()
-    // redirect to Vite dev server
-    return NextResponse.rewrite(`http://localhost:5173${url.pathname}${url.search}`)
+    const port = themePorts[currentTheme as keyof typeof themePorts]
+    log('dev currentTheme', currentTheme, 'port', port)
+    
+    // redirect to Vite dev server with cookie
+    const response = NextResponse.rewrite(`http://localhost:${port}${url.pathname}${url.search}`)
+    response.cookies.set('current-theme', currentTheme, {
+      path: '/',
+      sameSite: 'lax'
+    })
+    return response
   } else {
     // get current theme from cookie or localStorage
     const currentTheme = request.cookies.get('current-theme')?.value || 'theme_light'

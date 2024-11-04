@@ -41,7 +41,8 @@ const ThemeProd = () => {
 
   const initLoadTheme = async () => {
     log('initLoadTheme')
-    const theme = 'theme_light';
+    const params = new URLSearchParams(window.location.search);
+    const theme = params.get('theme') || 'theme_light';
     const themePath = `/dist/${theme}`;
     
     setThemePath(themePath);

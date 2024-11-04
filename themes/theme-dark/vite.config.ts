@@ -90,7 +90,7 @@ export default defineConfig(({ command }) => {
       },
     },
     server: {
-      port: 5173,
+      port: 5174,
       cors: true,
       headers: {
         'Access-Control-Allow-Origin': '*',
