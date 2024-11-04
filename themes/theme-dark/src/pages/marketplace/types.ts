@@ -55,7 +55,7 @@ export const CATEGORIES = [
   'Payment',
   'Compliance',
   'Social',
-  'Branding tool',
+  'Branding',
   'Added',
 ] as const;
 
