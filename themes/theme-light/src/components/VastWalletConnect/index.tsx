@@ -25,6 +25,7 @@ interface VastWalletConnectProps {
 
 export function VastWalletConnect({ className }: VastWalletConnectProps) {
   const { t } = useTranslation()
+  const isAuthenticated = auth.isAuthenticated()
 
   const [address, setAddress] = useState('');
   const [wallet, setWallet] = useState<WalletClient>();
@@ -306,9 +307,13 @@ export function VastWalletConnect({ className }: VastWalletConnectProps) {
         className={cn([
           "h-7 px-4 py-2.5 bg-white rounded-[60px]",
           "justify-center items-center gap-2 flex cursor-pointer",
+          !isAuthenticated && 'cursor-default',
           className
         ])}
         onClick={() => {
+          if (!isAuthenticated) {
+            return
+          }
           if (isConnected) {
             disconnectSession()
           } else {

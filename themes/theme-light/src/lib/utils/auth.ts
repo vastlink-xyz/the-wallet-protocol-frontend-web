@@ -49,6 +49,11 @@ class Auth {
     }
     return allData;
   }
+
+  isAuthenticated(): boolean {
+    // return false
+    return !!this.getAuthDataByKey('idToken')
+  }
 }
 
 export const auth = new Auth();

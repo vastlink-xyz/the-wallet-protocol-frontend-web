@@ -1,6 +1,7 @@
-import { cn, log } from "@/lib/utils";
+import { auth, cn, log } from "@/lib/utils";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { ChevronDown } from "lucide-react";
 
 interface RouteItem {
   name: string;
@@ -15,6 +16,7 @@ interface NavigationMenuProps {
 export function NavigationMenu({ routes, currentRouteName }: NavigationMenuProps) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const isAuthenticated = auth.isAuthenticated()
 
   return (
     <>
@@ -33,10 +35,19 @@ export function NavigationMenu({ routes, currentRouteName }: NavigationMenuProps
               )}
               key={route.name}
             >
-              <Link className={cn(
-                "text-[#a1a1a1] text-base font-medium leading-none cursor-pointer",
-                actived && 'text-white'
-              )} to={route.href}>
+              <Link
+                className={cn(
+                  "text-[#a1a1a1] text-base font-medium leading-none cursor-pointer",
+                  actived && 'text-white',
+                  !isAuthenticated && 'cursor-default'
+                )}
+                to={route.href}
+                onClick={(e) => {
+                  if (!isAuthenticated) {
+                    e.preventDefault()
+                  }
+                }}
+              >
                 {route.name}
               </Link>
               {actived && (
@@ -51,11 +62,18 @@ export function NavigationMenu({ routes, currentRouteName }: NavigationMenuProps
       <div className={cn('flex tablet:hidden')}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <div className="h-7 justify-start items-center gap-1 inline-flex">
-              <div className="text-neutral-50 text-base font-medium leading-none">
+            <div className={cn(
+              "h-7 justify-start items-center gap-1 inline-flex text-[#fafafa]",
+              !isAuthenticated && 'text-[#a1a1a1]'
+            )}>
+              <div className="text-base font-medium leading-none">
                 {currentRouteName}
               </div>
-              <img src="/imgs/icons/center_down.svg" />
+              <ChevronDown 
+                className={cn(
+                  "w-4 h-4",
+                )} 
+              />
             </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="bg-white">

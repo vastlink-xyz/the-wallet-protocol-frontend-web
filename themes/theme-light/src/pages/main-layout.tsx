@@ -2,8 +2,11 @@ import { Header } from "@/components/Header"
 import ChatBot from '@/components/ChatBot'
 import { Outlet } from "react-router-dom"
 import { MarketplaceProvider } from "@/providers/MarketplaceProvider"
+import { useLayoutFeatures } from "@/hooks/useLayoutFeatures"
 
 export default function MainLayout() {
+  const { hideChatbot } = useLayoutFeatures();
+
   return (
     <section className="bg-background w-full flex flex-col min-h-screen">
       <Header />
@@ -24,7 +27,7 @@ export default function MainLayout() {
         </MarketplaceProvider>
       </div>
 
-      <ChatBot />
+      {!hideChatbot && <ChatBot />}
     </section>
   )
 }

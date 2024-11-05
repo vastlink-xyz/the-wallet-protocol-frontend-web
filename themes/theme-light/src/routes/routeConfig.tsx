@@ -11,40 +11,42 @@ const router = createBrowserRouter([
     errorElement: <ErrorPage />,
     children: [
       {
-        path: "/",
-        element: <Navigate to="/auth" replace />,
-      },
-      {
-        path: "/auth",
-        async lazy() {
-          const { default: AuthPage } = await import('@/pages/auth/page');
-          return { Component: AuthPage };
-        },
-      },
-      {
-        path: '/verify-transaction',
-        async lazy() {
-          const { default: VerifyTransactionPage } = await import('@/pages/verify/transaction/page');
-          return { Component: VerifyTransactionPage };
-        },
-      },
-      {
-        path: '/verify-registration',
-        async lazy() {
-          const { default: VerifyRegistrationPage } = await import('@/pages/verify/registration/page');
-          return { Component: VerifyRegistrationPage };
-        },
-      },
-      {
         path: '/',
         async lazy() {
           const { default: MainLayout } = await import('@/pages/main-layout');
           return { Component: MainLayout };
         },
-        errorElement: <ErrorPage />,
         children: [
           {
-            path: '/dashboard',
+            path: "/",
+            async lazy() {
+              const { default: LandingPage } = await import('@/pages/landing/page');
+              return { Component: LandingPage };
+            },
+          },
+          {
+            path: "/auth",
+            async lazy() {
+              const { default: AuthPage } = await import('@/pages/auth/page');
+              return { Component: AuthPage };
+            },
+          },
+          {
+            path: '/verify-transaction',
+            async lazy() {
+              const { default: VerifyTransactionPage } = await import('@/pages/verify/transaction/page');
+              return { Component: VerifyTransactionPage };
+            },
+          },
+          {
+            path: '/verify-registration',
+            async lazy() {
+              const { default: VerifyRegistrationPage } = await import('@/pages/verify/registration/page');
+              return { Component: VerifyRegistrationPage };
+            },
+          },
+          {
+            path: 'dashboard',
             children: [
               {
                 index: true,
@@ -63,7 +65,7 @@ const router = createBrowserRouter([
             ]
           },
           {
-            path: '/marketplace',
+            path: 'marketplace',
             children: [
               {
                 index: true,
@@ -139,25 +141,25 @@ const router = createBrowserRouter([
                 ]
               }
             ]
-          }
-        ]
-      },
-      {
-        path: '/invite',
-        children: [
-          {
-            path: 'transfer',
-            async lazy() {
-              const { default: InviteTransferPage } = await import('@/pages/invite/transfer/page');
-              return { Component: InviteTransferPage };
-            },
           },
           {
-            path: 'register',
-            async lazy() {
-              const { default: InviteRegisterPage } = await import('@/pages/invite/register/page');
-              return { Component: InviteRegisterPage };
-            },
+            path: 'invite',
+            children: [
+              {
+                path: 'transfer',
+                async lazy() {
+                  const { default: InviteTransferPage } = await import('@/pages/invite/transfer/page');
+                  return { Component: InviteTransferPage };
+                },
+              },
+              {
+                path: 'register',
+                async lazy() {
+                  const { default: InviteRegisterPage } = await import('@/pages/invite/register/page');
+                  return { Component: InviteRegisterPage };
+                },
+              }
+            ]
           }
         ]
       }
