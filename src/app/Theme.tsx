@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Script from 'next/script';
 import { log } from '@/lib/utils';
 import NProgress from 'nprogress';
+import { getTheme } from './actions';
 import 'nprogress/nprogress.css';
 
 NProgress.configure({ 
@@ -17,6 +18,15 @@ const ThemeProd = () => {
   const [themeLoaded, setThemeLoaded] = useState(false);
   const [appName, setAppName] = useState('');
   const [themePath, setThemePath] = useState('');
+
+  const initLoadTheme = async () => {
+    const params = new URLSearchParams(window.location.search);
+    const theme = params.get('theme') || await getTheme();
+    const themePath = `/dist/${theme}`;
+    
+    setThemePath(themePath);
+    setAppName(theme);
+  }
 
   useEffect(() => {
     initLoadTheme();
@@ -38,18 +48,6 @@ const ThemeProd = () => {
       }
     }
   }, [appName, themeLoaded]);
-
-  const initLoadTheme = async () => {
-    log('initLoadTheme')
-    const params = new URLSearchParams(window.location.search);
-    const theme = params.get('theme') || 'theme_light';
-    const themePath = `/dist/${theme}`;
-    
-    setThemePath(themePath);
-    setAppName(theme);
-    document.cookie = `current-theme=${theme}; path=/`
-    log('initLoadTheme set')
-  }
 
   return (
     <>

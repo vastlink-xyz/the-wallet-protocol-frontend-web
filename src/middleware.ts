@@ -8,18 +8,18 @@ const themePorts = {
 }
 
 export function middleware(request: NextRequest) {
-  log('middleware', request.url)
+  // log('middleware', request.url)
+
+  // get theme from url params or cookie
+  const themeFromUrl = request.nextUrl.searchParams.get('theme')
+  const themeFromCookie = request.cookies.get('current-theme')?.value
+  const currentTheme = themeFromUrl || themeFromCookie || 'theme_light'
 
   if (isDev) {
-    // get theme from url params or cookie
-    const themeFromUrl = request.nextUrl.searchParams.get('theme')
-    const themeFromCookie = request.cookies.get('current-theme')?.value
-    const currentTheme = themeFromUrl || themeFromCookie || 'theme_light'
 
     // get the request url
     const url = request.nextUrl.clone()
     const port = themePorts[currentTheme as keyof typeof themePorts]
-    log('dev currentTheme', currentTheme, 'port', port)
     
     // redirect to Vite dev server with cookie
     const response = NextResponse.rewrite(`http://localhost:${port}${url.pathname}${url.search}`)
@@ -29,9 +29,6 @@ export function middleware(request: NextRequest) {
     })
     return response
   } else {
-    // get current theme from cookie or localStorage
-    const currentTheme = request.cookies.get('current-theme')?.value || 'theme_light'
-
     // Skip middleware for static assets in /dist/
     // This allows direct access to Vite's build output (JS, CSS, etc.)
     // Used by Theme.tsx to load the micro-frontend resources
@@ -52,7 +49,13 @@ export function middleware(request: NextRequest) {
     // - Single-page application routing
     // - Micro-frontend initialization
     // - Browser refresh handling
-    return NextResponse.rewrite(new URL('/', request.url))
+    const response = NextResponse.rewrite(new URL('/', request.url))
+    response.cookies.set('current-theme', currentTheme, {
+      path: '/',
+      sameSite: 'lax'
+    })
+
+    return response
   }
 }
 
