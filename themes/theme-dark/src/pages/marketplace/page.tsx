@@ -109,7 +109,7 @@ export default function MarketplacePage() {
         'mt-[60px] mb-[16px] text-black text-[28px] font-bold leading-[36.96px]',
         'desktop:w-[1224px] laptop:w-[816px] mx-auto'
       ])}>
-        All features
+        All products
       </div>
 
       {/* Sticky container only for tabs */}
