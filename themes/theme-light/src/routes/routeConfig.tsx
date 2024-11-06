@@ -39,10 +39,10 @@ const router = createBrowserRouter([
             },
           },
           {
-            path: '/verify-registration',
+            path: '/verify-auth',
             async lazy() {
-              const { default: VerifyRegistrationPage } = await import('@/pages/verify/registration/page');
-              return { Component: VerifyRegistrationPage };
+              const { default: VerifyAuthPage } = await import('@/pages/verify/auth/page');
+              return { Component: VerifyAuthPage };
             },
           },
           {

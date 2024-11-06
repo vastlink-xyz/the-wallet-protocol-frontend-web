@@ -1,4 +1,3 @@
-import { Breadcrumb } from '@/components/Breadcrumb';
 import { ContentContainer } from '@/components/ContentContainer';
 import api from '@/lib/api';
 import { auth, cn, log } from '@/lib/utils';
@@ -7,7 +6,7 @@ import { IProduct } from '@/pages/marketplace/types';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { TokenFactory } from '@/services/TokenService';
-import { Success } from '@/pages/marketplace/feature-detail/Success';
+import { CountdownSuccess } from '@/components/CountdownSuccess';
 
 export default function FeatureDetailPage() {
   const { productId } = useParams<{ productId: string }>();
@@ -46,7 +45,13 @@ export default function FeatureDetailPage() {
           onPurchaseSuccess={handlePurchaseSuccess}
         />
       ) : (
-        <Success product={product} />
+        // <Success product={product} />
+        <CountdownSuccess
+          title={`${product?.name} added successfully`}
+          buttonText="Back to Marketplace"
+          redirectUrl="/marketplace"
+          description={`You can find the purchased product under the "Added" tab in the Marketplace. You will be directed to Marketplace in`}
+        />
       )}
     </ContentContainer>
   </div>

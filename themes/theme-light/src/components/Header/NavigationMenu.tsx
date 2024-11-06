@@ -66,7 +66,10 @@ export function NavigationMenu({ routes, currentRouteName }: NavigationMenuProps
               "h-7 justify-start items-center gap-1 inline-flex text-[#fafafa]",
               !isAuthenticated && 'text-[#a1a1a1]'
             )}>
-              <div className="text-base font-medium leading-none">
+              <div className={cn(
+                'text-base font-medium leading-none',
+                !isAuthenticated && 'text-[#979797]'
+              )}>
                 {currentRouteName}
               </div>
               <ChevronDown 
@@ -83,7 +86,11 @@ export function NavigationMenu({ routes, currentRouteName }: NavigationMenuProps
                 <DropdownMenuItem
                   key={route.name}
                   onClick={(e) => {
-                    log('click', route.href)
+                    if (!isAuthenticated) {
+                      e.preventDefault()
+                      navigate('/auth')
+                      return
+                    }
                     navigate(route.href)
                   }}
                 >

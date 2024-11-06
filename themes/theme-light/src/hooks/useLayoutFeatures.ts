@@ -36,7 +36,7 @@ const hideChatbotRules = [
   { path: '/', match: 'exact' as const },
   { path: '/auth', match: 'exact' as const },
   { path: '/verify-transaction', match: 'exact' as const },
-  { path: '/verify-registration', match: 'exact' as const },
+  { path: '/verify-auth', match: 'exact' as const },
   { path: '/invite', match: 'startsWith' as const },
 ];
 
@@ -45,7 +45,7 @@ const disableHeaderRules = [
   { path: '/', match: 'exact' as const },
   { path: '/auth', match: 'exact' as const },
   { path: '/verify-transaction', match: 'exact' as const },
-  { path: '/verify-registration', match: 'exact' as const },
+  { path: '/verify-auth', match: 'exact' as const },
   { path: '/invite', match: 'startsWith' as const },
 ];
 

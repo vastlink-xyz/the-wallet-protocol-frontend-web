@@ -1,18 +1,18 @@
 {
   "/": {
-    "signinTitle": "Sign In",
-    "signupTitle": "Sign Up",
+    "signinTitle": "Let’s sign in your account",
+    "signupTitle": "Let’s sign up your account",
     "emailLabel": "Email",
     "emailPlaceholder": "Email Address",
-    "emailValidationError": "Please enter a valid email address",
+    "emailValidationError": "Email is invalid or not found. Please check and try again.",
     "signUpButton": "Sign Up",
     "signInButton": "Sign In",
     "authenticating": "Authenticating...",
     "registering": "Registering...",
-    "alreadyHaveAccount": "Already have an account?",
-    "signUp": "Don't have an account yet?",
-    "otpSentMessage": "Please check your email inbox. We've sent you a confirmation email. Click the link in the email to complete your registration.",
-    "otpLoginSentMessage": "A login link has been sent to your email. Please check your inbox and click the link to sign in.",
+    "alreadyHaveAccount": "Already have an account? Sign in here",
+    "signUp": "Don’t have an account yet? Sign up here",
+    "otpSentMessage": "A sign up link will be sent to your email. Please check your inbox and click the link to sign in.",
+    "otpLoginSentMessage": "A login link will be sent to your email. Please check your inbox and click the link to sign in.",
     "emailAlreadySignedUp": "This email address is already signed up. Please use a different email to sign up."
   },
   "/dashboard": {

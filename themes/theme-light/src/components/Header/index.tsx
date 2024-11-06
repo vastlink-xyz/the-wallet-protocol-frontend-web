@@ -41,19 +41,21 @@ export function Header() {
       {/* logo */}
       <div className={cn(
         'items-center gap-2 flex mr-[46px]',
-        'mr-[20px] tablet:mr-[46px]'
-      )}>
+        'mr-[20px] tablet:mr-[46px]',
+        'cursor-pointer'
+      )}
+        onClick={() => navigate('/')}
+      >
         <img src="/imgs/logos/logo.svg" />
         <div className={cn(
           'text-white text-xl font-bold font-["Roboto_Mono"] leading-4',
           'hidden tablet:block',
-          'cursor-pointer'
-        )} onClick={() => navigate('/')}>Vastlink</div>
+        )}>Vastlink</div>
       </div>
 
-      <NavigationMenu 
-        routes={routes} 
-        currentRouteName={currentRouteName} 
+      <NavigationMenu
+        routes={routes}
+        currentRouteName={currentRouteName}
       />
     </div>
 

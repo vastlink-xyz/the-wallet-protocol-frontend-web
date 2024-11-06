@@ -1,6 +1,9 @@
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 
 export default function LandingPage() {
+  const navigate = useNavigate();
+
   return (
     <div className="flex flex-col">
       {/* section 1 */}
@@ -41,7 +44,10 @@ export default function LandingPage() {
               'h-12 px-6 py-3.5 bg-white rounded-[60px] justify-center items-center gap-2',
               'hidden laptop:inline-flex',
             )}>
-              <div className="text-center text-black text-base font-medium leading-tight cursor-pointer">Get started for free</div>
+              <div
+                className="text-center text-black text-base font-medium leading-tight cursor-pointer"
+                onClick={() => navigate('/auth')}
+              >Get started for free</div>
             </div>
           </div>
 
@@ -58,7 +64,10 @@ export default function LandingPage() {
             'mt-[40px] tablet:mt-[56px]',
             'w-[254px] tablet:w-[232px]',
           )}>
-            <div className="text-center text-black text-sm font-medium leading-none">Get started for free</div>
+            <div
+              className="text-center text-black text-sm font-medium leading-none cursor-pointer"
+              onClick={() => navigate('/auth')}
+            >Get started for free</div>
           </div>
         </div>
 

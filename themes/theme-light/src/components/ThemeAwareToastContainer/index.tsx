@@ -3,6 +3,7 @@
 import { Zoom, ToastContainer } from 'react-toastify';
 import '@/styles/react-toastify.css'
 import { useEffect, useState } from "react";
+import { cn } from '@/lib/utils';
 
 export default function ThemeAwareToastContainer() {
   const [isMobile, setIsMobile] = useState(false);
@@ -28,10 +29,16 @@ export default function ThemeAwareToastContainer() {
       // theme={currentTheme() as "light" | "dark"}
       // theme={'colored'}
       transition={Zoom}
-      style={ isMobile ? undefined : {
-        width: 'auto',
-        maxWidth: '400px',
-      }}
+      toastClassName={cn(
+        'text-sm',
+        'mobile:top-[82px]',
+        'w-full mobile:w-[375px] tablet:w-[688px]',
+        'left-1/2 -translate-x-1/2'
+      )}
+      // style={ isMobile ? undefined : {
+      //   width: 'auto',
+      //   maxWidth: '688px !important',
+      // }}
     />
   );
 }

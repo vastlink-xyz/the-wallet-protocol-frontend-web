@@ -1,154 +1,95 @@
-"use client";
-
 import { FormEvent, useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
 
-import { log, handleError, emailRegex } from "@/lib/utils";
-
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { log, handleError, emailRegex, cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "react-toastify";
 import { useTranslation } from 'react-i18next';
-import keyManagementService from "@/services/KeyManagementService";
-
-export type PageType = 'login' | 'verify-registration'
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function AuthRegister() {
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
   const { t } = useTranslation()
 
-  // const [pageType, setPageType] = useState<PageType>('login')
+  const [displayName, setDisplayName] = useState("");
   const [username, setUsername] = useState("");
+  const [rememberMe, setRememberMe] = useState(true);
+
   const [authenticating, setAuthenticating] = useState(false);
   const [registering, setRegistering] = useState(false);
   const [authenticateSetup, setAuthenticateSetup] = useState(true);
-  const [redirecting, setRedirecting] = useState(false);
 
-  useEffect(() => {
-    const init = async () => {
-      const email = searchParams?.get('email')
-      const otp = searchParams?.get('otp')
-      const type = searchParams?.get('type')
+  const [emailError, setEmailError] = useState(false);
 
-      if (email && otp) {
-        setUsername(email)
-  
-        if (type === 'login') {
-          authenticate(email, otp)
-        } else {
-          register(email, otp)
+  const validateEmail = async (value: string) => {
+    if (!value) {
+      setEmailError(true);
+      return false;
+    }
+    if (!emailRegex.test(value)) {
+      setEmailError(true);
+      return false;
+    }
+    if (authenticateSetup) {
+      try {
+        const { data } = await axios.get(`${import.meta.env.VITE_WALLET_PROTOCAL_API_BASEURL}/address/`, {
+          params: {
+            email: value,
+          }
+        })
+        if (!data.success) {
+          setEmailError(true);
+          return false;
         }
+      } catch (_) {
       }
     }
 
-    init()
-  }, [searchParams]);
+    setEmailError(false);
+    return true;
+  };
 
   async function preRegister() {
     log('call register')
     try {
       setRegistering(true)
-      const response = await axios.post(`${import.meta.env.VITE_WALLET_PROTOCAL_API_BASEURL}/auth/generate-otp`, 
+      const response = await axios.post(`${import.meta.env.VITE_WALLET_PROTOCAL_API_BASEURL}/auth/generate-otp`,
         {
           email: username,
+          displayName: displayName,
+          rememberMe: rememberMe,
         }
       );
       log('register res', response);
       if (response.status === 200) {
-        toast.info(
-          t('/.otpSentMessage'),
-          {
-            autoClose: 10000,
-          }
+        toast.success(
+          t('/.otpSentMessage')
         )
         setRegistering(false);
       }
-    } catch(error) {
+    } catch (error) {
       const errorInfo = handleError(error)
       toast.error(errorInfo.message)
-    }
-  }
-
-  async function verifyOtp(username: string, otp: string) {
-    const response = await axios.post(`${import.meta.env.VITE_WALLET_PROTOCAL_API_BASEURL}/auth/verify-otp`, 
-      {
-        email: username,
-        OTP: otp,
-      }
-    );
-    return response.data;
-  }
-
-  async function register(registerUsername: string, otp: string) {
-    log('call register')
-    setAuthenticateSetup(false)
-    setRegistering(true);
-    try {
-      // verify otp and get idToken
-      const idToken = await verifyOtp(registerUsername, otp)
-
-      // sign up with keyManagementService
-      await keyManagementService.signUp({
-        username: registerUsername,
-        idToken: idToken,
-      })
-
-      setRedirecting(true);
-      navigate('/dashboard');
-    } catch (error: unknown) {
-      const errorInfo = handleError(error)
-      toast.error(errorInfo.message)
-    } finally {
-      log('register finally')
-      setRegistering(false);
-      setAuthenticating(false);
     }
   }
 
   async function preAuthenticate() {
     try {
       setAuthenticating(true)
-      const response = await axios.post(`${import.meta.env.VITE_WALLET_PROTOCAL_API_BASEURL}/auth/generate-login-otp`, 
+      const response = await axios.post(`${import.meta.env.VITE_WALLET_PROTOCAL_API_BASEURL}/auth/generate-login-otp`,
         {
           email: username,
+          rememberMe: rememberMe,
         }
       );
       if (response.status === 200) {
-        toast.info(
-          t('/.otpLoginSentMessage'),
-          {
-            autoClose: 10000,
-          }
+        toast.success(
+          t('/.otpLoginSentMessage')
         )
         setAuthenticating(false);
       }
-    } catch(error) {
-      const errorInfo = handleError(error)
-      toast.error(errorInfo.message)
-    } finally {
-      setAuthenticating(false);
-    }
-  }
-
-  async function authenticate(authUsername: string, otp: string) {
-    log('call authenticate', authUsername)
-    setAuthenticating(true);
-    try {
-      // verify otp and get idToken
-      const idToken = await verifyOtp(authUsername, otp)
-
-      await keyManagementService.signIn({
-        authUsername,
-        idToken,
-      })
-
-      setRedirecting(true);
-      navigate('/dashboard');
-    } catch (error: unknown) {
+    } catch (error) {
       const errorInfo = handleError(error)
       toast.error(errorInfo.message)
     } finally {
@@ -172,78 +113,119 @@ export default function AuthRegister() {
           toast.error(t('/.emailAlreadySignedUp'))
           return
         }
-      } catch(_) {
+      } catch (_) {
       }
 
       await preRegister();
     }
   }
 
-  const submitBtnText = () => {
-    if (authenticateSetup) {
-      if (authenticating) {
-        return t('/.authenticating');
-      }
-      return t('/.signInButton')
-    } else {
-      if (registering) {
-        return t('/.registering');
-      } else if (authenticating) {
-        return t('/.authenticating');
-      }
-      return t('/.signUpButton');
-    }
+  const handleSwitchAuthMode = () => {
+    setAuthenticateSetup(!authenticateSetup)
+    setEmailError(false)
   }
 
   return (
-    <div className="flex flex-grow flex-col items-center justify-center">
-      {redirecting ? (
-        <div className="text-center">
-          <p className="text-lg">Redirecting to dashboard...</p>
-        </div>
-      ) : (
-        <Card className="sm:w-[360px] py-4 border-none shadow-none mb-12 bg-white">
-          <CardHeader>
-            <p className="mb-4 text-lg md:text-2xl m-0 p-0">{authenticateSetup ? t('/.signinTitle') : t('/.signupTitle')}</p>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={(e) => processUserAccess(e)} className="group" noValidate>
-              <div className="mb-4 relative">
-                <Label htmlFor="email">{t('/.emailLabel')}</Label>
-                <Input
-                  className="w-full mb-2 rounded border border-gray-300 bg-inherit p-3 shadow shadow-gray-100 ring-offset-transparent mt-2 appearance-none outline-none text-neutral-800 invalid:[&:not(:placeholder-shown):not(:focus)]:border-red-500 peer"
-                  type="email"
-                  id="email"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value.trim())}
-                  placeholder={t('/.emailPlaceholder')}
-                  required
-                  pattern={emailRegex.source}
-                  disabled={registering || authenticating}
-                />
-                <span className="absolute -bottom-5 hidden text-xs text-red-500 peer-[&:not(:placeholder-shown):not(:focus):invalid]:block">
-                  {t('/.emailValidationError')}
-                </span>
-              </div>
-              <Button
-                type="submit"
-                className="w-full mt-2 rounded-full group-invalid:pointer-events-none group-invalid:opacity-30"
-                disabled={registering || authenticating}
-              >
-                { submitBtnText() }
-              </Button>
-            </form>
-          </CardContent>
+    <div className={cn(
+      'relative mx-auto overflow-visible',
+      'w-[343px] tablet:w-[536px]',
+      'pt-[60px] tablet:pt-[120px]',
+    )}>
+      <div className={cn(
+        'text-[#111111] text-[32px] font-bold leading-tight',
+        'text-xl tablet:text-[32px]',
+      )}>
+        {authenticateSetup ? t('/.signinTitle') : t('/.signupTitle')}
+      </div>
+      <div className={cn(
+        'tablet:whitespace-nowrap',
+        'absolute left-0',
+        'top-[87px] tablet:top-[155px]',
+        'text-[#979797]/90 font-normal leading-snug',
+        'text-[10px] tablet:text-sm',
+      )}>
+        A sign up link will be sent to your email. Please check your inbox and click the link to sign in.
+      </div>
 
-          <CardFooter>
-            <p className="cursor-pointer select-none" onClick={() => setAuthenticateSetup(!authenticateSetup)}>
-              {
-                authenticateSetup ? t('/.signUp') : t('/.alreadyHaveAccount')
-              }
-            </p>
-          </CardFooter>
-        </Card>
-      )}
+      <form
+        className={cn(
+          'group mt-[84px]',
+        )}
+        onSubmit={(e) => processUserAccess(e)}
+        noValidate
+      >
+        {
+          !authenticateSetup && (
+            <div className="mb-[40px] relative">
+              <Label htmlFor="displayName">Name</Label>
+          <Input
+            className={cn(
+              'mt-[6px]'
+            )}
+            type="text"
+            id="displayName"
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value.trim())}
+            placeholder="Display Name"
+            required
+            disabled={registering || authenticating}
+            />
+          </div>
+        )}
+
+        <div className="mb-4 relative">
+          <Label htmlFor="email">{t('/.emailLabel')}</Label>
+          <Input
+            className={cn(
+              'mt-[6px]'
+            )}
+            type="email"
+            id="email"
+            value={username}
+            onChange={(e) => setUsername(e.target.value.trim())}
+            onBlur={(e) => validateEmail(e.target.value)}
+            placeholder={t('/.emailPlaceholder')}
+            required
+            disabled={registering || authenticating}
+          />
+          {emailError && (
+            <span className="absolute -bottom-5 text-xs text-red-500">
+              {t('/.emailValidationError')}
+            </span>
+          )}
+        </div>
+
+        <div className="flex items-center space-x-2 mt-[48px] p-[10px]">
+          <Checkbox
+            id="rememberMe"
+            checked={rememberMe}
+            onCheckedChange={() => setRememberMe(!rememberMe)}
+          />
+          <label
+            htmlFor="rememberMe"
+            className="text-xs text-black leading-none font-normal cursor-pointer select-none"
+          >
+            Remember me for 30 days
+          </label>
+        </div>
+
+        <Button
+          type="submit"
+          className="w-full cursor-pointer"
+          disabled={registering || authenticating || emailError}
+        >
+          Send to email
+        </Button>
+      </form>
+
+      <div
+        className="text-center text-black/90 text-sm font-normal leading-snug cursor-pointer select-none mt-[12px]"
+        onClick={handleSwitchAuthMode}
+      >
+        {
+          authenticateSetup ? t('/.signUp') : t('/.alreadyHaveAccount')
+        }
+      </div>
     </div>
   );
 }

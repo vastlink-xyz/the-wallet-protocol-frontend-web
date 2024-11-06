@@ -21,17 +21,28 @@ export class Web3authWithMPCKeyManagement extends KeyManagementService {
 
   async init() {}
 
-  async signUp({username, idToken}: {username: string, idToken: string}) {
-    const {data} = await api.post('/keymanagement/signup', {
+  async signUp({
+    username,
+    idToken,
+  }: {
+    username: string;
+    idToken: string;
+  }) {
+    const { data } = await api.post('/keymanagement/signup', {
       username,
       idToken,
     })
-    const { address } = data
+    const { address, displayName } = data
 
     // save auth storage
     auth.saveAuthDataByKey('idToken', idToken)
     auth.saveAuthDataByKey('address', address)
     auth.saveAuthDataByKey('username', username)
+    if (displayName) {
+      auth.saveAuthDataByKey('displayName', displayName)
+    } else {
+      auth.removeAuthDataByKey('displayName')
+    }
   }
   
   async signIn({authUsername, idToken}: {authUsername: string, idToken: string}) {
@@ -39,12 +50,17 @@ export class Web3authWithMPCKeyManagement extends KeyManagementService {
       username: authUsername,
       idToken,
     })
-    const { address } = data
+    const { address, displayName } = data
 
     // save auth storage
     auth.saveAuthDataByKey('idToken', idToken)
     auth.saveAuthDataByKey('address', address)
     auth.saveAuthDataByKey('username', authUsername)
+    if (displayName) {
+      auth.saveAuthDataByKey('displayName', displayName)
+    } else {
+      auth.removeAuthDataByKey('displayName')
+    }
   }
 
   async signTransaction({

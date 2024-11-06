@@ -1,18 +1,18 @@
 {
   "/": {
-    "signinTitle": "登录",
-    "signupTitle": "注册",
+    "signinTitle": "让我们登录您的账户",
+    "signupTitle": "让我们注册您的账户",
     "emailLabel": "电子邮箱",
     "emailPlaceholder": "请输入电子邮箱地址",
-    "emailValidationError": "请输入有效的电子邮箱地址",
+    "emailValidationError": "邮箱格式不正确或不存在。请检查后重试。",
     "signUpButton": "注册",
     "signInButton": "登录",
     "authenticating": "正在认证...",
     "registering": "正在注册...",
-    "alreadyHaveAccount": "已有账户？",
-    "signUp": "还没有账户吗？",
-    "otpSentMessage": "请检查您的电子邮箱。我们已发送确认邮件。点击邮件中的链接完成注册。",
-    "otpLoginSentMessage": "登录链接已发送至您的邮箱。请查收并点击链接以完成登录。",
+    "alreadyHaveAccount": "已有账户？请点击这里登录",
+    "signUp": "还没有账户？请点击这里注册",
+    "otpSentMessage": "注册链接将发送至您的电子邮箱。请查收并点击链接以完成注册。",
+    "otpLoginSentMessage": "登录链接将发送至您的邮箱。请查收并点击链接以完成登录。",
     "emailAlreadySignedUp": "该电子邮箱已注册。请使用其他邮箱进行注册。"
   },
   "/dashboard": {
