@@ -201,12 +201,6 @@ export default function AuthRegister() {
             checked={rememberMe}
             onCheckedChange={() => setRememberMe(!rememberMe)}
           />
-          <label
-            htmlFor="rememberMe"
-            className="text-xs text-black leading-none font-normal cursor-pointer select-none"
-          >
-            Remember me for 30 days
-          </label>
         </div>
 
         <Button
@@ -214,8 +208,16 @@ export default function AuthRegister() {
           className="w-full cursor-pointer"
           disabled={registering || authenticating || emailError}
         >
-          Send to email
+        {
+          authenticateSetup ? t('/.signUpButton') : t('/.signInButton')
+        }
         </Button>
+        <label
+            htmlFor="rememberMe"
+            className="text-xs text-black leading-none font-normal cursor-pointer select-none"
+          >
+            Remember me for 30 days
+        </label>
       </form>
 
       <div

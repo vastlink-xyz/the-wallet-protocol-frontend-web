@@ -36,7 +36,7 @@ export default function LandingPage() {
               'leading-3 tablet:leading-tight desktop:leading-normal',
               'pb-[24px] tablet:pb-[40px] laptop:pb-[56px]',
             )}>
-              Over 5000 users around the world trust Vastlink’s software and APIs to simplify global PayFi operations, unlock new oppotunitues, and grow without limits
+              Build for the community by the community.
             </div>
 
             {/* button desktop only */}
@@ -103,12 +103,12 @@ export default function LandingPage() {
               'laptop:w-[403px] desktop:w-[572px]',
               'laptop:mb-[20px] desktop:mb-[40px]',
               'laptop:text-[28px] desktop:text-5xl',
-            )}>Build on the shoulders of giants</div>
+            )}>Open and scalable</div>
             <div className={cn(
               'text-[#e8ffdc] font-normal leading-7',
               'laptop:w-[403px] desktop:w-[572px]',
               'laptop:text-base desktop:text-xl',
-            )}>Platform and infrastructure partners, with more exciting features on the way!</div>
+            )}>Open integration with all kinds of products and services.</div>
           </div>
         </div>
 
