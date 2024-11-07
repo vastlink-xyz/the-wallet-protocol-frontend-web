@@ -154,21 +154,20 @@ export default function AuthRegister() {
         onSubmit={(e) => processUserAccess(e)}
         noValidate
       >
-        {
-          !authenticateSetup && (
-            <div className="mb-[40px] relative">
-              <Label htmlFor="displayName">Name</Label>
-          <Input
-            className={cn(
-              'mt-[6px]'
-            )}
-            type="text"
-            id="displayName"
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value.trim())}
-            placeholder="Display Name"
-            required
-            disabled={registering || authenticating}
+        {!authenticateSetup && (
+          <div className="mb-[40px] relative">
+            <Label htmlFor="displayName">Name</Label>
+            <Input
+              className={cn(
+                'mt-[6px]'
+              )}
+              type="text"
+              id="displayName"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value.trim())}
+              placeholder="Display Name"
+              required
+              disabled={registering || authenticating}
             />
           </div>
         )}
@@ -195,29 +194,31 @@ export default function AuthRegister() {
           )}
         </div>
 
-        <div className="flex items-center space-x-2 mt-[48px] p-[10px]">
+
+        <Button
+          type="submit"
+          className="w-full cursor-pointer mt-[48px]"
+          disabled={registering || authenticating || emailError}
+        >
+          {
+            !authenticateSetup ? t('/.signUpButton') : t('/.signInButton')
+          }
+        </Button>
+
+        {/* remember me */}
+        <div className="flex items-center space-x-2 p-[10px]">
           <Checkbox
             id="rememberMe"
             checked={rememberMe}
             onCheckedChange={() => setRememberMe(!rememberMe)}
           />
-        </div>
-
-        <Button
-          type="submit"
-          className="w-full cursor-pointer"
-          disabled={registering || authenticating || emailError}
-        >
-        {
-          authenticateSetup ? t('/.signUpButton') : t('/.signInButton')
-        }
-        </Button>
-        <label
+          <label
             htmlFor="rememberMe"
             className="text-xs text-black leading-none font-normal cursor-pointer select-none"
           >
             Remember me for 30 days
-        </label>
+          </label>
+        </div>
       </form>
 
       <div

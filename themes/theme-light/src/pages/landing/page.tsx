@@ -1,8 +1,17 @@
-import { cn } from "@/lib/utils";
+import { auth, cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const isAuthenticated = auth.isAuthenticated()
+
+  const handleGetStarted = () => {
+    if (isAuthenticated) {
+      navigate('/dashboard')
+    } else {
+      navigate('/auth')
+    }
+  }
 
   return (
     <div className="flex flex-col">
@@ -41,12 +50,12 @@ export default function LandingPage() {
 
             {/* button desktop only */}
             <div className={cn(
-              'h-12 px-6 py-3.5 bg-white rounded-[60px] justify-center items-center gap-2',
+              'h-12 px-6 py-3.5 bg-white rounded-[60px] justify-center items-center gap-2 cursor-pointer',
               'hidden laptop:inline-flex',
             )}>
               <div
-                className="text-center text-black text-base font-medium leading-tight cursor-pointer"
-                onClick={() => navigate('/auth')}
+                className="text-center text-black text-base font-medium leading-tight"
+                onClick={handleGetStarted}
               >Get started for free</div>
             </div>
           </div>
@@ -66,7 +75,7 @@ export default function LandingPage() {
           )}>
             <div
               className="text-center text-black text-sm font-medium leading-none cursor-pointer"
-              onClick={() => navigate('/auth')}
+              onClick={handleGetStarted}
             >Get started for free</div>
           </div>
         </div>
