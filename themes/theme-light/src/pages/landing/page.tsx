@@ -14,11 +14,17 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="flex flex-col">
+    <div className={cn(
+      'flex flex-col relative',
+      'bg-[linear-gradient(318deg,#000_40.13%,#0b3003_93.1%)]',
+    )}>
+      {/* section 2 gradient background */}
+      <div className="bg-[linear-gradient(85deg,#082103_-7.26%,#020501_94.58%)] h-1/2 w-full absolute top-1/2 left-0"></div>
+
       {/* section 1 */}
       <div className={cn(
         "relative text-center",
-        "bg-[linear-gradient(155deg,#162f0b_0%,#0d1e05_40%,#000000_90%)]",
+        // 'bg-[linear-gradient(318deg,#000_40.13%,#0b3003_93.1%)]',
       )}>
         <div className={cn(
           'text-left mx-auto',
@@ -87,8 +93,8 @@ export default function LandingPage() {
         'relative',
         // 'h-[400px] tablet:h-[600px] laptop:h-[800px]',
         'bg-[url("/imgs/banners/landing_2.png")]',
+        // 'bg-[linear-gradient(85deg,#082103_-7.26%,#020501_94.58%)]',
         'bg-cover bg-center bg-no-repeat',
-        'bg-black',
         '-mt-[1px]',
       )}>
         {/* desktop only */}
@@ -125,6 +131,15 @@ export default function LandingPage() {
         <div className={cn(
           'block laptop:hidden',
         )}>
+          <div className="text-center mb-[20px]">
+            <div className={cn(
+              'text-white text-[28px] font-bold leading-[73px]',
+            )}>Open and scalable</div>
+            <div className={cn(
+              'text-[#e8ffdc] font-normal leading-7',
+            )}>Open integration with all kinds of products and services.</div>
+          </div>
+
           <img
             className={cn(
               'block tablet:hidden',
@@ -137,10 +152,12 @@ export default function LandingPage() {
               'hidden tablet:block',
               'w-[608px] mx-auto',
             )}
-            src="/imgs/banners/landing_2_1_tablet.png" alt="banner"
+            src="/imgs/banners/landing_2_1_large.png" alt="banner"
           />
         </div>
       </div>
+
+
     </div>
   );
 }

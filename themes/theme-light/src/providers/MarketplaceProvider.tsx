@@ -1,4 +1,5 @@
 import api from '@/lib/api';
+import { log } from '@/lib/utils';
 import React, { createContext, useContext, useState, useCallback } from 'react';
 
 interface MarketplaceContextType {

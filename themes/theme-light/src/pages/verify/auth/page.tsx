@@ -1,5 +1,5 @@
 import { CountdownSuccess } from "@/components/CountdownSuccess";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { handleError, log } from "@/lib/utils";
 import { toast } from "react-toastify";
@@ -8,6 +8,7 @@ import axios from "axios";
 
 export default function VerifyAuthPage() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate()
 
   const [loading, setLoading] = useState(false);
   const [authenticateSetup, setAuthenticateSetup] = useState(true);
@@ -63,7 +64,8 @@ export default function VerifyAuthPage() {
         authUsername,
         idToken,
       })
-      setShowCountdownSuccess(true)
+
+      navigate('/dashboard')
     } catch (error: unknown) {
       const errorInfo = handleError(error)
       toast.error(errorInfo.message)

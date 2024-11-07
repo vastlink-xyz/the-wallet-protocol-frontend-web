@@ -1,4 +1,5 @@
 import ErrorPage from '@/pages/error';
+import { marketplaceLoader } from '@/pages/marketplace/route';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 
 const router = createBrowserRouter([
@@ -73,6 +74,7 @@ const router = createBrowserRouter([
                   const { default: MarketplacePage } = await import('@/pages/marketplace/page');
                   return { Component: MarketplacePage };
                 },
+                loader: marketplaceLoader,
               },
               {
                 path: 'search-result',

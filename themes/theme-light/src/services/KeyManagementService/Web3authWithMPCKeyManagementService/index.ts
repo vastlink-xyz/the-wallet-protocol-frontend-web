@@ -32,12 +32,13 @@ export class Web3authWithMPCKeyManagement extends KeyManagementService {
       username,
       idToken,
     })
-    const { address, displayName } = data
+    const { address, displayName, avatarIndex } = data
 
     // save auth storage
     auth.saveAuthDataByKey('idToken', idToken)
     auth.saveAuthDataByKey('address', address)
     auth.saveAuthDataByKey('username', username)
+    auth.saveAuthDataByKey('avatarIndex', avatarIndex)
     if (displayName) {
       auth.saveAuthDataByKey('displayName', displayName)
     } else {
@@ -50,12 +51,13 @@ export class Web3authWithMPCKeyManagement extends KeyManagementService {
       username: authUsername,
       idToken,
     })
-    const { address, displayName } = data
+    const { address, displayName, avatarIndex } = data
 
     // save auth storage
     auth.saveAuthDataByKey('idToken', idToken)
     auth.saveAuthDataByKey('address', address)
     auth.saveAuthDataByKey('username', authUsername)
+    auth.saveAuthDataByKey('avatarIndex', avatarIndex)
     if (displayName) {
       auth.saveAuthDataByKey('displayName', displayName)
     } else {

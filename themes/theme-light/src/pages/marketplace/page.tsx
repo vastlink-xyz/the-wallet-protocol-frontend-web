@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLoaderData } from 'react-router-dom';
 import { cn, handleError, log } from "@/lib/utils";
 import { Banner } from "@/pages/marketplace/components/Banner";
 import { SearchInput } from "@/pages/marketplace/components/SearchInput";
@@ -7,15 +7,13 @@ import { useTranslation } from "react-i18next";
 import { ProductList } from '@/pages/marketplace/components/ProductList';
 import { CategoryTabs } from "@/pages/marketplace/components/CategoryTabs";
 import { Pagination } from '@/components/Pagination';
-import { usePagination } from '@/components/Pagination/usePagination';
+import { usePagination, DEFAULT_PAGE_SIZE } from '@/components/Pagination/usePagination';
 import api from '@/lib/api';
 import { toast } from 'react-toastify';
 import { CATEGORIES, Category, IProduct, SearchProductsParams } from '@/pages/marketplace/types';
 import { Empty } from "@/components/Empty";
 import { ScrollToTop } from '@/components/ScrollToTop';
 
-// kkktodo
-const DEFAULT_PAGE_SIZE = 30;
 const emptyText = 'It looks like you haven’t added any items yet. Head over to the marketplace and discover new products and features to add!'
 
 
@@ -23,7 +21,6 @@ export default function MarketplacePage() {
   const navigate = useNavigate();
   const { t } = useTranslation()
   const [loading, setLoading] = useState(false);
-  const [products, setProducts] = useState<IProduct[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<Category>(CATEGORIES[0]);
   const {
     pagination,
@@ -31,6 +28,12 @@ export default function MarketplacePage() {
     updateTotal,
     updatePageSize,
   } = usePagination();
+  
+  const { products: initialProducts, total } = useLoaderData() as { 
+    products: IProduct[],
+    total: number 
+  };
+  const [products, setProducts] = useState<IProduct[]>(initialProducts);
 
   const searchProducts = useCallback(async (params: SearchProductsParams) => {
     try {
@@ -49,13 +52,14 @@ export default function MarketplacePage() {
   useEffect(() => {
     // Set page size only once when component mounts
     updatePageSize(DEFAULT_PAGE_SIZE);
+    updateTotal(total);
 
-    // Initial search
-    const p: SearchProductsParams = {
-      page: 1,
-      pageSize: DEFAULT_PAGE_SIZE,
-    }
-    searchProducts(p);
+    // // Initial search
+    // const p: SearchProductsParams = {
+    //   page: 1,
+    //   pageSize: DEFAULT_PAGE_SIZE,
+    // }
+    // searchProducts(p);
   }, []);
 
   const handleCategorySelect = async (value: Category) => {

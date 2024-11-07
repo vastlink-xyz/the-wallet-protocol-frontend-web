@@ -154,7 +154,7 @@ export default function AuthRegister() {
         onSubmit={(e) => processUserAccess(e)}
         noValidate
       >
-        {!authenticateSetup && (
+        {/* {!authenticateSetup && (
           <div className="mb-[40px] relative">
             <Label htmlFor="displayName">Name</Label>
             <Input
@@ -170,7 +170,7 @@ export default function AuthRegister() {
               disabled={registering || authenticating}
             />
           </div>
-        )}
+        )} */}
 
         <div className="mb-4 relative">
           <Label htmlFor="email">{t('/.emailLabel')}</Label>
@@ -194,19 +194,8 @@ export default function AuthRegister() {
           )}
         </div>
 
-
-        <Button
-          type="submit"
-          className="w-full cursor-pointer mt-[48px]"
-          disabled={registering || authenticating || emailError}
-        >
-          {
-            !authenticateSetup ? t('/.signUpButton') : t('/.signInButton')
-          }
-        </Button>
-
         {/* remember me */}
-        <div className="flex items-center space-x-2 p-[10px]">
+        <div className="flex items-center space-x-2 p-[10px] mt-[48px]">
           <Checkbox
             id="rememberMe"
             checked={rememberMe}
@@ -219,6 +208,17 @@ export default function AuthRegister() {
             Remember me for 30 days
           </label>
         </div>
+
+        <Button
+          type="submit"
+          className="w-full cursor-pointer"
+          disabled={registering || authenticating || emailError}
+        >
+          {
+            !authenticateSetup ? t('/.signUpButton') : t('/.signInButton')
+          }
+        </Button>
+
       </form>
 
       <div

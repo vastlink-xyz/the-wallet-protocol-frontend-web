@@ -1,6 +1,6 @@
 import { CustomStorage } from "./storage";
 
-export type AuthStoreType = 'idToken' | 'address' | 'username' | 'displayName' |
+export type AuthStoreType = 'idToken' | 'address' | 'username' | 'displayName' | 'avatarIndex' |
 'authenticatedHeader' | 'authenticated' | 'desUsername' | 'aeskey';
 
 class Auth {
@@ -11,6 +11,7 @@ class Auth {
       idToken: new CustomStorage('idToken'),
       username: new CustomStorage('username'),
       displayName: new CustomStorage('displayName'),
+      avatarIndex: new CustomStorage('avatarIndex'),
       address: new CustomStorage('address'),
       authenticatedHeader: new CustomStorage('authenticatedHeader'),
       authenticated: new CustomStorage('authenticated'),
