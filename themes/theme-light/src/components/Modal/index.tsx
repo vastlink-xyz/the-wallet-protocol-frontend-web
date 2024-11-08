@@ -1,5 +1,3 @@
-'use client'
-
 import { cn } from '@/lib/utils';
 import { X } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
@@ -10,15 +8,19 @@ interface ModalProps {
   onClose: () => void;
   children: React.ReactNode;
   className?: string;
+  overlayClassName?: string;
 }
 
-export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, className, children }) => {
+export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, className, overlayClassName, children }) => {
   const modalContent = isOpen ? (
     <div className={cn(
       "fixed inset-0 z-50 flex items-center justify-center",
       className,
     )}>
-      <div className="fixed inset-0 bg-black/80"></div>
+      <div className={cn(
+        "fixed inset-0 bg-black/80",
+        overlayClassName
+      )}></div>
       <div className="relative z-50 bg-background text-primary rounded-lg p-6 max-w-md w-full">
         <button
           onClick={onClose}

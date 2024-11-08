@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import { RefreshCcw } from "lucide-react";
 import { Send } from "./Send";
-import { Receive } from "./Receive";
+// import { Receive } from "./Receive";
 
 import { Address } from "viem";
 import { RecentTransactions } from "./RecentTransactions";
@@ -94,7 +94,7 @@ export function TokenDetail({
           </div>
 
           <div className="flex mt-4">
-            <Receive address={address as Address} />
+            {/* <Receive address={address as Address} /> */}
 
             <Send balance={balance} address={address as Address} tokenType={tokenType} />
           </div>

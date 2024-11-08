@@ -1,9 +1,18 @@
 import { CopyClipboardAddress } from "@/components/CopyClipboardAddress";
 import { auth, cn } from "@/lib/utils"
+import { SendModal } from "../../token/components/SendModal";
+import { useState } from "react";
+import { TokenType } from "@/types/tokens";
+import { ReceiveModal } from "../ReceiveModal";
 
-export default function DashboardPage() {
+export function Summary() {
   const avatarUrl = auth.getUserRandomAvatar();
   const {address} = auth.all();
+
+  const [sendOpen, setSendOpen] = useState(false)
+  const [receiveOpen, setReceiveOpen] = useState(false)
+  const [balance, setBalance] = useState('')
+  const [tokenType, setTokenType] = useState<TokenType>('ETH')
 
   return (
     <div
@@ -23,6 +32,7 @@ export default function DashboardPage() {
         }}
       />
 
+      {/* content */}
       <div className={cn(
         'relative z-10',
         'tablet:flex tablet:flex-wrap tablet:justify-between',
@@ -71,11 +81,17 @@ export default function DashboardPage() {
             'flex items-center gap-3 mb-[28px]',
             'justify-center tablet:justify-end',
           )}>
-            <div className=" bg-white rounded-full py-[8px] px-[16px] flex items-center gap-2 cursor-pointer">
+            <div
+              className=" bg-white rounded-full py-[8px] px-[16px] flex items-center gap-2 cursor-pointer"
+              onClick={() => setSendOpen(true)}
+            >
               <img src="/imgs/icons/send.svg" alt="" />
               <span className="text-black text-xs font-bold">Send</span>
             </div>
-            <div className=" bg-white rounded-full py-[8px] px-[16px] flex items-center gap-2 cursor-pointer">
+            <div
+              className="bg-white rounded-full py-[8px] px-[16px] flex items-center gap-2 cursor-pointer"
+              onClick={() => setReceiveOpen(true)}
+            >
               <img src="/imgs/icons/receive.svg" alt="" />
               <span className="text-black text-xs font-bold">Receive</span>
             </div>
@@ -94,6 +110,23 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* send modal */}
+      <SendModal
+        open={sendOpen}
+        setOpen={setSendOpen}
+        balance={balance}
+        address={address}
+        tokenType={tokenType}
+        onClose={() => setSendOpen(false)}
+      />
+
+      {/* receive modal */}
+      <ReceiveModal
+        address={address}
+        open={receiveOpen}
+        setOpen={setReceiveOpen}
+        onClose={() => setReceiveOpen(false)}
+      />
     </div>
   )
 }
