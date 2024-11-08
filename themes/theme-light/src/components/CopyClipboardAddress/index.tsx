@@ -7,12 +7,16 @@ import { Address } from "viem"
 interface CopyboardAddressProps {
   iconSize?: number;
   address: Address;
+  className?: string;
+  iconClassName?: string;
   [key: string]: any;
 }
 
 export function CopyClipboardAddress({
   iconSize=20,
   address,
+  className = '',
+  iconClassName = '',
   ...props
 }: CopyboardAddressProps) {
   const { t } = useTranslation()
@@ -24,11 +28,14 @@ export function CopyClipboardAddress({
         hideProgressBar: true,
       })
     }}>
-      <span className="flex text-primary">
-        <span {...props} style={{wordBreak: 'break-all', display: 'block'}}>
-          <span className="text-primary">{address}</span>
+      <span className="flex text-primary items-start">
+        <span {...props} style={{wordBreak: 'break-all', display: 'block'}} className="text-xs">
+          <span className={`text-primary ${className}`}>{address}</span>
         </span>
-        <Copy className="cursor-pointer hover:scale-105 ml-2" size={iconSize} />
+        <Copy 
+          className={`cursor-pointer hover:scale-105 ml-2 ${iconClassName}`} 
+          size={iconSize} 
+        />
       </span>
     </CopyToClipboard>
   )

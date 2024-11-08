@@ -56,6 +56,14 @@ class Auth {
     // return false
     return !!this.getAuthDataByKey('idToken')
   }
+
+  getUserRandomAvatar(): string {
+    const avatarIndex = this.getAuthDataByKey('avatarIndex');
+    if (avatarIndex) {
+      return `/static/avatars/${avatarIndex}.svg`;
+    }
+    return `/static/avatars/${1}.svg`;
+  }
 }
 
 export const auth = new Auth();
