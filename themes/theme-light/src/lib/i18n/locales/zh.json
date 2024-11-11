@@ -28,7 +28,7 @@
           "transactionHash": "交易哈希",
           "time": "时间",
           "from": "发送方",
-          "to": "接收方",
+          "to": "加密货币地址或邮箱地址",
           "amount": "金额"
         },
         "noTransactions": "暂无交易记录"

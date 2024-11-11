@@ -191,4 +191,8 @@ export class TokenFactory {
     }
     return new TokenClass();
   }
+
+  public getAllTokenTypes(): TokenType[] {
+    return Array.from(this.tokenMap.keys());
+  }
 }

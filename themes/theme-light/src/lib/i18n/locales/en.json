@@ -35,7 +35,7 @@
       },
       "sendModal": {
         "title": "Send",
-        "to": "To",
+        "to": "Crypto address or email address",
         "toPlaceholder": "Address or Email",
         "amount": "Amount",
         "note": "Note",

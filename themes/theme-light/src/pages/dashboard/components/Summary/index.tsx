@@ -1,18 +1,52 @@
 import { CopyClipboardAddress } from "@/components/CopyClipboardAddress";
-import { auth, cn } from "@/lib/utils"
+import { auth, cn, formatDecimal, handleError, log } from "@/lib/utils"
 import { SendModal } from "../../token/components/SendModal";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { TokenType } from "@/types/tokens";
 import { ReceiveModal } from "../ReceiveModal";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { TokenFactory } from "@/services/TokenService";
+
+const tokenTypeIcons = [
+  {
+    name: 'ETH',
+    icon: '/imgs/logos/eth.png',
+  },
+  {
+    name: 'MATIC',
+    icon: '/imgs/logos/matic.png',
+  },
+  {
+    name: 'TVWT',
+    icon: '/imgs/logos/tvwt.png',
+  },
+] as const;
 
 export function Summary() {
   const avatarUrl = auth.getUserRandomAvatar();
-  const {address} = auth.all();
+  const { address } = auth.all();
 
   const [sendOpen, setSendOpen] = useState(false)
   const [receiveOpen, setReceiveOpen] = useState(false)
-  const [balance, setBalance] = useState('')
   const [tokenType, setTokenType] = useState<TokenType>('ETH')
+
+  useEffect(() => {
+    handleTokenTypeChange(tokenType)
+  }, [])
+
+  const tokenTypeIcon = () => {
+    return tokenTypeIcons.find(token => token.name === tokenType)?.icon
+  }
+
+  const handleTokenTypeChange = async (tokenType: TokenType) => {
+    setTokenType(tokenType)
+    
+  }
 
   return (
     <div
@@ -81,6 +115,7 @@ export function Summary() {
             'flex items-center gap-3 mb-[28px]',
             'justify-center tablet:justify-end',
           )}>
+            {/* send */}
             <div
               className=" bg-white rounded-full py-[8px] px-[16px] flex items-center gap-2 cursor-pointer"
               onClick={() => setSendOpen(true)}
@@ -88,6 +123,8 @@ export function Summary() {
               <img src="/imgs/icons/send.svg" alt="" />
               <span className="text-black text-xs font-bold">Send</span>
             </div>
+
+            {/* receive */}
             <div
               className="bg-white rounded-full py-[8px] px-[16px] flex items-center gap-2 cursor-pointer"
               onClick={() => setReceiveOpen(true)}
@@ -95,10 +132,38 @@ export function Summary() {
               <img src="/imgs/icons/receive.svg" alt="" />
               <span className="text-black text-xs font-bold">Receive</span>
             </div>
-            <div className=" bg-white rounded-full py-[8px] px-[16px] flex items-center gap-2 cursor-pointer">
-              <img src="/imgs/icons/receive.svg" alt="" />
-              <img src="/imgs/icons/arrow_down.svg" alt="" />
-            </div>
+
+            {/* switch crypto */}
+            <DropdownMenu>
+              <DropdownMenuTrigger className="bg-white rounded-full py-[8px] px-[16px] flex items-center gap-2 cursor-pointer">
+                <img 
+                  src={tokenTypeIcon()} 
+                  className="w-[16px] h-[16px]" 
+                  alt="" 
+                />
+                <img src="/imgs/icons/arrow_down.svg" alt="" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="bg-white">
+                {tokenTypeIcons.map((token) => (
+                  <DropdownMenuItem
+                    key={token.name}
+                    onClick={() => handleTokenTypeChange(token.name as TokenType)}
+                  >
+                    <div className="flex items-center gap-2">
+                      <img 
+                        src={token.icon} 
+                        className="w-[16px] h-[16px]" 
+                        alt="" 
+                      />
+                      <span className="text-brand-foreground">{token.name}</span>
+                      {tokenType === token.name && (
+                        <img src="/imgs/icons/checked.svg" alt="" />
+                      )}
+                    </div>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           <CopyClipboardAddress
@@ -114,7 +179,6 @@ export function Summary() {
       <SendModal
         open={sendOpen}
         setOpen={setSendOpen}
-        balance={balance}
         address={address}
         tokenType={tokenType}
         onClose={() => setSendOpen(false)}
