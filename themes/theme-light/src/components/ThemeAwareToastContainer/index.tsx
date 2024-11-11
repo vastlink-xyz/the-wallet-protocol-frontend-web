@@ -32,8 +32,8 @@ export default function ThemeAwareToastContainer() {
       toastClassName={cn(
         'text-sm',
         'mobile:top-[82px]',
-        'w-full mobile:w-[375px] tablet:w-[688px]',
-        'left-1/2 -translate-x-1/2'
+        'max-w-full mobile:max-w-[375px] tablet:max-w-[688px] w-auto',
+        // 'left-1/2 -translate-x-1/2'
       )}
       // style={ isMobile ? undefined : {
       //   width: 'auto',

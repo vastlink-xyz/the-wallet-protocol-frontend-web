@@ -1,10 +1,17 @@
 import { RouterProvider } from "react-router-dom"
 import router from "@/routes/routeConfig"
 
+// roboto font
 import '@fontsource/roboto/400.css'
 import '@fontsource/roboto/500.css'
 import '@fontsource/roboto/700.css'
 import '@fontsource/roboto-mono/400.css'
+
+// asap font
+import '@fontsource/asap/400.css';  // normal
+import '@fontsource/asap/500.css';  // medium
+import '@fontsource/asap/700.css';  // bold
+
 import "@/styles/globals.css";
 import 'react-toastify/dist/ReactToastify.css';
 

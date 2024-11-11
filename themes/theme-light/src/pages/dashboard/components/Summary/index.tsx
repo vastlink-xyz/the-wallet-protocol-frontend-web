@@ -1,5 +1,5 @@
 import { CopyClipboardAddress } from "@/components/CopyClipboardAddress";
-import { auth, cn, formatDecimal, handleError, log } from "@/lib/utils"
+import { auth, cn, formatDecimal, formatNumberWithCommas, handleError, log } from "@/lib/utils"
 import { SendModal } from "../../token/components/SendModal";
 import { useEffect, useState } from "react";
 import { TokenType } from "@/types/tokens";
@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { TokenFactory } from "@/services/TokenService";
+import api from "@/lib/api";
 
 const tokenTypeIcons = [
   {
@@ -34,10 +34,26 @@ export function Summary() {
   const [sendOpen, setSendOpen] = useState(false)
   const [receiveOpen, setReceiveOpen] = useState(false)
   const [tokenType, setTokenType] = useState<TokenType>('ETH')
+  const [totalAsset, setTotalAsset] = useState('')
+  const [hideTotalAsset, setHideTotalAsset] = useState(true)
 
   useEffect(() => {
     handleTokenTypeChange(tokenType)
+    fetchTotalAsset()
   }, [])
+
+  const fetchTotalAsset = async () => {
+    // const a = formatNumberWithCommas(423543, 2)
+    // setTotalAsset(a)
+    // return
+    const res = await api.get('/user-assets/total-assets', {
+      params: {
+        address,
+      },
+    })
+    const totalAssets = formatNumberWithCommas(res.data.totalAssets, 2)
+    setTotalAsset(totalAssets)
+  }
 
   const tokenTypeIcon = () => {
     return tokenTypeIcons.find(token => token.name === tokenType)?.icon
@@ -45,7 +61,6 @@ export function Summary() {
 
   const handleTokenTypeChange = async (tokenType: TokenType) => {
     setTokenType(tokenType)
-    
   }
 
   return (
@@ -76,7 +91,7 @@ export function Summary() {
         {/* left content */}
         <div>
           <div className={cn(
-            'text-white font-bold leading-tight',
+            'text-white font-bold leading-tight font-["Asap"]',
             'text-lg tablet:text-[32px]',
             'mb-[25px] tablet:mb-[50px]',
           )}>Total asset</div>
@@ -98,9 +113,22 @@ export function Summary() {
                 'mb-[0px] tablet:mb-[10px]',
               )}>Portfolio value</div>
               <div className={cn(
-                'text-white font-bold',
+                'text-white font-bold font-["Asap"] flex items-center gap-4',
                 'text-[20px] tablet:text-[40px] tablet:leading-none',
-              )}>$0 USD</div>
+              )}>
+                <span className="flex items-center">
+                  {hideTotalAsset ? '******' : `$${totalAsset} USD`}
+                </span>
+                <img 
+                  src={hideTotalAsset ? '/imgs/icons/close_eye.svg' : '/imgs/icons/open_eye.svg'}
+                  alt="" 
+                  className={cn(
+                    'w-[30px] h-[30px]',
+                    'cursor-pointer',
+                  )}
+                  onClick={() => setHideTotalAsset(!hideTotalAsset)}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -155,7 +183,9 @@ export function Summary() {
                         className="w-[16px] h-[16px]" 
                         alt="" 
                       />
-                      <span className="text-brand-foreground">{token.name}</span>
+                      <span className={cn(
+                        tokenType === token.name ? 'text-brand-foreground' : 'text-black',
+                      )}>{token.name}</span>
                       {tokenType === token.name && (
                         <img src="/imgs/icons/checked.svg" alt="" />
                       )}

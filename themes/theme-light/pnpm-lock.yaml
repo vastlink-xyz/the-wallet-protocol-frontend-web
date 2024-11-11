@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@fontsource/asap':
+        specifier: ^5.0.0
+        version: 5.1.0
       '@fontsource/roboto':
         specifier: ^5.1.0
         version: 5.1.0
@@ -546,6 +549,9 @@ packages:
 
   '@floating-ui/utils@0.2.8':
     resolution: {integrity: sha512-kym7SodPp8/wloecOpcmSnWJsK7M0E5Wg8UcFA+uO4B9s5d0ywXOEro/8HM9x0rW+TljRzul/14UYz3TleT3ig==}
+
+  '@fontsource/asap@5.1.0':
+    resolution: {integrity: sha512-P9ZHyNEIF3/A+uIRS/g7Yuv6xE87PWtnL/ihg3qN2GkaFtUQJh0qUTlV8vbEs1wc9uUwKED6jaBlxtXInX4XCw==}
 
   '@fontsource/roboto-mono@5.1.0':
     resolution: {integrity: sha512-7lIxTeanF2XrwAIukUrOUvO9veGkQiG7L7vizMxVjl+lrTwS4GAYyOvziyGZ6/3kU80K3lGd/FnWrmoTud0V6A==}
@@ -4733,6 +4739,8 @@ snapshots:
       react-dom: 18.3.1(react@18.3.1)
 
   '@floating-ui/utils@0.2.8': {}
+
+  '@fontsource/asap@5.1.0': {}
 
   '@fontsource/roboto-mono@5.1.0': {}
 

@@ -4,6 +4,21 @@ import {sepolia, polygonAmoy} from "viem/chains"
 
 export const formatDecimal = (amount: string, decimal=6) => parseFloat(amount).toFixed(decimal)
 
+export const formatNumberWithCommas = (amount: string | number, decimal = 2) => {
+  // Convert to number and fix decimal places
+  const num = typeof amount === 'string' ? parseFloat(amount) : amount;
+  const fixedNum = num.toFixed(decimal);
+  
+  // Split number into integer and decimal parts
+  const [integerPart, decimalPart] = fixedNum.split('.');
+  
+  // Add commas to integer part
+  const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  
+  // Return formatted number with decimal part if it exists
+  return decimalPart ? `${formattedInteger}.${decimalPart}` : formattedInteger;
+}
+
 export function truncateMiddle(str: string, startChars = 8, endChars = 10, ellipsis = '...') {
   if (str.length <= startChars + endChars) {
     return str;
