@@ -11,9 +11,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fontsource/asap": "^5.0.0",
     "@fontsource/roboto": "^5.1.0",
     "@fontsource/roboto-mono": "^5.1.0",
-    "@fontsource/asap": "^5.0.0",
     "@moonpay/moonpay-react": "^1.8.2",
     "@radix-ui/react-checkbox": "^1.1.2",
     "@radix-ui/react-dialog": "^1.1.2",
@@ -48,6 +48,7 @@
     "react-qr-code": "^2.0.15",
     "react-router-dom": "^6.27.0",
     "react-toastify": "^10.0.6",
+    "recharts": "^2.13.3",
     "tailwind-merge": "^2.5.4",
     "tailwind-scrollbar-hide": "^1.1.7",
     "tailwindcss-animate": "^1.0.7",
