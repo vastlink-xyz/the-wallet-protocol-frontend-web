@@ -31,6 +31,7 @@
     "@web3auth/base": "^9.3.0",
     "@web3auth/ethereum-mpc-provider": "^9.3.0",
     "@web3auth/mpc-core-kit": "^3.2.4",
+    "antd": "^5.21.6",
     "axios": "^1.7.7",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
@@ -74,6 +75,7 @@
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.7.0",
     "vite": "^5.4.8",
+    "vite-plugin-imp": "^2.4.0",
     "vite-plugin-node-polyfills": "^0.22.0"
   }
 }

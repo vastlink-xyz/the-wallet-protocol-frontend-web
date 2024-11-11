@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { auth, cn, log } from "@/lib/utils"
-import { PurchaseModal } from "./PurchaseModal"
+// import { PurchaseModal } from "./PurchaseModal"
 import { TokenFactory } from "@/services/TokenService"
 import { ProductCard } from "./ProductCard/index"
 import { SkeletonCards } from "./SkeletonCards"
@@ -140,7 +140,7 @@ export function List({
         )
       }
 
-      <PurchaseModal isOpen={isPurchaseModalOpen} onClose={(isSave) => handlePurchaseModalClose(isSave)} product={product} balance={balance} />
+      {/* <PurchaseModal isOpen={isPurchaseModalOpen} onClose={(isSave) => handlePurchaseModalClose(isSave)} product={product} balance={balance} /> */}
 
       <RampModal isOpen={isRampModalOpen} onClose={() => setIsRampModalOpen(false)} product={product} />
     </div>

@@ -2,6 +2,7 @@ import { cn } from "@/lib/utils";
 import { Overview } from "./components/Overview";
 import { Summary } from "./components/Summary";
 import { UserWallet } from "./components/UserWallet";
+import { TransactionHistory } from "./components/TransactionHistory";
 
 export default function DashboardPage() {
   return (
@@ -14,6 +15,7 @@ export default function DashboardPage() {
         'mx-auto',
       )}>
         {/* <Overview /> */}
+        {/* <TransactionHistory /> */}
       </div>
       <UserWallet />
     </div>
