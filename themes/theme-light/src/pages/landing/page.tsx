@@ -51,7 +51,7 @@ export default function LandingPage() {
               'leading-3 tablet:leading-tight desktop:leading-normal',
               'pb-[24px] tablet:pb-[40px] laptop:pb-[56px]',
             )}>
-              Build for the community by the community.
+              Built for the community, driven by the community, powered by tokenomics.
             </div>
 
             {/* button desktop only */}
@@ -123,7 +123,7 @@ export default function LandingPage() {
               'text-[#e8ffdc] font-normal leading-7',
               'laptop:w-[403px] desktop:w-[572px]',
               'laptop:text-base desktop:text-xl',
-            )}>Open integration with all kinds of products and services.</div>
+            )}>Open integration with all kinds of products and services via the scalable marketplace.</div>
           </div>
         </div>
 
