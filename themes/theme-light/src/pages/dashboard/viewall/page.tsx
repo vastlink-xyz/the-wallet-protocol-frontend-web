@@ -14,35 +14,6 @@ import { RefreshCcw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
-const mockData = {
-  "assetDistribution": [
-    {
-      "token": "ETH",
-      "price": "3410.01",
-      "priceChange": "+6.83%",
-      "balance": "0.015983357426859",
-      "value": "54.50",
-      "proportion": "87.32"
-    },
-    {
-      "token": "MATIC",
-      "price": "0.439906",
-      "priceChange": "+8.01%",
-      "balance": "0.073866203843332044",
-      "value": "0.03",
-      "proportion": "0.05"
-    },
-    {
-      "token": "TVWT",
-      "price": "0.01",
-      "priceChange": "+0.00%",
-      "balance": "787.89989",
-      "value": "7.88",
-      "proportion": "12.62"
-    }
-  ]
-}
-
 const tokenImages = {
   ETH: '/imgs/logos/eth.png',
   MATIC: '/imgs/logos/matic.png',
@@ -52,7 +23,7 @@ const tokenImages = {
 export default function ViewAllPage() {
   const { address } = auth.all()
 
-  const [tableData, setTableData] = useState(mockData.assetDistribution)
+  const [tableData, setTableData] = useState([])
 
   useEffect(() => {
     init()

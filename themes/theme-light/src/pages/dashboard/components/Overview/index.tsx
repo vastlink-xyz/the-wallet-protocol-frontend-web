@@ -8,12 +8,11 @@ import api from "@/lib/api";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
-const allocationData = [
-  { label: 'ETH', value: 30, color: '#3B82F6' },
-  { label: 'BNB', value: 25, color: '#A855F7' },
-  { label: 'USDT', value: 25, color: '#EC4899' },
-  { label: 'WLD', value: 20, color: '#4F9B94' }
-];
+const tokenColors = {
+  ETH: '#3d7dc9',
+  MATIC: '#c08fec',
+  TVWT: '#52c41a',
+}
 
 export function Overview() {
   const navigate = useNavigate();
@@ -24,24 +23,37 @@ export function Overview() {
   const [performanceChartData, setPerformanceChartData] = useState<number[]>([]);
   const [performanceChartLabels, setPerformanceChartLabels] = useState<string[]>([]);
 
+  const [allocationData, setAllocationData] = useState<{ label: string, value: number, color: string }[]>([])
+
   useEffect(() => {
-    initPerformanceData();
+    init();
     // test();
   }, []);
 
-  const initPerformanceData = async () => {
+  const init = async () => {
     try {
       const res = await api.get('/user-assets/performance-chart', {
         params: {
           address
         }
       });
-      const list = res.data.historicalBalances
+      // set performance data
+      const list = res.data.chartData
       const data = list.map((item: any) => item.value)
       const labels = list.map((item: any) => item.date)
       setPerformanceData({ data, labels })
       setPerformanceChartData(data)
       setPerformanceChartLabels(labels)
+
+      // set allocation data
+      const allocationList = res.data.distribution
+      const allocationData = allocationList.map((item: any) => ({
+        label: item.label,
+        value: item.value,
+        color: tokenColors[item.label as keyof typeof tokenColors]
+      }))
+      log('allocationData', allocationData, allocationList)
+      setAllocationData(allocationData)
     } catch (error) {
       const errInfo = handleError(error);
       toast.error(errInfo.message);
@@ -68,7 +80,7 @@ export function Overview() {
       )}>Overview</div>
 
       <div className={cn(
-        'flex flex-wrap justify-between h-[286px]',
+        'flex flex-wrap justify-between',
         'gap-0 mobile:gap-[18px]',
       )}>
         {/* Performance Chart */}

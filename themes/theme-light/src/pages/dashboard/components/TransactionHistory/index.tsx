@@ -1,54 +1,35 @@
-import { cn } from "@/lib/utils";
+import { auth, cn, handleError, log } from "@/lib/utils";
 import { Search } from "./Search";
 import { TableList } from "./TableList";
-
-export interface TransactionItem {
-  id: string;
-  type: 'Send' | 'Receive';
-  amount: string;
-  token: string;
-  network: string;
-  receivingWallet: string;
-  time: string;
-  from?: string;
-  isYellow?: boolean;
-}
-
-const mockData = [
-  {
-    id: '1',
-    type: 'Receive',
-    amount: '15,109.98',
-    token: 'ETH',
-    network: 'Ethereum',
-    receivingWallet: 'OKX',
-    time: '9/26/2024, 12:10',
-    from: '0x99b40150f3bcca887a7dc13f0e511034527a859'
-  },
-  {
-    id: '2',
-    type: 'Send',
-    amount: '0.2',
-    token: 'SEED',
-    network: 'BNB Smart Chain',
-    receivingWallet: 'Trust wallet',
-    time: '9/26/2024, 12:10',
-    from: '02x124oi5543534...234ddw'
-  },
-  {
-    id: '3',
-    type: 'Receive',
-    amount: '0.2',
-    token: 'SEED',
-    network: 'BNB Smart Chain',
-    receivingWallet: 'Trust wallet',
-    time: '9/26/2024, 12:10',
-    from: '02x124oi5543534...234ddw',
-    isYellow: true
-  },
-];
+import { useEffect, useState } from "react";
+import api from "@/lib/api";
+import { toast } from "react-toastify";
 
 export function TransactionHistory() {
+  const { address } = auth.all()
+  const [tableData, setTableData] = useState([])
+
+  useEffect(() => {
+    initTableData()
+  }, [])
+
+  const handleSearch = async (data: any[]) => {
+  }
+
+  const initTableData = async () => {
+    try {
+      const res = await api.get('/user-assets/transaction-history', {
+        params: {
+        address
+      }
+      })
+      setTableData(res.data)
+    } catch (error) {
+      const errInfo = handleError(error)
+      toast.error(errInfo.message)
+    }
+  }
+
   return (
     <div>
       <div className={cn(
@@ -61,7 +42,7 @@ export function TransactionHistory() {
         <Search />
       </div>
 
-      <TableList data={mockData as TransactionItem[]} />
+      <TableList data={tableData} />
     </div>
   )
 }

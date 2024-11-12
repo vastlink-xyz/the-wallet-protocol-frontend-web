@@ -7,7 +7,7 @@ export default function DashboardLayout() {
     <div className="">
       <Summary />
       <div className={cn(
-        'w-[342px] tablet:w-[716px] laptop:w-[908px] desktop:w-[1224px]',
+        'w-[342px] tablet:w-[725px] laptop:w-[908px] desktop:w-[1224px]',
         'mx-auto',
       )}>
         <Outlet />
