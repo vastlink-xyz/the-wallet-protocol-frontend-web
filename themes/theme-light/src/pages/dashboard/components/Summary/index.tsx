@@ -39,7 +39,7 @@ export function Summary() {
 
   useEffect(() => {
     handleTokenTypeChange(tokenType)
-    fetchTotalAsset()
+    // fetchTotalAsset()
   }, [])
 
   const fetchTotalAsset = async () => {
@@ -61,6 +61,13 @@ export function Summary() {
 
   const handleTokenTypeChange = async (tokenType: TokenType) => {
     setTokenType(tokenType)
+  }
+
+  const handleOpenEye = () => {
+    setHideTotalAsset(!hideTotalAsset)
+    if (hideTotalAsset) {
+      fetchTotalAsset()
+    }
   }
 
   return (
@@ -126,7 +133,7 @@ export function Summary() {
                     'w-[30px] h-[30px]',
                     'cursor-pointer',
                   )}
-                  onClick={() => setHideTotalAsset(!hideTotalAsset)}
+                  onClick={handleOpenEye}
                 />
               </div>
             </div>

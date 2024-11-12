@@ -14,8 +14,8 @@ export default function DashboardPage() {
         'w-[342px] tablet:w-[716px] laptop:w-[908px] desktop:w-[1224px]',
         'mx-auto',
       )}>
-        {/* <Overview /> */}
-        {/* <TransactionHistory /> */}
+        <Overview />
+        <TransactionHistory />
       </div>
       <UserWallet />
     </div>

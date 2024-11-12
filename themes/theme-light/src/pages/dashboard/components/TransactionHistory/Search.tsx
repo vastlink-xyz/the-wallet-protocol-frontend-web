@@ -1,65 +1,80 @@
 import { DatePicker, ConfigProvider } from "antd";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { ChevronDown } from "lucide-react";
 
 const { RangePicker } = DatePicker;
 
 const tokens = [
+  { symbol: 'All', icon: '' },
   { symbol: 'ETH', icon: '/imgs/logos/eth.png' },
   { symbol: 'MATIC', icon: '/imgs/logos/matic.png' },
   { symbol: 'TVWT', icon: '/imgs/logos/tvwt.png' },
 ];
 
 export function Search() {
-  const [selectedToken, setSelectedToken] = useState('ETH');
+  const [selectedToken, setSelectedToken] = useState('ALL');
 
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-[14px]">
-        <Select value={selectedToken} onValueChange={setSelectedToken}>
-          <SelectTrigger className={cn(
-            "w-[120px] h-10 bg-white border border-[#E0E0E0]",
-            "hover:border-[#52c41a] focus:ring-[#52c41a]",
-            "text-sm",
-          )}>
-            <SelectValue>
+      <DropdownMenu>
+        <DropdownMenuTrigger className={cn(
+          "w-[120px] h-10 bg-white border border-[#E0E0E0] rounded-md",
+          "hover:border-[#52c41a] focus:ring-[#52c41a] focus:outline-none",
+          "text-sm px-3",
+          "flex items-center justify-between"
+        )}>
+          <div className="flex items-center gap-2">
+            <img 
+              src={tokens.find(t => t.symbol === selectedToken)?.icon} 
+              alt={selectedToken}
+              className={cn(
+                'w-4 h-4 rounded-full',
+                !tokens.find(t => t.symbol === selectedToken)?.icon && 'invisible'
+              )}
+            />
+            <span>{selectedToken}</span>
+          </div>
+          <ChevronDown className="h-4 w-4 opacity-50" />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="bg-white">
+          {tokens.map((token) => (
+            <DropdownMenuItem 
+              key={token.symbol}
+              onClick={() => setSelectedToken(token.symbol)}
+              className={cn(
+                "cursor-pointer text-sm",
+                "flex items-center justify-between",
+              )}
+            >
               <div className="flex items-center gap-2">
                 <img 
-                  src={tokens.find(t => t.symbol === selectedToken)?.icon} 
-                  alt={selectedToken}
-                  className="w-4 h-4 rounded-full"
+                  src={token.icon} 
+                  alt={token.symbol}
+                  className={cn(
+                    'w-4 h-4 rounded-full',
+                    !token.icon && 'invisible'
+                  )}
                 />
-                <span>{selectedToken}</span>
+                <span className={cn(
+                  selectedToken === token.symbol && "text-[#52c41a]"
+                )}>{token.symbol}</span>
               </div>
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent className="bg-white">
-            {tokens.map((token) => (
-              <SelectItem 
-                key={token.symbol} 
-                value={token.symbol}
-                className="cursor-pointer text-sm"
-              >
-                <div className="flex items-center gap-2">
-                  <img 
-                    src={token.icon} 
-                    alt={token.symbol}
-                    className="w-4 h-4 rounded-full"
-                  />
-                  <span>{token.symbol}</span>
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+              {selectedToken === token.symbol && (
+                <img src="/imgs/icons/checked.svg" alt="" />
+              )}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
 
         <ConfigProvider
           theme={{

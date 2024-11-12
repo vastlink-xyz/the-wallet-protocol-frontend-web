@@ -1,16 +1,11 @@
-import { auth, cn, log } from "@/lib/utils";
+import { auth, cn, handleError, log } from "@/lib/utils";
 import { PerformanceChart } from "./PerformanceChart";
 import { AllocationChart } from "./AllocationChart";
 import { useEffect, useState } from "react";
 import { Info } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import api from "@/lib/api";
-
-// mock data
-const performanceData = {
-  data: [32021.9, 33000, 34000, 35000, 36000, 37000, 38021.9],
-  labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-};
+import { toast } from "react-toastify";
 
 const allocationData = [
   { label: 'ETH', value: 30, color: '#3B82F6' },
@@ -20,20 +15,45 @@ const allocationData = [
 ];
 
 export function Overview() {
-  const [timeRange, setTimeRange] = useState<'7D' | '30D'>('7D');
+  const [timeRange, setTimeRange] = useState<'7D' | '30D'>('30D');
+  const [performanceData, setPerformanceData] = useState<{ data: number[], labels: string[] }>({ data: [], labels: [] });
+  const [performanceChartData, setPerformanceChartData] = useState<number[]>([]);
+  const [performanceChartLabels, setPerformanceChartLabels] = useState<string[]>([]);
   const { address } = auth.all()
 
   useEffect(() => {
     initPerformanceData();
+    // test();
   }, []);
 
   const initPerformanceData = async () => {
-    const res = await api.get('/user-assets/performance-chart', {
-      params: {
-        address
-      }
-    });
-    log('performanceData', res);
+    try {
+      const res = await api.get('/user-assets/performance-chart', {
+        params: {
+          address
+        }
+      });
+      const list = res.data.historicalBalances
+      const data = list.map((item: any) => item.value)
+      const labels = list.map((item: any) => item.date)
+      setPerformanceData({ data, labels })
+      setPerformanceChartData(data)
+      setPerformanceChartLabels(labels)
+    } catch (error) {
+      const errInfo = handleError(error);
+      toast.error(errInfo.message);
+    }
+  }
+
+  const handleTimeRangeChange = (value: '7D' | '30D') => {
+    setTimeRange(value);
+    if (value === '7D') {
+      setPerformanceChartData(performanceData.data.slice(-7))
+      setPerformanceChartLabels(performanceData.labels.slice(-7))
+    } else {
+      setPerformanceChartData(performanceData.data)
+      setPerformanceChartLabels(performanceData.labels)
+    }
   }
 
   return (
@@ -43,7 +63,7 @@ export function Overview() {
         'text-2xl mobile:text-[32px]',
         'mb-6'
       )}>Overview</div>
-      
+
       <div className={cn(
         'flex flex-wrap justify-between h-[286px]',
         'gap-0 mobile:gap-[18px]',
@@ -60,7 +80,7 @@ export function Overview() {
             </div>
             <Tabs
               value={timeRange}
-              onValueChange={(value) => setTimeRange(value as '7D' | '30D')}
+              onValueChange={(value) => handleTimeRangeChange(value as '7D' | '30D')}
             >
               <TabsList className="h-[28px] bg-[#f5f5f5]">
                 <TabsTrigger
@@ -84,9 +104,9 @@ export function Overview() {
               </TabsList>
             </Tabs>
           </div>
-          
+
           <div className="h-[200px]">
-            <PerformanceChart data={performanceData.data} labels={performanceData.labels} />
+            <PerformanceChart data={performanceChartData} labels={performanceChartLabels} />
           </div>
         </div>
 
