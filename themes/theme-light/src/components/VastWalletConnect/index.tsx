@@ -21,9 +21,10 @@ import { TransactionType } from '@/types/transaction';
 
 interface VastWalletConnectProps {
   className?: string;
+  buttonClassName?: string;
 }
 
-export function VastWalletConnect({ className }: VastWalletConnectProps) {
+export function VastWalletConnect({ className, buttonClassName }: VastWalletConnectProps) {
   const { t } = useTranslation()
   const isAuthenticated = auth.isAuthenticated()
 
@@ -321,7 +322,10 @@ export function VastWalletConnect({ className }: VastWalletConnectProps) {
           }
         }}
       >
-        <div className="text-center text-[#111111] text-sm font-medium  leading-none select-none">
+        <div className={cn(
+          "text-center text-[#111111] text-sm font-medium  leading-none select-none",
+          buttonClassName
+        )}>
           {isConnected ? t('vastWalletConnect.disconnectSession') : t('vastWalletConnect.connectDApps')}
         </div>
       </div>

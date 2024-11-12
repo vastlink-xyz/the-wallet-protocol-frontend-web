@@ -4,34 +4,72 @@ import { TableList } from "./TableList";
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
 import { toast } from "react-toastify";
+import dayjs from "dayjs";
+import { Empty } from "@/components/Empty";
+import { VastWalletConnect } from "@/components/VastWalletConnect";
 
 export function TransactionHistory() {
   const { address } = auth.all()
-  const [tableData, setTableData] = useState([])
+  const [tableData, setTableData] = useState<any[]>([])
+  const [defaultDates, setDefaultDates] = useState<[Date, Date]>([
+    dayjs().subtract(1, 'month').startOf('day').toDate(),
+    dayjs().endOf('day').toDate(),
+  ])
+  const [historyData, setHistoryData] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
+  const [selectedToken, setSelectedToken] = useState('ALL');
 
   useEffect(() => {
-    initTableData()
+    handleSearch(defaultDates, 'ALL')
   }, [])
 
-  const handleSearch = async (data: any[]) => {
-  }
-
-  const initTableData = async () => {
+  const handleSearch = async (dates: [Date, Date], tokenType: string = 'ALL') => {
+    const startDate = dates[0].getTime()
+    const endDate = dates[1].getTime()
     try {
+      setLoading(true)
       const res = await api.get('/user-assets/transaction-history', {
         params: {
-        address
-      }
+          address,
+          startDate,
+          endDate
+        }
       })
-      setTableData(res.data)
+      setHistoryData(res.data)
+      // set table data
+      if (tokenType === 'ALL') {
+        setTableData(res.data.slice())
+      } else {
+        setTableData(res.data.filter((t: any) => {
+          return t.token === tokenType
+        }))
+      }
     } catch (error) {
       const errInfo = handleError(error)
       toast.error(errInfo.message)
+    } finally {
+      setLoading(false)
     }
   }
 
+  const handleTokenChange = (tokenType: string) => {
+    setSelectedToken(tokenType)
+    if (tokenType === 'ALL') {
+      setTableData(historyData.slice())
+    } else {
+      setTableData(historyData.filter(t => {
+        return t.token === tokenType
+      }))
+    }
+  }
+
+  const handleReset = () => {
+    setSelectedToken('ALL');
+    handleSearch(defaultDates, 'ALL');
+  }
+
   return (
-    <div>
+    <div className="min-h-[500px]">
       <div className={cn(
         'text-[#111111] font-bold',
         'text-2xl mobile:text-[32px]',
@@ -39,10 +77,25 @@ export function TransactionHistory() {
       )}>History</div>
 
       <div className="mb-[40px]">
-        <Search />
+        <Search
+          onDateChange={(dates) => handleSearch(dates, selectedToken)}
+          defaultDates={defaultDates}
+          onTokenChange={handleTokenChange}
+          selectedToken={selectedToken}
+          onReset={handleReset}
+        />
       </div>
 
-      <TableList data={tableData} />
+      {
+        !loading && tableData.length === 0 ? (
+          <div className="mt-[96px]">
+            <Empty className="mx-auto" text="No transaction history now, but you can connect wallet and make a transfer!" />
+            <VastWalletConnect className="mt-[24px]" buttonClassName="text-white bg-black rounded-full py-[10px] px-[16px] w-[173px]" />
+          </div>
+        ) : (
+          <TableList data={tableData} />
+        )
+      }
     </div>
   )
 }

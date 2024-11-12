@@ -9,8 +9,14 @@ import {
 import { cn, formatDecimal, formatNumberWithCommas } from "@/lib/utils"
 import { formatEther } from "viem"
 
+const tokenImages = {
+  ETH: '/imgs/logos/eth.png',
+  MATIC: '/imgs/logos/matic.png',
+  TVWT: '/imgs/logos/tvwt.png',
+}
 
 export function TableList({ data }: { data: any[] }) {
+
   return (
     <Table>
       <TableHeader className="hidden tablet:table-header-group">
@@ -32,7 +38,7 @@ export function TableList({ data }: { data: any[] }) {
               'desktop:w-[150px] laptop:w-[150px]'
             )}>
               <div className="flex items-center gap-3">
-                <img src="/imgs/logos/eth.png" alt="send" className="w-[28px] h-[28px]" />
+                <img src={tokenImages[transaction.token as keyof typeof tokenImages]} alt={transaction.token} className="w-[28px] h-[28px]" />
                 <span className="text-base font-bold leading-tight text-[#3d3d3d]">{transaction.type}</span>
               </div>
             </TableCell>
@@ -103,7 +109,7 @@ export function TableList({ data }: { data: any[] }) {
               </div>
             </TableCell>
             <TableCell className="px-0 py-6 text-right text-sm text-black leading-none font-normal w-[120px]">
-              {new Date(transaction.timestamp * 1000).toLocaleString('en-US', {
+              {new Date(transaction.timestamp).toLocaleString('en-US', {
                 year: 'numeric',
                 month: 'numeric',
                 day: 'numeric',
@@ -123,7 +129,7 @@ export function TableList({ data }: { data: any[] }) {
               "px-0 py-6 w-[180px]",
             )}>
               <div className="flex items-center gap-3">
-                <img src="/imgs/logos/eth.png" alt="send" className="w-[28px] h-[28px]" />
+                <img src={tokenImages[transaction.token as keyof typeof tokenImages]} alt={transaction.token} className="w-[28px] h-[28px]" />
                 <div className="flex flex-col">
                   <span className="text-base font-bold leading-tight text-[#3d3d3d]">{transaction.type}</span>
                   <div className="flex flex-col gap-1 mt-[6px] text-xs text-[#929292] font-medium leading-none break-all">
@@ -147,7 +153,7 @@ export function TableList({ data }: { data: any[] }) {
                 {transaction.type === 'Receive' ? '+' : '-'}{formatNumberWithCommas(formatEther(transaction.amount), 2)} {transaction.token}
               </p>
               <p>
-                {new Date(transaction.timestamp * 1000).toLocaleString('en-US', {
+                {new Date(transaction.timestamp).toLocaleString('en-US', {
                   year: 'numeric',
                   month: 'numeric',
                   day: 'numeric',
