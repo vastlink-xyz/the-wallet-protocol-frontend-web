@@ -23,7 +23,7 @@ const tokenImages = {
 export default function ViewAllPage() {
   const { address } = auth.all()
 
-  const [tableData, setTableData] = useState([])
+  const [tableData, setTableData] = useState<any[]>([])
 
   useEffect(() => {
     init()
