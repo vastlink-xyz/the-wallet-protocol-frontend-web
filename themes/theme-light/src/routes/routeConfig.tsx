@@ -1,3 +1,4 @@
+import DashboardLayout from '@/pages/dashboard/layout';
 import ErrorPage from '@/pages/error';
 import { marketplaceLoader } from '@/pages/marketplace/route';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
@@ -48,12 +49,20 @@ const router = createBrowserRouter([
           },
           {
             path: 'dashboard',
+            element: <DashboardLayout />,
             children: [
               {
                 index: true,
                 async lazy() {
                   const { default: Dashboard } = await import('@/pages/dashboard/page');
                   return { Component: Dashboard };
+                },
+              },
+              {
+                path: 'viewall',
+                async lazy() {
+                  const { default: ViewAllPage } = await import('@/pages/dashboard/viewall/page');
+                  return { Component: ViewAllPage };
                 },
               },
               {

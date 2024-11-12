@@ -6,6 +6,7 @@ import { Info } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import api from "@/lib/api";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 const allocationData = [
   { label: 'ETH', value: 30, color: '#3B82F6' },
@@ -15,11 +16,13 @@ const allocationData = [
 ];
 
 export function Overview() {
+  const navigate = useNavigate();
+  const { address } = auth.all()
+
   const [timeRange, setTimeRange] = useState<'7D' | '30D'>('30D');
   const [performanceData, setPerformanceData] = useState<{ data: number[], labels: string[] }>({ data: [], labels: [] });
   const [performanceChartData, setPerformanceChartData] = useState<number[]>([]);
   const [performanceChartLabels, setPerformanceChartLabels] = useState<string[]>([]);
-  const { address } = auth.all()
 
   useEffect(() => {
     initPerformanceData();
@@ -117,7 +120,7 @@ export function Overview() {
         )}>
           <div className="flex justify-between items-center mb-[20px]">
             <p className="text-base text-[#111111] font-bold leading-tight">Crypto allocation</p>
-            <button className="text-base text-[#727272]">View all</button>
+            <button className="text-base text-[#727272]" onClick={() => navigate('/dashboard/viewall')}>View all</button>
           </div>
           <div className="h-[200px]">
             <AllocationChart data={allocationData} />
