@@ -3,7 +3,7 @@ import { Overview } from "./components/Overview";
 import { TransactionHistory } from "./components/TransactionHistory";
 import { auth } from "@/lib/utils";
 import { Guide } from "./components/Guide";
-
+import { RecommendedProducts } from "./components/RecommendedProducts";
 export default function DashboardPage() {
   const { address } = auth.all()
   const { data: totalAsset, isFetched } = useTotalAsset({
@@ -19,6 +19,9 @@ export default function DashboardPage() {
           <Overview />
         )
       }
+
+      {/* <RecommendedProducts className="mt-[48px] tablet:mt-[100px]" /> */}
+
       <div className="mt-[60px] tablet:mt-[100px]">
         <TransactionHistory />
       </div>
