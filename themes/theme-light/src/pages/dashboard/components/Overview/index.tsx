@@ -7,6 +7,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import api from "@/lib/api";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import { usePerformanceChart } from "@/hooks/usePerformanceChart";
 
 const tokenColors = {
   ETH: '#3d7dc9',
@@ -19,40 +20,38 @@ export function Overview() {
   const { address } = auth.all()
 
   const [timeRange, setTimeRange] = useState<'7D' | '30D'>('30D');
-  const [performanceData, setPerformanceData] = useState<{ data: number[], labels: string[] }>({ data: [], labels: [] });
+  // const [performanceData, setPerformanceData] = useState<{ data: number[], labels: string[] }>({ data: [], labels: [] });
   const [performanceChartData, setPerformanceChartData] = useState<number[]>([]);
   const [performanceChartLabels, setPerformanceChartLabels] = useState<string[]>([]);
 
   const [allocationData, setAllocationData] = useState<{ label: string, value: number, color: string }[]>([])
 
+  const { data: performanceData, isFetched, refetch } = usePerformanceChart({
+    enabled: !!address,
+  })
+
   useEffect(() => {
-    init();
-    // test();
-  }, []);
+    if (isFetched) {
+      init();
+    }
+  }, [isFetched]);
 
   const init = async () => {
     try {
-      const res = await api.get('/user-assets/performance-chart', {
-        params: {
-          address
-        }
-      });
       // set performance data
-      const list = res.data.chartData
-      const data = list.map((item: any) => item.value)
-      const labels = list.map((item: any) => item.date)
-      setPerformanceData({ data, labels })
+      const list = performanceData?.chartData || []
+      const data = list.map((item) => item.value)
+      const labels = list.map((item) => item.date)
       setPerformanceChartData(data)
       setPerformanceChartLabels(labels)
 
       // set allocation data
-      const allocationList = res.data.distribution
-      const allocationData = allocationList.map((item: any) => ({
+      const allocationList = performanceData?.distribution || []
+      const allocationData = allocationList.map((item) => ({
         label: item.label,
         value: item.value,
         color: tokenColors[item.label as keyof typeof tokenColors]
       }))
-      log('allocationData', allocationData, allocationList)
       setAllocationData(allocationData)
     } catch (error) {
       const errInfo = handleError(error);
@@ -63,11 +62,11 @@ export function Overview() {
   const handleTimeRangeChange = (value: '7D' | '30D') => {
     setTimeRange(value);
     if (value === '7D') {
-      setPerformanceChartData(performanceData.data.slice(-7))
-      setPerformanceChartLabels(performanceData.labels.slice(-7))
+      setPerformanceChartData(performanceData?.chartData.slice(-7).map((item) => item.value) || [])
+      setPerformanceChartLabels(performanceData?.chartData.slice(-7).map((item) => item.date) || [])
     } else {
-      setPerformanceChartData(performanceData.data)
-      setPerformanceChartLabels(performanceData.labels)
+      setPerformanceChartData(performanceData?.chartData.map((item) => item.value) || [])
+      setPerformanceChartLabels(performanceData?.chartData.map((item) => item.date) || [])
     }
   }
 

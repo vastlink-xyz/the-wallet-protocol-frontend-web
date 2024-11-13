@@ -42,6 +42,6 @@ export function useTotalAsset(options?: {
     enabled: options?.enabled && !!address,
     staleTime: 1000 * 60 * 5,  // data is fresh within 5 minutes
     gcTime: 1000 * 60 * 30,    // cache for 30 minutes
-    retry: 2,                   // retry 2 times
+    retry: 1,                   // retry 1 time
   })
 }
