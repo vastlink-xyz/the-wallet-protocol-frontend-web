@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import api from "@/lib/api";
+import { useTotalAsset } from "@/hooks/useTotalAsset";
 
 const tokenTypeIcons = [
   {
@@ -31,29 +32,18 @@ export function Summary() {
   const avatarUrl = auth.getUserRandomAvatar();
   const { address } = auth.all();
 
+  const { data: totalAsset, refetch } = useTotalAsset({
+    enabled: !!address,
+  })
+
   const [sendOpen, setSendOpen] = useState(false)
   const [receiveOpen, setReceiveOpen] = useState(false)
   const [tokenType, setTokenType] = useState<TokenType>('ETH')
-  const [totalAsset, setTotalAsset] = useState('')
   const [hideTotalAsset, setHideTotalAsset] = useState(true)
 
   useEffect(() => {
     handleTokenTypeChange(tokenType)
-    // fetchTotalAsset()
   }, [])
-
-  const fetchTotalAsset = async () => {
-    // const a = formatNumberWithCommas(423543, 2)
-    // setTotalAsset(a)
-    // return
-    const res = await api.get('/user-assets/total-assets', {
-      params: {
-        address,
-      },
-    })
-    const totalAssets = formatNumberWithCommas(res.data.totalAssets, 2)
-    setTotalAsset(totalAssets)
-  }
 
   const tokenTypeIcon = () => {
     return tokenTypeIcons.find(token => token.name === tokenType)?.icon
@@ -65,9 +55,6 @@ export function Summary() {
 
   const handleOpenEye = () => {
     setHideTotalAsset(!hideTotalAsset)
-    if (hideTotalAsset) {
-      fetchTotalAsset()
-    }
   }
 
   return (
@@ -124,7 +111,7 @@ export function Summary() {
                 'text-[20px] tablet:text-[40px] tablet:leading-none',
               )}>
                 <span className="flex items-center">
-                  {hideTotalAsset ? '******' : `$${totalAsset} USD`}
+                  {hideTotalAsset ? '******' : `$${totalAsset?.formatted} USD`}
                 </span>
                 <img 
                   src={hideTotalAsset ? '/imgs/icons/close_eye.svg' : '/imgs/icons/open_eye.svg'}
