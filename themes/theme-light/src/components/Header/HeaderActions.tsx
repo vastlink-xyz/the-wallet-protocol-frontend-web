@@ -6,11 +6,24 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
-import { cn, log } from "@/lib/utils";
+import api from "@/lib/api";
+import { auth, cn, handleError, log } from "@/lib/utils";
 import { useState } from "react";
+import { toast } from "react-toastify";
 
 export function HeaderActions() {
   const [open, setOpen] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      await api.post('/auth/logout')
+      auth.clearAllAuthData()
+      window.location.href = '/auth'
+    } catch (error) {
+      const errorInfo = handleError(error)
+      toast.error(errorInfo.message)
+    }
+  }
 
   return (
     <div className="justify-start items-center gap-[21px] flex">
@@ -64,6 +77,11 @@ export function HeaderActions() {
               >
                 <LanguageSwitch onLanguageChange={() => setOpen(false)} />
               </DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={(e) => e.preventDefault()}
+              >
+                <div onClick={() => handleLogout()}>Logout</div>
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -73,7 +91,19 @@ export function HeaderActions() {
           'flex tablet:hidden laptop:flex',
           'justify-start items-center gap-6 flex-shrink-0'
         )}>
-          <img className="w-[24px] h-[24px] flex-shrink-0" src="/imgs/icons/profile.png" />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <img 
+                className="w-[24px] h-[24px] flex-shrink-0 cursor-pointer" 
+                src="/imgs/icons/profile.png" 
+              />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="bg-white">
+              <DropdownMenuItem onSelect={() => handleLogout()}>
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         <div className={cn(
