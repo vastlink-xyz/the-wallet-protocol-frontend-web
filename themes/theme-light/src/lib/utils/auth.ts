@@ -1,6 +1,6 @@
 import { CustomStorage } from "./storage";
 
-export type AuthStoreType = 'idToken' | 'address' | 'username' | 'displayName' | 'avatarIndex' |
+export type AuthStoreType = 'address' | 'username' | 'displayName' | 'avatarIndex' |
 'authenticatedHeader' | 'authenticated' | 'desUsername' | 'aeskey';
 
 class Auth {
@@ -8,7 +8,6 @@ class Auth {
 
   constructor() {
     this.storages = {
-      idToken: new CustomStorage('idToken'),
       username: new CustomStorage('username'),
       displayName: new CustomStorage('displayName'),
       avatarIndex: new CustomStorage('avatarIndex'),
@@ -54,7 +53,7 @@ class Auth {
 
   isAuthenticated(): boolean {
     // return false
-    return !!this.getAuthDataByKey('idToken')
+    return !!this.getAuthDataByKey('address')
   }
 
   getUserRandomAvatar(): string {

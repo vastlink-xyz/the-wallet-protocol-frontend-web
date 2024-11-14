@@ -1,4 +1,5 @@
 import { useUserInfo } from '@/hooks/user/useUserInfo';
+import { auth } from '@/lib/utils';
 import React, { createContext, useContext, useState, useCallback } from 'react';
 
 interface MarketplaceContextType {
@@ -9,8 +10,11 @@ interface MarketplaceContextType {
 const MarketplaceContext = createContext<MarketplaceContextType | undefined>(undefined);
 
 export function MarketplaceProvider({ children }: { children: React.ReactNode }) {
+  const {address} = auth.all()
   const [hasNewProducts, setHasNewProducts] = useState(false);
-  const { data: userInfo } = useUserInfo()
+  const { data: userInfo } = useUserInfo({
+    enabled: !!address,
+  })
 
   const checkNewProducts = useCallback(async () => {
     try {

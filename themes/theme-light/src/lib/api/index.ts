@@ -2,20 +2,26 @@ import axios, { AxiosResponse, AxiosError } from 'axios'
 import { auth } from "@/lib/utils";
 import { toast } from 'react-toastify';
 
+axios.defaults.withCredentials = true
+
 const api = axios.create({
   baseURL: import.meta.env.VITE_WALLET_PROTOCAL_API_BASEURL,
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
-api.interceptors.request.use(
-  (config) => {
-    const token = auth.all().idToken;
-    if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+// api.interceptors.request.use(
+//   (config) => {
+//     const token = auth.all().idToken;
+//     if (token) {
+//       config.headers['Authorization'] = `Bearer ${token}`;
+//     }
+//     return config;
+//   },
+//   (error) => Promise.reject(error)
+// );
 
 // Add response interceptor
 api.interceptors.response.use(

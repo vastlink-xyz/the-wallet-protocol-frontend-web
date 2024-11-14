@@ -121,7 +121,6 @@ export default function Page() {
       // sign up with keyManagementService
       await keyManagementService.signUp({
         username: registerUsername,
-        idToken: idToken,
       })
 
       // setRegistering(false);
@@ -159,11 +158,9 @@ export default function Page() {
     try {
       // verify otp and get idToken
       // const idToken = await verifyOtp(authUsername, otp)
-      const { idToken } = auth.all()
-
+      
       await keyManagementService.signIn({
         authUsername,
-        idToken,
       })
 
       return true

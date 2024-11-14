@@ -62,7 +62,6 @@ export default function VerifyAuthPage() {
 
       await keyManagementService.signIn({
         authUsername,
-        idToken,
       })
 
       navigate('/dashboard')
@@ -97,7 +96,6 @@ export default function VerifyAuthPage() {
       // sign up with keyManagementService
       await keyManagementService.signUp({
         username: registerUsername,
-        idToken: idToken,
       })
 
       setShowCountdownSuccess(true)

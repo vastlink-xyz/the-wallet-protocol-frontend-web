@@ -25,9 +25,17 @@ const fetchUserInfo = async (): Promise<UserInfo> => {
   return data;
 };
 
-export const useUserInfo = () => {
+export const useUserInfo = (options?: { 
+  enabled?: boolean;
+  onError?: (error: any) => void;
+  onSettled?: (data: UserInfo | undefined, error: any) => void;
+}) => {
   return useQuery({
     queryKey: ['userInfo'],
     queryFn: fetchUserInfo,
+    enabled: options?.enabled !== false,
+    retry: false,
+    gcTime: 0,
+    ...options
   });
 };

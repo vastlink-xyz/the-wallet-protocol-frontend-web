@@ -21,9 +21,9 @@ abstract class KeyManagementService {
 
   abstract test(): Promise<void>;
 
-  abstract signUp({username, idToken}: {username: string, idToken: string}): Promise<void>;
+  abstract signUp({username}: {username: string}): Promise<void>;
 
-  abstract signIn({authUsername, idToken}: {authUsername: string, idToken: string}): Promise<void>;
+  abstract signIn({authUsername}: {authUsername: string}): Promise<void>;
 
   abstract signTransaction({
     toAddress,
