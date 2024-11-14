@@ -7,12 +7,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Tag } from '@/pages/marketplace/components/ProductCard/Tag';
 import { IProduct, PurchasedProduct } from "@/pages/marketplace/types";
-import { PairContextType } from "@/providers/WalletConnectPairProvider";
-import { useWalletConnectPair } from "@/providers/WalletConnectPairProvider";
-import api from "@/lib/api";
-import { useMarketplace } from '@/providers/MarketplaceProvider';
-import { useNavigate } from "react-router-dom";
-import { useQueryClient } from "@tanstack/react-query";
+import { useClickProduct } from "@/hooks/products/useClickProduct";
 
 type ProductCardProps = (IProduct | PurchasedProduct) & {
   className?: string;
@@ -28,94 +23,10 @@ export function ProductCard({
   selectedCategory,
   ...product
 }: ProductCardProps) {
-  const navigate = useNavigate();
-  const queryClient = useQueryClient()
-
-  const {
-    setIsModalOpen,
-    setDappInfo,
-    isConnected,
-    setDisplayUriInput,
-  } = useWalletConnectPair() as PairContextType
-  const { checkNewProducts } = useMarketplace();
-
-  const checkPurchaseStatus = (product: IProduct) => {
-    const exist = activedPurchasedProductIds.some(p => p === product.id)
-    if (exist) {
-      return 'active'
-    }
-    return ''
-  }
-
-  const handleClick = async () => {
-    // user has not purchased this product
-    if (checkPurchaseStatus(product) !== 'active') {
-      navigate(`/marketplace/feature-detail/${product.id}`)
-      return
-    }
-
-    // mark as viewed & update last used date
-    try {
-      await api.post('/user/products/update-usage-status', {
-        productId: product.id
-      });
-      // invalidate and refetch user info
-      await queryClient.invalidateQueries({ queryKey: ['userInfo'] })
-      await checkNewProducts();
-    } catch (err) {
-      console.error('Failed to mark product as viewed:', err);
-    }
-
-    // product flow
-    if (product.products && product.followOrder) {
-      const params = new URLSearchParams()
-      params.set('flowId', product.id)
-      params.set('flowIndex', '0')
-      navigate(`${product.serviceUrl}?${params.toString()}`);
-      return
-    }
-
-    // wallet connect
-    if (product.integrationPoints.includes('walletconnect')) {
-      if (isConnected) {
-        window.open(product.serviceUrl, '_blank')
-      } else {
-        setDappInfo({
-          name: product.name,
-          url: product.serviceUrl,
-        })
-        setDisplayUriInput(false)
-        setIsModalOpen(true)
-      }
-      return
-    }
-
-    // payment Moonpay
-    if (product.vendor === 'Moonpay') {
-      handleRampOpenModal(product)
-      return
-    }
-
-    // switch theme
-    if (product.integrationPoints.includes('theme')) {
-      // refresh to the new url
-      window.location.href = product.serviceUrl;
-      return
-    }
-
-    if (product.category === 'Security') {
-      window.open(product.website, '_blank')
-      return
-    }
-
-    if (product.serviceUrl.startsWith('http')) {
-      // open in new tab
-      window.open(product.serviceUrl, '_blank')
-    } else if (product.serviceUrl.startsWith('/')) {
-      // navigate to the product page
-      navigate(product.serviceUrl)
-    }
-  }
+  const { handleClick } = useClickProduct({
+    activedPurchasedProductIds,
+    handleRampOpenModal,
+  })
 
   return (
     <TooltipProvider>
@@ -128,7 +39,7 @@ export function ProductCard({
               'hover:border-[#111111] cursor-pointer',
               className
             ])}
-            onClick={() => handleClick()}
+            onClick={() => handleClick(product)}
           >
             {/* featured or free tag */}
             {product.isFeatured ? <Tag variant="featured" /> : product.price === 0 && <Tag variant="free" />}
