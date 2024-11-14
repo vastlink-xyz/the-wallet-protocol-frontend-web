@@ -10,7 +10,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import api from "@/lib/api";
 import { useTotalAsset } from "@/hooks/useTotalAsset";
 
 const tokenTypeIcons = [
@@ -190,12 +189,20 @@ export function Summary() {
             </DropdownMenu>
           </div>
 
-          <CopyClipboardAddress
-            address={address}
-            className="text-white text-xs"
-            iconClassName="text-white"
-            iconSize={14}
-          />
+          <div className="flex items-start gap-2">
+            <CopyClipboardAddress
+              address={address}
+              className="text-white text-xs"
+              iconClassName="text-white"
+              iconSize={14}
+            />
+            <img
+              className="w-[14px] h-[14px] cursor-pointer"
+              src="/imgs/icons/qrcode.svg"
+              alt=""
+              onClick={() => setReceiveOpen(true)}
+            />
+          </div>
         </div>
       </div>
 

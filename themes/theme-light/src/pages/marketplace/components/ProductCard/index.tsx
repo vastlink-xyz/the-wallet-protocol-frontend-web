@@ -12,6 +12,7 @@ import { useWalletConnectPair } from "@/providers/WalletConnectPairProvider";
 import api from "@/lib/api";
 import { useMarketplace } from '@/providers/MarketplaceProvider';
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 
 type ProductCardProps = (IProduct | PurchasedProduct) & {
   className?: string;
@@ -28,6 +29,7 @@ export function ProductCard({
   ...product
 }: ProductCardProps) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient()
 
   const {
     setIsModalOpen,
@@ -57,6 +59,8 @@ export function ProductCard({
       await api.post('/user/products/update-usage-status', {
         productId: product.id
       });
+      // invalidate and refetch user info
+      await queryClient.invalidateQueries({ queryKey: ['userInfo'] })
       await checkNewProducts();
     } catch (err) {
       console.error('Failed to mark product as viewed:', err);

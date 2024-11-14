@@ -13,6 +13,9 @@ import { Progress } from "antd";
 import { RefreshCcw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import { SendModal } from "@/pages/dashboard/token/components/SendModal";
+import { ReceiveModal } from "@/pages/dashboard/components/ReceiveModal";
+import { TokenType } from "@/types/tokens";
 
 const tokenImages = {
   ETH: '/imgs/logos/eth.png',
@@ -24,6 +27,9 @@ export default function ViewAllPage() {
   const { address } = auth.all()
 
   const [tableData, setTableData] = useState<any[]>([])
+  const [sendOpen, setSendOpen] = useState(false)
+  const [receiveOpen, setReceiveOpen] = useState(false)
+  const [tokenType, setTokenType] = useState<TokenType>('ETH')
 
   useEffect(() => {
     init()
@@ -96,13 +102,36 @@ export default function ViewAllPage() {
             </TableCell>
             <TableCell className="hidden tablet:table-cell px-0 py-6">
               <div className="flex items-center justify-end gap-[17px]">
-                <img className="cursor-pointer" src="/imgs/icons/send.svg" alt="" />
-                <img className="cursor-pointer" src="/imgs/icons/receive.svg" alt="" />
+                <img className="cursor-pointer" src="/imgs/icons/send.svg" alt="" onClick={() => {
+                  setTokenType(item.token as TokenType)
+                  setSendOpen(true)
+                }} />
+                <img className="cursor-pointer" src="/imgs/icons/receive.svg" alt="" onClick={() => {
+                  setReceiveOpen(true)
+                }} />
               </div>
             </TableCell>
           </TableRow>
         ))}
       </TableBody>
     </Table>
+
+
+    {/* send modal */}
+    <SendModal
+      open={sendOpen}
+      setOpen={setSendOpen}
+      address={address}
+      tokenType={tokenType}
+      onClose={() => setSendOpen(false)}
+    />
+
+    {/* receive modal */}
+    <ReceiveModal
+      address={address}
+      open={receiveOpen}
+      setOpen={setReceiveOpen}
+      onClose={() => setReceiveOpen(false)}
+    />
   </div>;
 }

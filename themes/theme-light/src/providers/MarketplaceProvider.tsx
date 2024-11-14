@@ -1,4 +1,4 @@
-import api from '@/lib/api';
+import { useUserInfo } from '@/hooks/user/useUserInfo';
 import React, { createContext, useContext, useState, useCallback } from 'react';
 
 interface MarketplaceContextType {
@@ -10,19 +10,20 @@ const MarketplaceContext = createContext<MarketplaceContextType | undefined>(und
 
 export function MarketplaceProvider({ children }: { children: React.ReactNode }) {
   const [hasNewProducts, setHasNewProducts] = useState(false);
+  const { data: userInfo } = useUserInfo()
 
   const checkNewProducts = useCallback(async () => {
     try {
-      const res = await api.get('/user/purchasedProducts');
-      const products = res.data;
-      const hasNew = products.some((product: any) => 
+      // const res = await api.get('/user/purchasedProducts');
+      const products = userInfo?.purchasedProducts || []
+      const hasNew = products.some((product) => 
         product.status === 'active' && product.unread
       );
       setHasNewProducts(hasNew);
     } catch (err) {
       console.error('Failed to check new products:', err);
     }
-  }, []);
+  }, [userInfo]);
 
   return (
     <MarketplaceContext.Provider value={{ checkNewProducts, hasNewProducts }}>
