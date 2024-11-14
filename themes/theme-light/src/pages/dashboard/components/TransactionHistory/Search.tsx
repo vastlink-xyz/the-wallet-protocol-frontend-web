@@ -26,12 +26,14 @@ export function Search({
   onTokenChange,
   selectedToken,
   onReset,
+  onDownloadCSV,
 }: { 
   onDateChange: (dates: [Date, Date]) => void,
   onTokenChange: (token: string) => void,
   onReset: () => void,
   selectedToken: string,
-  defaultDates: [Date, Date]
+  defaultDates: [Date, Date],
+  onDownloadCSV: () => void,
 }) {
 
   const handleTokenChange = (tokenType: string) => {
@@ -119,7 +121,7 @@ export function Search({
         <div className="hidden tablet:block text-black text-base font-bold leading-tight cursor-pointer" onClick={onReset}> Reset</div>
       </div>
 
-      <Button className="hidden tablet:block">
+      <Button className="hidden tablet:block" onClick={onDownloadCSV}>
         Download CSV
       </Button>
     </div>

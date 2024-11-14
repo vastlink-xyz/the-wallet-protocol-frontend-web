@@ -46,21 +46,20 @@ export function ProductCard({
   }
 
   const handleClick = async () => {
+    // user has not purchased this product
     if (checkPurchaseStatus(product) !== 'active') {
       navigate(`/marketplace/feature-detail/${product.id}`)
       return
     }
 
-    // mark as viewed
-    if ((product as PurchasedProduct).unread) {
-      try {
-        await api.post('/user/products/mark-as-viewed', {
-          productId: product.id
-        });
-        await checkNewProducts();
-      } catch (err) {
-        console.error('Failed to mark product as viewed:', err);
-      }
+    // mark as viewed & update last used date
+    try {
+      await api.post('/user/products/update-usage-status', {
+        productId: product.id
+      });
+      await checkNewProducts();
+    } catch (err) {
+      console.error('Failed to mark product as viewed:', err);
     }
 
     // product flow

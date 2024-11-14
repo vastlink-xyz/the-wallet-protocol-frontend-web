@@ -1,5 +1,6 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { cn } from '@/lib/utils';
+import { useMemo } from 'react';
 
 interface AllocationData {
   label: string;
@@ -12,6 +13,15 @@ interface AllocationChartProps {
 }
 
 export function AllocationChart({ data }: AllocationChartProps) {
+  // calculate percentage
+  const processedData = useMemo(() => {
+    const totalValue = data.reduce((sum, item) => sum + item.value, 0);
+    return data.map(item => ({
+      ...item,
+      value: totalValue ? Number((item.value / totalValue * 100).toFixed(2)) : 0
+    }));
+  }, [data]);
+  
   return (
     <div className="flex flex-col h-full">
       {/* Chart */}
@@ -19,7 +29,7 @@ export function AllocationChart({ data }: AllocationChartProps) {
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
-              data={data}
+              data={processedData}
               cx="50%"
               cy="50%"
               innerRadius="75%"
@@ -47,7 +57,7 @@ export function AllocationChart({ data }: AllocationChartProps) {
       {/* Legend */}
       <div className="flex gap-4 mt-4 mx-auto">
         {data.map((item, index) => (
-          <div key={index} className="flex items-center gap-2">
+          <div key={index} className="flex items-center gap-2" title={`$${item.value}`}>
             <div 
               className="w-3 h-3 rounded-full" 
               style={{ backgroundColor: item.color }}

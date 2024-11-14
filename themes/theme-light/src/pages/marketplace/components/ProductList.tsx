@@ -5,6 +5,7 @@ import { cn, handleError, log } from "@/lib/utils";
 import { toast } from "react-toastify";
 import { IProduct } from "@/pages/marketplace/types";
 import { RampModal } from "@/pages/marketplace/components/RampModal";
+import { useUserInfo } from "@/hooks/user/useUserInfo";
 
 export function ProductList({
   loading,
@@ -20,21 +21,14 @@ export function ProductList({
   const [activedPurchasedProductIds, setActivedPurchasedProductIds] = useState<string[]>([])
   const [isRampModalOpen, setIsRampModalOpen] = useState(false)
   const [currentProduct, setCurrentProduct] = useState({})
+  const { data: userInfo } = useUserInfo()
 
   useEffect(() => {
-    init()
-  }, [])
-
-  const init = async () => {
-    const purchasedProducts = await getPurchasedProducts()
-    const activedPurchasedProductIds = purchasedProducts.filter((p: any) => p.status === 'active').map((p: any) => p.productId)
-    setActivedPurchasedProductIds(activedPurchasedProductIds)
-  }
-
-  const getPurchasedProducts = async () => {
-    const res = await api.get('/user/purchasedProducts')
-    return res.data
-  }
+    if (userInfo && userInfo.purchasedProducts) {
+      const actIds = userInfo.purchasedProducts.filter((p) => p.status === 'active').map((p) => p.productId)
+      setActivedPurchasedProductIds(actIds)
+    }
+  }, [userInfo])
 
   const handleRampOpenModal = (product: IProduct) => {
     setIsRampModalOpen(true)

@@ -35,6 +35,7 @@ export interface IProduct {
 export type PurchasedProduct = IProduct & {
   status: 'active' | 'deleted';
   unread: boolean;
+  lastUsedAt: string;  // iso string
 }
 
 export interface SearchProductsParams {

@@ -68,6 +68,37 @@ export function TransactionHistory() {
     handleSearch(defaultDates, 'ALL');
   }
 
+  const handleDownloadCSV = () => {
+    log('download csv')
+    // prepare headers
+    const headers = ['Date', 'Type', 'Token', 'Amount', 'Status'];
+    const csvData = tableData.map(tx => [
+      dayjs(tx.timestamp).format('YYYY-MM-DD HH:mm:ss'),
+      tx.type,
+      tx.token,
+      tx.amount,
+      tx.status
+    ]);
+    
+    // generate csv content
+    const csvContent = [
+      headers.join(','),
+      ...csvData.map(row => row.join(','))
+    ].join('\n');
+    
+    // create and trigger download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', `transaction-history-${dayjs().format('YYYY-MM-DD')}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <div className="min-h-[500px]">
       <div className={cn(
@@ -83,6 +114,7 @@ export function TransactionHistory() {
           onTokenChange={handleTokenChange}
           selectedToken={selectedToken}
           onReset={handleReset}
+          onDownloadCSV={handleDownloadCSV}
         />
       </div>
 

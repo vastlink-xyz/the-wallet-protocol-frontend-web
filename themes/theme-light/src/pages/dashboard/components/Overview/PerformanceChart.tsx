@@ -37,7 +37,7 @@ export function PerformanceChart({ data, labels }: PerformanceChartProps) {
           hide
         />
         <Tooltip
-          formatter={(value: number) => [`$${formatNumberWithCommas(value)}`, 'Value']}
+          formatter={(value: number) => [`$${formatNumberWithCommas(value)}`]}
           contentStyle={{
             backgroundColor: '#fff',
             border: 'none',

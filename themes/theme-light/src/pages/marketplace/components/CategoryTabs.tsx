@@ -1,8 +1,7 @@
 import { cn, log } from "@/lib/utils";
 import { useState, useEffect, useRef } from "react";
 import { ChevronRight, ChevronLeft } from 'lucide-react';
-import { CATEGORIES, Category, IProduct, PurchasedProduct } from "@/pages/marketplace/types";
-import api from "@/lib/api";
+import { CATEGORIES, Category } from "@/pages/marketplace/types";
 import { useLocation } from "react-router-dom";
 import { useMarketplace } from '@/providers/MarketplaceProvider';
 

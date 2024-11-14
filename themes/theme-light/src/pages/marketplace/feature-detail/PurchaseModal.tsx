@@ -4,6 +4,7 @@ import { useTransaction } from '@/components/VastWalletConnect/useTransaction';
 import api from '@/lib/api';
 import { cn, handleError } from '@/lib/utils';
 import { IProduct } from '@/pages/marketplace/types';
+import { useQueryClient } from '@tanstack/react-query';
 import { X } from 'lucide-react';
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
@@ -19,6 +20,7 @@ interface ModalProps {
 }
 
 export const PurchaseModal: React.FC<ModalProps> = ({ isOpen, onClose, product, balance }) => {
+  const queryClient = useQueryClient()
   const [isPurchasing, setIsPurchasing] = useState(false)
   const { signTransaction, waitForTransactionExection } = useTransaction()
   const { t } = useTranslation()
@@ -39,6 +41,8 @@ export const PurchaseModal: React.FC<ModalProps> = ({ isOpen, onClose, product, 
       })
 
       if (success) {
+        // invalidate and refetch user info
+        await queryClient.invalidateQueries({ queryKey: ['userInfo'] })
         onClose(true)
         toast.success(t('/marketplace.productCard.purchaseSuccess'))
         setIsPurchasing(false)
@@ -52,6 +56,8 @@ export const PurchaseModal: React.FC<ModalProps> = ({ isOpen, onClose, product, 
           const { data } = await api.post('/user/purchase/saveProducts', {
             productId: product.id,
           })
+          // invalidate and refetch user info
+          await queryClient.invalidateQueries({ queryKey: ['userInfo'] })
           setIsPurchasing(false)
           onClose(true)
           toast.success(t('/marketplace.productCard.purchaseSuccess'))

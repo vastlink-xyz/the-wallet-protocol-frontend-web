@@ -1,0 +1,33 @@
+import { useQuery } from '@tanstack/react-query';
+import api from '@/lib/api';
+
+export interface IPurchasedProduct {
+  productId: string;
+  purchaseDate: string;  // iso string
+  deleteDate?: string;  // iso string
+  status: 'active' | 'deleted';
+  unread?: boolean;
+  lastUsedAt?: string;  // iso string
+}
+
+export interface UserInfo {
+  email: string;
+  displayName: string;
+  address: string;
+  avatarIndex: number;
+  kycVerified: boolean;
+  kycVerificationTimestamp?: string;  // iso string
+  purchasedProducts: IPurchasedProduct[];
+}
+
+const fetchUserInfo = async (): Promise<UserInfo> => {
+  const { data } = await api.get('/user/info');
+  return data;
+};
+
+export const useUserInfo = () => {
+  return useQuery({
+    queryKey: ['userInfo'],
+    queryFn: fetchUserInfo,
+  });
+};
