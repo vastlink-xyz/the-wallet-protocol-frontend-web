@@ -22,7 +22,7 @@ const tokens = [
 
 export function Search({ 
   onDateChange,
-  defaultDates,
+  dates,
   onTokenChange,
   selectedToken,
   onReset,
@@ -32,7 +32,7 @@ export function Search({
   onTokenChange: (token: string) => void,
   onReset: () => void,
   selectedToken: string,
-  defaultDates: [Date, Date],
+  dates: [Date, Date],
   onDownloadCSV: () => void,
 }) {
 
@@ -103,9 +103,9 @@ export function Search({
           }}
         >
           <RangePicker 
-            defaultValue={[
-              dayjs(defaultDates[0]),
-              dayjs(defaultDates[1])
+            value={[
+              dayjs(dates[0]),
+              dayjs(dates[1])
             ]}
             disabledDate={(current) => current && current > dayjs().endOf('day')}
             onChange={(dates) => {

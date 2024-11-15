@@ -1,8 +1,7 @@
-"use client";
-
 import { auth, formatDecimal, log } from "@/lib/utils";
 import { createContext, Dispatch, lazy, SetStateAction, Suspense, useEffect, useState } from "react";
 import { Params, Flow, Settings, getDefaultSettings, Styles } from "react-chatbotify"
+import ChatBot from 'react-chatbotify'
 import { Address } from "viem";
 import { TokenType } from "@/types/tokens";
 import { TokenFactory } from "@/services/TokenService";
@@ -10,8 +9,6 @@ import '@/styles/react-chatbotify.css'
 import api from "@/lib/api";
 import { SendButton } from "@/pages/dashboard/token/components/SendButton";
 import { SendModal } from "@/pages/dashboard/token/components/SendModal";
-
-const ChatBot = lazy(() => import("react-chatbotify"));
 
 // Mock async API function
 const mockAsyncApi = (delay: number = 1000): Promise<string> => {

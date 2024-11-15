@@ -8,13 +8,15 @@ import dayjs from "dayjs";
 import { Empty } from "@/components/Empty";
 import { WalletConnectButton } from "@/components/VastWalletConnect";
 
+const defaultDates = [
+  dayjs().subtract(1, 'month').startOf('day').toDate(),
+  dayjs().endOf('day').toDate(),
+] as [Date, Date]
+
 export function TransactionHistory() {
   const { address } = auth.all()
+  const [dates, setDates] = useState<[Date, Date]>(defaultDates)
   const [tableData, setTableData] = useState<any[]>([])
-  const [defaultDates, setDefaultDates] = useState<[Date, Date]>([
-    dayjs().subtract(1, 'month').startOf('day').toDate(),
-    dayjs().endOf('day').toDate(),
-  ])
   const [historyData, setHistoryData] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [selectedToken, setSelectedToken] = useState('ALL');
@@ -24,6 +26,7 @@ export function TransactionHistory() {
   }, [])
 
   const handleSearch = async (dates: [Date, Date], tokenType: string = 'ALL') => {
+    setDates(dates)
     const startDate = dates[0].getTime()
     const endDate = dates[1].getTime()
     try {
@@ -31,6 +34,7 @@ export function TransactionHistory() {
       const res = await api.get('/user-assets/transaction-history', {
         params: {
           address,
+          // address: '0xf79d08f838a962756370c0f10343f7169ec12dc3',
           startDate,
           endDate
         }
@@ -65,6 +69,7 @@ export function TransactionHistory() {
 
   const handleReset = () => {
     setSelectedToken('ALL');
+    setDates(defaultDates)
     handleSearch(defaultDates, 'ALL');
   }
 
@@ -107,25 +112,25 @@ export function TransactionHistory() {
         'mb-6'
       )}>History</div>
 
-      {
-        tableData.length > 0 && (
-          <div className="mb-[40px]">
-            <Search
-              onDateChange={(dates) => handleSearch(dates, selectedToken)}
-              defaultDates={defaultDates}
-              onTokenChange={handleTokenChange}
-              selectedToken={selectedToken}
-              onReset={handleReset}
-              onDownloadCSV={handleDownloadCSV}
-            />
-          </div>
-        )
-      }
+      <div className="mb-[40px]">
+        <Search
+          onDateChange={(dates) => handleSearch(dates, selectedToken)}
+          dates={dates}
+          onTokenChange={handleTokenChange}
+          selectedToken={selectedToken}
+          onReset={handleReset}
+          onDownloadCSV={handleDownloadCSV}
+        />
+      </div>
 
       {
         !loading && tableData.length === 0 ? (
           <div className="mt-[96px]">
-            <Empty className="mx-auto" text="No transaction history now, but you can connect wallet and make a transfer!" />
+            <Empty
+              className="mx-auto w-[120px]"
+              text="No transaction history now, but you can connect wallet and make a transfer!"
+              imgSrc="/imgs/icons/history_empty.svg"
+            />
             <WalletConnectButton className="mt-[24px]" buttonClassName="text-white bg-black rounded-full py-[10px] px-[16px] w-[173px]" />
           </div>
         ) : (

@@ -51,13 +51,17 @@ export default defineConfig(({ command }) => {
               '@radix-ui/react-tabs',
               '@radix-ui/react-tooltip'
             ],
-            
-            // Web3 related
-            'vendor-web3': [
+
+            // Walletconnect
+            'vendor-walletconnect': [
               '@walletconnect/core',
               '@walletconnect/types',
               '@walletconnect/utils',
               '@walletconnect/web3wallet',
+            ],
+            
+            // Web3 related
+            'vendor-web3': [
               '@web3auth/base',
               '@web3auth/ethereum-mpc-provider',
               '@web3auth/mpc-core-kit',

@@ -78,6 +78,12 @@ export function Guide() {
   const navigate = useNavigate()
   const { handleConnect } = useWalletConnect()
   const { data: purchasedProducts } = usePurchasedProducts()
+  const {
+    setIsModalOpen,
+    setDappInfo,
+    isConnected,
+    setDisplayUriInput,
+  } = useWalletConnect()
 
   const [isRampModalOpen, setIsRampModalOpen] = useState(false)
   const [currentProduct, setCurrentProduct] = useState<IProduct | null>(null)
@@ -88,27 +94,34 @@ export function Guide() {
   }
 
   const handleTopUp = () => {
-    const products = purchasedProducts ?? []
-    // const products = purchasedProducts?.filter(p => p.vendor === 'GoPlus Labs') || []
+    const topupProducts = purchasedProducts?.filter(p => p.category === 'Payment') || []
   
-    if (products.length >= 2) {
-      navigate(`/marketplace?category=Added`)
+    if (topupProducts.length >= 2) {
+      navigate(`/marketplace?category=Payment`)
       return
     }
 
-    if (products.length === 1) {
-      const moonpayProduct = products.find(p => p.vendor === 'Moonpay')
+    if (topupProducts.length === 1) {
+      const moonpayProduct = topupProducts.find(p => p.vendor === 'Moonpay')
+      const uniswapProduct = topupProducts.find(p => p.integrationPoints.includes('walletconnect'))
       if (moonpayProduct) {
         setCurrentProduct(moonpayProduct)
         setIsRampModalOpen(true)
+      } else if (uniswapProduct) {
+        setDappInfo({
+          name: uniswapProduct.name,
+          url: uniswapProduct.serviceUrl,
+        })
+        setDisplayUriInput(false)
+        setIsModalOpen(true)
       } else {
-        navigate(`/marketplace?category=Added`)
+        navigate(`/marketplace?category=Payment`)
       }
       return
     }
 
-    // no product
-    navigate(`/marketplace?category=Added`)
+    // no topup product
+    navigate(`/marketplace?category=Payment`)
   }
 
   return <>
