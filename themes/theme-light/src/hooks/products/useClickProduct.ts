@@ -4,6 +4,8 @@ import { useMarketplace } from '@/providers/MarketplaceProvider';
 import { IProduct } from '@/pages/marketplace/types';
 import api from '@/lib/api';
 import { useWalletConnect } from '@/providers/WalletConnectProvider';
+import { useEffect, useRef } from 'react';
+import { log } from '@/lib/utils';
 
 interface UseProductProps {
   activedPurchasedProductIds: string[];
@@ -16,6 +18,7 @@ export const useClickProduct = ({
 }: UseProductProps) => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const timeoutIdRef = useRef<number | null>(null)
   
   const {
     setIsModalOpen,
@@ -24,6 +27,14 @@ export const useClickProduct = ({
     setDisplayUriInput,
   } = useWalletConnect()
   const { checkNewProducts } = useMarketplace();
+
+  useEffect(() => {
+    return () => {
+      if (timeoutIdRef.current) {
+        window.clearTimeout(timeoutIdRef.current)
+      }
+    }
+  }, [])
 
   const checkPurchaseStatus = (product: IProduct) => {
     const exist = activedPurchasedProductIds.some(p => p === product.id);
@@ -37,17 +48,19 @@ export const useClickProduct = ({
       return
     }
 
-    // mark as viewed & update last used date
-    try {
-      await api.post('/user/products/update-usage-status', {
+    // mark as viewed & update last used date, delay 100ms to avoid main thread block
+    timeoutIdRef.current = window.setTimeout(async () => {
+      try {
+        await api.post('/user/products/update-usage-status', {
         productId: product.id
       });
       // invalidate and refetch user info
       await queryClient.invalidateQueries({ queryKey: ['userInfo'] })
       await checkNewProducts();
     } catch (err) {
-      console.error('Failed to mark product as viewed:', err);
-    }
+        console.error('Failed to mark product as viewed:', err);
+      }
+    }, 100)
 
     // product flow
     if (product.products && product.followOrder) {
