@@ -6,7 +6,6 @@ import { Guide } from "./components/Guide";
 import { RecommendedProducts } from "./components/RecommendedProducts";
 import { useUserInfo } from "@/hooks/user/useUserInfo";
 import { UserProducts } from "./components/UserProducts";
-import { useEffect, useState } from "react";
 
 export default function DashboardPage() {
   const { address } = auth.all()
@@ -14,20 +13,11 @@ export default function DashboardPage() {
     enabled: !!address,
   })
   const { data: userInfo } = useUserInfo()
-  const [showGuide, setShowGuide] = useState(false)
-
-  useEffect(() => {
-    if (totalAsset && totalAsset.isZero && (userInfo?.purchasedProducts ?? []).length === 0) {
-      setShowGuide(true)
-    } else {
-      setShowGuide(false)
-    }
-  }, [totalAsset, userInfo])
 
   return (
     <div className="mt-[40px] mobile:mt-[100px]">
       {
-        showGuide && <Guide />
+        (totalAsset && totalAsset.isZero) && <Guide />
       }
 
       {

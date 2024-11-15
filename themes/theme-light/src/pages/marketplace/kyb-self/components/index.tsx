@@ -16,7 +16,6 @@ export function KYBFlow({
 }: {
   showExternalLink?: boolean
 }) {
-  // kkktodo: default value should be null
   const [isAustralianBusiness, setIsAustralianBusiness] = useState<boolean | null>(null);
   const [verified, setVerified] = useState(false);
   const [verifedData, setVerifedData] = useState<any>(null);

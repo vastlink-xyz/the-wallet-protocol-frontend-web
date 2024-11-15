@@ -1,6 +1,10 @@
+import { usePurchasedProducts } from "@/hooks/products/usePurchasedProducts";
+import { IProduct } from "@/pages/marketplace/types";
 import { cn, log } from "@/lib/utils";
 import { useWalletConnect } from "@/providers/WalletConnectProvider";
 import { useNavigate } from "react-router-dom";
+import { RampModal } from "@/pages/marketplace/components/RampModal";
+import { useState } from "react";
 
 function GuideContainer({
   className,
@@ -73,6 +77,10 @@ function GuideContainer({
 export function Guide() {
   const navigate = useNavigate()
   const { handleConnect } = useWalletConnect()
+  const { data: purchasedProducts } = usePurchasedProducts()
+
+  const [isRampModalOpen, setIsRampModalOpen] = useState(false)
+  const [currentProduct, setCurrentProduct] = useState<IProduct | null>(null)
 
   const handleConnectDApps = () => {
     log('handleConnectDApps')
@@ -80,29 +88,54 @@ export function Guide() {
   }
 
   const handleTopUp = () => {
+    const products = purchasedProducts ?? []
+    // const products = purchasedProducts?.filter(p => p.vendor === 'GoPlus Labs') || []
+  
+    if (products.length >= 2) {
+      navigate(`/marketplace?category=Added`)
+      return
+    }
+
+    if (products.length === 1) {
+      const moonpayProduct = products.find(p => p.vendor === 'Moonpay')
+      if (moonpayProduct) {
+        setCurrentProduct(moonpayProduct)
+        setIsRampModalOpen(true)
+      } else {
+        navigate(`/marketplace?category=Added`)
+      }
+      return
+    }
+
+    // no product
+    navigate(`/marketplace?category=Added`)
   }
 
-  return <div>
-    <p className={cn(
-      'text-[#111111] font-bold leading-tight',
-      'text-2xl tablet:text-[32px]',
-      'mb-[24px] tablet:mb-[40px]',
-    )}>Let’s get started</p>
+  return <>
+    <div>
+      <p className={cn(
+        'text-[#111111] font-bold leading-tight',
+        'text-2xl tablet:text-[32px]',
+        'mb-[24px] tablet:mb-[40px]',
+      )}>Let’s get started</p>
 
-    <GuideContainer
-      icon="/imgs/icons/connect_dapps.svg"
-      title="Connect dApps"
-      description="Link your wallet to any dApp easily with WalletConnect. Enjoy secure access to DeFi, NFTs, and more—all from your wallet in just a few taps!"
-      className="mb-[24px] cursor-pointer"
-      onClick={handleConnectDApps}
-    />
+      <GuideContainer
+        icon="/imgs/icons/connect_dapps.svg"
+        title="Connect dApps"
+        description="Link your wallet to any dApp easily with WalletConnect. Enjoy secure access to DeFi, NFTs, and more—all from your wallet in just a few taps!"
+        className="mb-[24px] cursor-pointer"
+        onClick={handleConnectDApps}
+      />
 
-    <GuideContainer
-      icon="/imgs/icons/top_up.svg"
-      title="Top up"
-      description="Transition smoothly into the web3 world with our intuitive on-ramp. Fund your wallet easily, access decentralized apps."
-      className="cursor-pointer"
-      onClick={handleTopUp}
-    />
-  </div>
+      <GuideContainer
+        icon="/imgs/icons/top_up.svg"
+        title="Top up"
+        description="Transition smoothly into the web3 world with our intuitive on-ramp. Fund your wallet easily, access decentralized apps."
+        className="cursor-pointer"
+        onClick={handleTopUp}
+      />
+    </div>
+
+    <RampModal isOpen={isRampModalOpen} onClose={() => setIsRampModalOpen(false)} product={currentProduct} />
+  </>
 }

@@ -12,7 +12,6 @@ export function KYBFlow({
 }: {
   showExternalLink?: boolean
 }) {
-  // kkktodo: default value should be null
   const [isAustralianBusiness, setIsAustralianBusiness] = useState<boolean | null>(null);
 
   const handleBusinessTypeSelection = (isAustralian: boolean) => {

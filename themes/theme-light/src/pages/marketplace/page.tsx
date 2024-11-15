@@ -1,9 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useNavigate, useLoaderData } from 'react-router-dom';
-import { cn, handleError, log } from "@/lib/utils";
-import { Banner } from "@/pages/marketplace/components/Banner";
+import { useNavigate, useLoaderData, useSearchParams } from 'react-router-dom';
+import { cn, handleError } from "@/lib/utils";
 import { SearchInput } from "@/pages/marketplace/components/SearchInput";
-import { useTranslation } from "react-i18next";
 import { ProductList } from '@/pages/marketplace/components/ProductList';
 import { CategoryTabs } from "@/pages/marketplace/components/CategoryTabs";
 import { Pagination } from '@/components/Pagination';
@@ -19,7 +17,9 @@ const emptyText = 'It looks like you haven’t added any items yet. Head over to
 
 export default function MarketplacePage() {
   const navigate = useNavigate();
-  const { t } = useTranslation()
+  const [searchParams] = useSearchParams()
+  const initialCategory = searchParams.get('category');
+
   const [loading, setLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<Category>(CATEGORIES[0]);
   const {
@@ -54,12 +54,15 @@ export default function MarketplacePage() {
     updatePageSize(DEFAULT_PAGE_SIZE);
     updateTotal(total);
 
-    // // Initial search
-    // const p: SearchProductsParams = {
-    //   page: 1,
-    //   pageSize: DEFAULT_PAGE_SIZE,
-    // }
-    // searchProducts(p);
+    // Initial search
+    const p: SearchProductsParams = {
+      page: 1,
+      pageSize: DEFAULT_PAGE_SIZE,
+    }
+    if (initialCategory) {
+      p.category = initialCategory;
+      handleCategorySelect(initialCategory as Category);
+    }
   }, []);
 
   const handleCategorySelect = async (value: Category) => {
