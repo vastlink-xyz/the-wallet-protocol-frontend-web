@@ -54,7 +54,7 @@ export default function VerifyAuthPage() {
     setLoading(true);
     try {
       // verify otp and get idToken
-      const idToken = await verifyOtp({
+      await verifyOtp({
         username: authUsername,
         otp,
         isRememberMe,
@@ -87,7 +87,7 @@ export default function VerifyAuthPage() {
     setLoading(true);
     try {
       // verify otp and get idToken
-      const idToken = await verifyOtp({
+      await verifyOtp({
         username: registerUsername,
         otp,
         isRememberMe,
@@ -145,9 +145,7 @@ export default function VerifyAuthPage() {
           description="Start exploring you Vastlink dashboard to unlock all features. You will be directed to Dashboard in"
         />
       ) : (
-        <div className="flex justify-center items-center h-screen">
-          <p className="text-lg">Something went wrong</p>
-        </div>
+        null
       )
     )
   )
