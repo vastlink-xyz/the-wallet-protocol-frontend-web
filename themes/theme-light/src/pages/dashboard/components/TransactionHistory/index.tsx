@@ -6,7 +6,7 @@ import api from "@/lib/api";
 import { toast } from "react-toastify";
 import dayjs from "dayjs";
 import { Empty } from "@/components/Empty";
-import { VastWalletConnect } from "@/components/VastWalletConnect";
+import { WalletConnectButton } from "@/components/VastWalletConnect";
 
 export function TransactionHistory() {
   const { address } = auth.all()
@@ -79,18 +79,18 @@ export function TransactionHistory() {
       tx.amount,
       tx.status
     ]);
-    
+
     // generate csv content
     const csvContent = [
       headers.join(','),
       ...csvData.map(row => row.join(','))
     ].join('\n');
-    
+
     // create and trigger download
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    
+
     link.setAttribute('href', url);
     link.setAttribute('download', `transaction-history-${dayjs().format('YYYY-MM-DD')}.csv`);
     document.body.appendChild(link);
@@ -107,22 +107,26 @@ export function TransactionHistory() {
         'mb-6'
       )}>History</div>
 
-      <div className="mb-[40px]">
-        <Search
-          onDateChange={(dates) => handleSearch(dates, selectedToken)}
-          defaultDates={defaultDates}
-          onTokenChange={handleTokenChange}
-          selectedToken={selectedToken}
-          onReset={handleReset}
-          onDownloadCSV={handleDownloadCSV}
-        />
-      </div>
+      {
+        tableData.length > 0 && (
+          <div className="mb-[40px]">
+            <Search
+              onDateChange={(dates) => handleSearch(dates, selectedToken)}
+              defaultDates={defaultDates}
+              onTokenChange={handleTokenChange}
+              selectedToken={selectedToken}
+              onReset={handleReset}
+              onDownloadCSV={handleDownloadCSV}
+            />
+          </div>
+        )
+      }
 
       {
         !loading && tableData.length === 0 ? (
           <div className="mt-[96px]">
             <Empty className="mx-auto" text="No transaction history now, but you can connect wallet and make a transfer!" />
-            <VastWalletConnect className="mt-[24px]" buttonClassName="text-white bg-black rounded-full py-[10px] px-[16px] w-[173px]" />
+            <WalletConnectButton className="mt-[24px]" buttonClassName="text-white bg-black rounded-full py-[10px] px-[16px] w-[173px]" />
           </div>
         ) : (
           <TableList data={tableData} />

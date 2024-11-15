@@ -1,69 +1,87 @@
-import { cn } from "@/lib/utils";
+import { cn, log } from "@/lib/utils";
+import { useWalletConnect } from "@/providers/WalletConnectProvider";
+import { useNavigate } from "react-router-dom";
 
 function GuideContainer({
   className,
   icon,
   title,
   description,
+  onClick,
 }: {
   className?: string
   icon: string
   title: string
   description: string
+  onClick?: () => void
 }) {
-  return <div className={cn(
+  return <div
+    className={cn(
       'border border-[#ebebeb] bg-[#fafafa] rounded-[20px]',
       'p-[16px] tablet:p-[40px] tablet:pb-[20px]',
       className,
+    )}
+    onClick={onClick}
+  >
+    <div className={cn(
+      'block tablet:flex tablet:items-center tablet:justify-between flex-wrap',
+      'tablet:h-[46px] tablet:mb-[30px] tablet:px-[20px]',
     )}>
       <div className={cn(
-        'block tablet:flex tablet:items-center tablet:justify-between flex-wrap',
-        'tablet:h-[46px] tablet:mb-[30px] tablet:px-[20px]',
+        'flex items-center',
+        'shrink-0 min-w-fit',
+        'w-[218px]',
+        'mb-[12px] tablet:mb-0'
       )}>
-        <div className={cn(
-          'flex items-center',
-          'shrink-0 min-w-fit',
-          'w-[218px]',
-          'mb-[12px] tablet:mb-0'
-        )}>
-          <img
-            className={cn(
-              'w-[27px] tablet:w-[37px]',
-              'mr-[16px] tablet:mr-[12px]',
-            )}
-            src={icon}
-            alt="connect-dapps"
-          />
-          <p className={cn(
-            'text-[#111111] font-bold leading-normal',
-            'text-base tablet:text-2xl',
-          )}>{title}</p>
-        </div>
-
+        <img
+          className={cn(
+            'w-[27px] tablet:w-[37px]',
+            'mr-[16px] tablet:mr-[12px]',
+          )}
+          src={icon}
+          alt="connect-dapps"
+        />
         <p className={cn(
-          'text-[#828282]',
-          'text-[10px] tablet:text-sm',
-          'leading-3 tablet:leading-none',
-          'w-full tablet:w-[319px] laptop:w-[394px] desktop:w-[587px]',
-          'mb-[10px] tablet:mb-0'
-        )}>
-          {description}
-        </p>
+          'text-[#111111] font-bold leading-normal',
+          'text-base tablet:text-2xl',
+        )}>{title}</p>
+      </div>
 
-        <div className={cn(
-          'w-fit ml-auto tablet:ml-0 tablet:w-auto'
-        )}>
-          <img
-            className="w-[30px] tablet:w-[44px]"
-            src="/imgs/icons/arrow_right_long.svg"
-            alt="arrow-right"
-          />
-        </div>
+      <p className={cn(
+        'text-[#828282]',
+        'text-[10px] tablet:text-sm',
+        'leading-3 tablet:leading-none',
+        'w-full tablet:w-[319px] laptop:w-[394px] desktop:w-[587px]',
+        'mb-[10px] tablet:mb-0'
+      )}>
+        {description}
+      </p>
+
+      <div className={cn(
+        'w-fit ml-auto tablet:ml-0 tablet:w-auto'
+      )}>
+        <img
+          className="w-[30px] tablet:w-[44px]"
+          src="/imgs/icons/arrow_right_long.svg"
+          alt="arrow-right"
+        />
       </div>
     </div>
+  </div>
 }
 
 export function Guide() {
+  const navigate = useNavigate()
+  const { handleConnect } = useWalletConnect()
+
+  const handleConnectDApps = () => {
+    log('handleConnectDApps')
+    handleConnect()
+  }
+
+  const handleTopUp = () => {
+  }
+
   return <div>
     <p className={cn(
       'text-[#111111] font-bold leading-tight',
@@ -75,13 +93,16 @@ export function Guide() {
       icon="/imgs/icons/connect_dapps.svg"
       title="Connect dApps"
       description="Link your wallet to any dApp easily with WalletConnect. Enjoy secure access to DeFi, NFTs, and more—all from your wallet in just a few taps!"
-      className="mb-[24px]"
+      className="mb-[24px] cursor-pointer"
+      onClick={handleConnectDApps}
     />
 
     <GuideContainer
       icon="/imgs/icons/top_up.svg"
       title="Top up"
       description="Transition smoothly into the web3 world with our intuitive on-ramp. Fund your wallet easily, access decentralized apps."
+      className="cursor-pointer"
+      onClick={handleTopUp}
     />
   </div>
 }

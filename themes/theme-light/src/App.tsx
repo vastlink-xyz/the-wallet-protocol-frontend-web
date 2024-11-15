@@ -17,7 +17,6 @@ import 'react-toastify/dist/ReactToastify.css';
 
 import { Suspense } from "react";
 
-import { WalletConnectPairProvider } from "@/providers/WalletConnectPairProvider";
 import ThemeAwareToastContainer from "@/components/ThemeAwareToastContainer";
 import { MoonPayProviderWrapper } from "@/providers/MoonPayProviderWrapper";
 
@@ -42,12 +41,10 @@ export function App() {
       <Suspense>
         <QueryClientProvider client={queryClient}>
           <I18nextProvider i18n={i18n}>
-            <WalletConnectPairProvider>
-              <MoonPayProviderWrapper>
-                <RouterProvider router={router} />
-              </MoonPayProviderWrapper>
-              <ThemeAwareToastContainer />
-            </WalletConnectPairProvider>
+            <MoonPayProviderWrapper>
+              <RouterProvider router={router} />
+            </MoonPayProviderWrapper>
+            <ThemeAwareToastContainer />
           </I18nextProvider>
         </QueryClientProvider>
       </Suspense>

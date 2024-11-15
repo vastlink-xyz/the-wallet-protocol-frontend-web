@@ -1,8 +1,9 @@
-import { DEFAULT_PAGE_SIZE } from "@/components/Pagination/usePagination";
 import { Button } from "@/components/ui/button";
-import { useSearchProducts } from "@/hooks/products/useSearchProducts";
+import api from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { ProductCard } from "@/pages/marketplace/components/ProductCard";
+import { IProduct } from "@/pages/marketplace/types";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export function RecommendedProducts({
@@ -10,13 +11,17 @@ export function RecommendedProducts({
 }: {
   className?: string
 }) {
-  const { data: productsData, isFetched } = useSearchProducts({
-    page: 1,
-    pageSize: DEFAULT_PAGE_SIZE,
-    isRecommended: true,
-  })
-
   const navigate = useNavigate()
+  const [products, setProducts] = useState<IProduct[]>([])
+
+  useEffect(() => {
+    init()
+  }, [])
+
+  const init = async () => {
+    const res = await api.get('/marketplace/product/recommend-products')
+    setProducts(res.data)
+  }
 
   return (
     <div className={cn(
@@ -49,7 +54,7 @@ export function RecommendedProducts({
         'desktop:w-[1224px] laptop:w-[816px] tablet:w-[720px] w-[346px]',
         'desktop:gap-x-6 laptop:gap-x-8 tablet:gap-x-6'
       ])}>
-        {(productsData?.products ?? []).map((product) => (
+        {products.map((product) => (
           <ProductCard
             key={product.id}
             {...product}

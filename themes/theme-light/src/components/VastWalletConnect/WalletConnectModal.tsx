@@ -2,24 +2,25 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { useEffect, useRef, useState } from "react"
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { PairContextType, useWalletConnectPair } from "@/providers/WalletConnectPairProvider";
 import { cn, log } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
 
 export function WalletConnectModal({
   onPair,
+  isModalOpen,
+  dappInfo,
+  setIsModalOpen,
+  displayUriInput,
 }: {
+  isModalOpen: boolean;
+  dappInfo: { name: string; url: string };
+  setIsModalOpen: (isopen: boolean) => void;
+  displayUriInput: boolean;
   onPair: (uri: string) => void;
 }) {
   const { t } = useTranslation()
   const [uri, setUri] = useState('')
   const [clipboardErrorTip, setClipboardErrorTip] = useState('')
-  const {
-    isModalOpen,
-    dappInfo,
-    setIsModalOpen,
-    displayUriInput,
-  } = useWalletConnectPair() as PairContextType
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {

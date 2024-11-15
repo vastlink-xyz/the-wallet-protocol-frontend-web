@@ -1,5 +1,4 @@
 import { LanguageSwitch } from "./LanguageSwitch";
-import { VastWalletConnect } from "@/components/VastWalletConnect";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -10,6 +9,7 @@ import api from "@/lib/api";
 import { auth, cn, handleError, log } from "@/lib/utils";
 import { useState } from "react";
 import { toast } from "react-toastify";
+import { WalletConnectButton } from "../VastWalletConnect";
 
 export function HeaderActions() {
   const [open, setOpen] = useState(false);
@@ -28,7 +28,7 @@ export function HeaderActions() {
   return (
     <div className="justify-start items-center gap-[21px] flex">
       <div className="hidden tablet:flex">
-        <VastWalletConnect />
+        <WalletConnectButton />
       </div>
 
       <div className="justify-start items-center gap-7 flex">
@@ -59,7 +59,7 @@ export function HeaderActions() {
                 className={cn('flex tablet:hidden')}
                 onSelect={(e) => e.preventDefault()}
               >
-                <VastWalletConnect className="p-0 bg-transparent" />
+                <WalletConnectButton className="p-0 bg-transparent" />
               </DropdownMenuItem>
               <DropdownMenuItem 
                 className={cn('hidden tablet:flex')}

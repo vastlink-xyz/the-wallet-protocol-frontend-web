@@ -1,9 +1,9 @@
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { PairContextType, useWalletConnectPair } from '@/providers/WalletConnectPairProvider';
 import { useMarketplace } from '@/providers/MarketplaceProvider';
 import { IProduct } from '@/pages/marketplace/types';
 import api from '@/lib/api';
+import { useWalletConnect } from '@/providers/WalletConnectProvider';
 
 interface UseProductProps {
   activedPurchasedProductIds: string[];
@@ -22,7 +22,7 @@ export const useClickProduct = ({
     setDappInfo,
     isConnected,
     setDisplayUriInput,
-  } = useWalletConnectPair() as PairContextType
+  } = useWalletConnect()
   const { checkNewProducts } = useMarketplace();
 
   const checkPurchaseStatus = (product: IProduct) => {
