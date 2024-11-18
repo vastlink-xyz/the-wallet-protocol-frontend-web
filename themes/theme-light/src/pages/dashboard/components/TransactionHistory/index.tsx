@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 import dayjs from "dayjs";
 import { Empty } from "@/components/Empty";
 import { WalletConnectButton } from "@/components/VastWalletConnect";
+import { useTotalAsset } from "@/hooks/useTotalAsset";
 
 const defaultDates = [
   dayjs().subtract(1, 'month').startOf('day').toDate(),
@@ -20,6 +21,9 @@ export function TransactionHistory() {
   const [historyData, setHistoryData] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [selectedToken, setSelectedToken] = useState('ALL');
+  const { data: totalAsset } = useTotalAsset({
+    enabled: !!address,
+  })
 
   useEffect(() => {
     handleSearch(defaultDates, 'ALL')
@@ -112,16 +116,20 @@ export function TransactionHistory() {
         'mb-6'
       )}>History</div>
 
-      <div className="mb-[40px]">
-        <Search
-          onDateChange={(dates) => handleSearch(dates, selectedToken)}
-          dates={dates}
-          onTokenChange={handleTokenChange}
-          selectedToken={selectedToken}
-          onReset={handleReset}
-          onDownloadCSV={handleDownloadCSV}
-        />
-      </div>
+      {
+        (totalAsset && !totalAsset.isZero) && (
+          <div className="mb-[40px]">
+            <Search
+              onDateChange={(dates) => handleSearch(dates, selectedToken)}
+              dates={dates}
+              onTokenChange={handleTokenChange}
+              selectedToken={selectedToken}
+              onReset={handleReset}
+              onDownloadCSV={handleDownloadCSV}
+            />
+          </div>
+        )
+      }
 
       {
         !loading && tableData.length === 0 ? (

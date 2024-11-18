@@ -1,5 +1,5 @@
 import { CopyClipboardAddress } from "@/components/CopyClipboardAddress";
-import { auth, cn, formatDecimal, formatNumberWithCommas, handleError, log } from "@/lib/utils"
+import { auth, cn, hideTotalAssetStorage, log } from "@/lib/utils"
 import { SendModal } from "../../token/components/SendModal";
 import { useEffect, useState } from "react";
 import { TokenType } from "@/types/tokens";
@@ -38,7 +38,7 @@ export function Summary() {
   const [sendOpen, setSendOpen] = useState(false)
   const [receiveOpen, setReceiveOpen] = useState(false)
   const [tokenType, setTokenType] = useState<TokenType>('ETH')
-  const [hideTotalAsset, setHideTotalAsset] = useState(true)
+  const [hideTotalAsset, setHideTotalAsset] = useState(hideTotalAssetStorage.getData() ?? true)
 
   useEffect(() => {
     handleTokenTypeChange(tokenType)
@@ -54,6 +54,7 @@ export function Summary() {
 
   const handleOpenEye = () => {
     setHideTotalAsset(!hideTotalAsset)
+    hideTotalAssetStorage.setData(!hideTotalAsset)
   }
 
   return (

@@ -25,7 +25,8 @@ export function middleware(request: NextRequest) {
     const response = NextResponse.rewrite(`http://localhost:${port}${url.pathname}${url.search}`)
     response.cookies.set('current-theme', currentTheme, {
       path: '/',
-      sameSite: 'lax'
+      sameSite: 'lax',
+      maxAge: 10 * 365 * 24 * 60 * 60, // 10 years
     })
     return response
   } else {
@@ -52,7 +53,8 @@ export function middleware(request: NextRequest) {
     const response = NextResponse.rewrite(new URL('/', request.url))
     response.cookies.set('current-theme', currentTheme, {
       path: '/',
-      sameSite: 'lax'
+      sameSite: 'lax',
+      maxAge: 10 * 365 * 24 * 60 * 60, // 10 years
     })
 
     return response

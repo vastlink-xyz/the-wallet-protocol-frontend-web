@@ -65,3 +65,5 @@ export class CustomStorage {
 }
 
 export const languageStorage = new CustomStorage('language')
+
+export const hideTotalAssetStorage = new CustomStorage('hideTotalAsset')
