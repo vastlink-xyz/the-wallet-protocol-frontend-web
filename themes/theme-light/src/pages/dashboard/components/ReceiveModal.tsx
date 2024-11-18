@@ -6,11 +6,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 import { QRCodeSVG } from 'qrcode.react';
 import { CopyClipboardAddress } from "@/components/CopyClipboardAddress"
-import { auth, cn } from "@/lib/utils"
-import { Modal } from "@/components/Modal"
+import { auth, cn, log } from "@/lib/utils"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import ReactDOM from "react-dom"
+import { toast } from "react-toastify";
 
 export function ReceiveModal({
   address,
@@ -31,6 +31,67 @@ export function ReceiveModal({
     const email = username
     setEmail(email)
   }, [])
+
+  const handleShareQRCode = async () => {
+    try {
+      const svgElement = document.querySelector('#qr-code-svg');
+      if (!svgElement) return;
+
+      // convert image to base64
+      const imageElement = svgElement.querySelector('image');
+      if (imageElement) {
+        const logoUrl = imageElement.getAttribute('href') || '';
+        const response = await fetch(logoUrl);
+        const blob = await response.blob();
+        const base64Logo = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.readAsDataURL(blob);
+        });
+        
+        // update logo href
+        imageElement.setAttribute('href', base64Logo as string);
+      }
+
+      // serialize svg
+      const svgData = new XMLSerializer().serializeToString(svgElement);
+      const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(svgBlob);
+
+      await new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx?.drawImage(img, 0, 0);
+          
+          canvas.toBlob(async (blob) => {
+            if (blob) {
+              try {
+                await navigator.clipboard.write([
+                  new ClipboardItem({ 'image/png': blob })
+                ]);
+                toast.success(t('toastSuccess.copySuccess'), {
+                  autoClose: 1000,
+                  hideProgressBar: true,
+                });
+                resolve(null);
+              } catch (err: any) {
+                reject(err);
+              }
+            }
+          }, 'image/png');
+        };
+        img.onerror = reject;
+        img.src = url;
+      });
+
+    } catch (error: any) {
+      toast.error(error.message);
+    }
+  };
 
   const modalContent = open ? (
     <div className="fixed inset-0 z-50 flex items-center justify-center font-['Roboto']">
@@ -77,6 +138,7 @@ export function ReceiveModal({
 
                 <div className="w-[216px] mx-auto p-[10px]">
                   <QRCodeSVG
+                    id="qr-code-svg"
                     value={address}
                     size={320}
                     level="H"
@@ -120,12 +182,9 @@ export function ReceiveModal({
           </div>
 
           <footer className="flex justify-end items-center gap-2 px-5 py-[14px]">
-            {/* <div className="text-black text-sm font-medium font-['Roboto'] leading-none">Asset balance: </div> */}
-            <Button
-              onClick={() => onClose(false)}
-            >
-              Share QR code
-            </Button>
+              <Button onClick={handleShareQRCode}>
+                Share QR code
+              </Button>
           </footer>
         </div>
       </div>

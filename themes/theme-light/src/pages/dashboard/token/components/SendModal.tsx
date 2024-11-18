@@ -67,6 +67,7 @@ export function SendModal({
   const [isValidEmail, setIsValidEmail] = useState(false);
   const [fullAddress, setFullAddress] = useState('');
   const [error, setError] = useState('');
+  const [amountError, setAmountError] = useState('');
 
   const { t } = useTranslation()
 
@@ -289,6 +290,14 @@ export function SendModal({
 
   }
 
+  const handleAmountBlur = () => {
+    if (parseFloat(amount) > parseFloat(currentBalance)) {
+      setAmountError('Amount exceeded')
+    } else {
+      setAmountError('')
+    }
+  }
+
   const initDefaults = () => {
     setAmount('');
     setTo('');
@@ -379,6 +388,7 @@ export function SendModal({
                     id="amount"
                     className="pl-[80px] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     required
+                    onBlur={handleAmountBlur}
                   />
                   <div className="absolute left-2 top-1/2 -translate-y-1/2">
                     <DropdownMenu>
@@ -398,6 +408,9 @@ export function SendModal({
                     </DropdownMenu>
                   </div>
                 </div>
+                {amountError && (
+                  <p className="mt-1 text-xs text-destructive">{amountError}</p>
+                )}
               </div>
 
               <div className="mb-5">

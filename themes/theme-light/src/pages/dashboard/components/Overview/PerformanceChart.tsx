@@ -21,12 +21,12 @@ export function PerformanceChart({ data, labels }: PerformanceChartProps) {
     <ResponsiveContainer width="100%" height="100%">
       <AreaChart
         data={chartData}
-        margin={{ top: 20, right: 0, left: 0, bottom: 0 }}
+        margin={{ top: 0, right: 0, left: 0, bottom: 15 }}
       >
         <defs>
           <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#52c41a" stopOpacity={0.1}/>
-            <stop offset="95%" stopColor="#52c41a" stopOpacity={0}/>
+            <stop offset="0%" stopColor="#ccfda8" stopOpacity={1}/>
+            <stop offset="100%" stopColor="#ccfda8" stopOpacity={0.05}/>
           </linearGradient>
         </defs>
         <XAxis 
@@ -57,14 +57,34 @@ export function PerformanceChart({ data, labels }: PerformanceChartProps) {
           animationDuration={1000}
           label={({ x, y, value }: { x: number, y: number, value: number }) => {
             if (value === maxValue || value === minValue) {
+              // find the index of the value
+              const index = data.indexOf(value);
+              const isNearStart = index <= 1;  // close to the start
+              const isNearEnd = index >= data.length - 2;  // close to the end
+              
+              // determine the horizontal alignment and x-axis offset
+              let textAnchor = "middle";
+              let dx = 0;
+              if (isNearEnd) {
+                textAnchor = "end";
+                dx = -10;
+              } else if (isNearStart) {
+                textAnchor = "start";
+                dx = 10;
+              }
+
+              // vertical offset remains unchanged
+              const dy = value === maxValue ? -10 : 15;
+
               return (
                 <text
                   x={x}
                   y={y}
-                  dy={value === maxValue ? -10 : 20}
+                  dx={dx}
+                  dy={dy}
                   fill="#262626"
                   fontSize={12}
-                  textAnchor="middle"
+                  textAnchor={textAnchor}
                 >
                   ${formatNumberWithCommas(value)}
                 </text>

@@ -15,7 +15,7 @@ export default function DashboardPage() {
   const { data: userInfo } = useUserInfo()
 
   return (
-    <div className="mt-[40px] mobile:mt-[100px]">
+    <div className="mt-[40px] tablet:mt-[100px]">
       {
         (totalAsset && totalAsset.isZero) && <Guide />
       }

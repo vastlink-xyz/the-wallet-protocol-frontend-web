@@ -120,6 +120,23 @@ export function Overview() {
           </div>
 
           <div className="h-[200px]">
+            {/* <PerformanceChart data={[
+              0,
+              1,
+              3,
+              4,
+              5,
+              6,
+              7,
+            ]} labels={[
+              'one',
+              'two',
+              'three',
+              'four',
+              'five',
+              'six',
+              'seven',
+            ]} /> */}
             <PerformanceChart data={performanceChartData} labels={performanceChartLabels} />
           </div>
         </div>
