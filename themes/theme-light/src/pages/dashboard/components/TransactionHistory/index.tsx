@@ -16,6 +16,7 @@ const defaultDates = [
 
 export function TransactionHistory() {
   const { address } = auth.all()
+  // const address = '0xf79d08f838a962756370c0f10343f7169ec12dc3'
   const [dates, setDates] = useState<[Date, Date]>(defaultDates)
   const [tableData, setTableData] = useState<any[]>([])
   const [historyData, setHistoryData] = useState<any[]>([])
@@ -112,7 +113,7 @@ export function TransactionHistory() {
     <div className="min-h-[500px]">
       <div className={cn(
         'text-[#111111] font-bold',
-        'text-2xl mobile:text-[32px]',
+        'text-2xl tablet:text-[32px]',
         'mb-6'
       )}>History</div>
 

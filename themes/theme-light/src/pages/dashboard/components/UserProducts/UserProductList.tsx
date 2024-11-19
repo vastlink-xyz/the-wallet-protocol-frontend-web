@@ -35,8 +35,10 @@ export function UserProductList({
   return (
     <>
       <div className={cn(
-        'flex flex-wrap',
-        'gap-[32px] desktop:gap-[24px]',
+        'flex',
+        'tablet:flex-wrap tablet:gap-[24px]',
+        'gap-[32px] overflow-x-auto pb-4',
+        'scrollbar-none',
       )}>
         {products.map(product => (
           <div

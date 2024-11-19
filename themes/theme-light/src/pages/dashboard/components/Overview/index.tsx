@@ -74,7 +74,7 @@ export function Overview() {
     <div>
       <div className={cn(
         'text-[#111111] font-bold',
-        'text-2xl mobile:text-[32px]',
+        'text-2xl tablet:text-[32px]',
         'mb-6'
       )}>Overview</div>
 

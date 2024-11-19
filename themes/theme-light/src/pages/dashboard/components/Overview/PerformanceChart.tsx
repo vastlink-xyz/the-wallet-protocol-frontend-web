@@ -11,17 +11,31 @@ export function PerformanceChart({ data, labels }: PerformanceChartProps) {
   const maxValue = Math.max(...data);
   const minValue = Math.min(...data);
   
+  const maxIndexes = data.reduce<number[]>((acc, value, index) => {
+    if (value === maxValue) acc.push(index);
+    return acc;
+  }, []);
+  
+  const minIndexes = data.reduce<number[]>((acc, value, index) => {
+    if (value === minValue) acc.push(index);
+    return acc;
+  }, []);
+
+  const selectedMaxIndex = maxIndexes[Math.floor(maxIndexes.length / 2)];
+  const selectedMinIndex = minIndexes[Math.floor(minIndexes.length / 2)];
+  
   const chartData = data.map((value, index) => ({
     name: labels[index],
     value: value,
-    label: value === maxValue || value === minValue ? `$${formatNumberWithCommas(value)}` : null
+    label: (index === selectedMaxIndex || index === selectedMinIndex) ? 
+      `$${formatNumberWithCommas(value)}` : null
   }));
 
   return (
     <ResponsiveContainer width="100%" height="100%">
       <AreaChart
         data={chartData}
-        margin={{ top: 0, right: 0, left: 0, bottom: 15 }}
+        margin={{ top: 30, right: 0, left: 0, bottom: 15 }}
       >
         <defs>
           <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
@@ -55,12 +69,12 @@ export function PerformanceChart({ data, labels }: PerformanceChartProps) {
           strokeWidth={2}
           fill="url(#colorValue)"
           animationDuration={1000}
-          label={({ x, y, value }: { x: number, y: number, value: number }) => {
-            if (value === maxValue || value === minValue) {
-              // find the index of the value
-              const index = data.indexOf(value);
-              const isNearStart = index <= 1;  // close to the start
-              const isNearEnd = index >= data.length - 2;  // close to the end
+          label={({ x, y, value, index }: { x: number, y: number, value: number, index: number }) => {
+            if (index === selectedMaxIndex || index === selectedMinIndex) {
+              const isMax = index === selectedMaxIndex;
+              
+              const isNearStart = index <= 1;
+              const isNearEnd = index >= data.length - 2;
               
               // determine the horizontal alignment and x-axis offset
               let textAnchor = "middle";

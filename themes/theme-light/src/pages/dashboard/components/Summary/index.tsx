@@ -111,7 +111,7 @@ export function Summary() {
                 'text-[20px] tablet:text-[40px] tablet:leading-none',
               )}>
                 <span className="flex items-center">
-                  {hideTotalAsset ? '******' : `$${totalAsset?.formatted} USD`}
+                  {hideTotalAsset ? '******' : `$${totalAsset?.formatted || ''} USD`}
                 </span>
                 <img 
                   src={hideTotalAsset ? '/imgs/icons/close_eye.svg' : '/imgs/icons/open_eye.svg'}
