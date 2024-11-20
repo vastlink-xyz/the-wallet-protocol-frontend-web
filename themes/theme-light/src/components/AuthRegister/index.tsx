@@ -205,7 +205,7 @@ export default function AuthRegister() {
             htmlFor="rememberMe"
             className="text-xs text-black leading-none font-normal cursor-pointer select-none"
           >
-            Remember me for 30 days
+            Remember me for 7 days
           </label>
         </div>
 
