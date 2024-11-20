@@ -35,6 +35,7 @@ export function useTotalAsset(options?: {
   onError?: (error: Error) => void 
 }) {
   const { address } = auth.all()
+  // const address = '0xf79d08f838a962756370c0f10343f7169ec12dc3'
   
   return useQuery({
     queryKey: [...TOTAL_ASSET_KEY, address],
@@ -42,6 +43,5 @@ export function useTotalAsset(options?: {
     enabled: options?.enabled && !!address,
     staleTime: 1000 * 60 * 5,  // data is fresh within 5 minutes
     gcTime: 1000 * 60 * 30,    // cache for 30 minutes
-    retry: 1,                   // retry 1 time
   })
 }

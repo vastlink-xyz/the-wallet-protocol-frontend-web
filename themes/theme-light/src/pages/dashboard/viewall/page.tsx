@@ -39,7 +39,8 @@ export default function ViewAllPage() {
     try {
       const res = await api('/user-assets/asset-distribution', {
         params: {
-          address
+          address,
+          useCache: false,
         }
       });
       log('ress', res)
@@ -50,13 +51,18 @@ export default function ViewAllPage() {
     }
   }
 
+  const handleRefresh = async () => {
+    await init()
+    toast.success('Refresh successfully')
+  }
+
   return <div>
     <div className="flex items-center justify-between mt-[46px] mb-[52px] text-[#52c41a]">
       <Back />
       <RefreshCcw
         size={22}
         className="cursor-pointer ml-4 text-2xl hover:scale-125 hover:rotate-180 transition duration-300"
-        onClick={() => init()}
+        onClick={handleRefresh}
       />
     </div>
 
@@ -97,7 +103,7 @@ export default function ViewAllPage() {
             </TableCell>
             <TableCell className="hidden tablet:table-cell px-0 py-6">
               <div>
-                <Progress percent={parseFloat(item.proportion)} strokeColor={'#52c41a'} strokeWidth={12} />
+                <Progress percent={parseFloat(item.proportion)} strokeColor={'#52c41a'} strokeWidth={12} format={(percent) => `${percent}%`} />
               </div>
             </TableCell>
             <TableCell className="hidden tablet:table-cell px-0 py-6">

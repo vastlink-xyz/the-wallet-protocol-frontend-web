@@ -8,7 +8,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, RefreshCcw } from "lucide-react";
 import dayjs from 'dayjs';
 
 const { RangePicker } = DatePicker;
@@ -20,24 +20,30 @@ const tokens = [
   { symbol: 'TVWT', icon: '/imgs/logos/tvwt.png' },
 ];
 
-export function Search({ 
+export function Search({
   onDateChange,
   dates,
   onTokenChange,
   selectedToken,
   onReset,
   onDownloadCSV,
-}: { 
+  onRefresh,
+}: {
   onDateChange: (dates: [Date, Date]) => void,
   onTokenChange: (token: string) => void,
-  onReset: () => void,
+  onReset?: () => void,
   selectedToken: string,
   dates: [Date, Date],
   onDownloadCSV: () => void,
+  onRefresh: () => void,
 }) {
 
   const handleTokenChange = (tokenType: string) => {
     onTokenChange(tokenType)
+  }
+
+  const handleRefresh = () => {
+    onRefresh()
   }
 
   return (
@@ -102,7 +108,7 @@ export function Search({
             },
           }}
         >
-          <RangePicker 
+          <RangePicker
             value={[
               dayjs(dates[0]),
               dayjs(dates[1])
@@ -118,7 +124,14 @@ export function Search({
           />
         </ConfigProvider>
 
-        <div className="hidden tablet:block text-black text-base font-bold leading-tight cursor-pointer" onClick={onReset}> Reset</div>
+        {/* <div className="hidden tablet:block text-black text-base font-bold leading-tight cursor-pointer" onClick={onReset}> Reset</div> */}
+        <div className="hidden tablet:block text-[#52c41a]">
+          <RefreshCcw
+            size={22}
+            className="cursor-pointer ml-4 text-2xl hover:scale-125 hover:rotate-180 transition duration-300"
+            onClick={() => handleRefresh()}
+          />
+        </div>
       </div>
 
       <Button className="hidden tablet:block" onClick={onDownloadCSV}>

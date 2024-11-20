@@ -44,6 +44,7 @@ export function usePerformanceChart(options?: {
   onError?: (error: Error) => void
 }) {
   const { address } = auth.all()
+  // const address = '0xf79d08f838a962756370c0f10343f7169ec12dc3'
 
   return useQuery({
     queryKey: [...PERFORMANCE_CHART_KEY, address],

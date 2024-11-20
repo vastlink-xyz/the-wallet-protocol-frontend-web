@@ -1,13 +1,13 @@
-import { auth, cn, handleError, log } from "@/lib/utils";
+import { auth, cn, log } from "@/lib/utils";
 import { Search } from "./Search";
 import { TableList } from "./TableList";
 import { useEffect, useState } from "react";
-import api from "@/lib/api";
 import { toast } from "react-toastify";
 import dayjs from "dayjs";
 import { Empty } from "@/components/Empty";
 import { WalletConnectButton } from "@/components/VastWalletConnect";
 import { useTotalAsset } from "@/hooks/useTotalAsset";
+import { useTransactionHistory } from "@/hooks/useTransactionHistory";
 
 const defaultDates = [
   dayjs().subtract(1, 'month').startOf('day').toDate(),
@@ -18,67 +18,50 @@ export function TransactionHistory() {
   const { address } = auth.all()
   // const address = '0xf79d08f838a962756370c0f10343f7169ec12dc3'
   const [dates, setDates] = useState<[Date, Date]>(defaultDates)
-  const [tableData, setTableData] = useState<any[]>([])
-  const [historyData, setHistoryData] = useState<any[]>([])
-  const [loading, setLoading] = useState(false)
   const [selectedToken, setSelectedToken] = useState('ALL');
   const { data: totalAsset } = useTotalAsset({
     enabled: !!address,
+  })
+
+  const { data: tableData, isLoading, refetch, error } = useTransactionHistory({
+    enabled: !!address,
+    startDate: dates[0].getTime(),
+    endDate: dates[1].getTime(),
+    tokenType: selectedToken === 'ALL' ? undefined : selectedToken,
   })
 
   useEffect(() => {
     handleSearch(defaultDates, 'ALL')
   }, [])
 
+  useEffect(() => {
+    if (error) {
+      toast.error(error.message)
+    }
+  }, [error])
+
   const handleSearch = async (dates: [Date, Date], tokenType: string = 'ALL') => {
     setDates(dates)
-    const startDate = dates[0].getTime()
-    const endDate = dates[1].getTime()
-    try {
-      setLoading(true)
-      const res = await api.get('/user-assets/transaction-history', {
-        params: {
-          address,
-          // address: '0xf79d08f838a962756370c0f10343f7169ec12dc3',
-          startDate,
-          endDate
-        }
-      })
-      setHistoryData(res.data)
-      // set table data
-      if (tokenType === 'ALL') {
-        setTableData(res.data.slice())
-      } else {
-        setTableData(res.data.filter((t: any) => {
-          return t.token === tokenType
-        }))
-      }
-    } catch (error) {
-      const errInfo = handleError(error)
-      toast.error(errInfo.message)
-    } finally {
-      setLoading(false)
-    }
+    setSelectedToken(tokenType)
   }
 
   const handleTokenChange = (tokenType: string) => {
     setSelectedToken(tokenType)
-    if (tokenType === 'ALL') {
-      setTableData(historyData.slice())
-    } else {
-      setTableData(historyData.filter(t => {
-        return t.token === tokenType
-      }))
-    }
+    handleSearch(dates, tokenType)
   }
 
-  const handleReset = () => {
-    setSelectedToken('ALL');
-    setDates(defaultDates)
-    handleSearch(defaultDates, 'ALL');
+  const handleDatesChange = (dates: [Date, Date]) => {
+    setDates(dates)
+    handleSearch(dates, selectedToken)
+  }
+
+  const handleRefresh = async () => {
+    await refetch()
+    toast.success('Refresh successfully')
   }
 
   const handleDownloadCSV = () => {
+    if (!tableData) return
     log('download csv')
     // prepare headers
     const headers = ['Date', 'Type', 'Token', 'Amount', 'Status'];
@@ -121,19 +104,20 @@ export function TransactionHistory() {
         (totalAsset && !totalAsset.isZero) && (
           <div className="mb-[40px]">
             <Search
-              onDateChange={(dates) => handleSearch(dates, selectedToken)}
+              onDateChange={handleDatesChange}
               dates={dates}
               onTokenChange={handleTokenChange}
               selectedToken={selectedToken}
-              onReset={handleReset}
+              // onReset={handleReset}
               onDownloadCSV={handleDownloadCSV}
+              onRefresh={handleRefresh}
             />
           </div>
         )
       }
 
       {
-        !loading && tableData.length === 0 ? (
+        !isLoading && tableData?.length === 0 ? (
           <div className="mt-[96px]">
             <Empty
               className="mx-auto w-[120px]"
@@ -143,7 +127,7 @@ export function TransactionHistory() {
             <WalletConnectButton className="mt-[24px]" buttonClassName="text-white bg-black rounded-full py-[10px] px-[16px] w-[173px]" />
           </div>
         ) : (
-          <TableList data={tableData} />
+          <TableList data={tableData || []} />
         )
       }
     </div>
