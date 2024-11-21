@@ -13,6 +13,7 @@ import { WalletConnectButton } from "../VastWalletConnect";
 
 export function HeaderActions() {
   const [open, setOpen] = useState(false);
+  const isAuthenticated = auth.isAuthenticated()
 
   const handleLogout = async () => {
     try {
@@ -67,11 +68,11 @@ export function HeaderActions() {
               >
                 <div>Profile</div>
               </DropdownMenuItem>
-              <DropdownMenuItem
+              {/* <DropdownMenuItem
                 onSelect={(e) => e.preventDefault()}
               >
                 <div>Notification</div>
-              </DropdownMenuItem>
+              </DropdownMenuItem> */}
               <DropdownMenuItem
                 onSelect={(e) => e.preventDefault()}
               >
@@ -79,6 +80,9 @@ export function HeaderActions() {
               </DropdownMenuItem>
               <DropdownMenuItem
                 onSelect={(e) => e.preventDefault()}
+                className={cn(
+                  !isAuthenticated && 'hidden'
+                )}
               >
                 <div onClick={() => handleLogout()}>Logout</div>
               </DropdownMenuItem>
@@ -98,7 +102,10 @@ export function HeaderActions() {
                 src="/imgs/icons/profile.png" 
               />
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-white">
+            <DropdownMenuContent className={cn(
+              'bg-white',
+              !isAuthenticated && 'hidden'
+            )}>
               <DropdownMenuItem onSelect={() => handleLogout()}>
                 Logout
               </DropdownMenuItem>
@@ -112,12 +119,12 @@ export function HeaderActions() {
         )}>
         </div>
 
-        <div className={cn(
+        {/* <div className={cn(
           'hidden laptop:flex',
           'justify-start items-start gap-6 flex-shrink-0'
         )}>
           <img className="w-[24px] h-[24px] flex-shrink-0" src="/imgs/icons/message.svg" />
-        </div>
+        </div> */}
 
         <div className={cn(
           'hidden laptop:flex',

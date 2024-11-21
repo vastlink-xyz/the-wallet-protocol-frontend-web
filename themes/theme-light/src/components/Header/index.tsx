@@ -23,10 +23,10 @@ export function Header() {
       name: t('header.marketplace'),
       href: '/marketplace',
     },
-    {
-      name: t('header.community'),
-      href: '/community',
-    },
+    // {
+    //   name: t('header.community'),
+    //   href: '/community',
+    // },
   ];
 
   // get current route name
