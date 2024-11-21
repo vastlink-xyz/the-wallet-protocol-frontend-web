@@ -10,6 +10,7 @@ import { useFlowData } from "@/pages/marketplace/kyb-self/components/useFlowData
 import { toast } from "react-toastify"
 import { Button } from "@/components/ui/button"
 import { ExternalLink } from "lucide-react"
+import { Loading } from "@/components/Loading"
 
 interface EventListener {
   component: any;
@@ -251,7 +252,7 @@ export function KYC() {
       {
         !sdkInitialized && (
           <div className="flex justify-center items-center h-screen">
-            <LogoLoading type="breathe" />
+            <Loading />
           </div>
         )
       }

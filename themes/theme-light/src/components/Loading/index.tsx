@@ -6,7 +6,7 @@ export function Loading() {
       <div className={cn(
         'hidden tablet:flex',
         'fixed inset-0 justify-center bg-black/50',
-        'z-[49]',
+        'z-[2147483646]',
       )}>
         <img 
           src="/imgs/icons/loading.svg" 
@@ -18,7 +18,7 @@ export function Loading() {
       <div className={cn(
         'flex tablet:hidden',
         'fixed inset-0 justify-center items-center',
-        'z-[51]',
+        'z-[2147483646]',
       )}>
         <div className="w-[126px] h-[56px] py-[16px] px-[12px] bg-[#424242] rounded-lg backdrop-blur-[20px] flex justify-center items-center">
           <img

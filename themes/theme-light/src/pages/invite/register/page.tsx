@@ -9,6 +9,7 @@ import { formatEther } from "viem";
 import { InviteInfoData, InviteStatus } from "../util";
 import api from "@/lib/api";
 import keyManagementService from "@/services/KeyManagementService";
+import { Loading } from "@/components/Loading";
 
 export default function Page() {
   const [searchParams] = useSearchParams();
@@ -206,13 +207,13 @@ export default function Page() {
     <div className="h-screen bg-cool-frosted-aqua-80 bg-opacity-20 flex items-center justify-center">
       <div className="bg-white rounded-2xl shadow-lg px-4 md:px-12 py-8 mx-6 max-w-md w-full">
         <div className="flex items-center mb-8">
-          <img src="/logo-alone.png" className="w-[32px] mr-2" alt="logo" />
+          <img src="/imgs/logos/logo.svg" className="w-[32px] mr-2" alt="logo" />
           <p className="font-bold">Vastlink</p>
         </div>
 
         {
           loading ? (
-            <LogoLoading type={'breathe'} />
+            <Loading />
           ) : (
             <>
               {
@@ -274,7 +275,7 @@ export default function Page() {
                     }
                   </>
                 ) : (
-                  <LogoLoading type={'breathe'} />
+                  <Loading />
                 )
               }
             </>

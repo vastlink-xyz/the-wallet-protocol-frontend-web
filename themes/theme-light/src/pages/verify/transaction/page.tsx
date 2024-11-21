@@ -8,6 +8,7 @@ import { TokenFactory } from '@/services/TokenService';
 import { toast } from 'react-toastify';
 import { LogoLoading } from '@/components/LogoLoading';
 import keyManagementService from '@/services/KeyManagementService';
+import { Loading } from '@/components/Loading';
 
 export default function Page() {  
   const [searchParams] = useSearchParams();
@@ -49,7 +50,7 @@ export default function Page() {
   const transactionStatus = () => {
     if (status === 'pending') {
       return <div>
-        <LogoLoading size={48} type={'breathe'} />
+        <Loading />
       </div>
     } else if (status === 'success') {
       return <div className=''>Transaction confirmed, redirecting to the dashboard...</div>

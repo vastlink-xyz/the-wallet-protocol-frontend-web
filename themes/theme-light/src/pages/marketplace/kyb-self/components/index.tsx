@@ -10,6 +10,7 @@ import api from "@/lib/api";
 import { cn, log } from "@/lib/utils";
 import { KYBStatus } from "./helper";
 import { LogoLoading } from "@/components/LogoLoading";
+import { Loading } from "@/components/Loading";
 
 export function KYBFlow({
   showExternalLink = true,
@@ -115,7 +116,7 @@ export function KYBFlow({
 
   if (isLoading) {
     return <div className="flex items-center justify-center h-full">
-      <LogoLoading type="breathe" />
+      <Loading />
     </div>
   }
 

@@ -14,6 +14,7 @@ import { useTransaction } from '@/components/VastWalletConnect/useTransaction';
 import { Address, formatEther } from 'viem';
 import { useTranslation } from 'react-i18next';
 import api from '@/lib/api';
+import { Loading } from '@/components/Loading';
 
 export function RampModal({
   isOpen,
@@ -237,7 +238,7 @@ export function RampModal({
 
       {
         sending && (
-          <LogoLoading fullscreen type={'breathe'} />
+          <Loading />
         )
       }
     </Modal>

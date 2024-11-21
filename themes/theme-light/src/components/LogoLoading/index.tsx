@@ -1,5 +1,3 @@
-'use client'
-
 import { useThemeLogoPath } from "@/hooks/useThemeLogoPath";
 import { cn } from "@/lib/utils";
 import { InitialNameLogo } from "../InitialNameLogo";

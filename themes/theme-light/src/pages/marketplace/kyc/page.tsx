@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
 import { KYCStatus } from "@/pages/marketplace/kyb-self/components/helper";
-import { LogoLoading } from "@/components/LogoLoading";
+import { Loading } from "@/components/Loading";
 
 export default function KYCFlowPage() {
   const [isLoading, setIsLoading] = useState(true);
@@ -68,7 +68,7 @@ export default function KYCFlowPage() {
 
   if (isLoading) {
     return <div className="flex items-center justify-center h-screen">
-      <LogoLoading type="breathe" />
+      <Loading />
     </div>
   }
 
