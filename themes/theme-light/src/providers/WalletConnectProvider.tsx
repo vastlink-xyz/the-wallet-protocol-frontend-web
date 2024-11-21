@@ -203,15 +203,27 @@ export function WalletConnectProvider({ children }: { children: ReactNode }) {
       return;
     }
     const { id, params } = sessionProposalRef.current;
+    
     try {
+      // Get chains from either required or optional namespaces
+      const eip155Params = params.requiredNamespaces?.eip155 || params.optionalNamespaces?.eip155;
+      if (!eip155Params) {
+        throw new Error("No EIP155 namespace found in proposal");
+      }
+
+      // Use the chains from the namespace, or fallback to current chain if none specified
+      const requestedChains = eip155Params.chains || [`eip155:${chain.id}`];
+    
       const namespaces = {
         proposal: params,
         supportedNamespaces: {
           eip155: {
-            chains: [`eip155:${chain.id}`],
+            // chains: [`eip155:${chain.id}`],
+            chains: requestedChains,
             methods: ["eth_sendTransaction", "personal_sign", "eth_signTypedData_v4"],
             events: ["accountsChanged", "chainChanged"],
-            accounts: [`eip155:${chain.id}:${address}`],
+            // accounts: [`eip155:${chain.id}:${address}`],
+            accounts: requestedChains.map(chain => `${chain}:${address}`),
           },
         },
       };
