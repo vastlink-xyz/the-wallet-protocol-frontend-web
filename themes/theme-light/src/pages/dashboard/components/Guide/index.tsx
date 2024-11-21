@@ -134,7 +134,7 @@ export function Guide() {
 
       <GuideContainer
         icon="/imgs/icons/connect_dapps.svg"
-        title="Connect dApps"
+        title="Connect to dApps"
         description="Link your wallet to any dApp easily with WalletConnect. Enjoy secure access to DeFi, NFTs, and more—all from your wallet in just a few taps!"
         className="mb-[24px] cursor-pointer"
         onClick={handleConnectDApps}

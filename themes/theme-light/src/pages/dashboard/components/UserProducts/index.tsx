@@ -81,7 +81,7 @@ export function UserProducts() {
         <Button className="py-[10px] hidden tablet:block" onClick={() => {
           navigate('/marketplace')
         }}>
-          Explore more features
+          Explore more products
         </Button>
       </div>
 
