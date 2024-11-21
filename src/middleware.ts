@@ -8,6 +8,19 @@ const themePorts = {
 }
 
 export function middleware(request: NextRequest) {
+  // Handle HTTPS redirect in production
+  if (!isDev) {
+    const forwardedProto = request.headers.get('x-forwarded-proto')
+    if (forwardedProto !== 'https') {
+      const hostname = request.headers.get('host') || request.nextUrl.hostname
+      log('redirect to https', hostname)
+      return NextResponse.redirect(
+        `https://${hostname}${request.nextUrl.pathname}${request.nextUrl.search}`,
+        301
+      )
+    }
+  }
+
   // log('middleware', request.url)
 
   // get theme from url params or cookie
