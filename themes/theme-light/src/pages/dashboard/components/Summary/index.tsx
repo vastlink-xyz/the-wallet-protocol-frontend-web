@@ -156,7 +156,7 @@ export function Summary() {
             </div>
 
             {/* switch crypto */}
-            <DropdownMenu>
+            {/* <DropdownMenu>
               <DropdownMenuTrigger className="bg-white rounded-full py-[8px] px-[16px] flex items-center gap-2 cursor-pointer">
                 <img 
                   src={tokenTypeIcon()} 
@@ -187,7 +187,7 @@ export function Summary() {
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
-            </DropdownMenu>
+            </DropdownMenu> */}
           </div>
 
           <div className="flex items-start gap-2">
