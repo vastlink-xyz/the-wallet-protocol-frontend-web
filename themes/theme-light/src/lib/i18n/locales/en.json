@@ -139,7 +139,7 @@
     "disconnected": "Disconnected"
   },
   "toastSuccess": {
-    "copySuccess": "Copy success!",
+    "copySuccess": "Copy successfully!",
     "connectSuccess": "Connected successfully!"
   },
   "toastError": {

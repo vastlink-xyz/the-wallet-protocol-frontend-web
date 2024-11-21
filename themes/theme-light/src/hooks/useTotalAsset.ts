@@ -10,9 +10,11 @@ interface TotalAssetData {
   raw: number
   formatted: string
   isZero: boolean
+  isUSDZero: boolean
 }
 
 const TOTAL_ASSET_KEY = ['totalAsset'] as const
+const MIN_USD_THRESHOLD = 0.01; // 0.01 USD
 
 const fetchTotalAsset = async (address: string): Promise<TotalAssetData> => {
   try {
@@ -23,7 +25,8 @@ const fetchTotalAsset = async (address: string): Promise<TotalAssetData> => {
     return {
       raw,
       formatted: formatNumberWithCommas(raw, 2),
-      isZero: raw === 0
+      isZero: raw === 0,
+      isUSDZero: raw < MIN_USD_THRESHOLD,
     }
   } catch (error) {
     throw handleError(error)
