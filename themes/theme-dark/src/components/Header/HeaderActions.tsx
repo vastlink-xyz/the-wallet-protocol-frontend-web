@@ -57,7 +57,7 @@ export function HeaderActions() {
               <DropdownMenuItem
                 onSelect={(e) => e.preventDefault()}
               >
-                <div>Notification</div>
+                {/* <div>Notification</div> */}
               </DropdownMenuItem>
               <DropdownMenuItem
                 onSelect={(e) => e.preventDefault()}
