@@ -121,6 +121,7 @@ export function Search({
                 onDateChange([startDate, endDate]);
               }
             }}
+            allowClear={false}
           />
         </ConfigProvider>
 

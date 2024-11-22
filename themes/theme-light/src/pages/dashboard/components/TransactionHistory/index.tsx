@@ -8,6 +8,7 @@ import { Empty } from "@/components/Empty";
 import { WalletConnectButton } from "@/components/VastWalletConnect";
 import { useTotalAsset } from "@/hooks/useTotalAsset";
 import { useTransactionHistory } from "@/hooks/useTransactionHistory";
+import { usePerformanceChart } from "@/hooks/usePerformanceChart";
 
 const defaultDates = [
   dayjs().subtract(1, 'month').startOf('day').toDate(),
@@ -19,15 +20,17 @@ export function TransactionHistory() {
   // const address = '0xf79d08f838a962756370c0f10343f7169ec12dc3'
   const [dates, setDates] = useState<[Date, Date]>(defaultDates)
   const [selectedToken, setSelectedToken] = useState('ALL');
+  const [useCache, setUseCache] = useState(false);
   const { data: totalAsset } = useTotalAsset({
     enabled: !!address,
   })
 
-  const { data: tableData, isLoading, refetch, error } = useTransactionHistory({
+  const { data: tableData, isFetching, refetch, error } = useTransactionHistory({
     enabled: !!address,
     startDate: dates[0].getTime(),
     endDate: dates[1].getTime(),
     tokenType: selectedToken === 'ALL' ? undefined : selectedToken,
+    useCache: false,
   })
 
   useEffect(() => {
@@ -56,8 +59,8 @@ export function TransactionHistory() {
   }
 
   const handleRefresh = async () => {
+    setUseCache(false)
     await refetch()
-    toast.success('Refresh successfully')
   }
 
   const handleDownloadCSV = () => {
@@ -117,7 +120,7 @@ export function TransactionHistory() {
       }
 
       {
-        !isLoading && tableData?.length === 0 ? (
+        !isFetching && tableData?.length === 0 ? (
           <div className="mt-[96px]">
             <Empty
               className="mx-auto w-[120px]"
@@ -127,7 +130,7 @@ export function TransactionHistory() {
             <WalletConnectButton className="mt-[24px]" buttonClassName="text-white bg-black rounded-full py-[10px] px-[16px] w-[173px]" />
           </div>
         ) : (
-          <TableList data={tableData || []} />
+          <TableList data={tableData || []} isLoading={isFetching} />
         )
       }
     </div>

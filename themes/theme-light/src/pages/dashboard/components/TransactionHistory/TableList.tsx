@@ -58,10 +58,12 @@ const openTxPage = (tx: any) => {
   window.open(url, '_blank')
 }
 
-export function TableList({ data }: { data: any[] }) {
+export function TableList({ data, isLoading }: { data: any[], isLoading: boolean }) {
 
   return (
-    <Table>
+    <Table className={cn(
+      isLoading && 'animate-pulse',
+    )}>
       <TableHeader className="hidden tablet:table-header-group">
         <TableRow className="text-xs text-[#7b8293] leading-none hover:bg-transparent">
           <TableHead className="h-[16px] px-0 pb-[8px]">Transaction</TableHead>
@@ -81,22 +83,25 @@ export function TableList({ data }: { data: any[] }) {
             {/* token */}
             <TableCell className={cn(
               "px-0 py-6",
-              'desktop:w-[121px] laptop:w-[121px]'
+              'desktop:w-[121px] laptop:w-[121px] tablet:w-[100px]'
             )}>
               <div className="flex items-center gap-3">
                 <img src={tokenImages[transaction.token as keyof typeof tokenImages]} alt={transaction.token} className="w-[28px] h-[28px]" />
-                <span className="text-base font-bold leading-tight text-[#3d3d3d]">{transaction.type}</span>
+                <span className={cn(
+                  'font-bold leading-tight text-[#3d3d3d]',
+                  'text-xs desktop:text-sm'
+                )}>{transaction.type}</span>
               </div>
             </TableCell>
 
             {/* amount */}
             <TableCell className={cn(
               "px-0 py-6",
-              'desktop:w-[190px] laptop:w-[150px]'
+              'desktop:w-[190px] laptop:w-[150px] w-[122px]'
             )}>
               <span className={cn(
                 "font-bold leading-tight",
-                'text-xs laptop:text-lg',
+                'text-xs desktop:text-sm',
                 transaction.type === 'Receive' ? 'text-[#00a478]' : 'text-[#ff6363]'
               )}>
                 {transaction.type === 'Receive' ? '+' : '-'}
@@ -107,8 +112,9 @@ export function TableList({ data }: { data: any[] }) {
             {/* network */}
             <TableCell className={cn(
               "hidden tablet:table-cell px-0 py-6",
-              'text-sm text-[#929292] font-medium leading-none',
-              'tablet:w-[80px] laptop:w-[90px]'
+              'text-[#929292] font-medium leading-none',
+              'text-xs desktop:text-sm',
+              'tablet:w-[70px] laptop:w-[90px] desktop:w-[120px]',
             )}>
               {transaction.network}
             </TableCell>
@@ -131,7 +137,7 @@ export function TableList({ data }: { data: any[] }) {
                       iconSize={14}
                     />
                   }
-                  trigger="click"
+                  trigger="hover"
                   placement="top"
                   overlayClassName="max-w-full"
                 >
@@ -152,7 +158,7 @@ export function TableList({ data }: { data: any[] }) {
               <div className={cn(
                 "hidden laptop:block",
                 'laptop:w-[131px] desktop:w-[216px]',
-                'laptop:mr-[10px] desktop:mr-[15px]'
+                'laptop:mr-[10px] desktop:mr-[30px]'
               )}>
                 <Tooltip
                   title={
@@ -163,7 +169,7 @@ export function TableList({ data }: { data: any[] }) {
                       iconSize={14}
                     />
                   }
-                  trigger="click"
+                  trigger="hover"
                   placement="top"
                   overlayClassName="max-w-full"
                 >
@@ -192,7 +198,7 @@ export function TableList({ data }: { data: any[] }) {
                       iconSize={14}
                     />
                   }
-                  trigger="click"
+                  trigger="hover"
                   placement="top"
                   overlayClassName="max-w-full"
                 >
@@ -213,7 +219,7 @@ export function TableList({ data }: { data: any[] }) {
               <div className={cn(
                 "hidden laptop:block",
                 'laptop:w-[131px] desktop:w-[216px]',
-                'laptop:mr-[10px] desktop:mr-[15px]'
+                'laptop:mr-[10px] desktop:mr-[30px]'
               )}>
                 <Tooltip
                   title={
@@ -224,7 +230,7 @@ export function TableList({ data }: { data: any[] }) {
                       iconSize={14}
                     />
                   }
-                  trigger="click"
+                  trigger="hover"
                   placement="top"
                   overlayClassName="max-w-full"
                 >
@@ -261,7 +267,7 @@ export function TableList({ data }: { data: any[] }) {
               <div className={cn(
                 "hidden laptop:block",
                 'laptop:w-[131px] desktop:w-[216px]',
-                // 'laptop:mr-[10px] desktop:mr-[15px]'
+                'laptop:mr-[10px] desktop:mr-[30px]'
               )}>
                 <div className="truncate cursor-pointer" onClick={() => openTxPage(transaction)}>
                   {transaction.hash}
@@ -362,9 +368,6 @@ export function TableList({ data }: { data: any[] }) {
                 </div>
               </div>
             </TableCell>
-
-            {/* <TableCell className="px-0 py-6 text-right text-sm text-black leading-none font-normal w-[120px]">
-            </TableCell> */}
           </TableRow>
         ))}
       </TableBody>

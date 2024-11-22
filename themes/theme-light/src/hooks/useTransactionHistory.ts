@@ -6,6 +6,7 @@ interface TransactionHistoryParams {
   startDate?: number;
   endDate?: number;
   tokenType?: string;
+  useCache?: boolean;
 }
 
 const TRANSACTION_HISTORY_KEY = ['transactionHistory'] as const
@@ -21,6 +22,7 @@ const fetchTransactionHistory = async (
         startDate: params?.startDate,
         endDate: params?.endDate,
         tokenType: params?.tokenType === 'ALL' ? undefined : params?.tokenType,
+        useCache: params?.useCache,
       }
     })
     
@@ -37,7 +39,7 @@ export function useTransactionHistory(params?: TransactionHistoryParams & {
   const { address } = auth.all()
 
   return useQuery({
-    queryKey: [...TRANSACTION_HISTORY_KEY, address, params?.startDate, params?.endDate, params?.tokenType],
+    queryKey: [...TRANSACTION_HISTORY_KEY, address, params?.startDate, params?.endDate, params?.tokenType, params?.useCache],
     queryFn: () => fetchTransactionHistory(address, params),
     enabled: params?.enabled && !!address,
   })
