@@ -18,6 +18,7 @@ import { countryCodes, handleDownload } from './helper';
 import { mockAvailableReports, mockCountry, mockEntityId, mockKybStep, mockSearchResults, mockSelectedBusiness } from './mock';
 import { RefreshCcw } from 'lucide-react';
 import { LogoLoading } from '@/components/LogoLoading';
+import { getBusinessEntityList, verifyInternationalBusinessProfile } from '@/lib/api/frankieone';
 
 const countryOptions = countryCodes.map(code => ({
   value: code.code,
@@ -114,7 +115,8 @@ export function InternationalKYBFlow({
       setAvailableReportListStatus('loading');
 
       // get entityId
-      const { data } = await api.post('/marketplace/product/frankieone/international-business-profile', {
+      // const { data } = await api.post('/marketplace/product/frankieone/international-business-profile', {
+      const { data } = await verifyInternationalBusinessProfile({
         country: country,
         companyCode: business.Code,
         registrationAuthorityCode: business.RegistrationAuthorityCode,
@@ -124,7 +126,8 @@ export function InternationalKYBFlow({
       setEntityId(entityId)
 
       // get available reports
-      const response = await api.get(`/marketplace/product/frankieone/international-business-entity-list?entityId=${entityId}`);
+      // const response = await api.get(`/marketplace/product/frankieone/international-business-entity-list?entityId=${entityId}`);
+      const response = await getBusinessEntityList(entityId);
       log('response', response)
 
       setAvailableReports(response.data.reports);

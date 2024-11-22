@@ -18,6 +18,7 @@ import { mockCountry, mockSearchResult } from './mock';
 import { ChevronLeft } from 'lucide-react';
 import { useFlowData } from './useFlowData';
 import { useNavigate } from 'react-router-dom';
+import { verifyInternationalBusinessProfile } from '@/lib/api/frankieone';
 
 const countryOptions = countryCodes.map(code => ({
   value: code.code,
@@ -130,7 +131,8 @@ export const InternationalKYBFlow: React.FC = () => {
   const handleBusinessDetail = async () => {
     try {
       setContinueLoading(true);
-      const { data } = await api.post('/marketplace/product/frankieone/international-business-profile', {
+      // const { data } = await api.post('/marketplace/product/frankieone/international-business-profile', {
+      const { data } = await verifyInternationalBusinessProfile({
         country: country,
         companyCode: searchResult?.Code,
         registrationAuthorityCode: searchResult?.RegistrationAuthorityCode,
