@@ -1,9 +1,10 @@
 'use client';
 
-import { Zoom, ToastContainer } from 'react-toastify';
+import { Zoom, ToastContainer, toast } from 'react-toastify';
 import '@/styles/react-toastify.css'
 import { useEffect, useState } from "react";
 import { cn } from '@/lib/utils';
+import { CircleX } from 'lucide-react';
 
 export default function ThemeAwareToastContainer() {
   const [isMobile, setIsMobile] = useState(false);
@@ -27,8 +28,14 @@ export default function ThemeAwareToastContainer() {
       pauseOnHover
       closeButton={false}
       // theme={currentTheme() as "light" | "dark"}
-      // theme={'colored'}
+      theme={'colored'}
       transition={Zoom}
+      icon={({ type }) => {
+        if (type === 'error') {
+          return <CircleX />
+        }
+        return undefined; // use default icon
+      }}
       toastClassName={cn(
         'text-sm',
         'mobile:top-[82px]',
