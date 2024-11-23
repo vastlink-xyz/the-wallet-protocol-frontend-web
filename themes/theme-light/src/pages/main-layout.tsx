@@ -5,6 +5,7 @@ import { MarketplaceProvider } from "@/providers/MarketplaceProvider"
 import { useLayoutFeatures } from "@/hooks/useLayoutFeatures"
 import { VastWalletConnect } from "@/components/VastWalletConnect"
 import { WalletConnectProvider } from "@/providers/WalletConnectProvider"
+import { Footer } from "@/components/Footer"
 
 export default function MainLayout() {
   const { hideChatbot } = useLayoutFeatures();
@@ -33,6 +34,8 @@ export default function MainLayout() {
         {!hideChatbot && <ChatBot />}
 
         <VastWalletConnect />
+
+        <Footer />
       </WalletConnectProvider>
     </section>
   )
