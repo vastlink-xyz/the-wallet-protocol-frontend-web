@@ -4,7 +4,7 @@ import { Zoom, ToastContainer, toast } from 'react-toastify';
 import '@/styles/react-toastify.css'
 import { useEffect, useState } from "react";
 import { cn } from '@/lib/utils';
-import { CircleX } from 'lucide-react';
+import { CircleAlert, CircleCheck, CircleX, Info } from 'lucide-react';
 
 export default function ThemeAwareToastContainer() {
   const [isMobile, setIsMobile] = useState(false);
@@ -34,7 +34,16 @@ export default function ThemeAwareToastContainer() {
         if (type === 'error') {
           return <CircleX />
         }
-        return undefined; // use default icon
+        if (type === 'success') {
+          return <CircleCheck />
+        }
+        if (type === 'info') {
+          return <Info />
+        }
+        if (type === 'warning') {
+          return <CircleAlert />
+        }
+        return undefined;
       }}
       toastClassName={cn(
         'text-sm',
