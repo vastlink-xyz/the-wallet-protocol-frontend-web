@@ -145,7 +145,7 @@ export function CategoryTabs({
         )}
         <div 
           ref={scrollContainerRef}
-          className="w-full h-9 flex items-center gap-7 overflow-x-auto scrollbar-hide"
+          className="w-full h-9 flex items-center gap-4 overflow-x-auto scrollbar-hide"
         >
           {categories.map((category, index) => {
             const isActive = selectedValue === category;
@@ -156,8 +156,9 @@ export function CategoryTabs({
                 className={cn(
                   "text-center text-sm font-medium font-['Roboto'] leading-none whitespace-nowrap relative shrink-0",
                   isActive 
-                    ? "h-9 w-[110px] bg-black rounded-[60px] justify-center items-center gap-2 flex" 
-                    : "h-9 flex items-center justify-center"
+                    ? "h-9 bg-black px-[16px] rounded-[60px] justify-center items-center gap-2 flex" 
+                    : "h-9 bg-transparent px-[16px] rounded-[60px] justify-center items-center gap-2 flex" 
+                    // : "h-9 flex items-center justify-center"
                 )}
               >
                 <div className={cn(

@@ -67,6 +67,9 @@ export default function ChatBotComponent() {
     },
     chatButton: {
       icon: '/imgs/logos/chatbot.svg',
+    },
+    chatInput: {
+      sendButtonIcon: '/imgs/logos/chatbot_send.svg',
     }
   });
   // const [styles, setStyles] = useState({
@@ -163,10 +166,16 @@ export default function ChatBotComponent() {
 
   const styles: Styles = {
     botBubbleStyle: {
-      backgroundColor: '#333',
+      backgroundColor: '#f6f6f6',
+      color: '#000',
+    },
+    userBubbleStyle: {
+      backgroundColor: '#f6f6f6',
+      color: '#000',
     },
     headerStyle: {
-      backgroundImage: 'linear-gradient(to right, #333, rgb(66, 176, 197))',
+      // backgroundImage: 'linear-gradient(to right, #333, rgb(66, 176, 197))',
+      background: '#fff',
     },
     chatButtonStyle: {
       background: '#fff',
@@ -185,8 +194,13 @@ export default function ChatBotComponent() {
     tooltipStyle: {
       background: 'rgb(66, 176, 197)',
     },
+    sendButtonStyle: {
+      background: '#fff',
+      boxShadow: 'none',
+      alignItems: 'center',
+    },
     sendButtonHoveredStyle: {
-      background: 'rgba(66, 176, 197, 0.8)',
+      background: 'rgb(255, 255, 255)',
     },
   }
 

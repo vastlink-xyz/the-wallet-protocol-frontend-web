@@ -172,12 +172,15 @@ export function RampModal({
   return (
     <Modal
       className={cn(
-        "text-primary p-6",
+        "text-primary p-4 tablet:p-6",
       )}
       isOpen={isOpen}
       onClose={() => handleClose()}
     >
-      <div className='flex items-center text-2xl font-bold mb-6'>
+      <div className={cn(
+        'flex items-center font-bold mb-6',
+        'text-md tablet:text-2xl',
+      )}>
         <img src='/imgs/logos/moonpay-logo.png' alt="MoonPay Logo" width={32} height={32} className='mr-3' />
         {t('/marketplace.moonpayRamp.modalTitle')}
       </div>
@@ -221,17 +224,25 @@ export function RampModal({
       
       <div className="grid grid-cols-2 gap-4">
         <Button
-          className='font-semibold py-6'
+          className={cn(
+            'font-semibold',
+            'py-3 tablet:py-6',
+            'text-xs tablet:text-sm',
+          )}
           onClick={() => setBuyVisible(true)}
-        >
-          <ShoppingCart className='mr-2' />
+          >
+          <ShoppingCart className='hidden tablet:block tablet:mr-2' />
           {t('/marketplace.moonpayRamp.buyButton')}
         </Button>
         <Button
-          className='font-semibold py-6'
+          className={cn(
+            'font-semibold',
+            'py-3 tablet:py-6',
+            'text-xs tablet:text-sm',
+          )}
           onClick={() => setSellVisible(true)}
         >
-          <ArrowLeftRight className='mr-2' />
+          <ArrowLeftRight className='hidden tablet:block tablet:mr-2' />
           {t('/marketplace.moonpayRamp.sellButton')}
         </Button>
       </div>
