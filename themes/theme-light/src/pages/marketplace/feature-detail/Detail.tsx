@@ -103,7 +103,7 @@ export function Detail({
     ])}>
       <div className="text-black text-xl font-bold leading-none mb-2">Subscription plan</div>
       <div className="text-black text-sm font-bold leading-none mb-1">{product?.price}V</div>
-      <div className="text-black text-sm font-normal leading-none">To manage your plan, go to Profile page, under purchase and select manage.</div>
+      {/* <div className="text-black text-sm font-normal leading-none">To manage your plan, go to Profile page, under purchase and select manage.</div> */}
     </div>
 
     <div className={cn([
