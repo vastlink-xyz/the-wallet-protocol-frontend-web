@@ -49,7 +49,6 @@ export function ReceiveModal({
           reader.readAsDataURL(blob);
         });
         
-        // update logo href
         imageElement.setAttribute('href', base64Logo as string);
       }
 
@@ -57,6 +56,9 @@ export function ReceiveModal({
       const svgData = new XMLSerializer().serializeToString(svgElement);
       const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
       const url = URL.createObjectURL(svgBlob);
+
+      // check if it's a mobile device
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
       await new Promise((resolve, reject) => {
         const img = new Image();
@@ -67,22 +69,58 @@ export function ReceiveModal({
           canvas.height = img.height;
           ctx?.drawImage(img, 0, 0);
           
-          canvas.toBlob(async (blob) => {
-            if (blob) {
-              try {
-                await navigator.clipboard.write([
-                  new ClipboardItem({ 'image/png': blob })
-                ]);
-                toast.success(t('toastSuccess.copySuccess'), {
-                  autoClose: 1000,
-                  hideProgressBar: true,
-                });
-                resolve(null);
-              } catch (err: any) {
-                reject(err);
+          if (isMobile) {
+            // mobile: use Share API or save image
+            canvas.toBlob(async (blob) => {
+              if (blob) {
+                try {
+                  if (navigator.share) {
+                    // use system share
+                    const file = new File([blob], 'qrcode.png', { type: 'image/png' });
+                    await navigator.share({
+                      files: [file],
+                      title: 'QR Code',
+                    });
+                  } else {
+                    // create download link
+                    const downloadUrl = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = downloadUrl;
+                    a.download = 'qrcode.png';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(downloadUrl);
+                  }
+                  toast.success(t('toastSuccess.copySuccess'), {
+                    autoClose: 1000,
+                    hideProgressBar: true,
+                  });
+                  resolve(null);
+                } catch (err: any) {
+                  reject(err);
+                }
               }
-            }
-          }, 'image/png');
+            }, 'image/png');
+          } else {
+            // desktop: use clipboard API
+            canvas.toBlob(async (blob) => {
+              if (blob) {
+                try {
+                  await navigator.clipboard.write([
+                    new ClipboardItem({ 'image/png': blob })
+                  ]);
+                  toast.success(t('toastSuccess.copySuccess'), {
+                    autoClose: 1000,
+                    hideProgressBar: true,
+                  });
+                  resolve(null);
+                } catch (err: any) {
+                  reject(err);
+                }
+              }
+            }, 'image/png');
+          }
         };
         img.onerror = reject;
         img.src = url;
