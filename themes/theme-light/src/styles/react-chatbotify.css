@@ -18,6 +18,11 @@
     align-items: center;
 }
 
+.rcb-chat-header .rcb-close-chat-icon {
+    width: 14px;
+    height: 14px;
+}
+
 .rcb-chat-window {
     border-radius: 12px;
 }

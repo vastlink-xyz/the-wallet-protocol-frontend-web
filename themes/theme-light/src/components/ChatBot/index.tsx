@@ -54,6 +54,7 @@ export default function ChatBotComponent() {
     header: {
       title: 'Vastlink Bot',
       avatar: '/imgs/logos/logo.svg',
+      closeChatIcon: '/imgs/logos/chatbot_close.svg',
     },
     notification: {
       disabled: true,
