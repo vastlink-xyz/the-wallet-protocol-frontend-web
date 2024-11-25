@@ -27,6 +27,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <meta 
+          name="viewport" 
+          content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+        />
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-VJD93GF9ZC"
           strategy="afterInteractive"
