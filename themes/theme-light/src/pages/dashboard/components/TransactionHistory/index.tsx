@@ -114,6 +114,7 @@ export function TransactionHistory() {
               // onReset={handleReset}
               onDownloadCSV={handleDownloadCSV}
               onRefresh={handleRefresh}
+              isLoading={isFetching}
             />
           </div>
         )

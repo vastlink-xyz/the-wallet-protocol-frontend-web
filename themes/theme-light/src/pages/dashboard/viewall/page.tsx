@@ -30,6 +30,7 @@ export default function ViewAllPage() {
   const [sendOpen, setSendOpen] = useState(false)
   const [receiveOpen, setReceiveOpen] = useState(false)
   const [tokenType, setTokenType] = useState<TokenType>('ETH')
+  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
     init()
@@ -37,6 +38,7 @@ export default function ViewAllPage() {
 
   const init = async () => {
     try {
+      setIsLoading(true)
       const res = await api('/user-assets/asset-distribution', {
         params: {
           address,
@@ -48,10 +50,13 @@ export default function ViewAllPage() {
     } catch (err) {
       const errInfo = handleError(err)
       toast.error(errInfo.message)
+    } finally {
+      setIsLoading(false)
     }
   }
 
   const handleRefresh = async () => {
+    if (isLoading) return
     await init()
     toast.success('Refresh successfully')
   }
@@ -61,12 +66,17 @@ export default function ViewAllPage() {
       <Back />
       <RefreshCcw
         size={22}
-        className="cursor-pointer ml-4 text-2xl hover:scale-125 hover:rotate-180 transition duration-300"
+        className={cn(
+          "cursor-pointer ml-4 text-2xl hover:scale-125 hover:rotate-180 transition duration-300",
+          isLoading && "animate-spin duration-1000 hover:scale-100"
+        )}
         onClick={handleRefresh}
       />
     </div>
 
-    <Table>
+    <Table className={cn(
+      isLoading && 'opacity-30',
+    )}>
       <TableHeader className="">
         <TableRow className="text-xs text-[#7b8293] leading-none hover:bg-transparent">
           <TableHead className="h-[16px] px-0 pb-[8px]">Asset</TableHead>

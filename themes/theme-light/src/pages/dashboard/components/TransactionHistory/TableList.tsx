@@ -62,7 +62,7 @@ export function TableList({ data, isLoading }: { data: any[], isLoading: boolean
 
   return (
     <Table className={cn(
-      isLoading && 'animate-pulse',
+      isLoading && 'opacity-30',
     )}>
       <TableHeader className="hidden tablet:table-header-group">
         <TableRow className="text-xs text-[#7b8293] leading-none hover:bg-transparent">

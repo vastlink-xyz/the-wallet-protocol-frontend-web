@@ -5,7 +5,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { cn } from "@/lib/utils";
+import { cn, log } from "@/lib/utils";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, RefreshCcw } from "lucide-react";
@@ -28,6 +28,7 @@ export function Search({
   onReset,
   onDownloadCSV,
   onRefresh,
+  isLoading,
 }: {
   onDateChange: (dates: [Date, Date]) => void,
   onTokenChange: (token: string) => void,
@@ -36,6 +37,7 @@ export function Search({
   dates: [Date, Date],
   onDownloadCSV: () => void,
   onRefresh: () => void,
+  isLoading: boolean,
 }) {
 
   const handleTokenChange = (tokenType: string) => {
@@ -43,6 +45,8 @@ export function Search({
   }
 
   const handleRefresh = () => {
+    if (isLoading) return
+    log('refresh')
     onRefresh()
   }
 
@@ -129,7 +133,10 @@ export function Search({
         <div className="hidden tablet:block text-[#52c41a]">
           <RefreshCcw
             size={22}
-            className="cursor-pointer ml-4 text-2xl hover:scale-125 hover:rotate-180 transition duration-300"
+            className={cn(
+              "cursor-pointer ml-4 text-2xl hover:scale-125 hover:rotate-180 transition duration-300",
+              isLoading && "animate-spin duration-1000 hover:scale-100"
+            )}
             onClick={() => handleRefresh()}
           />
         </div>

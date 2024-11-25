@@ -1,4 +1,5 @@
 import { Loading } from '@/components/Loading';
+import { LogoLoading } from '@/components/LogoLoading';
 import { Button } from '@/components/ui/button';
 import { useTransaction } from '@/components/VastWalletConnect/useTransaction';
 import api from '@/lib/api';
@@ -104,7 +105,13 @@ export const PurchaseModal: React.FC<ModalProps> = ({ isOpen, onClose, product, 
               disabled={isPurchasing}
               onClick={handlePurchase}
             >
-              Add
+              {
+                isPurchasing ? (
+                  <LogoLoading />
+                ) : (
+                  'Add'
+                )
+              }
             </Button>
           </footer>
         </div>
