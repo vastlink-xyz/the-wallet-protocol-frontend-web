@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { useFlowData } from '@/pages/marketplace/kyb-self/components/useFlowData'
 import { ExternalLink } from 'lucide-react'
+import { LogoLoading } from '@/components/LogoLoading'
 
 export default function StartingPage() {
   const navigate = useNavigate()
@@ -57,7 +58,7 @@ export default function StartingPage() {
         </div>
         <div className="mt-6">
           <Button onClick={handleStart} disabled={isLoading} className="w-full">
-            {isLoading ? 'Preparing...' : 'Start Verification Flow'}
+            {isLoading ? <LogoLoading /> : 'Start Verification Flow'}
           </Button>
         </div>
       </div>

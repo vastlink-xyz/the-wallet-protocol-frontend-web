@@ -89,9 +89,11 @@ export default function Page() {
 
   const registerBtnText = () => {
     if (registering) {
-      return 'registering...';
+      // return 'registering...';
+      return <LogoLoading />
     } else if (authenticating) {
-      return 'authenticating...';
+      // return 'authenticating...';
+      return <LogoLoading />
     }
     return 'Click To Sign Up'
   }

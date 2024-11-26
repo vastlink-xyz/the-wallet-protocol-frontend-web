@@ -272,7 +272,7 @@ export function AustralianKYBFlow({
                       disabled={reportStatus.asicExtract === 'loading'}
                       className="w-40"
                     >
-                      {reportStatus.asicExtract === 'loading' ? 'Generating...' : 'Generate Report'}
+                      {reportStatus.asicExtract === 'loading' ? <LogoLoading /> : 'Generate Report'}
                     </Button>
                   )}
 
@@ -296,7 +296,7 @@ export function AustralianKYBFlow({
                     className="w-40"
                     disabled={reportStatus.uboReport === 'loading'}
                   >
-                    {reportStatus.uboReport === 'loading' ? 'Generating...' : 'Generate Report'}
+                    {reportStatus.uboReport === 'loading' ? <LogoLoading /> : 'Generate Report'}
                   </Button>
                 )}
 

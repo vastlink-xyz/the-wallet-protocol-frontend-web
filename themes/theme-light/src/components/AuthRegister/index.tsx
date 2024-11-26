@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "react-toastify";
 import { useTranslation } from 'react-i18next';
 import { Checkbox } from "@/components/ui/checkbox";
+import { LogoLoading } from "../LogoLoading";
 
 export default function AuthRegister() {
   const { t } = useTranslation()
@@ -125,6 +126,13 @@ export default function AuthRegister() {
     setEmailError(false)
   }
 
+  const buttonText = () => {
+    if (registering || authenticating) {
+      return <LogoLoading />
+    }
+    return !authenticateSetup ? t('/.signUpButton') : t('/.signInButton')
+  }
+
   return (
     <div className={cn(
       'relative mx-auto overflow-visible',
@@ -214,9 +222,7 @@ export default function AuthRegister() {
           className="w-full cursor-pointer"
           disabled={registering || authenticating || emailError}
         >
-          {
-            !authenticateSetup ? t('/.signUpButton') : t('/.signInButton')
-          }
+          {buttonText()}
         </Button>
 
       </form>
