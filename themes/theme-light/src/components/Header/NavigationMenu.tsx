@@ -45,6 +45,7 @@ export function NavigationMenu({ routes, currentRouteName }: NavigationMenuProps
                 onClick={(e) => {
                   if (!isAuthenticated) {
                     e.preventDefault()
+                    navigate('/auth')
                   }
                 }}
               >

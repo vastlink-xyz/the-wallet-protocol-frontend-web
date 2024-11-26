@@ -10,10 +10,12 @@ import { auth, cn, handleError, log } from "@/lib/utils";
 import { useState } from "react";
 import { toast } from "react-toastify";
 import { WalletConnectButton } from "../VastWalletConnect";
+import { useNavigate } from "react-router-dom";
 
 export function HeaderActions() {
   const [open, setOpen] = useState(false);
   const isAuthenticated = auth.isAuthenticated()
+  const navigate = useNavigate()
 
   const handleLogout = async () => {
     try {
@@ -64,7 +66,12 @@ export function HeaderActions() {
               </DropdownMenuItem>
               <DropdownMenuItem 
                 className={cn('hidden tablet:flex')}
-                onSelect={(e) => e.preventDefault()}
+                onSelect={(e) => {
+                  e.preventDefault()
+                  if (!isAuthenticated) {
+                    navigate('/auth')
+                  }
+                }}
               >
                 <div>Profile</div>
               </DropdownMenuItem>
@@ -95,7 +102,13 @@ export function HeaderActions() {
           'flex tablet:hidden laptop:flex',
           'justify-start items-center gap-6 flex-shrink-0'
         )}>
-          <DropdownMenu>
+          <DropdownMenu
+            onOpenChange={() => {
+              if (!isAuthenticated) {
+                navigate('/auth')
+              }
+            }}
+          >
             <DropdownMenuTrigger asChild>
               <img 
                 className="w-[24px] h-[24px] flex-shrink-0 cursor-pointer" 

@@ -6,6 +6,7 @@ import { useWalletConnect } from "@/providers/WalletConnectProvider";
 import { cn } from "@/lib/utils";
 import { LogoLoading } from "../LogoLoading";
 import { WalletConnectModal } from "./WalletConnectModal";
+import { useNavigate } from "react-router-dom";
 
 interface VastWalletConnectProps {
   className?: string;
@@ -15,6 +16,7 @@ interface VastWalletConnectProps {
 export function WalletConnectButton({ className, buttonClassName }: VastWalletConnectProps) {
   const { t } = useTranslation();
   const { isAuthenticated, isConnected, handleConnect } = useWalletConnect();
+  const navigate = useNavigate()
 
   return (
     <div
@@ -24,7 +26,13 @@ export function WalletConnectButton({ className, buttonClassName }: VastWalletCo
         !isAuthenticated && 'cursor-default',
         className
       ])}
-      onClick={handleConnect}
+      onClick={() => {
+        if (!isAuthenticated) {
+          navigate('/auth')
+        } else {
+          handleConnect()
+        }
+      }}
     >
       <div className={cn(
         "text-center text-[#111111] text-sm font-medium leading-none select-none",
