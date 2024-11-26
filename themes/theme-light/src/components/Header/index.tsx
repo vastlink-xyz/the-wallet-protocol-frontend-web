@@ -1,4 +1,4 @@
-import { cn, log } from "@/lib/utils";
+import { auth, cn, log } from "@/lib/utils";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { NavigationMenu } from "./NavigationMenu";
@@ -13,6 +13,7 @@ export function Header() {
   const { pathname } = useLocation()
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const isAuthenticated = auth.isAuthenticated()
 
   const routes: RouteItem[] = [
     {
@@ -53,13 +54,17 @@ export function Header() {
         )}>Vastlink</div>
       </div>
 
-      <NavigationMenu
-        routes={routes}
-        currentRouteName={currentRouteName}
-      />
+      {isAuthenticated && (
+        <NavigationMenu
+          routes={routes}
+          currentRouteName={currentRouteName}
+        />
+      )}
     </div>
 
-    <HeaderActions />
+    {isAuthenticated && (
+      <HeaderActions />
+    )}
   </div>
 
   // <Account />

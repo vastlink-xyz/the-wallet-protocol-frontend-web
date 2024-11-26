@@ -68,6 +68,7 @@ export default function LandingPage() {
 
           <img className={cn(
             'w-[343px] tablet:w-[488px] laptop:w-[324px] desktop:w-[488px]',
+            'object-contain',
           )}
             src="/imgs/banners/landing_1.png" alt="banner"
           />
