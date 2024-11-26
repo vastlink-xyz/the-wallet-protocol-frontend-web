@@ -95,7 +95,8 @@ export const PurchaseModal: React.FC<ModalProps> = ({ isOpen, onClose, product, 
           </header>
 
           <div className="p-6 border-b border-[#EBEBEB]">
-            <div className="text-black text-sm font-normal leading-none">{finalPrice}V will be deducted from your Asset. This is a monthly recurring charge.You can find the purchased product under the "Added" tab in the Marketplace. To manage your subscription, go to the "Profile" page, navigate to "Purchases," and select "Manage."</div>
+            {/* <div className="text-black text-sm font-normal leading-none">{finalPrice}V will be deducted from your Asset. This is a monthly recurring charge.You can find the purchased product under the "Added" tab in the Marketplace. To manage your subscription, go to the "Profile" page, navigate to "Purchases," and select "Manage."</div> */}
+            <div className="text-black text-sm font-normal leading-none">{finalPrice}V will be deducted from your Asset. You can find the purchased product under the "Added" tab in the Marketplace."</div>
           </div>
 
           <footer className="flex justify-end items-center gap-2 px-5 py-[14px]">
