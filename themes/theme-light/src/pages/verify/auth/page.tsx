@@ -5,6 +5,7 @@ import { handleError, log } from "@/lib/utils";
 import { toast } from "react-toastify";
 import keyManagementService from "@/services/KeyManagementService";
 import axios from "axios";
+import { Loading } from "@/components/Loading";
 
 export default function VerifyAuthPage() {
   const [searchParams] = useSearchParams();
@@ -128,25 +129,25 @@ export default function VerifyAuthPage() {
   }
 
   return (
-    loading ? (
-      <div className="flex justify-center items-center mt-[200px]">
-        <img
-          src="/imgs/icons/loading.svg"
-          alt="loading"
-          className="h-[100px] w-[100px] animate-spin mt-[100px]"
-        />
-      </div>
-    ) : (
-      showCountdownSuccess ? (
-        <CountdownSuccess
-          title={`${authenticateSetup ? 'Sign in' : 'Sign up'} successfully`}
-          buttonText="Take me to the dashboard"
-          redirectUrl="/dashboard"
-          description="Start exploring you Vastlink dashboard to unlock all features. You will be directed to Dashboard in"
-        />
-      ) : (
-        null
-      )
-    )
+    <div className="min-h-[calc(100vh-60px)] flex items-center justify-center">
+      {
+        loading ? (
+          <Loading />
+        ) : (
+          showCountdownSuccess ? (
+            <div className="-mt-[48px]">
+              <CountdownSuccess
+                title={`${authenticateSetup ? 'Sign in' : 'Sign up'} successfully`}
+                buttonText="Take me to the dashboard"
+                redirectUrl="/dashboard"
+                description="Start exploring you Vastlink dashboard to unlock all features. You will be directed to Dashboard in"
+              />
+            </div>
+          ) : (
+            null
+          )
+        )
+      }
+    </div>
   )
 }

@@ -60,7 +60,7 @@ export default function Page() {
   }
 
   return (
-    <div className='m-auto'> 
+    <div className='min-h-[calc(100vh-60px)] flex items-center justify-center'> 
       {
         transactionStatus()
       }

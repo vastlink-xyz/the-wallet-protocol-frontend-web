@@ -137,7 +137,6 @@ export default function AuthRegister() {
     <div className={cn(
       'relative mx-auto overflow-visible',
       'w-[343px] tablet:w-[536px]',
-      'pt-[60px] tablet:pt-[120px]',
     )}>
       <div className={cn(
         'text-[#111111] text-[32px] font-bold leading-tight',
@@ -146,9 +145,8 @@ export default function AuthRegister() {
         {authenticateSetup ? t('/.signinTitle') : t('/.signupTitle')}
       </div>
       <div className={cn(
+        'mt-[8px]',
         'tablet:whitespace-nowrap',
-        'absolute left-0',
-        'top-[87px] tablet:top-[155px]',
         'text-[#979797]/90 font-normal leading-snug',
         'text-[10px] tablet:text-sm',
       )}>
