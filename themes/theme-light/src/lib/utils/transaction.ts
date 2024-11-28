@@ -1,7 +1,10 @@
+import { ERC20_TVWT_ABI } from "@/abis/TheVastWalletToken";
 import { TokenType } from "@/types/tokens";
 import { CHAIN_NAMESPACES, CustomChainConfig } from "@web3auth/base";
-import { http, createPublicClient, Address } from "viem";
-import {sepolia, polygonAmoy} from "viem/chains"
+import { http, createPublicClient, Address, encodeFunctionData, formatEther } from "viem";
+import { sepolia, polygonAmoy } from "viem/chains";
+
+const erc20Abi = ERC20_TVWT_ABI;
 
 export const formatDecimal = (amount: string, decimal=6) => parseFloat(amount).toFixed(decimal)
 
@@ -70,81 +73,89 @@ export async function getEstimatedGasFeeByToken(
   transferParams: {
     to: Address,
     amount: bigint,
-  }
+  },
+  fromAddress: Address
 ) {
-  const chain = viemChainByToken(tokenType);
-  if (!chain) return null;
-
-  // Get contract address from mapping if it's an ERC20 token
-  let contractAddress = undefined
-  if (tokenType === 'TVWT') {
-    contractAddress = import.meta.env.VITE_TVWT_TOKEN_CONTRACT_ADDRESS as Address
-  }
-
-  // create transaction object
-  let transaction;
-  if (tokenType === 'TVWT') {
-    // ERC20 transfer: construct transfer method call data
-    const data = {
-      to: contractAddress!,  // Use mapped contract address
-      data: encodeERC20TransferData(transferParams.to, transferParams.amount),
-      value: BigInt(0)
-    };
-    transaction = data;
-  } else {
-    // native token transfer
-    transaction = {
-      to: transferParams.to,
-      value: transferParams.amount
-    };
-  }
-
-  const publicClient = createPublicClient({
-    chain,
-    transport: http()
-  });
-
   try {
-    // 1. Estimate gas usage
-    const estimatedGas = await publicClient.estimateGas(transaction as any);
-    
-    // 2. Get current gas price information
-    const gasPrice = await publicClient.getGasPrice();
-    const block = await publicClient.getBlock();
-    const baseFee = block.baseFeePerGas || BigInt(0);
-    
-    // 3. Calculate gas fee components
-    const maxPriorityFeePerGas = gasPrice > baseFee 
-      ? gasPrice - baseFee 
-      : BigInt(1000000000);
-    const maxFeePerGas = baseFee + maxPriorityFeePerGas * BigInt(2);
+    const chain = viemChainByToken(tokenType);
+    if (!chain) return null;
 
-    // 4. Calculate estimated total transaction fee
-    const estimatedTotalFee = estimatedGas * maxFeePerGas;
-    
-    // Convert to ETH/MATIC units (from Wei)
-    const feeInTokens = Number(estimatedTotalFee) / Math.pow(10, 18);  // 18 decimals for both ETH and MATIC
-    
-    return {
-      estimatedGas,           // Estimated gas usage
-      maxFeePerGas,          // Maximum gas price per unit
-      maxPriorityFeePerGas,  // Priority fee (tip)
-      estimatedTotalFee,     // Estimated total fee (in Wei)
-      baseFee,               // Base fee
-      gasPrice,              // Current gas price
-      feeInTokens,           // Fee in ETH or MATIC
-    };
+    const publicClient = createPublicClient({
+      chain,
+      transport: http()
+    });
+
+    // Get contract address from mapping if it's an ERC20 token
+    let contractAddress = undefined;
+    if (tokenType === 'TVWT') {
+      contractAddress = import.meta.env.VITE_TVWT_TOKEN_CONTRACT_ADDRESS as Address;
+      
+      if (!contractAddress) {
+        throw new Error('Invalid token contract address');
+      }
+    }
+
+    // create transaction object
+    let transaction;
+    if (tokenType === 'TVWT') {
+      // ERC20 transfer: construct transfer method call data
+      const data = encodeFunctionData({
+        abi: erc20Abi,
+        functionName: 'transfer',
+        args: [transferParams.to, transferParams.amount]
+      });
+
+      transaction = {
+        to: contractAddress!,
+        data,
+        value: BigInt(0)
+      };
+    } else {
+      // native token transfer
+      transaction = {
+        to: transferParams.to,
+        value: transferParams.amount
+      };
+    }
+
+    try {
+      // 1. Estimate gas usage
+      const estimatedGas = await publicClient.estimateGas({
+        ...transaction,
+        account: fromAddress,
+      });
+      
+      // 2. Get current gas price information
+      const gasPrice = await publicClient.getGasPrice();
+      const block = await publicClient.getBlock();
+      const baseFee = block.baseFeePerGas || BigInt(0);
+      
+      // 3. Calculate gas fee components
+      const maxPriorityFeePerGas = gasPrice > baseFee 
+        ? gasPrice - baseFee 
+        : BigInt(1000000000);
+      const maxFeePerGas = baseFee + maxPriorityFeePerGas * BigInt(2);
+
+      // 4. Calculate estimated total transaction fee
+      const estimatedTotalFee = estimatedGas * maxFeePerGas;
+      
+      const feeInTokens = Number(estimatedTotalFee) / Math.pow(10, 18);
+      
+      return {
+        estimatedGas,
+        maxFeePerGas,
+        maxPriorityFeePerGas,
+        estimatedTotalFee,
+        baseFee,
+        gasPrice,
+        feeInTokens,
+      };
+    } catch (error) {
+      console.error('Gas estimation error:', error);
+      throw error;
+    }
   } catch (error) {
-    console.error('Error estimating gas:', error);
-    return null;
+    console.error('Transaction error:', error);
+    throw error;
   }
-}
-
-// helper function: encode ERC20 transfer method call
-function encodeERC20TransferData(to: Address, amount: bigint): string {
-  // ABI encoding for transfer(address,uint256) method
-  const transferSignature = '0xa9059cbb';
-  const encodedAddress = to.slice(2).padStart(64, '0');
-  const encodedAmount = amount.toString(16).padStart(64, '0');
-  return `${transferSignature}${encodedAddress}${encodedAmount}`;
 }

@@ -312,7 +312,7 @@ export function SendModal({
         const fee = await getEstimatedGasFeeByToken(currentTokenType, {
           to: address,
           amount: parseEther(amount),
-        })
+        }, address)
         if (fee) {
           setEstimatedFee(fee.feeInTokens.toString())
         } else {
