@@ -16,15 +16,14 @@ export default function LandingPage() {
   return (
     <div className={cn(
       'flex flex-col relative',
-      'bg-[linear-gradient(318deg,#000_40.13%,#0b3003_93.1%)]',
+      'bg-black border-none shadow-none outline-none',
     )}>
       {/* section 2 gradient background */}
-      <div className="bg-[linear-gradient(85deg,#082103_-7.26%,#020501_94.58%)] h-1/2 w-full absolute top-1/2 left-0"></div>
+      <div className="h-full w-full absolute bg-[linear-gradient(318deg,#000_53.13%,#0b3003_93.1%)] z-1"></div>
 
       {/* section 1 */}
       <div className={cn(
         "relative text-center",
-        // 'bg-[linear-gradient(318deg,#000_40.13%,#0b3003_93.1%)]',
       )}>
         <div className={cn(
           'text-left mx-auto',
@@ -47,11 +46,11 @@ export default function LandingPage() {
             </div>
             <div className={cn(
               'text-[#f2f2f2] font-normal',
-              'text-[10px] tablet:text-sm desktop:text-xl',
+              'text-[10px] tablet:text-sm laptop:text-base desktop:text-xl',
               'leading-3 tablet:leading-tight desktop:leading-normal',
               'pb-[24px] tablet:pb-[40px] laptop:pb-[56px]',
             )}>
-              Built for the community, driven by the community, powered by tokenomics.
+              Designed for the community, driven by its demand, and powered by innovative tokenomics.
             </div>
 
             {/* button desktop only */}
@@ -92,9 +91,7 @@ export default function LandingPage() {
       {/* section 2 */}
       <div className={cn(
         'relative',
-        // 'h-[400px] tablet:h-[600px] laptop:h-[800px]',
         'bg-[url("/imgs/banners/landing_2.png")]',
-        // 'bg-[linear-gradient(85deg,#082103_-7.26%,#020501_94.58%)]',
         'bg-cover bg-center bg-no-repeat',
         '-mt-[1px]',
       )}>
@@ -138,6 +135,7 @@ export default function LandingPage() {
             )}>Open and scalable</div>
             <div className={cn(
               'text-[#e8ffdc] font-normal leading-7',
+              'text-[10px] tablet:text-sm',
             )}>Open integration with all kinds of products and services.</div>
           </div>
 

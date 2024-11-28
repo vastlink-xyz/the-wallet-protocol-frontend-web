@@ -28,7 +28,7 @@ const SOCIAL_MEDIA_LIST = [
 ]
 
 export function Footer() {
-  return <div className="bg-black text-center h-[300px] pt-[55px]">
+  return <div className="bg-black text-center h-[300px] pt-[55px] border-t border-black">
     <div className="flex justify-center gap-4 mb-[32px]">
       {SOCIAL_MEDIA_LIST.map((item) => (
         <a href={item.url} key={item.url} target="_blank" rel="noopener noreferrer">
