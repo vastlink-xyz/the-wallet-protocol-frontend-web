@@ -1,14 +1,14 @@
 import { useState, useEffect, FormEvent, useRef, useMemo } from "react"
 import { Address, parseEther, isAddress } from 'viem'
 
-import { cn, emailRegex, formatDecimal, handleError, log } from "@/lib/utils"
+import { cn, emailRegex, formatDecimal, getEstimatedGasFeeByToken, handleError, log } from "@/lib/utils"
 
 import {
   Dialog,
   DialogContent,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Loader, CircleCheck, AlertCircle, X } from "lucide-react"
+import { Loader, CircleCheck, AlertCircle, X, LoaderCircle } from "lucide-react"
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "react-toastify";
@@ -61,6 +61,8 @@ export function SendModal({
 
   const [currentTokenType, setCurrentTokenType] = useState<TokenType>(tokenType)
   const [currentBalance, setCurrentBalance] = useState<string>('0')
+  const [estimatedFee, setEstimatedFee] = useState<string>('')
+  const [isEstimatingFee, setIsEstimatingFee] = useState(false)
 
   // email address validation
   const [isValidating, setIsValidating] = useState(false);
@@ -108,11 +110,16 @@ export function SendModal({
       !isValidEmail ||
       isValidating ||
       (!!error && error !== t('/dashboard.[token].sendModal.unregisteredEmailNotice')) ||
-      parseFloat(amount) > parseFloat(currentBalance)
+      parseFloat(amount) > parseFloat(currentBalance) ||
+      isEstimatingFee
     );
-  }, [to, amount, sending, isValidEmail, isValidating, error, currentBalance]);
+  }, [to, amount, sending, isValidEmail, isValidating, error, currentBalance, isEstimatingFee]);
 
   const handleTokenTypeChange = async (newTokenType: TokenType) => {
+    setAmount('')
+    setIsEstimatingFee(false)
+    setEstimatedFee('')
+    setAmountError('')
     setCurrentTokenType(newTokenType)
     const token = TokenFactory.getInstance().createToken(newTokenType)
     tokenRef.current = token
@@ -290,11 +297,33 @@ export function SendModal({
 
   }
 
-  const handleAmountBlur = () => {
+  const handleAmountBlur = async () => {
+    // check amount exceeded
     if (parseFloat(amount) > parseFloat(currentBalance)) {
       setAmountError('Amount exceeded')
     } else {
       setAmountError('')
+    }
+
+    // check estimated fee
+    if (amount && !isDisabled) {
+      setIsEstimatingFee(true)
+      try {
+        const fee = await getEstimatedGasFeeByToken(currentTokenType, {
+          to: address,
+          amount: parseEther(amount),
+        })
+        if (fee) {
+          setEstimatedFee(fee.feeInTokens.toString())
+        } else {
+          setEstimatedFee('')
+        }
+      } catch (error) {
+        log('Failed to get estimated fee:', error)
+        setEstimatedFee('')
+      } finally {
+        setIsEstimatingFee(false)
+      }
     }
   }
 
@@ -306,6 +335,7 @@ export function SendModal({
     setError('');
     setIsValidEmail(false);
     setIsValidating(false);
+    setEstimatedFee('')
   }
 
   const modalContent = open ? (
@@ -332,6 +362,7 @@ export function SendModal({
 
           <div className="p-6 border-b border-[#EBEBEB]">
             <form>
+              {/* to */}
               <div className="mb-6">
                 <label htmlFor="to" className="block mb-2 text-sm font-medium">{t('/dashboard.[token].sendModal.to')}</label>
                 <div className="relative">
@@ -376,7 +407,8 @@ export function SendModal({
                 )}
               </div>
 
-              <div className="mb-6">
+              {/* amount */}
+              <div className="mb-[16px]">
                 <div className="flex items-center justify-between">
                   <label htmlFor="amount" className="block mb-2 text-sm font-medium">{t('/dashboard.[token].sendModal.amount')}</label>
                 </div>
@@ -413,6 +445,34 @@ export function SendModal({
                 )}
               </div>
 
+              {/* estimated gas fee */}
+              <div className="mb-[16px] text-[#979797] text-sm font-normal leading-none flex items-center">
+                <div className="mr-1">Estimated gas fee: </div>
+                {
+                  isEstimatingFee ? (
+                    <span><LoaderCircle className="animate-spin" size={14} /></span>
+                  ) : estimatedFee ? (
+                    <span className="text-black">~ {estimatedFee} {symbol}</span>
+                  ) : (
+                    <span className="text-black">-</span>
+                  )
+                }
+              </div>
+
+              {
+                estimatedFee && (
+                  <div className="rounded-lg border border-black/10 bg-black/5 p-3 mb-4 flex items-start">
+                    <img className="w-4 h-4 mr-2" src="/imgs/icons/information_filled.svg" alt="information" />
+                    <p className="text-xs text-black">Estimated fees may vary and will be recalculated during backend checks.</p>
+                  </div>
+                )
+              }
+
+              <div className="text-[#979797] text-sm font-['Roboto'] leading-none mb-6">
+                Balance: <span className="text-black">{formatDecimal(currentBalance)} {symbol}</span>
+              </div>
+
+              {/* note */}
               <div className="mb-5">
                 <label htmlFor="note" className="block mb-2 text-sm font-medium">{t('/dashboard.[token].sendModal.note')}</label>
                 <div className="relative">
@@ -425,15 +485,13 @@ export function SendModal({
                   />
                 </div>
               </div>
-
-
             </form>
           </div>
 
           <footer className="flex justify-end items-center gap-3 px-5 py-[14px]">
-            <div className="text-black text-sm font-medium font-['Roboto'] leading-none">
-              Crypto balance: {formatDecimal(currentBalance)} {symbol}
-            </div>
+            {/* <div className="text-black text-sm font-medium font-['Roboto'] leading-none">
+              Total amount: {amount ? `${amount} ${symbol}` : '-'}
+            </div> */}
             <Button
               onClick={handleSend}
               className={cn('py-12px')}

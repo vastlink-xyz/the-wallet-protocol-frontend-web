@@ -1,5 +1,6 @@
 import { TokenType } from "@/types/tokens";
 import { CHAIN_NAMESPACES, CustomChainConfig } from "@web3auth/base";
+import { http, createPublicClient, Address } from "viem";
 import {sepolia, polygonAmoy} from "viem/chains"
 
 export const formatDecimal = (amount: string, decimal=6) => parseFloat(amount).toFixed(decimal)
@@ -62,4 +63,88 @@ export function viemChainByToken(tokenType: TokenType) {
   } else if (tokenType === 'MATIC' || tokenType === 'TVWT') {
     return polygonAmoy
   }
+}
+
+export async function getEstimatedGasFeeByToken(
+  tokenType: TokenType,
+  transferParams: {
+    to: Address,
+    amount: bigint,
+  }
+) {
+  const chain = viemChainByToken(tokenType);
+  if (!chain) return null;
+
+  // Get contract address from mapping if it's an ERC20 token
+  let contractAddress = undefined
+  if (tokenType === 'TVWT') {
+    contractAddress = import.meta.env.VITE_TVWT_TOKEN_CONTRACT_ADDRESS as Address
+  }
+
+  // create transaction object
+  let transaction;
+  if (tokenType === 'TVWT') {
+    // ERC20 transfer: construct transfer method call data
+    const data = {
+      to: contractAddress!,  // Use mapped contract address
+      data: encodeERC20TransferData(transferParams.to, transferParams.amount),
+      value: BigInt(0)
+    };
+    transaction = data;
+  } else {
+    // native token transfer
+    transaction = {
+      to: transferParams.to,
+      value: transferParams.amount
+    };
+  }
+
+  const publicClient = createPublicClient({
+    chain,
+    transport: http()
+  });
+
+  try {
+    // 1. Estimate gas usage
+    const estimatedGas = await publicClient.estimateGas(transaction as any);
+    
+    // 2. Get current gas price information
+    const gasPrice = await publicClient.getGasPrice();
+    const block = await publicClient.getBlock();
+    const baseFee = block.baseFeePerGas || BigInt(0);
+    
+    // 3. Calculate gas fee components
+    const maxPriorityFeePerGas = gasPrice > baseFee 
+      ? gasPrice - baseFee 
+      : BigInt(1000000000);
+    const maxFeePerGas = baseFee + maxPriorityFeePerGas * BigInt(2);
+
+    // 4. Calculate estimated total transaction fee
+    const estimatedTotalFee = estimatedGas * maxFeePerGas;
+    
+    // Convert to ETH/MATIC units (from Wei)
+    const feeInTokens = Number(estimatedTotalFee) / Math.pow(10, 18);  // 18 decimals for both ETH and MATIC
+    
+    return {
+      estimatedGas,           // Estimated gas usage
+      maxFeePerGas,          // Maximum gas price per unit
+      maxPriorityFeePerGas,  // Priority fee (tip)
+      estimatedTotalFee,     // Estimated total fee (in Wei)
+      baseFee,               // Base fee
+      gasPrice,              // Current gas price
+      feeInTokens,           // Fee in ETH or MATIC
+    };
+  } catch (error) {
+    console.error('Error estimating gas:', error);
+    return null;
+  }
+}
+
+// helper function: encode ERC20 transfer method call
+function encodeERC20TransferData(to: Address, amount: bigint): string {
+  // ABI encoding for transfer(address,uint256) method
+  const transferSignature = '0xa9059cbb';
+  const encodedAddress = to.slice(2).padStart(64, '0');
+  const encodedAmount = amount.toString(16).padStart(64, '0');
+  return `${transferSignature}${encodedAddress}${encodedAmount}`;
 }
