@@ -177,6 +177,9 @@ export function SendModal({
     log('to', to)
     if (to) {
       validateEmail(to);
+      if (amount) {
+        checkEstimatedFee()
+      }
     } else {
       setIsValidEmail(false);
       setFullAddress('');
@@ -306,6 +309,10 @@ export function SendModal({
     }
 
     // check estimated fee
+    checkEstimatedFee()
+  }
+
+  const checkEstimatedFee = async () => {
     if (amount && !isDisabled) {
       setIsEstimatingFee(true)
       try {
@@ -452,7 +459,7 @@ export function SendModal({
                   isEstimatingFee ? (
                     <span><LoaderCircle className="animate-spin" size={14} /></span>
                   ) : estimatedFee ? (
-                    <span className="text-black">~ {estimatedFee} {symbol}</span>
+                    <span className="text-black">~ {estimatedFee} {symbol === 'TVWT' ? 'MATIC' : symbol}</span>
                   ) : (
                     <span className="text-black">-</span>
                   )
