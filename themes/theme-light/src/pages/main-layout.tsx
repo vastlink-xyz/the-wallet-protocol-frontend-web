@@ -25,7 +25,7 @@ export default function MainLayout() {
           <img src="/imgs/icons/arrow_right.svg" />
         </div>
       </div> */}
-        <div className='flex-grow'>
+        <div className='flex-grow min-h-[calc(100vh-60px)]'>
           <MarketplaceProvider>
             <Outlet />
           </MarketplaceProvider>

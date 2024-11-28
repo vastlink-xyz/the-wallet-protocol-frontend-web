@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Outlet, useNavigation } from "react-router-dom";
+import { Outlet, useNavigation, useLocation } from "react-router-dom";
 import NProgress from 'nprogress';
 import 'nprogress/nprogress.css';
 import '@/styles/nprogress.css';
@@ -13,6 +13,7 @@ NProgress.configure({
 
 export function RootLayout() {
   const navigation = useNavigation()
+  const { pathname } = useLocation()
 
   useEffect(() => {
     // console.log('navigation', navigation)
@@ -22,6 +23,11 @@ export function RootLayout() {
       NProgress.done()
     }
   }, [navigation])
+
+  // scroll to top when pathname changes
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
 
   return <>
     <Outlet />
