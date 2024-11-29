@@ -12,7 +12,7 @@ import { CATEGORIES, Category, IProduct, SearchProductsParams } from '@/pages/ma
 import { Empty } from "@/components/Empty";
 import { ScrollToTop } from '@/components/ScrollToTop';
 
-const emptyText = 'It looks like you haven’t added any items yet. Head over to the marketplace and discover new products and features to add!'
+const emptyText = 'It looks like you haven’t added any items yet. Head over to the marketplace and discover new products to add!'
 
 
 export default function MarketplacePage() {
