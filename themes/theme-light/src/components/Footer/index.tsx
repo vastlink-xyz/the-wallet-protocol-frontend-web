@@ -38,7 +38,7 @@ export function Footer() {
     </div>
 
     <a 
-      href="https://t.me/+wk6Lw40M2qtlMjk9" 
+      href="https://forms.gle/piGCLqFSyMoJq1sd9" 
       target="_blank" 
       rel="noopener noreferrer" 
       className="text-center text-white text-xl underline leading-9 block mb-[32px] cursor-pointer"
