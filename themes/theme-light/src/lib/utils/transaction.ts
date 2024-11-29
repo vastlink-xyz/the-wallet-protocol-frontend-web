@@ -139,7 +139,9 @@ export async function getEstimatedGasFeeByToken(
       // 4. Calculate estimated total transaction fee
       const estimatedTotalFee = estimatedGas * maxFeePerGas;
       
-      const feeInTokens = Number(estimatedTotalFee) / Math.pow(10, 18);
+      const feeInTokens = formatDecimal(
+        (Number(estimatedTotalFee) / Math.pow(10, 18)).toString()
+      );
       
       return {
         estimatedGas,

@@ -28,6 +28,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { ChevronDown } from "lucide-react"
+import { useDebounce } from "@/hooks/useDebounce"
 
 const tokenTypes = TokenFactory.getInstance().getAllTokenTypes()
 
@@ -63,6 +64,7 @@ export function SendModal({
   const [currentBalance, setCurrentBalance] = useState<string>('0')
   const [estimatedFee, setEstimatedFee] = useState<string>('')
   const [isEstimatingFee, setIsEstimatingFee] = useState(false)
+  const [isInitialized, setIsInitialized] = useState(false)
 
   // email address validation
   const [isValidating, setIsValidating] = useState(false);
@@ -73,27 +75,34 @@ export function SendModal({
 
   const { t } = useTranslation()
 
+  const debouncedAmount = useDebounce(amount, 800)
+
+  // useEffect(() => {
+  //   if (open) {
+  //     handleTokenTypeChange(tokenType)
+  //   } else {
+  //     initDefaults()
+  //   }
+  // }, [open])
+
   useEffect(() => {
+    log('open', open, 'address', address)
     if (open) {
-      handleTokenTypeChange(tokenType)
+      init()
     } else {
       initDefaults()
     }
-  }, [open])
+  }, [defaultTo, defaultAmount, defaultNote, open])
 
   useEffect(() => {
-    if (open) {
-      if (defaultTo) {
-        setTo(defaultTo)
-      }
-      if (defaultAmount) {
-        setAmount(defaultAmount)
-      }
-      if (defaultNote) {
-        setNote(defaultNote)
-      }
+    if (to && amount && isInitialized) {
+      // check amount exceeded
+      handleAmountBlur()
+      // check email and estimated fee
+      handleBlur()
+      setIsInitialized(false)
     }
-  }, [defaultTo, defaultAmount, defaultNote, open])
+  }, [to, amount, isInitialized, open])
 
   useEffect(() => {
     // close callback
@@ -101,6 +110,26 @@ export function SendModal({
       onClose()
     }
   }, [open])
+
+  useEffect(() => {
+    if (debouncedAmount && !isDisabled && !isEstimatingFee) {
+      checkEstimatedFee()
+    }
+  }, [debouncedAmount])
+
+  const init = async () => {
+    await handleTokenTypeChange(tokenType)
+    if (defaultTo) {
+      setTo(defaultTo)
+    }
+    if (defaultAmount) {
+      setAmount(defaultAmount)
+    }
+    if (defaultNote) {
+      setNote(defaultNote)
+    }
+    setIsInitialized(true)
+  }
 
   const isDisabled = useMemo(() => {
     return (
@@ -307,15 +336,13 @@ export function SendModal({
     } else {
       setAmountError('')
     }
-
-    // check estimated fee
-    checkEstimatedFee()
   }
 
   const checkEstimatedFee = async () => {
     if (amount && !isDisabled) {
       setIsEstimatingFee(true)
       try {
+        log('checkEstimatedFee', amount)
         const fee = await getEstimatedGasFeeByToken(currentTokenType, {
           to: address,
           amount: parseEther(amount),
@@ -343,6 +370,16 @@ export function SendModal({
     setIsValidEmail(false);
     setIsValidating(false);
     setEstimatedFee('')
+  }
+
+  const handleAmountChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setAmount(e.target.value.trim())
+    // check amount exceeded
+    if (parseFloat(amount) > parseFloat(currentBalance)) {
+      setAmountError('Amount exceeded')
+    } else {
+      setAmountError('')
+    }
   }
 
   const modalContent = open ? (
@@ -422,7 +459,8 @@ export function SendModal({
                 <div className="relative">
                   <Input
                     value={amount}
-                    onChange={e => setAmount(e.target.value.trim())}
+                    // onChange={e => setAmount(e.target.value.trim())}
+                    onChange={handleAmountChange}
                     type="number"
                     id="amount"
                     className="pl-[80px] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"

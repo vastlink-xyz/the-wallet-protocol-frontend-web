@@ -224,7 +224,7 @@ export default function ChatBotComponent() {
               defaultAmount={transactionInfo.amount}
               defaultNote={''}
               onClose={() => {
-                setAddress('')
+                // setAddress('')
                 setBalance('')
               }}
             />
