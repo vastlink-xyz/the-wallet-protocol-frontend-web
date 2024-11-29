@@ -38,7 +38,7 @@ export function Footer() {
     </div>
 
     <a 
-      href="https://t.me/+wk6Lw40M2qtlMjk9" 
+      href="https://forms.gle/piGCLqFSyMoJq1sd9" 
       target="_blank" 
       rel="noopener noreferrer" 
       className="text-center text-white text-xl underline leading-9 block mb-[32px] cursor-pointer"
@@ -52,16 +52,7 @@ export function Footer() {
     )}>Copenhagen | Dubai | Singapore | Sydney </div>
 
     <div className="text-[#828282] text-base font-normal font-['Roboto'] leading-relaxed">
-      © 2024 Copyright:
-      <a 
-        href="https://vastlink.xyz/" 
-        target="_blank" 
-        rel="noopener noreferrer"
-        className="cursor-pointer"
-      >
-        <span className="underline">vastlink</span>
-        <span>.xyz</span>
-      </a>
+      Copyright © Vastlink 2024
     </div>
   </div>
 }
