@@ -71,6 +71,13 @@ const router = createBrowserRouter([
                   const { default: TokenPage } = await import('@/pages/dashboard/token/page');
                   return { Component: TokenPage };
                 },
+              },
+              {
+                path: 'multisender',
+                async lazy() {
+                  const { default: MultisenderPage } = await import('@/pages/dashboard/multisender/page');
+                  return { Component: MultisenderPage };
+                },
               }
             ]
           },
