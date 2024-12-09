@@ -4,13 +4,8 @@ import { SendModal } from "../../token/components/SendModal";
 import { useEffect, useState } from "react";
 import { TokenType } from "@/types/tokens";
 import { ReceiveModal } from "../ReceiveModal";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { useTotalAsset } from "@/hooks/useTotalAsset";
+import { useUserInfo } from "@/hooks/user/useUserInfo";
 
 const tokenTypeIcons = [
   {
@@ -28,12 +23,13 @@ const tokenTypeIcons = [
 ] as const;
 
 export function Summary() {
-  const avatarUrl = auth.getUserRandomAvatar();
   const { address } = auth.all();
 
   const { data: totalAsset, refetch } = useTotalAsset({
     enabled: !!address,
   })
+  const { data: userInfo } = useUserInfo()
+  const [avatarUrl, setAvatarUrl] = useState<string>('')
 
   const [sendOpen, setSendOpen] = useState(false)
   const [receiveOpen, setReceiveOpen] = useState(false)
@@ -43,6 +39,12 @@ export function Summary() {
   useEffect(() => {
     handleTokenTypeChange(tokenType)
   }, [])
+
+  useEffect(() => {
+    if (userInfo) {
+      setAvatarUrl(userInfo.avatar || auth.getUserRandomAvatar(userInfo.avatarIndex))
+    }
+  }, [userInfo])
 
   const tokenTypeIcon = () => {
     return tokenTypeIcons.find(token => token.name === tokenType)?.icon

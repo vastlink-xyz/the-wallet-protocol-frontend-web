@@ -178,7 +178,14 @@ const router = createBrowserRouter([
                 },
               }
             ]
-          }
+          },
+          {
+            path: 'profile',
+            async lazy() {
+              const { default: ProfilePage } = await import('@/pages/profile/index');
+              return { Component: ProfilePage };
+            },
+          },
         ]
       }
     ]

@@ -1,6 +1,6 @@
 import { CustomStorage } from "./storage";
 
-export type AuthStoreType = 'address' | 'username' | 'displayName' | 'avatarIndex' |
+export type AuthStoreType = 'address' | 'username' | 'displayName' |
 'authenticatedHeader' | 'authenticated' | 'desUsername' | 'aeskey';
 
 class Auth {
@@ -10,7 +10,6 @@ class Auth {
     this.storages = {
       username: new CustomStorage('username'),
       displayName: new CustomStorage('displayName'),
-      avatarIndex: new CustomStorage('avatarIndex'),
       address: new CustomStorage('address'),
       authenticatedHeader: new CustomStorage('authenticatedHeader'),
       authenticated: new CustomStorage('authenticated'),
@@ -56,8 +55,7 @@ class Auth {
     return !!this.getAuthDataByKey('address')
   }
 
-  getUserRandomAvatar(): string {
-    const avatarIndex = this.getAuthDataByKey('avatarIndex');
+  getUserRandomAvatar(avatarIndex?: number): string {
     if (avatarIndex) {
       return `/static/avatars/${avatarIndex}.svg`;
     }

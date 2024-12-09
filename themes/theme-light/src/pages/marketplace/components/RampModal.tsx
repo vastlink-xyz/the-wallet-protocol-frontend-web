@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeftRight, ShoppingCart } from 'lucide-react';
 import { auth, cn, log } from '@/lib/utils';
 import { Modal } from '@/components/Modal';
-import { OnInitiateDepositProps, OnInitiateDepositReplyProps } from '@/types/moonpayTypes';
+import { OnInitiateDepositProps } from '@/types/moonpayTypes';
 import { MoonPayBuyWidget, MoonPaySellWidget } from '@moonpay/moonpay-react'
 import { Id, toast } from 'react-toastify';
 import { Token, TokenFactory } from '@/services/TokenService';
@@ -171,9 +171,11 @@ export function RampModal({
 
   return (
     <Modal
-      className={cn(
-        "text-primary p-4 tablet:p-6",
-      )}
+      // className={cn(
+      //   "text-primary p-4 tablet:p-6",
+      // )}
+      contentClassName='p-6'
+      containerClassName='max-w-md'
       isOpen={isOpen}
       onClose={() => handleClose()}
     >

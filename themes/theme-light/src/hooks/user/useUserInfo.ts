@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/api';
+import { auth } from '@/lib/utils';
 
 export interface IPurchasedProduct {
   productId: string;
@@ -15,9 +16,15 @@ export interface UserInfo {
   displayName: string;
   address: string;
   avatarIndex: number;
+  avatar: string;
   kycVerified: boolean;
   kycVerificationTimestamp?: string;  // iso string
   purchasedProducts: IPurchasedProduct[];
+  dailyWithdrawalLimits?: {
+    ETH?: string;
+    MATIC?: string;
+    TVWT?: string;
+  };
 }
 
 const fetchUserInfo = async (): Promise<UserInfo> => {
