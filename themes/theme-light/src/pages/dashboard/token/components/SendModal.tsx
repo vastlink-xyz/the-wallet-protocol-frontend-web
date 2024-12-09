@@ -76,6 +76,7 @@ export function SendModal({
   const { t } = useTranslation()
 
   const debouncedAmount = useDebounce(amount, 800)
+  const debouncedTo = useDebounce(to, 800)
 
   // useEffect(() => {
   //   if (open) {
@@ -97,9 +98,10 @@ export function SendModal({
   useEffect(() => {
     if (to && amount && isInitialized) {
       // check amount exceeded
-      handleAmountBlur()
+      checkAmountExceed()
       // check email and estimated fee
-      handleBlur()
+      validateEmail(to)
+      checkEstimatedFee()
       setIsInitialized(false)
     }
   }, [to, amount, isInitialized, open])
@@ -112,10 +114,14 @@ export function SendModal({
   }, [open])
 
   useEffect(() => {
+    checkAmountExceed()
+    if (debouncedTo) {
+      validateEmail(debouncedTo)
+    }
     if (debouncedAmount && !isDisabled && !isEstimatingFee) {
       checkEstimatedFee()
     }
-  }, [debouncedAmount])
+  }, [debouncedAmount, debouncedTo])
 
   const init = async () => {
     await handleTokenTypeChange(tokenType)
@@ -205,9 +211,9 @@ export function SendModal({
   const handleBlur = () => {
     log('to', to)
     if (to) {
-      validateEmail(to);
+      // validateEmail(to);
       if (amount) {
-        checkEstimatedFee()
+        // checkEstimatedFee()
       }
     } else {
       setIsValidEmail(false);
@@ -328,8 +334,8 @@ export function SendModal({
     }
 
   }
-
-  const handleAmountBlur = async () => {
+ 
+  const checkAmountExceed = async () => {
     // check amount exceeded
     if (parseFloat(amount) > parseFloat(currentBalance)) {
       setAmountError('Amount exceeded')
@@ -462,10 +468,11 @@ export function SendModal({
                     // onChange={e => setAmount(e.target.value.trim())}
                     onChange={handleAmountChange}
                     type="number"
+                    inputMode="decimal"
                     id="amount"
                     className="pl-[80px] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     required
-                    onBlur={handleAmountBlur}
+                    onBlur={checkAmountExceed}
                   />
                   <div className="absolute left-2 top-1/2 -translate-y-1/2">
                     <DropdownMenu>
