@@ -93,8 +93,9 @@ export function AvatarModal({
   }
 
   const footer = <div className="flex justify-end gap-4">
-    <Button variant={'outline'} onClick={() => handleClose()}>Cancel</Button>
+    <Button className="hidden tablet:block" variant={'outline'} onClick={() => handleClose()}>Cancel</Button>
     <Button
+      className="w-full tablet:w-auto"
       disabled={disabledButton() || loading}
       onClick={() => {
         handleSave()
