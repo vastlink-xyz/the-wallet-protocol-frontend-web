@@ -60,7 +60,7 @@ export function NavigationMenu({ routes, currentRouteName }: NavigationMenuProps
       </div>
 
       {/* mobile */}
-      <div className={cn('flex tablet:hidden')}>
+      {/* <div className={cn('flex tablet:hidden')}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <div className={cn(
@@ -108,7 +108,7 @@ export function NavigationMenu({ routes, currentRouteName }: NavigationMenuProps
             })}
           </DropdownMenuContent>
         </DropdownMenu>
-      </div>
+      </div> */}
     </>
   );
 }

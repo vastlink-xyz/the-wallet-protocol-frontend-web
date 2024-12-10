@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { NavigationMenu } from "./NavigationMenu";
 import { HeaderActions } from "./HeaderActions";
 
-interface RouteItem {
+export interface RouteItem {
   name: string;
   href: string;
 }

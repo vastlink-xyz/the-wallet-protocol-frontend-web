@@ -1,9 +1,9 @@
 import { LanguageSwitch } from "./LanguageSwitch";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import api from "@/lib/api";
 import { auth, cn, handleError, log } from "@/lib/utils";
@@ -11,12 +11,27 @@ import { useState } from "react";
 import { toast } from "react-toastify";
 import { WalletConnectButton } from "../VastWalletConnect";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { RouteItem } from "../Header";
 
 export function HeaderActions() {
+  const { t } = useTranslation()
+
   const [open, setOpen] = useState(false);
   const isAuthenticated = auth.isAuthenticated()
   const navigate = useNavigate()
   const { pathname } = useLocation()
+
+  const menuRoutes: RouteItem[] = [
+    {
+      name: t('header.dashboard'),
+      href: '/dashboard',
+    },
+    {
+      name: t('header.marketplace'),
+      href: '/marketplace',
+    },
+  ];
 
   const handleLogout = async () => {
     try {
@@ -38,9 +53,9 @@ export function HeaderActions() {
       <div className="justify-start items-center gap-7 flex">
         {/* mobile show menu icon */}
         <div className="tablet:hidden">
-          <DropdownMenu 
-            modal={false} 
-            open={open} 
+          <DropdownMenu
+            modal={false}
+            open={open}
             onOpenChange={setOpen}
           >
             <DropdownMenuTrigger asChild>
@@ -49,7 +64,32 @@ export function HeaderActions() {
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="bg-white border-none">
-              <DropdownMenuItem 
+              {menuRoutes.map((route) => {
+                const actived = pathname.startsWith(route.href)
+                return (
+                  <DropdownMenuItem
+                    key={route.name}
+                    onClick={(e) => {
+                      if (!isAuthenticated) {
+                        e.preventDefault()
+                        navigate('/auth')
+                        return
+                      }
+                      navigate(route.href)
+                    }}
+                  >
+                    {actived ? (
+                      <div className="w-full flex items-center justify-between gap-2">
+                        <div className="text-brand-foreground">{route.name}</div>
+                        <img src="/imgs/icons/checked.svg" alt="" />
+                      </div>
+                    ) : (
+                      <div className="">{route.name}</div>
+                    )}
+                  </DropdownMenuItem>
+                )
+              })}
+              <DropdownMenuItem
                 className={cn('flex tablet:hidden')}
                 onSelect={(e) => e.preventDefault()}
               >
@@ -100,9 +140,9 @@ export function HeaderActions() {
             }}
           >
             <DropdownMenuTrigger asChild>
-              <img 
-                className="w-[24px] h-[24px] flex-shrink-0 cursor-pointer" 
-                src="/imgs/icons/profile.png" 
+              <img
+                className="w-[24px] h-[24px] flex-shrink-0 cursor-pointer"
+                src="/imgs/icons/profile.png"
               />
             </DropdownMenuTrigger>
             <DropdownMenuContent className='bg-white'>
