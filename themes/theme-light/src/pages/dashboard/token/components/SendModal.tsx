@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { ChevronDown } from "lucide-react"
 import { useDebounce } from "@/hooks/useDebounce"
+import { notification } from "antd"
 
 const tokenTypes = TokenFactory.getInstance().getAllTokenTypes()
 
@@ -150,6 +151,24 @@ export function SendModal({
     );
   }, [to, amount, sending, isValidEmail, isValidating, error, currentBalance, isEstimatingFee]);
 
+  const handleOpenDailyWithdrawalLimitNotification = () => {
+    const btn = (
+      <div className="cursor-pointer" onClick={() => {
+        notification.destroy()
+      }}>Ok</div>
+    )
+    notification.open({
+      message: 'Daily transaction limit exceeded',
+      description: (<div>
+        <p>Please check your email and verify by the OTP.</p>
+        <p>You can change yur dailiy transaction limit under profile page.</p>
+      </div>),
+      placement: 'top',
+      duration: 0,
+      btn,
+    });
+  };
+
   const handleTokenTypeChange = async (newTokenType: TokenType) => {
     setAmount('')
     setIsEstimatingFee(false)
@@ -246,7 +265,8 @@ export function SendModal({
         notifyTransactionSubmitted(hash)
       } else if (needOtp) {
         // need to be verified
-        toast.error(message)
+        // toast.error(message)
+        handleOpenDailyWithdrawalLimitNotification()
         setOpen(false)
       }
     } catch (error: unknown) {
