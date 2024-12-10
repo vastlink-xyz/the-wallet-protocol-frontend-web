@@ -16,7 +16,7 @@ interface TokenConfig {
   todayTransferred?: number;
 }
 
-interface TokenLimit {
+export interface TokenLimit {
   [key: string]: string;
 }
 
@@ -38,12 +38,14 @@ export function DailyTransactionLimitModal({
   ethBalance,
   maticBalance,
   tvwtBalance,
+  defaultLimits,
 }: {
   isOpen: boolean;
   onClose: () => void;
   ethBalance: string;
   maticBalance: string;
   tvwtBalance: string;
+  defaultLimits: TokenLimit;
 }) {
   const { data: tokenPrices } = useTokenPrice();
   const [tokenTransferred, setTokenTransferred] = useState<TokenTransferred | null>(null);
@@ -66,27 +68,8 @@ export function DailyTransactionLimitModal({
   }, [limits]);
 
   const init = async () => {
-    fetchDefaultLimits();
     fetchTransferred();
-  };
-
-  const fetchDefaultLimits = async () => {
-    try {
-      const { data } = await api.get('/transaction/default-daily-withdrawal-limits', {
-        params: {
-          includeUserLimits: true,
-        }
-      });
-      // Convert Wei to Ether for each token
-      const convertedLimits = {
-        ETH: formatEther(BigInt(data.ETH ?? 0)), // Default to 0 if undefined
-        MATIC: formatEther(BigInt(data.MATIC ?? 0)), // Default to 0 if undefined
-        TVWT: formatEther(BigInt(data.TVWT ?? 0)) // Default to 0 if undefined
-      };
-      setLimits(convertedLimits);
-    } catch (error) {
-      console.error('Failed to fetch default limits:', error);
-    }
+    setLimits(defaultLimits);
   };
 
   const fetchTransferred = async () => {

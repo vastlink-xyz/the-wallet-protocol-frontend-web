@@ -1,7 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { useTokenBalance } from "@/hooks/useTokenBalance";
-import { DailyTransactionLimitModal } from "./DailyTransactionLimitModal";
-import { useState } from "react";
+import { DailyTransactionLimitModal, TokenLimit } from "./DailyTransactionLimitModal";
+import { useEffect, useState } from "react";
+import api from "@/lib/api";
+import { formatEther } from "viem";
 
 export function DailyTransactionLimit() {
   const { data: ethBalance } = useTokenBalance('ETH')
@@ -9,10 +11,38 @@ export function DailyTransactionLimit() {
   const { data: tvwtBalance } = useTokenBalance('TVWT')
 
   const [isOpen, setIsOpen] = useState(false)
+  const [defaultLimits, setDefaultLimits] = useState<TokenLimit>({
+    ETH: '',
+    MATIC: '',
+    TVWT: ''
+  })
+
+  useEffect(() => {
+    fetchDefaultLimits()
+  }, [])
 
   const handleOpen = () => {
     setIsOpen(true)
   }
+
+  const fetchDefaultLimits = async () => {
+    try {
+      const { data } = await api.get('/transaction/default-daily-withdrawal-limits', {
+        params: {
+          includeUserLimits: true,
+        }
+      });
+      // Convert Wei to Ether for each token
+      const convertedLimits = {
+        ETH: formatEther(BigInt(data.ETH ?? 0)), // Default to 0 if undefined
+        MATIC: formatEther(BigInt(data.MATIC ?? 0)), // Default to 0 if undefined
+        TVWT: formatEther(BigInt(data.TVWT ?? 0)) // Default to 0 if undefined
+      };
+      setDefaultLimits(convertedLimits);
+    } catch (error) {
+      console.error('Failed to fetch default limits:', error);
+    }
+  };
 
   return <div className="pt-[36px]">
     <p className="text-black text-[22px] font-bold leading-normal">Settings</p>
@@ -25,9 +55,9 @@ export function DailyTransactionLimit() {
         <Button className="hidden tablet:inline-block h-[36px]" variant="outline" onClick={handleOpen}>Change limit</Button>
       </div>
       <div className="text-[#929292] text-xs font-normal leading-relaxed mt-2 tablet:mt-1">
-        <p>{ethBalance?.balance} ETH</p>
-        <p>{maticBalance?.balance} MATIC</p>
-        <p>{tvwtBalance?.balance} TVWT</p>
+        <p>{defaultLimits.ETH} ETH</p>
+        <p>{defaultLimits.MATIC} MATIC</p>
+        <p>{defaultLimits.TVWT} TVWT</p>
       </div>
 
       {/* mobile button */}
@@ -43,6 +73,7 @@ export function DailyTransactionLimit() {
       ethBalance={ethBalance?.balance || '0'}
       maticBalance={maticBalance?.balance || '0'}
       tvwtBalance={tvwtBalance?.balance || '0'}
+      defaultLimits={defaultLimits}
     />
   </div>;
 }

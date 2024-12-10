@@ -39,8 +39,9 @@ export default function Page() {
         limits: limitsList,
       })
       setStatus('success')
+      toast.success('Daily withdrawal limit successfully updated, redirecting to the profile')
       // jump to dashboard page
-      navigate('/dashboard')
+      navigate('/profile')
     } catch(error) {
       setStatus('error')
       const errorInfo = handleError(error)
@@ -76,7 +77,7 @@ export default function Page() {
         <Loading />
       </div>
     } else if (status === 'success') {
-      return <div className=''>Daily withdrawal limit successfully updated, redirecting to the dashboard...</div>
+      return <div className=''>Daily withdrawal limit successfully updated, redirecting to the profile</div>
     } else {
       return <div className='text-destructive'>Failed to update daily withdrawal limit</div>
     }
