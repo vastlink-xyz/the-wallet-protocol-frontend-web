@@ -1,7 +1,5 @@
-import { auth, cn, log } from "@/lib/utils";
+import { auth, cn } from "@/lib/utils";
 import { useLocation, useNavigate, Link } from "react-router-dom";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ChevronDown } from "lucide-react";
 
 interface RouteItem {
   name: string;

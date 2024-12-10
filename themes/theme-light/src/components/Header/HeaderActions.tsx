@@ -95,6 +95,13 @@ export function HeaderActions() {
               >
                 <WalletConnectButton className="p-0 bg-transparent" />
               </DropdownMenuItem>
+
+              <hr />
+              <DropdownMenuItem
+                onSelect={(e) => e.preventDefault()}
+              >
+                <LanguageSwitch onLanguageChange={() => setOpen(false)} />
+              </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => navigate('/profile')}>
                 {pathname === '/profile' ? (
                   <div className="w-full flex items-center justify-between gap-2">
@@ -105,16 +112,8 @@ export function HeaderActions() {
                   <div className="">Profile</div>
                 )}
               </DropdownMenuItem>
-              {/* <DropdownMenuItem
-                onSelect={(e) => e.preventDefault()}
-              >
-                <div>Notification</div>
-              </DropdownMenuItem> */}
-              <DropdownMenuItem
-                onSelect={(e) => e.preventDefault()}
-              >
-                <LanguageSwitch onLanguageChange={() => setOpen(false)} />
-              </DropdownMenuItem>
+
+              <hr />
               <DropdownMenuItem
                 onSelect={(e) => e.preventDefault()}
                 className={cn(
