@@ -9,6 +9,7 @@ import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
 import { LogoLoading } from "@/components/LogoLoading";
 import { TokenType } from "@/types/tokens";
+import { useTokenBalance } from "@/hooks/useTokenBalance";
 
 interface TokenConfig {
   type: 'ETH' | 'MATIC' | 'TVWT';
@@ -35,18 +36,16 @@ interface TokenTransferred {
 export function DailyTransactionLimitModal({
   isOpen,
   onClose,
-  ethBalance,
-  maticBalance,
-  tvwtBalance,
   defaultLimits,
 }: {
   isOpen: boolean;
   onClose: () => void;
-  ethBalance: string;
-  maticBalance: string;
-  tvwtBalance: string;
   defaultLimits: TokenLimit;
 }) {
+  const { data: ethBalance } = useTokenBalance('ETH')
+  const { data: maticBalance } = useTokenBalance('MATIC')
+  const { data: tvwtBalance } = useTokenBalance('TVWT')
+
   const { data: tokenPrices } = useTokenPrice();
   const [tokenTransferred, setTokenTransferred] = useState<TokenTransferred | null>(null);
   const [loading, setLoading] = useState(false);
@@ -84,9 +83,9 @@ export function DailyTransactionLimitModal({
   };
 
   const tokens: TokenConfig[] = useMemo(() => [
-    { type: 'ETH', balance: ethBalance, todayTransferred: tokenTransferred?.ETH || 0 },
-    { type: 'MATIC', balance: maticBalance, todayTransferred: tokenTransferred?.MATIC || 0 },
-    { type: 'TVWT', balance: tvwtBalance, todayTransferred: tokenTransferred?.TVWT || 0 },
+    { type: 'ETH', balance: ethBalance?.balance || '0', todayTransferred: tokenTransferred?.ETH || 0 },
+    { type: 'MATIC', balance: maticBalance?.balance || '0', todayTransferred: tokenTransferred?.MATIC || 0 },
+    { type: 'TVWT', balance: tvwtBalance?.balance || '0', todayTransferred: tokenTransferred?.TVWT || 0 },
   ], [ethBalance, maticBalance, tvwtBalance, tokenTransferred]);
 
   const handleLimitChange = (type: keyof TokenLimit, value: string) => {

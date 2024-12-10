@@ -1,13 +1,8 @@
-import { useState, useEffect, FormEvent, useRef, useMemo } from "react"
+import { useState, useEffect, useRef, useMemo } from "react"
 import { Address, parseEther, isAddress } from 'viem'
 
 import { cn, emailRegex, formatDecimal, getEstimatedGasFeeByToken, handleError, log } from "@/lib/utils"
 
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-} from "@/components/ui/dialog"
 import { Loader, CircleCheck, AlertCircle, X, LoaderCircle } from "lucide-react"
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +25,8 @@ import {
 import { ChevronDown } from "lucide-react"
 import { useDebounce } from "@/hooks/useDebounce"
 import { notification } from "antd"
+import { DailyTransactionLimitModal } from "@/pages/profile/components/DailyTransactionLimitModal"
+import { useDailyWithdrawalLimits } from "@/hooks/useDailyWithdrawalLimits"
 
 const tokenTypes = TokenFactory.getInstance().getAllTokenTypes()
 
@@ -60,7 +57,11 @@ export function SendModal({
   const [sending, setSending] = useState(false)
   const [symbol, setSymbol] = useState('')
   const tokenRef = useRef<Token>()
-
+  
+  // daily limit
+  const [isOpenDailyWithdrawalLimitModal, setIsOpenDailyWithdrawalLimitModal] = useState(false)
+  const { data: defaultLimits } = useDailyWithdrawalLimits()
+  
   const [currentTokenType, setCurrentTokenType] = useState<TokenType>(tokenType)
   const [currentBalance, setCurrentBalance] = useState<string>('0')
   const [estimatedFee, setEstimatedFee] = useState<string>('')
@@ -137,6 +138,10 @@ export function SendModal({
     }
     setIsInitialized(true)
   }
+
+  const currentDailyLimit = useMemo(() => {
+    return defaultLimits[currentTokenType]
+  }, [currentTokenType, defaultLimits])
 
   const isDisabled = useMemo(() => {
     return (
@@ -531,6 +536,17 @@ export function SendModal({
                 }
               </div>
 
+              {/* daily limit */}
+              <div className="flex items-center justify-between mb-[20px]">
+                <p className="text-[#979797] text-sm leading-none">Daily limit: <span>{currentDailyLimit} {symbol}</span></p>
+                <Button
+                  variant={'outline'}
+                  className="h-[24px] py-1 px-2 text-xs"
+                  onClick={() => setIsOpenDailyWithdrawalLimitModal(true)}
+                  type="button"
+                >Change limit</Button>
+              </div>
+
               {
                 estimatedFee && (
                   <div className="rounded-lg border border-black/10 bg-black/5 p-3 mb-4 flex items-start">
@@ -582,6 +598,13 @@ export function SendModal({
           </footer>
         </div>
       </div>
+
+      {/* daily transaction limit modal */}
+      <DailyTransactionLimitModal
+        isOpen={isOpenDailyWithdrawalLimitModal}
+        onClose={() => setIsOpenDailyWithdrawalLimitModal(false)}
+        defaultLimits={defaultLimits}
+      />
     </div>
   ) : null;
 
