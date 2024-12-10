@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { ReceiveModal } from "@/pages/dashboard/components/ReceiveModal";
 import { AvatarModal } from "./components/AvatarModal";
 import { useUserInfo } from "@/hooks/user/useUserInfo";
+import { DailyTransactionLimit } from "./components/DailyTransactionLimit";
 
 export default function Page() {
   const { address, username } = auth.all();
@@ -126,7 +127,7 @@ export default function Page() {
         'w-[342px] tablet:w-[725px] laptop:w-[908px] desktop:w-[1224px]',
         'mx-auto',
       )}>
-        haha
+        <DailyTransactionLimit />
       </div>
 
       {/* receive modal */}

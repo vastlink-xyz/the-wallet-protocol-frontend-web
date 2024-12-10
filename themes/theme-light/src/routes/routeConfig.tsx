@@ -48,6 +48,13 @@ const router = createBrowserRouter([
             },
           },
           {
+            path: '/verify-daily-withdrawal-limit',
+            async lazy() {
+              const { default: VerifyDailyWithdrawalLimitPage } = await import('@/pages/verify/daily-withdrawal-limit/page');
+              return { Component: VerifyDailyWithdrawalLimitPage };
+            },
+          },
+          {
             path: 'dashboard',
             element: <DashboardLayout />,
             children: [

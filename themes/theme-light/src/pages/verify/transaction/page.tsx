@@ -6,7 +6,6 @@ import { useState, useEffect, useCallback } from "react";
 import { handleError, log } from '@/lib/utils';
 import { TokenFactory } from '@/services/TokenService';
 import { toast } from 'react-toastify';
-import { LogoLoading } from '@/components/LogoLoading';
 import keyManagementService from '@/services/KeyManagementService';
 import { Loading } from '@/components/Loading';
 

@@ -4,6 +4,7 @@ import { Address, createPublicClient, formatEther, http, PublicClient } from "vi
 import { mainnet, polygonAmoy, sepolia } from "viem/chains";
 import { ERC20_TVWT_ABI } from "@/abis/TheVastWalletToken";
 import { TokenType } from "@/types/tokens";
+import api from "@/lib/api";
 
 export abstract class Token {
   name: string;
