@@ -10,12 +10,13 @@ import { auth, cn, handleError, log } from "@/lib/utils";
 import { useState } from "react";
 import { toast } from "react-toastify";
 import { WalletConnectButton } from "../VastWalletConnect";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export function HeaderActions() {
   const [open, setOpen] = useState(false);
   const isAuthenticated = auth.isAuthenticated()
   const navigate = useNavigate()
+  const { pathname } = useLocation()
 
   const handleLogout = async () => {
     try {
@@ -35,18 +36,8 @@ export function HeaderActions() {
       </div>
 
       <div className="justify-start items-center gap-7 flex">
-        {/* learn button always show */}
-        <div className={cn(
-          'hidden tablet:flex',
-          'justify-start items-center gap-6'
-        )}>
-          {/* <div className="py-2 justify-start items-center gap-2 flex">
-            <div className="text-[#a1a1a1] text-base font-medium leading-none">Learn</div>
-          </div> */}
-        </div>
-
         {/* mobile show menu icon */}
-        <div className="laptop:hidden">
+        <div className="tablet:hidden">
           <DropdownMenu 
             modal={false} 
             open={open} 
@@ -64,16 +55,15 @@ export function HeaderActions() {
               >
                 <WalletConnectButton className="p-0 bg-transparent" />
               </DropdownMenuItem>
-              <DropdownMenuItem 
-                className={cn('hidden tablet:flex')}
-                onSelect={(e) => {
-                  e.preventDefault()
-                  if (!isAuthenticated) {
-                    navigate('/auth')
-                  }
-                }}
-              >
-                <div>Profile</div>
+              <DropdownMenuItem onSelect={() => navigate('/profile')}>
+                {pathname === '/profile' ? (
+                  <div className="w-full flex items-center justify-between gap-2">
+                    <div className="text-brand-foreground">Profile</div>
+                    <img src="/imgs/icons/checked.svg" alt="" />
+                  </div>
+                ) : (
+                  <div className="">Profile</div>
+                )}
               </DropdownMenuItem>
               {/* <DropdownMenuItem
                 onSelect={(e) => e.preventDefault()}
@@ -97,9 +87,9 @@ export function HeaderActions() {
           </DropdownMenu>
         </div>
 
-        {/* desktop and mobile show profile icon */}
+        {/* desktop show profile icon */}
         <div className={cn(
-          'flex tablet:hidden laptop:flex',
+          'hidden tablet:flex',
           'justify-start items-center gap-6 flex-shrink-0'
         )}>
           <DropdownMenu
@@ -115,10 +105,17 @@ export function HeaderActions() {
                 src="/imgs/icons/profile.png" 
               />
             </DropdownMenuTrigger>
-            <DropdownMenuContent className={cn(
-              'bg-white',
-              !isAuthenticated && 'hidden'
-            )}>
+            <DropdownMenuContent className='bg-white'>
+              <DropdownMenuItem onSelect={() => navigate('/profile')}>
+                {pathname === '/profile' ? (
+                  <div className="w-full flex items-center justify-between gap-2">
+                    <div className="text-brand-foreground">Profile</div>
+                    <img src="/imgs/icons/checked.svg" alt="" />
+                  </div>
+                ) : (
+                  <div className="">Profile</div>
+                )}
+              </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => handleLogout()}>
                 Logout
               </DropdownMenuItem>
@@ -132,15 +129,8 @@ export function HeaderActions() {
         )}>
         </div>
 
-        {/* <div className={cn(
-          'hidden laptop:flex',
-          'justify-start items-start gap-6 flex-shrink-0'
-        )}>
-          <img className="w-[24px] h-[24px] flex-shrink-0" src="/imgs/icons/message.svg" />
-        </div> */}
-
         <div className={cn(
-          'hidden laptop:flex',
+          'hidden tablet:flex',
           'justify-start items-start gap-6 flex-shrink-0 cursor-pointer'
         )}>
           <LanguageSwitch />

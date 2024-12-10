@@ -136,7 +136,7 @@ export function LanguageSwitch({
         <img
           className={cn(
             'w-[24px] h-[24px] cursor-pointer',
-            'hidden laptop:flex'
+            'hidden tablet:flex'
           )}
           src="/imgs/icons/language.svg"
           onClick={() => setIsOpen(true)}
@@ -144,7 +144,7 @@ export function LanguageSwitch({
 
         {/* mobile */}
         <div 
-          className="flex laptop:hidden cursor-pointer" 
+          className="flex tablet:hidden cursor-pointer" 
           onClick={() => setIsOpen(true)}
         >
           Language
