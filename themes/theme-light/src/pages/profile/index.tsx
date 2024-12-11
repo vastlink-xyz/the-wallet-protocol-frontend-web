@@ -94,6 +94,7 @@ export default function Page() {
               <p className={cn(
                 'text-[#828282] leading-tight',
                 'text-base tablet:text-2xl',
+                '[text-decoration:none]',
               )}>{username}</p>
             </div>
           </div>

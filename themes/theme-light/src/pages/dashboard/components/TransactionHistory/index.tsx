@@ -8,7 +8,6 @@ import { Empty } from "@/components/Empty";
 import { WalletConnectButton } from "@/components/VastWalletConnect";
 import { useTotalAsset } from "@/hooks/useTotalAsset";
 import { useTransactionHistory } from "@/hooks/useTransactionHistory";
-import { usePerformanceChart } from "@/hooks/usePerformanceChart";
 
 const defaultDates = [
   dayjs().subtract(1, 'month').startOf('day').toDate(),

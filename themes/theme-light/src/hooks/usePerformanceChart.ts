@@ -24,10 +24,13 @@ interface PerformanceChartData {
 
 const PERFORMANCE_CHART_KEY = ['performanceChart'] as const
 
-const fetchPerformanceChart = async (address: string): Promise<PerformanceChartData> => {
+const fetchPerformanceChart = async (address: string, days: number): Promise<PerformanceChartData> => {
   try {
     const res = await api.get<PerformanceChartResponse>('/user-assets/performance-chart', {
-      params: { address }
+      params: {
+        address,
+        days,
+      }
     })
     
     return {
@@ -39,7 +42,7 @@ const fetchPerformanceChart = async (address: string): Promise<PerformanceChartD
   }
 }
 
-export function usePerformanceChart(options?: {
+export function usePerformanceChart(days: number, options?: {
   enabled?: boolean
   onError?: (error: Error) => void
 }) {
@@ -48,7 +51,7 @@ export function usePerformanceChart(options?: {
 
   return useQuery({
     queryKey: [...PERFORMANCE_CHART_KEY, address],
-    queryFn: () => fetchPerformanceChart(address),
+    queryFn: () => fetchPerformanceChart(address, days),
     enabled: options?.enabled && !!address,
   })
 }

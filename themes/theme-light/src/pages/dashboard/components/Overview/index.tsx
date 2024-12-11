@@ -2,12 +2,11 @@ import { auth, cn, handleError, log } from "@/lib/utils";
 import { PerformanceChart } from "./PerformanceChart";
 import { AllocationChart } from "./AllocationChart";
 import { useEffect, useState } from "react";
-import { Info } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import api from "@/lib/api";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { usePerformanceChart } from "@/hooks/usePerformanceChart";
+import dayjs from "dayjs";
 
 const tokenColors = {
   ETH: '#3d7dc9',
@@ -15,18 +14,43 @@ const tokenColors = {
   TVWT: '#52c41a',
 }
 
+type timeRangeType = '1Y' | 'YTD' | '1M' | '7D'
+
+const timeRanges = [
+  '1Y',
+  'YTD',
+  '1M',
+  '7D',
+]
+
+const getDays = (range: timeRangeType) => {
+  switch (range) {
+    case '1Y':
+      return 365;
+    case 'YTD':
+      return dayjs().diff(dayjs().startOf('year'), 'day');
+    case '1M':
+      return 30;
+    case '7D':
+      return 7;
+    default:
+      return 365;
+  }
+}
+
+
 export function Overview() {
   const navigate = useNavigate();
   const { address } = auth.all()
 
-  const [timeRange, setTimeRange] = useState<'7D' | '30D'>('30D');
+  const [timeRange, setTimeRange] = useState<timeRangeType>('7D');
   // const [performanceData, setPerformanceData] = useState<{ data: number[], labels: string[] }>({ data: [], labels: [] });
   const [performanceChartData, setPerformanceChartData] = useState<number[]>([]);
   const [performanceChartLabels, setPerformanceChartLabels] = useState<string[]>([]);
 
   const [allocationData, setAllocationData] = useState<{ label: string, value: number, color: string }[]>([])
 
-  const { data: performanceData, isFetched, refetch } = usePerformanceChart({
+  const { data: performanceData, isFetched, refetch } = usePerformanceChart(365, {
     enabled: !!address,
   })
 
@@ -39,11 +63,12 @@ export function Overview() {
   const init = async () => {
     try {
       // set performance data
-      const list = performanceData?.chartData || []
-      const data = list.map((item) => item.value)
-      const labels = list.map((item) => item.date)
-      setPerformanceChartData(data)
-      setPerformanceChartLabels(labels)
+      // const list = performanceData?.chartData || []
+      // const data = list.map((item) => item.value)
+      // const labels = list.map((item) => item.date)
+      // setPerformanceChartData(data)
+      // setPerformanceChartLabels(labels)
+      handleTimeRangeChange(timeRange)
 
       // set allocation data
       const allocationList = performanceData?.distribution || []
@@ -59,15 +84,14 @@ export function Overview() {
     }
   }
 
-  const handleTimeRangeChange = (value: '7D' | '30D') => {
+  const handleTimeRangeChange = (value: timeRangeType) => {
     setTimeRange(value);
-    if (value === '7D') {
-      setPerformanceChartData(performanceData?.chartData.slice(-7).map((item) => item.value) || [])
-      setPerformanceChartLabels(performanceData?.chartData.slice(-7).map((item) => item.date) || [])
-    } else {
-      setPerformanceChartData(performanceData?.chartData.map((item) => item.value) || [])
-      setPerformanceChartLabels(performanceData?.chartData.map((item) => item.date) || [])
-    }
+    if (!performanceData) return;
+
+    const days = getDays(value);
+    const slicedData = performanceData.chartData.slice(-days);
+    setPerformanceChartData(slicedData.map(item => item.value))
+    setPerformanceChartLabels(slicedData.map(item => item.date))
   }
 
   return (
@@ -88,33 +112,28 @@ export function Overview() {
           'w-full tablet:w-[366px] laptop:w-[500px] desktop:w-[804px]',
         )}>
           <div className="flex justify-between items-center mb-6">
-            <div className="flex items-center gap-1">
-              <p className="text-base text-[#111111] font-bold leading-tight">Performance</p>
-              <Info size={14} />
-            </div>
+            {/* <div className="flex items-center gap-1">
+            </div> */}
+            <p className="text-base text-[#111111] font-bold leading-tight">Performance</p>
             <Tabs
               value={timeRange}
-              onValueChange={(value) => handleTimeRangeChange(value as '7D' | '30D')}
+              onValueChange={(value) => handleTimeRangeChange(value as timeRangeType)}
             >
-              <TabsList className="h-[28px] bg-[#f5f5f5]">
-                <TabsTrigger
-                  value="7D"
-                  className={cn(
-                    'h-[20px] text-base font-normal text-[#111111]',
-                    'data-[state=active]:text-[#979797]',
-                  )}
-                >
-                  7D
-                </TabsTrigger>
-                <TabsTrigger
-                  value="30D"
-                  className={cn(
-                    'h-[20px] text-base font-normal text-[#111111]',
-                    'data-[state=active]:text-[#979797]',
-                  )}
-                >
-                  30D
-                </TabsTrigger>
+              <TabsList className="h-[28px] bg-transparent">
+                {
+                  timeRanges.map((item) => (
+                    <TabsTrigger
+                      key={item}
+                      value={item}
+                      className={cn(
+                        'h-[20px] pl-[16px] pr-0 text-base font-normal text-[#bdbdbd]',
+                        'data-[state=active]:text-black data-[state=active]:shadow-none data-[state=active]:font-bold',
+                      )}
+                    >
+                      {item}
+                    </TabsTrigger>
+                  ))  
+                }
               </TabsList>
             </Tabs>
           </div>
