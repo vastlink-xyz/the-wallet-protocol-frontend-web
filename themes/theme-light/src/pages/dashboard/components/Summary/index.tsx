@@ -80,7 +80,7 @@ export function Summary() {
       {/* content */}
       <div className={cn(
         'relative z-10',
-        'tablet:flex tablet:flex-wrap tablet:justify-between',
+        'tablet:flex tablet:justify-between tablet:gap-2',
         'py-[28px] tablet:py-[72px] tablet:px-[104px]',
         'w-[317px] mx-auto tablet:w-full',
       )}>
@@ -91,7 +91,7 @@ export function Summary() {
             'text-lg tablet:text-[32px]',
             'mb-[25px] tablet:mb-[50px]',
           )}>Total asset</div>
-          <div className="flex items-start gap-2">
+          <div className="flex items-start gap-2 tablet:w-[350px]">
             <img
               src={avatarUrl}
               alt="avatar"
