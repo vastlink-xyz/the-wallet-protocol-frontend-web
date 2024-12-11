@@ -7,12 +7,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import api from "@/lib/api";
 import { auth, cn, handleError, log } from "@/lib/utils";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { WalletConnectButton } from "../VastWalletConnect";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { RouteItem } from "../Header";
+import { useUserInfo } from "@/hooks/user/useUserInfo";
 
 export function HeaderActions() {
   const { t } = useTranslation()
@@ -21,6 +22,14 @@ export function HeaderActions() {
   const isAuthenticated = auth.isAuthenticated()
   const navigate = useNavigate()
   const { pathname } = useLocation()
+  const { data: userInfo } = useUserInfo()
+  const [avatarUrl, setAvatarUrl] = useState<string>('')
+
+  useEffect(() => {
+    if (userInfo) {
+      setAvatarUrl(userInfo.avatar || auth.getUserRandomAvatar(userInfo.avatarIndex))
+    }
+  }, [userInfo])
 
   const menuRoutes: RouteItem[] = [
     {
@@ -140,8 +149,8 @@ export function HeaderActions() {
           >
             <DropdownMenuTrigger asChild>
               <img
-                className="w-[24px] h-[24px] flex-shrink-0 cursor-pointer"
-                src="/imgs/icons/profile.png"
+                className="w-[28px] h-[28px] rounded-full flex-shrink-0 cursor-pointer"
+                src={avatarUrl}
               />
             </DropdownMenuTrigger>
             <DropdownMenuContent className='bg-white'>
