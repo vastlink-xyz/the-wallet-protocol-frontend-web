@@ -15,8 +15,8 @@ const { RangePicker } = DatePicker;
 
 const tokens = [
   { symbol: 'ALL', icon: '' },
-  { symbol: 'ETH', icon: '/imgs/logos/eth.png' },
-  { symbol: 'MATIC', icon: '/imgs/logos/matic.png' },
+  { symbol: 'SepoliaETH', icon: '/imgs/logos/eth.png' },
+  { symbol: 'POL', icon: '/imgs/logos/matic.png' },
   { symbol: 'TVWT', icon: '/imgs/logos/tvwt.png' },
 ];
 

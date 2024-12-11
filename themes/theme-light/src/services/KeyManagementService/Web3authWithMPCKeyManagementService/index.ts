@@ -8,8 +8,6 @@ import { TokenType } from '@/types/tokens';
 import api from '@/lib/api';
 import { TransactionType } from '@/types/transaction';
 
-const chainConfig = chainConfigByToken('ETH')!
-
 export class Web3authWithMPCKeyManagement extends KeyManagementService {
   coreKitInstance: Web3AuthMPCCoreKit | undefined;
 

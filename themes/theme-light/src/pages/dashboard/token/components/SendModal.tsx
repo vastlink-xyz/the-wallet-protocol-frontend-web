@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react"
 import { Address, parseEther, isAddress } from 'viem'
 
-import { cn, emailRegex, formatDecimal, getEstimatedGasFeeByToken, handleError, log } from "@/lib/utils"
+import { cn, emailRegex, formatDecimal, getEstimatedGasFeeByToken, handleError, log, symbolByToken } from "@/lib/utils"
 
 import { Loader, CircleCheck, AlertCircle, X, LoaderCircle } from "lucide-react"
 import { Button } from "@/components/ui/button";
@@ -495,21 +495,25 @@ export function SendModal({
                     type="number"
                     inputMode="decimal"
                     id="amount"
-                    className="pl-[80px] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    className={cn(
+                      "pl-[80px] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
+                      currentTokenType === 'ETH' &&'pl-[110px]',
+                      currentTokenType === 'MATIC' &&'pl-[70px]',
+                    )}
                     required
                     onBlur={checkAmountExceed}
                   />
                   <div className="absolute left-2 top-1/2 -translate-y-1/2">
                     <DropdownMenu>
                       <DropdownMenuTrigger className="flex items-center gap-[6px] px-0 py-1">
-                        <span className="font-medium text-sm">{currentTokenType}</span>
+                        <span className="font-medium text-sm">{symbolByToken(currentTokenType)}</span>
                         <ChevronDown className="h-4 w-4 opacity-50" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="start" className="bg-white">
                         {
                           tokenTypes.map((type) => {
                             return (
-                              <DropdownMenuItem key={type} onClick={() => handleTokenTypeChange(type)}>{type}</DropdownMenuItem>
+                              <DropdownMenuItem key={type} onClick={() => handleTokenTypeChange(type)}>{symbolByToken(type)}</DropdownMenuItem>
                             );
                           })
                         }
@@ -529,7 +533,7 @@ export function SendModal({
                   isEstimatingFee ? (
                     <span><LoaderCircle className="animate-spin" size={14} /></span>
                   ) : estimatedFee ? (
-                    <span className="text-black">~ {estimatedFee} {symbol === 'TVWT' ? 'MATIC' : symbol}</span>
+                    <span className="text-black">~ {estimatedFee} {symbol === 'TVWT' ? 'POL' : symbol}</span>
                   ) : (
                     <span className="text-black">-</span>
                   )

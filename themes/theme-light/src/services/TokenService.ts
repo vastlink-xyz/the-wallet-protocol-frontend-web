@@ -28,7 +28,7 @@ class ETH extends Token {
   openUrl: string;
 
   constructor() {
-    super('Ethereum', 'ETH', 18);
+    super('Ethereum Sepolia', 'SepoliaETH', 18);
     this.publicClient = createPublicClient({
       chain: sepolia,
       transport: http(import.meta.env.VITE_ETH_JSON_RPC),
@@ -73,7 +73,7 @@ class MATIC extends Token {
   openUrl: string;
 
   constructor() {
-    super('Polygon', 'MATIC', 18);
+    super('Polygon Amoy', 'POL', 18);
     this.publicClient = createPublicClient({
       chain: polygonAmoy,
       transport: http(import.meta.env.VITE_POLYGON_JSON_RPC),

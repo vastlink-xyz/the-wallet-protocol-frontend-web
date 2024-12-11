@@ -1,7 +1,7 @@
 import { Modal } from "@/components/Modal";
 import { Input } from "@/components/ui/input";
 import { useTokenPrice } from "@/hooks/useTokenPrice";
-import { cn, handleError, log } from "@/lib/utils";
+import { cn, handleError, log, symbolByToken } from "@/lib/utils";
 import { useState, useEffect, useMemo } from "react";
 import api from "@/lib/api";
 import { formatEther, parseEther } from "viem";
@@ -204,7 +204,7 @@ export function DailyTransactionLimitModal({
           <div className="mt-3 bg-black/5 border-black/10 rounded-[8px] py-3 px-4 flex items-center gap-2.5">
             <img src="/imgs/icons/information_filled.svg" width={16} height={16} alt="" />
             <p className="text-black text-xs font-normal leading-none">
-              {loading ? 'Loading...' : `You've transferred ${formatTransactionAmount(token.todayTransferred ?? 0)} ${token.type} today`}
+              {loading ? '' : `You've transferred ${formatTransactionAmount(token.todayTransferred ?? 0)} ${symbolByToken(token.type)} today`}
             </p>
           </div>
         </div>

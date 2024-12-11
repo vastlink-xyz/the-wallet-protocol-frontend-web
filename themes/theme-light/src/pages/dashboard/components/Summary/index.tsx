@@ -9,11 +9,11 @@ import { useUserInfo } from "@/hooks/user/useUserInfo";
 
 const tokenTypeIcons = [
   {
-    name: 'ETH',
+    name: 'SepoliaETH',
     icon: '/imgs/logos/eth.png',
   },
   {
-    name: 'MATIC',
+    name: 'POL',
     icon: '/imgs/logos/matic.png',
   },
   {

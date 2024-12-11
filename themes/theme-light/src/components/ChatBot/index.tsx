@@ -119,20 +119,28 @@ export default function ChatBotComponent() {
         answer: response.data,
       })
     } else {
+      let tokenType = coin
+      if (typeof coin === 'string') {
+        if (coin.toLocaleLowerCase() === 'pol') {
+          tokenType = 'MATIC'
+        } else if (coin.toLocaleLowerCase() === 'sepoliaeth') {
+          tokenType = 'ETH'
+        }
+      }
       setTransactionInfo({
         action,
         toEmail: to,
-        token: coin,
+        token: tokenType,
         amount,
       })
-      await initSendProps(coin)
+      await initSendProps(tokenType)
       setDisplaySendButton(true)
     }
   }
 
   const flow: Flow = {
     start: {
-      message: "Welcome! I can help you transfer cryptocurrencies. You can send ETH, MATIC, or TVWT to any email address. For example, you can say: 'Send 0.01 ETH to example@gmail.com'. How can I assist you today?",
+      message: "Welcome! I can help you transfer cryptocurrencies. You can send SepoliaETH, POL, or TVWT to any email address. For example, you can say: 'Send 1 TVWT to example@gmail.com'. How can I assist you today?",
       function: handleQuestion,
       path: "transfer",
     },

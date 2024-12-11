@@ -161,3 +161,13 @@ export async function getEstimatedGasFeeByToken(
     throw error;
   }
 }
+
+export function symbolByToken(tokenType: TokenType) {
+  if (tokenType === 'ETH') {
+    return 'SepoliaETH'
+  } else if (tokenType === 'MATIC') {
+    return 'POL'
+  } else if (tokenType === 'TVWT') {
+    return 'TVWT'
+  }
+}

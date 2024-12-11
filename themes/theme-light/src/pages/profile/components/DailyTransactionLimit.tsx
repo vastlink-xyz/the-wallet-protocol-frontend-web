@@ -22,8 +22,8 @@ export function DailyTransactionLimit() {
         <Button className="hidden tablet:inline-block h-[36px]" variant="outline" onClick={handleOpen}>Change limit</Button>
       </div>
       <div className="text-[#929292] text-xs font-normal leading-relaxed mt-2 tablet:mt-1">
-        <p>{defaultLimits.ETH} ETH</p>
-        <p>{defaultLimits.MATIC} MATIC</p>
+        <p>{defaultLimits.ETH} SepoliaETH</p>
+        <p>{defaultLimits.MATIC} POL</p>
         <p>{defaultLimits.TVWT} TVWT</p>
       </div>
 
