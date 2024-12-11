@@ -8,7 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import api from "@/lib/api";
-import { auth, cn, formatDecimal, formatNumberWithCommas, handleError, log } from "@/lib/utils";
+import { auth, cn, formatDecimal, formatNumberWithCommas, handleError, log, symbolByToken } from "@/lib/utils";
 import { Progress } from "antd";
 import { RefreshCcw } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -94,7 +94,7 @@ export default function ViewAllPage() {
               <div className="flex items-center gap-3">
                 <img src={tokenImages[item.token as keyof typeof tokenImages]} alt="img" className="w-[28px] h-[28px]" />
                 <div className="flex flex-col">
-                  <span className="text-base font-bold leading-tight text-[#3d3d3d]">{item.token}</span>
+                  <span className="text-base font-bold leading-tight text-[#3d3d3d]">{symbolByToken(item.token)}</span>
                 </div>
               </div>
             </TableCell>

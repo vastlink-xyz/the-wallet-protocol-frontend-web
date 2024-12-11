@@ -7,7 +7,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Tooltip } from 'antd';
-import { cn, formatDecimal, formatNumberWithCommas, log } from "@/lib/utils"
+import { cn, formatDecimal, formatNumberWithCommas, log, symbolByToken } from "@/lib/utils"
 import { formatEther } from "viem"
 import { CopyClipboardAddress } from "@/components/CopyClipboardAddress";
 import { TokenFactory } from "@/services/TokenService";
@@ -105,7 +105,7 @@ export function TableList({ data, isLoading }: { data: any[], isLoading: boolean
                 transaction.type === 'Receive' ? 'text-[#00a478]' : 'text-[#ff6363]'
               )}>
                 {transaction.type === 'Receive' ? '+' : '-'}
-                {formatLargeNumber(transaction.amount)} {transaction.token}
+                {formatLargeNumber(transaction.amount)} {symbolByToken(transaction.token)}
               </span>
             </TableCell>
 
