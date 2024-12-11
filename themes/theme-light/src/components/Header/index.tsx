@@ -50,7 +50,7 @@ export function Header() {
         <img src="/imgs/logos/logo.svg" />
         <div className={cn(
           'text-white text-xl font-bold font-["Roboto_Mono"] leading-4',
-          'hidden tablet:block',
+          // 'hidden tablet:block',
         )}>Vastlink</div>
       </div>
 

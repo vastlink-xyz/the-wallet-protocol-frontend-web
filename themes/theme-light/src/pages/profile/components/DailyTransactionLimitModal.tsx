@@ -185,7 +185,7 @@ export function DailyTransactionLimitModal({
           )}>
             <div className="flex items-center gap-2 text-[#a1a1a1] text-sm font-normal leading-none">
               <Input 
-                className="w-[131px]"
+                className="w-[131px] text-black"
                 value={limits[token.type]}
                 onChange={(e) => handleLimitChange(token.type, e.target.value)}
                 placeholder="Enter limit"
@@ -197,7 +197,7 @@ export function DailyTransactionLimitModal({
               "flex items-center gap-2 text-sm font-normal leading-none",
               'mt-[20px] tablet:mt-0'
             )}>
-              <p className="text-[#a1a1a1]">Balance</p>
+              <p className="text-[#a1a1a1]">Balance:</p>
               <p className="text-black">{token.balance} {token.type}</p>
             </div>
           </div>

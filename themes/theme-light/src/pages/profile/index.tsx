@@ -78,7 +78,7 @@ export default function Page() {
                   className={cn(
                     'absolute inset-0 flex items-center justify-center',
                     'bg-black/50 rounded-full',
-                    'tablet:opacity-0 tablet:group-hover:opacity-100',
+                    'opacity-0 group-hover:opacity-100',
                     'transition-opacity cursor-pointer',
                     'mr-[12px] tablet:mr-[24px]',
                   )}
