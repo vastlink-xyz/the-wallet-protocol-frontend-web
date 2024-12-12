@@ -7,6 +7,17 @@ interface PerformanceChartProps {
   labels: string[];
 }
 
+// Get boundary range configuration based on data length
+const getRangeConfig = (length: number) => {
+  if (length <= 7) {
+    return { start: 1, end: 1 }; // Reserve 1 point at both ends for less than 7 points
+  } else if (length <= 30) {
+    return { start: 2, end: 2 }; // Reserve 2 points at both ends for up to 30 points
+  } else {
+    return { start: Math.floor(length * 0.1), end: Math.floor(length * 0.1) }; // Use 10% for larger datasets
+  }
+};
+
 export function PerformanceChart({ data, labels }: PerformanceChartProps) {
   const maxValue = Math.max(...data);
   const minValue = Math.min(...data);
@@ -72,9 +83,10 @@ export function PerformanceChart({ data, labels }: PerformanceChartProps) {
           label={({ x, y, value, index }: { x: number, y: number, value: number, index: number }) => {
             if (index === selectedMaxIndex || index === selectedMinIndex) {
               const isMax = index === selectedMaxIndex;
-              
-              const isNearStart = index <= 1;
-              const isNearEnd = index >= data.length - 2;
+
+              const { start, end } = getRangeConfig(data.length);
+              const isNearStart = index <= start;
+              const isNearEnd = index >= data.length - end;
               
               // determine the horizontal alignment and x-axis offset
               let textAnchor = "middle";
