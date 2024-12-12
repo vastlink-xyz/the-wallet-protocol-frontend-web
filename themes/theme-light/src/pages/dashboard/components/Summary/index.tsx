@@ -91,7 +91,7 @@ export function Summary() {
             'text-lg tablet:text-[32px]',
             'mb-[25px] tablet:mb-[50px]',
           )}>Total asset</div>
-          <div className="flex items-start gap-2 tablet:w-[350px]">
+          <div className="flex items-start gap-2 tablet:w-auto">
             <img
               src={avatarUrl}
               alt="avatar"
@@ -112,18 +112,30 @@ export function Summary() {
                 'text-white font-bold font-["Asap"] flex items-center gap-4',
                 'text-[20px] tablet:text-[40px] tablet:leading-none',
               )}>
-                <span className="flex items-center">
-                  {hideTotalAsset ? '******' : `$${totalAsset?.formatted || ''} USD`}
-                </span>
-                <img 
-                  src={hideTotalAsset ? '/imgs/icons/close_eye.svg' : '/imgs/icons/open_eye.svg'}
-                  alt="" 
-                  className={cn(
-                    'w-[30px] h-[30px]',
-                    'cursor-pointer',
-                  )}
-                  onClick={handleOpenEye}
-                />
+                {
+                  hideTotalAsset ? (
+                    <div className="flex gap-4">
+                      ******
+                      <img 
+                        src={'/imgs/icons/close_eye.svg'}
+                        className="w-[30px] h-[30px] cursor-pointer"
+                        onClick={handleOpenEye}
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex flex-wrap gap-2">
+                      ${totalAsset?.formatted || ''}
+                      <div className="flex items-center gap-4">
+                        USD
+                        <img 
+                          src={'/imgs/icons/open_eye.svg'}
+                          className="w-[30px] h-[30px] cursor-pointer"
+                          onClick={handleOpenEye}
+                        />
+                      </div>
+                    </div>
+                  )
+                }
               </div>
             </div>
           </div>
