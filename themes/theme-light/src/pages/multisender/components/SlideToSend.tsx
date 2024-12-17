@@ -8,6 +8,8 @@ interface SlideToSendProps extends React.HTMLAttributes<HTMLDivElement> {
   loading?: boolean
 }
 
+const TRACK_INNER_WIDTH = 337
+
 export function SlideToSend({
   className,
   onSuccess,
@@ -21,37 +23,37 @@ export function SlideToSend({
   const trackRef = useRef<HTMLDivElement>(null)
   const thumbRef = useRef<HTMLDivElement>(null)
 
-  const handleMouseDown = (e: React.MouseEvent) => {
+  const handleDragStart = (clientX: number, e?: TouchEvent | MouseEvent) => {
     if (disabled || loading) return
+    e?.preventDefault()
     setIsDragging(true)
   }
 
-  const handleMouseMove = (e: MouseEvent) => {
+  const handleDragMove = (clientX: number) => {
     if (!isDragging || !trackRef.current || !thumbRef.current) return
 
     const track = trackRef.current
     const thumb = thumbRef.current
     const trackRect = track.getBoundingClientRect()
 
-    let newPosition = e.clientX - trackRect.left - thumb.offsetWidth / 2
+    let newPosition = clientX - trackRect.left - thumb.offsetWidth / 2
 
-    if (e.clientX - trackRect.left < thumb.offsetWidth / 2) {
+    if (clientX - trackRect.left < thumb.offsetWidth / 2) {
       setPosition(0)
       return
     }
 
-    if (newPosition + thumb.offsetWidth >= 379) {
-      newPosition = 379 - thumb.offsetWidth
+    if (newPosition + thumb.offsetWidth >= TRACK_INNER_WIDTH) {
+      newPosition = TRACK_INNER_WIDTH - thumb.offsetWidth
       setSuccess(true)
       setIsDragging(false)
       onSuccess?.()
     }
 
     setPosition(newPosition)
-
   }
 
-  const handleMouseUp = () => {
+  const handleDragEnd = () => {
     if (!success) {
       setPosition(0)
     }
@@ -59,13 +61,24 @@ export function SlideToSend({
   }
 
   useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => handleDragMove(e.clientX)
+    const handleTouchMove = (e: TouchEvent) => {
+      e.preventDefault()
+      handleDragMove(e.touches[0].clientX)
+    }
+
     if (isDragging) {
       window.addEventListener('mousemove', handleMouseMove)
-      window.addEventListener('mouseup', handleMouseUp)
+      window.addEventListener('mouseup', handleDragEnd)
+      window.addEventListener('touchmove', handleTouchMove, { passive: false })
+      window.addEventListener('touchend', handleDragEnd)
     }
+
     return () => {
       window.removeEventListener('mousemove', handleMouseMove)
-      window.removeEventListener('mouseup', handleMouseUp)
+      window.removeEventListener('mouseup', handleDragEnd)
+      window.removeEventListener('touchmove', handleTouchMove)
+      window.removeEventListener('touchend', handleDragEnd)
     }
   }, [isDragging])
 
@@ -80,17 +93,19 @@ export function SlideToSend({
     <div
       ref={trackRef}
       className={cn(
-        "relative w-[379px] h-[42px] rounded-full ring-1 ring-[#e0e0e0] ring-offset-[3px] cursor-pointer select-none",
+        "relative h-[42px] rounded-full ring-1 ring-[#e0e0e0] ring-offset-[3px] cursor-pointer select-none touch-none",
         disabled && "cursor-not-allowed",
         className
       )}
+      style={{ width: `${TRACK_INNER_WIDTH}px` }}
       {...props}
     >
       <div
-        className="absolute left-0 h-[42px] bg-black rounded-full"
-        style={{ 
-          width: `${position + 42}px` 
-        }}
+        className={cn(
+          "absolute left-0 h-[42px] bg-black rounded-full",
+          disabled && "bg-[#f2f2f2]"
+        )}
+        style={{ width: `${position + 42}px` }}
       />
 
       <div
@@ -101,7 +116,8 @@ export function SlideToSend({
           disabled && "bg-[#f2f2f2]"
         )}
         style={{ transform: `translate(${position}px, -50%)` }}
-        onMouseDown={handleMouseDown}
+        onMouseDown={(e) => handleDragStart(e.clientX)}
+        onTouchStart={(e) => handleDragStart(e.touches[0].clientX)}
       >
         <ChevronsRight className={cn("w-[20px] h-[20px] text-white")} />
       </div>

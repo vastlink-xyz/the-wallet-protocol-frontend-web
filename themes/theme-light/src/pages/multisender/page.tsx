@@ -1,29 +1,19 @@
 import { Button } from "@/components/ui/button";
-import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Textarea } from "@/components/ui/textarea";
-import { cn, symbolByToken } from "@/lib/utils";
-import { TokenFactory } from "@/services/TokenService";
+import { cn } from "@/lib/utils";
 import { TokenType } from "@/types/tokens";
 import { Tooltip } from "antd";
 import { InfoIcon, PlusIcon } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { SlideToSend } from "./components/SlideToSend";
-const tokenTypes = TokenFactory.getInstance().getAllTokenTypes()
+import { ToInput } from "./components/ToInput";
+import { NoteArea } from "./components/NoteArea";
+import { DeleteIcon } from "./components/DeleteIcon";
+import { TokenDropdownMenu } from "./components/TokenDropdownMenu";
+import { ExitPromptModal } from "./components/ExitPromptModal";
+import { useNavigationGuard } from "@/hooks/useNavigationGuard";
 
-const tokenImageByType = (type: TokenType) => {
-  if (type === 'TVWT') {
-    return '/imgs/logos/tvwt.png'
-  } else if (type === 'ETH') {
-    return '/imgs/logos/eth.png'
-  } else if (type === 'MATIC') {
-    return '/imgs/logos/matic.png'
-  }
-}
-
-interface Transfer {
+export interface Transfer {
   to: string;
   note: string;
   amount: string;
@@ -39,7 +29,19 @@ export default function MultisenderPage() {
   },
   ]);
 
-  const [loading, setLoading] = useState(false);
+  const [sending, setSending] = useState(false);
+
+  const isDisabled = useMemo(() => {
+    return transfers.some(t => !t.to || !t.amount);
+  }, [transfers]);
+
+  const hasContent = useMemo(() => {
+    return transfers.some(t => t.to || t.note || t.amount);
+  }, [transfers]);
+
+  const { showExitPrompt, handleExitPrompt } = useNavigationGuard({
+    shouldBlock: hasContent
+  });
 
   const handleToChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
     const newTransfers = [...transfers];
@@ -66,17 +68,36 @@ export default function MultisenderPage() {
   };
 
   const handleSend = async () => {
-    setLoading(true);
+    setSending(true);
     try {
       // TODO: send
       await new Promise(resolve => setTimeout(resolve, 2000));
     } finally {
-      setLoading(false);
+      setSending(false);
     }
   };
 
+  const handleAddTransfer = () => {
+    const newTransfer: Transfer = {
+      to: "",
+      note: "",
+      amount: '',
+      token: "TVWT",
+    };
+    
+    setTransfers([...transfers, newTransfer]);
+  }
+
+  const handleDeleteTransfer = (index: number) => {
+    const newTransfers = transfers.filter((_, i) => i !== index);
+    setTransfers(newTransfers);
+  };
+
   return (
-    <div className="pt-[76px] w-[985px] mx-auto pb-[320px]">
+    <div className={cn(
+      "pt-[76px] mx-auto pb-[320px]",
+      'w-[343px] tablet:w-[722px] laptop:w-[913px] desktop:w-[985px]',
+    )}>
       <header className="text-center">
         <p className="text-[32px] text-[#111] font-bold leading-tight mb-[16px]">
           Multisender
@@ -86,77 +107,121 @@ export default function MultisenderPage() {
         </p>
       </header>
 
-      <Table className="mt-[40px]">
-        <TableHeader className="bg-[#fafafa] [&_tr:first-child_th:first-child]:rounded-tl-xl [&_tr:first-child_th:last-child]:rounded-tr-xl">
-          <TableRow className="hover:bg-transparent">
-            <TableHead className="h-[42px]">To</TableHead>
-            <TableHead className="h-[42px]">Notes</TableHead>
-            <TableHead className="h-[42px]">Amount</TableHead>
-          </TableRow>
-        </TableHeader>
+      <div className="mt-[40px]">
+        <header className={cn(
+          "flex items-center bg-[#fafafa] rounded-tl-xl rounded-tr-xl",
+          "h-[42px] pl-[28px] pr-[23px]",
+          'text-black/90 text-xs font-normal leading-snug',
+          'desktop:gap-[28px] laptop:gap-[23px]',
+        )}>
+          <div className="desktop:w-[382px] laptop:w-[318px]">To</div>
+          <div className="desktop:w-[308px] laptop:w-[299px] hidden laptop:block">Notes</div>
+          <div className="flex-1 text-right hidden tablet:block">Amount</div>
+        </header>
 
-        <TableBody>
+        <div className="">
           {
             transfers.map((transfer, index) => {
               return (
-                <TableRow key={index} className="hover:bg-transparent">
-                  <TableCell className="flex items-center gap-[12px]">
-                    <span>{index + 1}.</span>
-                    <Input
-                      value={transfer.to}
-                      onChange={(e) => handleToChange(e, index)}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Textarea
-                      rows={1}
-                      value={transfer.note}
-                      onChange={(e) => handleNoteChange(e, index)}
-                      className="min-h-[40px] focus-visible:ring-0 focus-visible:border focus-visible:border-black placeholder:text-black/25"
-                    />
-                  </TableCell>
-                  <TableCell className="relative">
-                    <Input
-                      value={transfer.amount}
-                      onChange={(e) => handleAmountChange(e, index)}
-                      className={cn(
-                        "pl-[100px] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
-                        transfer.token === 'ETH' &&'pl-[134px]',
-                        transfer.token === 'MATIC' &&'pl-[90px]',
-                      )}
-                    />
-                    <div className="absolute left-7 top-1/2 -translate-y-1/2 flex items-center">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger className="flex items-center gap-[6px] px-0 py-1">
-                          <img className="w-[16px] h-[16px]" src={tokenImageByType(transfer.token)} alt="" />
-                          <span className="font-medium text-sm">{symbolByToken(transfer.token)}</span>
-                          <img src="/imgs/icons/down_caret.svg" alt="" />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start" className="bg-white">
-                          {
-                            tokenTypes.map((type) => {
-                              return (
-                                <DropdownMenuItem
-                                  key={type}
-                                  onClick={() => handleTokenTypeChange(type, index)}
-                                  className="flex items-center gap-[6px]">
-                                  <img className="w-[16px] h-[16px]" src={tokenImageByType(type)} alt="" />
-                                  <span className="font-medium text-sm">{symbolByToken(type)}</span>
-                                </DropdownMenuItem>
-                              );
-                            })
-                          }
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                      {/* <div className="h-[16px] border-r border-[#dbdbdb] mx-[12px]"></div> */}
+                <div key={index} className="border-b border-[#ebebeb]">
+                  <div
+                    className={cn(
+                      "flex items-center flex-wrap py-[25px]",
+                      'desktop:gap-[28px] laptop:gap-[23px] tablet:gap-[7px] gap-0',
+                    )}
+                  >
+                    {/* To */}
+                    <section>
+                      <ToInput
+                        index={index}
+                        transfer={transfer}
+                        handleToChange={handleToChange}
+                      />
+                    </section>
+
+                    {/* Notes */}
+                    <section className={cn(
+                      "block tablet:hidden laptop:block",
+                      'pl-[22px] tablet:pl-0',
+                      'py-[12px] tablet:py-0',
+                    )}>
+                      <NoteArea
+                        index={index}
+                        transfer={transfer}
+                        handleNoteChange={handleNoteChange}
+                      />
+                    </section>
+
+                    {/* Amount */}
+                    <section className={cn(
+                      "relative",
+                      'ml-[22px] tablet:ml-0',
+                    )}>
+                      <Input
+                        value={transfer.amount}
+                        onChange={(e) => handleAmountChange(e, index)}
+                        className={cn(
+                          "pl-[110px] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
+                          transfer.token === 'ETH' &&'pl-[144px]',
+                          transfer.token === 'MATIC' &&'pl-[100px]',
+                          'desktop:w-[219px] laptop:w-[228px] tablet:w-[265px] w-[216px]',
+                        )}
+                        placeholder="Amount"
+                      />
+                      <div className="absolute left-[12px] top-1/2 -translate-y-1/2 flex items-center">
+                        <TokenDropdownMenu
+                          index={index}
+                          transfer={transfer}
+                          handleTokenTypeChange={handleTokenTypeChange}
+                        />
+                      </div>
+                      {/* Delete button */}
+                      <div className={cn(
+                        "absolute top-1/2 -translate-y-1/2",
+                        'laptop:-right-[33px] -right-[102px]',
+                        'block tablet:hidden laptop:block',
+                        transfers.length === 1 && "hidden laptop:hidden",
+                      )}>
+                        <DeleteIcon
+                          index={index}
+                          handleDeleteTransfer={handleDeleteTransfer}
+                        />
+                      </div>
+                    </section>
+                  </div>
+
+                  <div
+                    className={cn(
+                      "items-center justify-between gap-[22px]",
+                      'hidden tablet:flex laptop:hidden',
+                      'pb-[25px]',
+                    )}
+                  >
+                    {/* Notes */}
+                    <section className="pl-[22px] flex-1">
+                      <NoteArea
+                        index={index}
+                        transfer={transfer}
+                        handleNoteChange={handleNoteChange}
+                      />
+                    </section>
+
+                    {/* Delete button */}
+                    <div className={cn(
+                      transfers.length === 1 && "hidden",
+                    )}>
+                      <DeleteIcon
+                        index={index}
+                        handleDeleteTransfer={handleDeleteTransfer}
+                      />
                     </div>
-                  </TableCell>
-                </TableRow>
+                  </div>
+                </div>
               )
             })
           }
-        </TableBody>
-      </Table>
+        </div>
+      </div>
 
       <div className="flex items-center justify-end gap-[12px] mt-[24px]">
         <Button
@@ -166,6 +231,7 @@ export default function MultisenderPage() {
         <Button
           variant="outline"
           className="h-[24px] text-xs px-[26px]"
+          onClick={handleAddTransfer}
         >
           <PlusIcon className="w-[12px] h-[12px]" strokeWidth={3} />
         </Button>
@@ -193,8 +259,8 @@ export default function MultisenderPage() {
         <div className="mt-[104px]">
           <SlideToSend
             onSuccess={handleSend}
-            loading={loading}
-            disabled={transfers.some(t => !t.to || !t.amount)}
+            loading={sending}
+            disabled={isDisabled}
             className="mx-auto"
           />
           <div className="flex items-center justify-center mt-[26px]">
@@ -202,6 +268,11 @@ export default function MultisenderPage() {
           </div>
         </div>
       </div>
+
+      <ExitPromptModal
+        isOpen={showExitPrompt}
+        onClose={handleExitPrompt}
+      />
     </div>
   );
 }
