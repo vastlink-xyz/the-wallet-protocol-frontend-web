@@ -1,27 +1,36 @@
 import { Input } from "@/components/ui/input";
-import { Transfer } from "../page";
+import { Transfer } from "../useMultisender";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
-import { useTranslation } from "react-i18next";
 import { AlertCircle, CircleCheck, Loader } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
+export interface ToInputValidationState {
+  isValidating: boolean;
+  isValidEmail: boolean;
+  fullAddress: string;
+  error: string;
+}
 
 export function ToInput({
   index,
   transfer,
+  validation: {
+    isValidating,
+    isValidEmail,
+    fullAddress,
+    error
+  },
   handleToChange,
+  handleToBlur,
 }: {
-  index: number
-  transfer: Transfer
-  handleToChange: (e: React.ChangeEvent<HTMLInputElement>, index: number) => void
+  index: number;
+  transfer: Transfer;
+  validation: ToInputValidationState;
+  handleToChange: (e: React.ChangeEvent<HTMLInputElement>, index: number) => void;
+  handleToBlur: (index: number) => void;
 }) {
-  const { t } = useTranslation()
-  const mockError = t('/dashboard.[token].sendModal.unregisteredEmailNotice')
-
-  const [isValidEmail, setIsValidEmail] = useState(true);
-  const [error, setError] = useState('');
-  const [isValidating, setIsValidating] = useState(false);
-  const [fullAddress, setFullAddress] = useState('0xfewfewf');
+  const { t } = useTranslation();
+  const unregisteredEmailNotice = t('/dashboard.[token].sendModal.unregisteredEmailNotice');
 
   return (
     <div className={cn(
@@ -32,16 +41,17 @@ export function ToInput({
       <Input
         value={transfer.to}
         onChange={(e) => handleToChange(e, index)}
+        onBlur={() => handleToBlur(index)}
         placeholder="Enter email or crypto address"
         className={cn(
           "desktop:w-[380px] laptop:w-[318px] tablet:w-[426px] w-[322px]",
-          isValidEmail && "border-green-500",
-          error && "border-destructive",
-          error === t('/dashboard.[token].sendModal.unregisteredEmailNotice') && 'border-blue-500',
+          isValidEmail && "border-green-500 focus-visible:border-green-500",
+          error && "border-destructive focus-visible:border-destructive",
+          error === unregisteredEmailNotice && 'border-blue-500 focus-visible:border-blue-500',
           "pr-10"
         )}
       />
-      {(isValidating) && (
+      {isValidating && (
         <div className="absolute right-3 top-1/2 -translate-y-1/2">
           <Loader className="animate-spin" size={16} />
         </div>
@@ -52,20 +62,24 @@ export function ToInput({
       {error && !isValidating && (
         <AlertCircle className={cn(
           "absolute right-3 top-1/2 transform -translate-y-1/2 text-destructive",
-          error === t('/dashboard.[token].sendModal.unregisteredEmailNotice') && 'text-blue-500'
+          error === unregisteredEmailNotice && 'text-blue-500'
         )} size={16} />
       )}
 
       {/* information under input */}
       {isValidEmail && fullAddress && (
-        <p className="absolute -bottom-[20px] left-[22px] mt-1 text-xs text-primary/60">{fullAddress}</p>
+        <p className="absolute -bottom-[20px] left-[22px] mt-1 text-xs text-primary/60">
+          {fullAddress}
+        </p>
       )}
       {error && (
         <p className={cn(
           "absolute -bottom-[20px] left-[22px] text-xs text-destructive",
-          error === t('/dashboard.[token].sendModal.unregisteredEmailNotice') && 'text-blue-400'
-        )}>{error}</p>
+          error === unregisteredEmailNotice && 'text-blue-400'
+        )}>
+          {error}
+        </p>
       )}
     </div>
-  )
+  );
 }

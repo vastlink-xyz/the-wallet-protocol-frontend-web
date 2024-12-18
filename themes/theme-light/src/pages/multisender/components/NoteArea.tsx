@@ -1,6 +1,6 @@
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { Transfer } from "../page";
+import { Transfer } from "../useMultisender";
 
 export function NoteArea({
   index,

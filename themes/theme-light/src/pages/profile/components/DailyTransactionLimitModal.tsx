@@ -14,7 +14,7 @@ import { useTokenBalance } from "@/hooks/useTokenBalance";
 interface TokenConfig {
   type: 'ETH' | 'MATIC' | 'TVWT';
   balance: string;
-  todayTransferred?: number;
+  todayTransferred?: string;
 }
 
 export interface TokenLimit {
@@ -27,10 +27,10 @@ interface TokenPrices {
   TVWT: string;
 }
 
-interface TokenTransferred {
-  ETH: number;
-  MATIC: number;
-  TVWT: number;
+export interface TokenTransferred {
+  ETH: string;
+  MATIC: string;
+  TVWT: string;
 }
 
 export function DailyTransactionLimitModal({
@@ -83,9 +83,9 @@ export function DailyTransactionLimitModal({
   };
 
   const tokens: TokenConfig[] = useMemo(() => [
-    { type: 'ETH', balance: ethBalance?.balance || '0', todayTransferred: tokenTransferred?.ETH || 0 },
-    { type: 'MATIC', balance: maticBalance?.balance || '0', todayTransferred: tokenTransferred?.MATIC || 0 },
-    { type: 'TVWT', balance: tvwtBalance?.balance || '0', todayTransferred: tokenTransferred?.TVWT || 0 },
+    { type: 'ETH', balance: ethBalance?.balance || '0', todayTransferred: tokenTransferred?.ETH || '0' },
+    { type: 'MATIC', balance: maticBalance?.balance || '0', todayTransferred: tokenTransferred?.MATIC || '0' },
+    { type: 'TVWT', balance: tvwtBalance?.balance || '0', todayTransferred: tokenTransferred?.TVWT || '0' },
   ], [ethBalance, maticBalance, tvwtBalance, tokenTransferred]);
 
   const handleLimitChange = (type: keyof TokenLimit, value: string) => {
@@ -144,7 +144,7 @@ export function DailyTransactionLimitModal({
     }
   };
 
-  const formatTransactionAmount = (amount: number): string => {
+  const formatTransactionAmount = (amount: string): string => {
     if (amount === undefined || amount === null) {
       return '0';
     }
@@ -204,7 +204,7 @@ export function DailyTransactionLimitModal({
           <div className="mt-3 bg-black/5 border-black/10 rounded-[8px] py-3 px-4 flex items-center gap-2.5">
             <img src="/imgs/icons/information_filled.svg" width={16} height={16} alt="" />
             <p className="text-black text-xs font-normal leading-none">
-              {loading ? '' : `You've transferred ${formatTransactionAmount(token.todayTransferred ?? 0)} ${symbolByToken(token.type)} today`}
+              {loading ? '' : `You've transferred ${formatTransactionAmount(token.todayTransferred ?? '0')} ${symbolByToken(token.type)} today`}
             </p>
           </div>
         </div>

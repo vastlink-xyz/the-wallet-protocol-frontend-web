@@ -1,7 +1,7 @@
 import { ERC20_TVWT_ABI } from "@/abis/TheVastWalletToken";
 import { TokenType } from "@/types/tokens";
 import { CHAIN_NAMESPACES, CustomChainConfig } from "@web3auth/base";
-import { http, createPublicClient, Address, encodeFunctionData, formatEther } from "viem";
+import { http, createPublicClient, Address, encodeFunctionData, formatEther, Block } from "viem";
 import { sepolia, polygonAmoy } from "viem/chains";
 
 const erc20Abi = ERC20_TVWT_ABI;
@@ -68,14 +68,22 @@ export function viemChainByToken(tokenType: TokenType) {
   }
 }
 
-export async function getEstimatedGasFeeByToken(
+export async function getEstimatedGasFeeByToken({
+  tokenType,
+  transferParams,
+  fromAddress,
+  defaultGasPrice,
+  defaultBlock
+}: {
   tokenType: TokenType,
   transferParams: {
     to: Address,
     amount: bigint,
   },
-  fromAddress: Address
-) {
+  fromAddress: Address,
+  defaultGasPrice?: bigint,
+  defaultBlock?: Block
+}) {
   try {
     const chain = viemChainByToken(tokenType);
     if (!chain) return null;
@@ -126,8 +134,8 @@ export async function getEstimatedGasFeeByToken(
       });
       
       // 2. Get current gas price information
-      const gasPrice = await publicClient.getGasPrice();
-      const block = await publicClient.getBlock();
+      const gasPrice = defaultGasPrice || await publicClient.getGasPrice();
+      const block = defaultBlock || await publicClient.getBlock();
       const baseFee = block.baseFeePerGas || BigInt(0);
       
       // 3. Calculate gas fee components
@@ -158,6 +166,69 @@ export async function getEstimatedGasFeeByToken(
     }
   } catch (error) {
     console.error('Transaction error:', error);
+    throw error;
+  }
+}
+
+export async function getEstimatedBatchGasFeeByToken(
+  tokenType: TokenType,
+  transferParamsList: Array<{
+    to: Address,
+    amount: bigint,
+  }>,
+  fromAddress: Address
+) {
+  try {
+    // get gas fee for the first transfer
+    const firstEstimation = await getEstimatedGasFeeByToken({
+      tokenType,
+      transferParams: transferParamsList[0],
+      fromAddress,
+    });
+
+    if (!firstEstimation) return null;
+
+    // use same gasPrice and block info to calculate other transactions
+    const estimations = await Promise.all(
+      transferParamsList.map(params =>
+        getEstimatedGasFeeByToken({
+          tokenType,
+          transferParams: params,
+          fromAddress,
+          defaultGasPrice: firstEstimation.gasPrice,
+          defaultBlock: { baseFeePerGas: firstEstimation.baseFee } as Block
+        })
+      )
+    );
+
+    // sum up all transactions' gas fee
+    const totalEstimatedGas = estimations.reduce(
+      (sum, est) => est ? sum + est.estimatedGas : sum,
+      BigInt(0)
+    );
+
+    const totalEstimatedFee = estimations.reduce(
+      (sum, est) => est ? sum + est.estimatedTotalFee : sum,
+      BigInt(0)
+    );
+
+    const feeInTokens = formatDecimal(
+      (Number(totalEstimatedFee) / Math.pow(10, 18)).toString()
+    );
+
+    return {
+      estimatedGas: totalEstimatedGas,
+      maxFeePerGas: firstEstimation.maxFeePerGas,
+      maxPriorityFeePerGas: firstEstimation.maxPriorityFeePerGas,
+      estimatedTotalFee: totalEstimatedFee,
+      baseFee: firstEstimation.baseFee,
+      gasPrice: firstEstimation.gasPrice,
+      feeInTokens,
+      transactionCount: transferParamsList.length
+    };
+
+  } catch (error) {
+    console.error('Batch transaction gas estimation error:', error);
     throw error;
   }
 }

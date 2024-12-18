@@ -374,10 +374,14 @@ export function SendModal({
       setIsEstimatingFee(true)
       try {
         log('checkEstimatedFee', amount)
-        const fee = await getEstimatedGasFeeByToken(currentTokenType, {
-          to: address,
-          amount: parseEther(amount),
-        }, address)
+        const fee = await getEstimatedGasFeeByToken({
+          tokenType: currentTokenType,
+          transferParams: {
+            to: address,
+            amount: parseEther(amount),
+          },
+          fromAddress: address
+        })
         if (fee) {
           setEstimatedFee(fee.feeInTokens.toString())
         } else {

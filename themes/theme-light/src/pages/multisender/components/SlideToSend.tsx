@@ -1,5 +1,5 @@
-import { cn, log } from "@/lib/utils"
-import { ChevronsRight, LoaderCircle, SplineIcon } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { ChevronsRight, LoaderCircle } from "lucide-react"
 import { useState, useRef, useEffect } from "react"
 
 interface SlideToSendProps extends React.HTMLAttributes<HTMLDivElement> {

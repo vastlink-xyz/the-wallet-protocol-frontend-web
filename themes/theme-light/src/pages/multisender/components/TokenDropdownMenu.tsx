@@ -4,7 +4,7 @@ import { DropdownMenu } from "@/components/ui/dropdown-menu";
 import { symbolByToken } from "@/lib/utils";
 import { TokenFactory } from "@/services/TokenService";
 import { TokenType } from "@/types/tokens";
-import { Transfer } from "../page";
+import { Transfer } from "../useMultisender";
 
 
 const tokenImageByType = (type: TokenType) => {
@@ -29,7 +29,7 @@ export function TokenDropdownMenu({
   transfer: Transfer
 }) {
   return <DropdownMenu>
-  <DropdownMenuTrigger className="flex items-center gap-[6px] px-0 py-1">
+  <DropdownMenuTrigger className="flex items-center gap-[6px] px-0 py-1 focus:outline-none">
     <img className="w-[16px] h-[16px]" src={tokenImageByType(transfer.token)} alt="" />
     <span className="font-medium text-sm">{symbolByToken(transfer.token)}</span>
     <img src="/imgs/icons/down_caret.svg" alt="" />

@@ -1,10 +1,7 @@
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
-import { TokenType } from "@/types/tokens";
-import { Tooltip } from "antd";
-import { InfoIcon, PlusIcon } from "lucide-react";
-import { useState, useMemo } from "react";
+import { cn, symbolByToken } from "@/lib/utils";
+import { InfoIcon, LoaderCircle, PlusIcon } from "lucide-react";
+import { Divider, Tooltip } from "antd";
 import { SlideToSend } from "./components/SlideToSend";
 import { ToInput } from "./components/ToInput";
 import { NoteArea } from "./components/NoteArea";
@@ -12,93 +9,47 @@ import { DeleteIcon } from "./components/DeleteIcon";
 import { TokenDropdownMenu } from "./components/TokenDropdownMenu";
 import { ExitPromptModal } from "./components/ExitPromptModal";
 import { useNavigationGuard } from "@/hooks/useNavigationGuard";
-
-export interface Transfer {
-  to: string;
-  note: string;
-  amount: string;
-  token: TokenType;
-}
+import { TotalAmount, useMultisender } from "./useMultisender";
+import { AmountInput } from "./components/AmountInput";
+import { DailyLimitAlert } from "./components/DailyLimitAlert";
+import { InsufficientBalanceAlert } from "./components/InsufficientBalanceAlert";
+import { TokenType } from "@/types/tokens";
 
 export default function MultisenderPage() {
-  const [transfers, setTransfers] = useState<Transfer[]>([{
-    to: "",
-    note: "",
-    amount: '',
-    token: "TVWT",
-  },
-  ]);
-
-  const [sending, setSending] = useState(false);
-
-  const isDisabled = useMemo(() => {
-    return transfers.some(t => !t.to || !t.amount);
-  }, [transfers]);
-
-  const hasContent = useMemo(() => {
-    return transfers.some(t => t.to || t.note || t.amount);
-  }, [transfers]);
+  const {
+    transfers,
+    toValidations,
+    sending,
+    isDisabled,
+    hasContent,
+    handleToChange,
+    handleToBlur,
+    handleNoteChange,
+    handleAmountChange,
+    handleTokenTypeChange,
+    handleSend,
+    handleAddTransfer,
+    handleDeleteTransfer,
+    totalAmount,
+    tokenBalances,
+    tokenPrices,
+    todayTokenTransferred,
+    defaultLimits,
+    gasFees,
+    isEstimatingFee,
+    hasInsufficientBalance,
+  } = useMultisender();
 
   const { showExitPrompt, handleExitPrompt } = useNavigationGuard({
     shouldBlock: hasContent
   });
-
-  const handleToChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
-    const newTransfers = [...transfers];
-    newTransfers[index].to = e.target.value;
-    setTransfers(newTransfers);
-  };
-
-  const handleNoteChange = (e: React.ChangeEvent<HTMLTextAreaElement>, index: number) => {
-    const newTransfers = [...transfers];
-    newTransfers[index].note = e.target.value;
-    setTransfers(newTransfers);
-  };
-
-  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
-    const newTransfers = [...transfers];
-    newTransfers[index].amount = e.target.value;
-    setTransfers(newTransfers);
-  };
-
-  const handleTokenTypeChange = (type: TokenType, index: number) => {
-    const newTransfers = [...transfers];
-    newTransfers[index].token = type;
-    setTransfers(newTransfers);
-  };
-
-  const handleSend = async () => {
-    setSending(true);
-    try {
-      // TODO: send
-      await new Promise(resolve => setTimeout(resolve, 2000));
-    } finally {
-      setSending(false);
-    }
-  };
-
-  const handleAddTransfer = () => {
-    const newTransfer: Transfer = {
-      to: "",
-      note: "",
-      amount: '',
-      token: "TVWT",
-    };
-    
-    setTransfers([...transfers, newTransfer]);
-  }
-
-  const handleDeleteTransfer = (index: number) => {
-    const newTransfers = transfers.filter((_, i) => i !== index);
-    setTransfers(newTransfers);
-  };
 
   return (
     <div className={cn(
       "pt-[76px] mx-auto pb-[320px]",
       'w-[343px] tablet:w-[722px] laptop:w-[913px] desktop:w-[985px]',
     )}>
-      <header className="text-center">
+      <header className="text-center mb-[40px]">
         <p className="text-[32px] text-[#111] font-bold leading-tight mb-[16px]">
           Multisender
         </p>
@@ -107,7 +58,24 @@ export default function MultisenderPage() {
         </p>
       </header>
 
-      <div className="mt-[40px]">
+      {todayTokenTransferred && (
+        <DailyLimitAlert
+          todayTokenTransferred={todayTokenTransferred}
+          defaultLimits={defaultLimits}
+          totalAmount={totalAmount}
+        />
+      )}
+
+      {tokenPrices && (
+        <InsufficientBalanceAlert
+          tokenBalances={tokenBalances}
+          tokenPrices={tokenPrices}
+          totalAmount={totalAmount}
+          hasInsufficientBalance={hasInsufficientBalance}
+        />
+      )}
+
+      <div>
         <header className={cn(
           "flex items-center bg-[#fafafa] rounded-tl-xl rounded-tr-xl",
           "h-[42px] pl-[28px] pr-[23px]",
@@ -135,7 +103,14 @@ export default function MultisenderPage() {
                       <ToInput
                         index={index}
                         transfer={transfer}
+                        validation={toValidations[index] || {
+                          isValidating: false,
+                          isValidEmail: false,
+                          fullAddress: '',
+                          error: ''
+                        }}
                         handleToChange={handleToChange}
+                        handleToBlur={handleToBlur}
                       />
                     </section>
 
@@ -157,16 +132,10 @@ export default function MultisenderPage() {
                       "relative",
                       'ml-[22px] tablet:ml-0',
                     )}>
-                      <Input
-                        value={transfer.amount}
-                        onChange={(e) => handleAmountChange(e, index)}
-                        className={cn(
-                          "pl-[110px] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
-                          transfer.token === 'ETH' &&'pl-[144px]',
-                          transfer.token === 'MATIC' &&'pl-[100px]',
-                          'desktop:w-[219px] laptop:w-[228px] tablet:w-[265px] w-[216px]',
-                        )}
-                        placeholder="Amount"
+                      <AmountInput
+                        index={index}
+                        transfer={transfer}
+                        handleAmountChange={handleAmountChange}
                       />
                       <div className="absolute left-[12px] top-1/2 -translate-y-1/2 flex items-center">
                         <TokenDropdownMenu
@@ -174,6 +143,7 @@ export default function MultisenderPage() {
                           transfer={transfer}
                           handleTokenTypeChange={handleTokenTypeChange}
                         />
+                        <Divider type="vertical" className="h-[16px]" />
                       </div>
                       {/* Delete button */}
                       <div className={cn(
@@ -237,30 +207,57 @@ export default function MultisenderPage() {
         </Button>
       </div>
 
+      {/* Estimated gas fee */}
       <div className="mt-[120px]">
         <div className="text-[#929292] text-sm font-normal leading-none flex items-center justify-end gap-1">
           <p>Estimated gas fee:</p>
-          <Tooltip title="Estimated fees may vary and will be recalculated during backend checks." overlayStyle={{maxWidth: 'none'}}>
+          <Tooltip title="Estimated fees may vary and will be recalculated during backend checks." overlayStyle={{ maxWidth: 'none' }}>
             <InfoIcon className="w-[16px] h-[16px]" />
           </Tooltip>
         </div>
-        <p className="text-black text-sm font-medium leading-none text-right mt-0.5">
-          $0.00 ETH
-        </p>
+        {
+          isEstimatingFee ? (
+            <span><LoaderCircle className="animate-spin" size={14} /></span>
+          ) : gasFees ? (
+            <p className="text-black text-sm font-medium leading-none text-right mt-0.5">
+              {Object.entries(gasFees)
+                .filter(([token]) => token !== 'usdValue' && gasFees[token as keyof TotalAmount] !== '0')
+                .map(([token, amount], index, array) => (
+                  <span key={token}>
+                    {amount} {symbolByToken(token as TokenType)}
+                    {index < array.length - 1 && ' & '}
+                  </span>
+                ))}
+              {Object.values(gasFees).some(amount => amount !== '0') &&
+                ` (~$${gasFees.usdValue} USD)`}
+            </p>
+          ) : (
+            <span className="text-black">-</span>
+          )
+        }
 
         {/* Total amount */}
         <div className="mt-[16px] text-[#929292] text-sm font-normal leading-none flex items-center justify-end gap-1">
           <p>Total amount:</p>
         </div>
         <p className="text-black text-xl font-medium leading-none text-right mt-0.5">
-          $0.00 ETH
+          {Object.entries(totalAmount)
+            .filter(([token]) => token !== 'usdValue' && totalAmount[token as keyof TotalAmount] !== '0')
+            .map(([token, amount], index, array) => (
+              <span key={token}>
+                {amount} {symbolByToken(token as TokenType)}
+                {index < array.length - 1 && ' & '}
+              </span>
+            ))}
+          {Object.values(totalAmount).some(amount => amount !== '0') &&
+            ` (~$${totalAmount.usdValue} USD)`}
         </p>
 
         <div className="mt-[104px]">
           <SlideToSend
             onSuccess={handleSend}
             loading={sending}
-            disabled={isDisabled}
+            disabled={isDisabled || isEstimatingFee}
             className="mx-auto"
           />
           <div className="flex items-center justify-center mt-[26px]">
