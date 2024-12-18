@@ -20,12 +20,16 @@ export const useTransaction = () => {
     data,
     token='ETH',
     transactionType,
+    isNotifySubmit=true,
+    isNotifyOtp=true,
   }: {
     to: Address;
     amount: string;
     data?: string;
     token: TokenType;
     transactionType: TransactionType;
+    isNotifySubmit?: boolean;
+    isNotifyOtp?: boolean;
   }) => {
     tokenRef.current = TokenFactory.getInstance().createToken(token)
 
@@ -49,10 +53,14 @@ export const useTransaction = () => {
       } = result
 
       if (hash) {
-        notifyTransactionSubmitted(hash)
+        if (isNotifySubmit) {
+          notifyTransactionSubmitted(hash)
+        }
       } else if (needOtp) {
         // need to be verified
-        toast.error(message)
+        if (isNotifyOtp) {
+          toast.error(message)
+        }
       }
 
       return result

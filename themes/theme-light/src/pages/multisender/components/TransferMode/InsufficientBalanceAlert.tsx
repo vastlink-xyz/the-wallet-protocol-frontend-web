@@ -1,7 +1,7 @@
 import { TokenType } from "@/types/tokens";
 import { formatNumberWithCommas, symbolByToken } from "@/lib/utils";
 import { TokenPrices } from "@/hooks/useTokenPrice";
-import { TotalAmount } from "../useMultisender";
+import { TotalAmount } from "./useMultisender";
 
 export function InsufficientBalanceAlert({
   tokenBalances,

@@ -1,15 +1,18 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { TokenType } from "@/types/tokens";
 import { Address, isAddress, parseEther } from "viem";
-import { auth, emailRegex, formatNumberWithCommas, getEstimatedBatchGasFeeByToken, log } from "@/lib/utils";
+import { auth, emailRegex, formatNumberWithCommas, getEstimatedBatchGasFeeByToken, handleError, log } from "@/lib/utils";
 import api from "@/lib/api";
 import { useTranslation } from "react-i18next";
-import { ToInputValidationState } from "@/pages/multisender/components/ToInput";
+import { ToInputValidationState } from "./ToInput";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useTokenBalance } from "@/hooks/useTokenBalance";
 import { useTokenPrice } from "@/hooks/useTokenPrice";
-import { TokenTransferred } from "../profile/components/DailyTransactionLimitModal";
+import { TokenTransferred } from "@/pages/profile/components/DailyTransactionLimitModal";
 import { useDailyWithdrawalLimits } from "@/hooks/useDailyWithdrawalLimits";
+import { useTransaction } from "@/components/VastWalletConnect/useTransaction";
+import { TransactionType } from "@/types/transaction";
+import { toast } from "react-toastify";
 
 export interface Transfer {
   to: string;
@@ -25,6 +28,15 @@ export interface TotalAmount extends Record<TokenType, string> {
 
 export type GasFees = Partial<Record<TokenType, string>> & {
   usdValue?: string;
+}
+
+interface TransferResult {
+  to: string;
+  type: 'transaction' | 'invitation';
+  status: 'sent' | 'failed' | 'pending';
+  statusMessage?: string;
+  amount: string;
+  token: TokenType;
 }
 
 export function useMultisender() {
@@ -54,6 +66,12 @@ export function useMultisender() {
 
   const debouncedTransfers = useDebounce(transfers, 800);
   const debouncedToValidations = useDebounce(toValidations, 800);
+
+  const { signTransaction, waitForTransactionExection } = useTransaction()
+
+  // transfer result mode
+  const [isResultMode, setIsResultMode] = useState(false);
+  const [transferResults, setTransferResults] = useState<TransferResult[]>([]);
 
   // init transfers
   useEffect(() => {
@@ -104,7 +122,7 @@ export function useMultisender() {
     }
   }, [ethBalance, maticBalance, tvwtBalance]);
 
-  const hasInsufficientBalance = useMemo(() => 
+  const hasInsufficientBalance = useMemo(() =>
     Object.entries(totalAmount)
       .filter(([token]) => token !== 'usdValue')
       .some(([token, amount]) => {
@@ -170,7 +188,7 @@ export function useMultisender() {
       validations: debouncedToValidations,
       transfers: debouncedTransfers
     });
-    
+
     // if state is the same, skip calculation
     if (currentState === previousStateRef.current) {
       return;
@@ -411,11 +429,108 @@ export function useMultisender() {
     }
   };
 
+  const isUnregisteredEmail = ({
+    transfer,
+    validation,
+  }: {
+    transfer: Transfer;
+    validation: ToInputValidationState;
+  }) => {
+    return emailRegex.test(transfer.to) && validation?.error === t('/dashboard.[token].sendModal.unregisteredEmailNotice');
+  }
+
+  const handleSingleSend = async (transfer: Transfer, index: number) => {
+    const validation = toValidations[index];
+    const amount = parseEther(transfer.amount).toString();
+    let toAddress: Address;
+    let toEmail: string | undefined;
+
+    if (isAddress(transfer.to)) {
+      // send by address
+      toAddress = transfer.to as Address;
+    } else if (isUnregisteredEmail({ transfer, validation })) {
+      // send register email to unregistered user
+      toEmail = transfer.to;
+      await api.post('/invite/invite-register', {
+        toEmail,
+        from: address,
+        amount,
+        token: transfer.token,
+        note: transfer.note,
+      });
+      toast.success(t('/dashboard.[token].sendModal.emailSentToUnregistered'));
+      return;
+    } else {
+      // send by email
+      toAddress = validation?.fullAddress as Address;
+    }
+
+    const result = await signTransaction({
+      to: toAddress,
+      amount,
+      data: '',
+      token: transfer.token,
+      transactionType: TransactionType.SWAP,
+    })
+
+    return result;
+  }
+
   const handleSend = async () => {
     setSending(true);
+    const results: TransferResult[] = [];
+
     try {
-      // TODO: send
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // send each transfer
+      const transferPromises = transfers.map((transfer, index) =>
+        handleSingleSend(transfer, index)
+          .then((result: any) => {
+            if (isUnregisteredEmail({ transfer, validation: toValidations[index] })) {
+              // unregistered email invitation scenario
+              return {
+                to: transfer.to,
+                type: 'invitation',
+                status: 'sent',
+                statusMessage: 'Sent. The recipient will receive an invitation email to sign up their account.',
+                amount: transfer.amount,
+                token: transfer.token
+              } as TransferResult;
+            } else {
+              // normal transfer scenario
+              return {
+                to: transfer.to,
+                type: 'transaction',
+                status: result?.hash ? 'sent' : 'failed',
+                statusMessage: result?.needOtp ?  'Daily transaction limit exceeded. Please check your email and verify by the OTP.' : 'Sent and received',
+                amount: transfer.amount,
+                token: transfer.token
+              } as TransferResult;
+            }
+          })
+          .catch((error) => {
+            const type = isUnregisteredEmail({ transfer, validation: toValidations[index] }) ? 'invitation' : 'transaction';
+            const errorInfo = handleError(error);
+            return {
+              to: transfer.to,
+              type,
+              status: 'failed',
+              statusMessage: type === 'transaction' ? errorInfo.message : 'Not sent. Please try transferring again.',
+              amount: transfer.amount,
+              token: transfer.token
+            } as TransferResult;
+          })
+      );
+
+      // wait for all transfers to complete
+      const results = await Promise.all(transferPromises);
+
+      setTransferResults(results);
+      setIsResultMode(true);
+
+      // refresh data
+      await fetchTransferred();
+    } catch (error) {
+      console.error('Failed to send transfers:', error);
     } finally {
       setSending(false);
     }
@@ -466,5 +581,8 @@ export function useMultisender() {
     todayTokenTransferred,
     defaultLimits,
     gasFees,
+    isResultMode,
+    transferResults,
+    setIsResultMode,
   };
 }

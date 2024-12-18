@@ -1,6 +1,6 @@
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { Transfer } from "../useMultisender";
+import { Transfer } from './useMultisender';
 
 interface AmountInputProps {
   transfer: Transfer;
