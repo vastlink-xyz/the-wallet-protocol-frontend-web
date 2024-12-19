@@ -16,7 +16,6 @@ const DEFAULT_LIMITS: DailyWithdrawalLimits = {
 };
 
 const fetchDailyWithdrawalLimits = async (): Promise<DailyWithdrawalLimits> => {
-  console.log('fetchDailyWithdrawalLimits')
   const { data } = await api.get('/transaction/default-daily-withdrawal-limits', {
     params: {
       includeUserLimits: true,
