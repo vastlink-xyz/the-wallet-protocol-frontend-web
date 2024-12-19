@@ -23,31 +23,34 @@ export function TokenDropdownMenu({
   handleTokenTypeChange,
   index,
   transfer,
+  sending,
 }: {
   handleTokenTypeChange: (type: TokenType, index: number) => void
   index: number
   transfer: Transfer
+  sending: boolean;
 }) {
   return <DropdownMenu>
-  <DropdownMenuTrigger className="flex items-center gap-[6px] px-0 py-1 focus:outline-none">
-    <img className="w-[16px] h-[16px]" src={tokenImageByType(transfer.token)} alt="" />
-    <span className="font-medium text-sm">{symbolByToken(transfer.token)}</span>
-    <img src="/imgs/icons/down_caret.svg" alt="" />
-  </DropdownMenuTrigger>
-  <DropdownMenuContent align="start" className="bg-white">
-    {
-      tokenTypes.map((type) => {
-        return (
-          <DropdownMenuItem
-            key={type}
-            onClick={() => handleTokenTypeChange(type, index)}
-            className="flex items-center gap-[6px]">
-            <img className="w-[16px] h-[16px]" src={tokenImageByType(type)} alt="" />
-            <span className="font-medium text-sm">{symbolByToken(type)}</span>
-          </DropdownMenuItem>
-        );
-      })
-    }
-  </DropdownMenuContent>
-</DropdownMenu>
+    <DropdownMenuTrigger disabled={sending} className="flex items-center gap-[6px] px-0 py-1 focus:outline-none">
+      <img className="w-[16px] h-[16px]" src={tokenImageByType(transfer.token)} alt="" />
+      <span className="font-medium text-sm">{symbolByToken(transfer.token)}</span>
+      <img src="/imgs/icons/down_caret.svg" alt="" />
+    </DropdownMenuTrigger>
+    <DropdownMenuContent align="start" className="bg-white">
+      {
+        tokenTypes.map((type) => {
+          return (
+            <DropdownMenuItem
+              disabled={sending}
+              key={type}
+              onClick={() => handleTokenTypeChange(type, index)}
+              className="flex items-center gap-[6px]">
+              <img className="w-[16px] h-[16px]" src={tokenImageByType(type)} alt="" />
+              <span className="font-medium text-sm">{symbolByToken(type)}</span>
+            </DropdownMenuItem>
+          );
+        })
+      }
+    </DropdownMenuContent>
+  </DropdownMenu>
 }

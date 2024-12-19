@@ -6,12 +6,15 @@ export function NoteArea({
   index,
   transfer,
   handleNoteChange,
+  sending,
 }: {
   index: number
   transfer: Transfer
   handleNoteChange: (e: React.ChangeEvent<HTMLTextAreaElement>, index: number) => void
+  sending: boolean;
 }) {
   return <Textarea
+    disabled={sending}
     rows={1}
     value={transfer.note}
     onChange={(e) => handleNoteChange(e, index)}

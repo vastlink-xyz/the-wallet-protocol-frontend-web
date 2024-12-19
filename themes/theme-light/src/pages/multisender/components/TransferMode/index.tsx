@@ -126,6 +126,7 @@ export default function MultisenderPage({
                         }}
                         handleToChange={handleToChange}
                         handleToBlur={handleToBlur}
+                        sending={sending}
                       />
                     </section>
 
@@ -139,6 +140,7 @@ export default function MultisenderPage({
                         index={index}
                         transfer={transfer}
                         handleNoteChange={handleNoteChange}
+                        sending={sending}
                       />
                     </section>
 
@@ -151,12 +153,14 @@ export default function MultisenderPage({
                         index={index}
                         transfer={transfer}
                         handleAmountChange={handleAmountChange}
+                        sending={sending}
                       />
                       <div className="absolute left-[12px] top-1/2 -translate-y-1/2 flex items-center">
                         <TokenDropdownMenu
                           index={index}
                           transfer={transfer}
                           handleTokenTypeChange={handleTokenTypeChange}
+                          sending={sending}
                         />
                         <Divider type="vertical" className="h-[16px]" />
                       </div>
@@ -188,6 +192,7 @@ export default function MultisenderPage({
                         index={index}
                         transfer={transfer}
                         handleNoteChange={handleNoteChange}
+                        sending={sending}
                       />
                     </section>
 
@@ -213,6 +218,7 @@ export default function MultisenderPage({
         <Button
           variant="outline"
           className="h-[24px] text-xs"
+          disabled={sending}
           onClick={() => {
             // Find and click the hidden input
             const input = document.querySelector('input[type="file"]');
@@ -234,6 +240,7 @@ export default function MultisenderPage({
           variant="outline"
           className="h-[24px] text-xs px-[26px]"
           onClick={handleAddTransfer}
+          disabled={sending}
         >
           <PlusIcon className="w-[12px] h-[12px]" strokeWidth={3} />
         </Button>

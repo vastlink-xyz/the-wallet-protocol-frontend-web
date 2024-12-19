@@ -22,12 +22,14 @@ export function ToInput({
   },
   handleToChange,
   handleToBlur,
+  sending,
 }: {
   index: number;
   transfer: Transfer;
   validation: ToInputValidationState;
   handleToChange: (e: React.ChangeEvent<HTMLInputElement>, index: number) => void;
   handleToBlur: (index: number) => void;
+  sending: boolean;
 }) {
   const { t } = useTranslation();
   const unregisteredEmailNotice = t('/dashboard.[token].sendModal.unregisteredEmailNotice');
@@ -39,6 +41,7 @@ export function ToInput({
     )}>
       <div className="w-[22px]">{index + 1}.</div>
       <Input
+        disabled={sending}
         value={transfer.to}
         onChange={(e) => handleToChange(e, index)}
         onBlur={() => handleToBlur(index)}

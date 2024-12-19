@@ -6,16 +6,19 @@ interface AmountInputProps {
   transfer: Transfer;
   handleAmountChange: (e: React.ChangeEvent<HTMLInputElement>, index: number) => void;
   index: number;
+  sending: boolean;
 }
 
 export function AmountInput({
   transfer,
+  sending,
   handleAmountChange,
   index,
 }: AmountInputProps) {
   return (
     <>
       <Input
+        disabled={sending}
         value={transfer.amount}
         type="number"
         inputMode="decimal"
