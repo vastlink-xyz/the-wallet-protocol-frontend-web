@@ -119,7 +119,7 @@ export function ResultMode({
 
                 {/* Status */}
                 <p className={cn(
-                  'text-xs text-black font-normal leading-tight',
+                  'text-xs text-black font-normal leading-tight break-all',
                   'desktop:w-[362px] laptop:w-[348px] tablet:w-[252px] w-full',
                   'text-right tablet:text-left',
                   'mb-1 tablet:mb-0',

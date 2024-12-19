@@ -26,7 +26,7 @@ const mockTransferResults: TransferResult[] = [
     to: '0x123',
     type: 'transaction',
     status: 'failed',
-    statusMessage: 'Daily transaction limit exceeded. Please check your email and verify by the OTP.',
+    statusMessage: 'Daily transaction limit exceeded. Please check your 0x56ed57816E32138668ebFf838c9859a583a04c43 email and verify by the OTP.',
     amount: '0.0001',
     token: 'ETH',
   },
