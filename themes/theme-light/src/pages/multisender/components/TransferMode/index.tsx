@@ -174,6 +174,7 @@ export default function MultisenderPage({
                         <DeleteIcon
                           index={index}
                           handleDeleteTransfer={handleDeleteTransfer}
+                          sending={sending}
                         />
                       </div>
                     </section>
@@ -203,6 +204,7 @@ export default function MultisenderPage({
                       <DeleteIcon
                         index={index}
                         handleDeleteTransfer={handleDeleteTransfer}
+                        sending={sending}
                       />
                     </div>
                   </div>

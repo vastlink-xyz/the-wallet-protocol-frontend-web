@@ -2,6 +2,7 @@ import api from "@/lib/api";
 import { emailRegex, erc20Abi, formatDecimal, log, viemChainByToken } from "@/lib/utils";
 import { TokenType } from "@/types/tokens";
 import { Address, Block, createPublicClient, encodeFunctionData, http, isAddress } from "viem";
+import { PromiseCache } from "@/lib/utils/promiseCache";
 
 interface GasEstimationResult {
   estimatedGas: bigint;
@@ -49,6 +50,9 @@ const generateCacheKey = ({
   });
 };
 
+// create a global PromiseCache instance
+const promiseCache = new PromiseCache(5000);
+
 export async function getEstimatedGasFeeByToken({
   tokenType,
   transferParams,
@@ -65,100 +69,102 @@ export async function getEstimatedGasFeeByToken({
   defaultGasPrice?: bigint,
   defaultBlock?: Block
 }) {
-  // generate cache key
   const cacheKey = generateCacheKey({ tokenType, transferParams, fromAddress });
-  
-  // check cache
-  const cached = gasFeeCache.get(cacheKey);
-  if (cached) {
-    return cached.result;
-  }
 
-  try {
-    const chain = viemChainByToken(tokenType);
-    if (!chain) return null;
-
-    const publicClient = createPublicClient({
-      chain,
-      transport: http()
-    });
-
-    // original contract address and transaction object creation logic
-    let contractAddress = undefined;
-    if (tokenType === 'TVWT') {
-      contractAddress = import.meta.env.VITE_TVWT_TOKEN_CONTRACT_ADDRESS as Address;
-      if (!contractAddress) {
-        throw new Error('Invalid token contract address');
-      }
+  return promiseCache.getOrCreate(cacheKey, async () => {
+    // check result cache
+    const cached = gasFeeCache.get(cacheKey);
+    if (cached) {
+      return cached.result;
     }
 
-    let transaction;
-    if (tokenType === 'TVWT') {
-      const data = encodeFunctionData({
-        abi: erc20Abi,
-        functionName: 'transfer',
-        args: [transferParams.to, transferParams.amount]
+    try {
+      const chain = viemChainByToken(tokenType);
+      if (!chain) return null;
+
+      const publicClient = createPublicClient({
+        chain,
+        transport: http()
       });
 
-      transaction = {
-        to: contractAddress!,
-        data,
-        value: BigInt(0)
-      };
-    } else {
-      transaction = {
-        to: transferParams.to,
-        value: transferParams.amount
-      };
-    }
-
-    log('start to call getEstimatedGasFeeByToken', { tokenType, transferParams, fromAddress });
-    // calculate gas fee
-    const estimatedGas = await publicClient.estimateGas({
-      ...transaction,
-      account: fromAddress,
-    });
-    
-    const gasPrice = defaultGasPrice || await publicClient.getGasPrice();
-    const block = defaultBlock || await publicClient.getBlock();
-    const baseFee = block.baseFeePerGas || BigInt(0);
-    
-    const maxPriorityFeePerGas = gasPrice > baseFee 
-      ? gasPrice - baseFee 
-      : BigInt(1000000000);
-    const maxFeePerGas = baseFee + maxPriorityFeePerGas * BigInt(2);
-
-    const estimatedTotalFee = estimatedGas * maxFeePerGas;
-    
-    const feeInTokens = formatDecimal(
-      (Number(estimatedTotalFee) / Math.pow(10, 18)).toString()
-    );
-    
-    const result = {
-      estimatedGas,
-      maxFeePerGas,
-      maxPriorityFeePerGas,
-      estimatedTotalFee,
-      baseFee,
-      gasPrice,
-      feeInTokens,
-    };
-
-    // store to cache
-    gasFeeCache.set(cacheKey, {
-      result,
-      params: {
-        tokenType,
-        transferParams,
-        fromAddress
+      // original contract address and transaction object creation logic
+      let contractAddress = undefined;
+      if (tokenType === 'TVWT') {
+        contractAddress = import.meta.env.VITE_TVWT_TOKEN_CONTRACT_ADDRESS as Address;
+        if (!contractAddress) {
+          throw new Error('Invalid token contract address');
+        }
       }
-    });
 
-    return result;
-  } catch (error) {
-    console.error('Gas estimation error:', error);
-    throw error;
-  }
+      let transaction;
+      if (tokenType === 'TVWT') {
+        const data = encodeFunctionData({
+          abi: erc20Abi,
+          functionName: 'transfer',
+          args: [transferParams.to, transferParams.amount]
+        });
+
+        transaction = {
+          to: contractAddress!,
+          data,
+          value: BigInt(0)
+        };
+      } else {
+        transaction = {
+          to: transferParams.to,
+          value: transferParams.amount
+        };
+      }
+
+      log('start to call getEstimatedGasFeeByToken', { tokenType, transferParams, fromAddress });
+      // calculate gas fee
+      const estimatedGas = await publicClient.estimateGas({
+        ...transaction,
+        account: fromAddress,
+      });
+      
+      const gasPrice = defaultGasPrice || await publicClient.getGasPrice();
+      const block = defaultBlock || await publicClient.getBlock();
+      const baseFee = block.baseFeePerGas || BigInt(0);
+      
+      const maxPriorityFeePerGas = gasPrice > baseFee 
+        ? gasPrice - baseFee 
+        : BigInt(1000000000);
+      const maxFeePerGas = baseFee + maxPriorityFeePerGas * BigInt(2);
+
+      const estimatedTotalFee = estimatedGas * maxFeePerGas;
+      
+      const feeInTokens = formatDecimal(
+        (Number(estimatedTotalFee) / Math.pow(10, 18)).toString()
+      );
+      
+      const result = {
+        estimatedGas,
+        maxFeePerGas,
+        maxPriorityFeePerGas,
+        estimatedTotalFee,
+        baseFee,
+        gasPrice,
+        feeInTokens,
+      };
+
+      // store to cache
+      gasFeeCache.set(cacheKey, {
+        result,
+        params: {
+          tokenType,
+          transferParams,
+          fromAddress
+        }
+      });
+      console.log('Cache updated:', cacheKey);
+
+      return result;
+    } catch (error) {
+      console.error('Gas estimation error:', error);
+      throw error;
+    }
+  });
 }
 
 export const validateCsvData = (data: any[]): { isValid: boolean; error?: string } => {

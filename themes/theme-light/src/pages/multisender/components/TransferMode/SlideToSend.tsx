@@ -22,6 +22,21 @@ export function SlideToSend({
   const [success, setSuccess] = useState(false)
   const trackRef = useRef<HTMLDivElement>(null)
   const thumbRef = useRef<HTMLDivElement>(null)
+  const lastSuccessTimeRef = useRef<number>(0)
+
+  const throttledSuccess = () => {
+    const now = Date.now()
+    if (now - lastSuccessTimeRef.current >= 1000) {
+      lastSuccessTimeRef.current = now
+      setSuccess(true)
+      setIsDragging(false)
+      log('onSuccess')
+      onSuccess?.()
+    } else {
+      setPosition(0)
+      setIsDragging(false)
+    }
+  }
 
   const handleDragStart = (clientX: number, e?: TouchEvent | MouseEvent) => {
     if (disabled || loading) return
@@ -45,10 +60,7 @@ export function SlideToSend({
 
     if (newPosition + thumb.offsetWidth >= TRACK_INNER_WIDTH) {
       newPosition = TRACK_INNER_WIDTH - thumb.offsetWidth
-      setSuccess(true)
-      setIsDragging(false)
-      log('onSuccess')
-      onSuccess?.()
+      throttledSuccess()
     }
 
     setPosition(newPosition)
