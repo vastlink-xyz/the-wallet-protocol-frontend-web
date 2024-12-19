@@ -13,7 +13,7 @@ import { useDailyWithdrawalLimits } from "@/hooks/useDailyWithdrawalLimits";
 import { useTransaction } from "@/components/VastWalletConnect/useTransaction";
 import { TransactionType } from "@/types/transaction";
 import { TransferResult } from "../../page";
-import { getEstimatedGasFeeByToken, validateCsvData } from "./helper";
+import { clearEmailValidationCache, getEstimatedGasFeeByToken, validateCsvData, validateEmailWithCache } from "./helper";
 import Papa from 'papaparse';
 import { toast } from "react-toastify";
 
@@ -75,6 +75,7 @@ export function useMultisender({
 
   // init today's token transferred
   useEffect(() => {
+    clearEmailValidationCache();
     fetchTransferred();
   }, []);
 
@@ -335,9 +336,7 @@ export function useMultisender({
         return;
       }
 
-      const res = await api.get(`/address/`, {
-        params: { email: to }
-      });
+      const res = await validateEmailWithCache(to);
 
       setToValidations(prev => {
         const newValidations = [...prev];

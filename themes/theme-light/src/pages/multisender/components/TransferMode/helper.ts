@@ -1,3 +1,4 @@
+import api from "@/lib/api";
 import { emailRegex, erc20Abi, formatDecimal, log, viemChainByToken } from "@/lib/utils";
 import { TokenType } from "@/types/tokens";
 import { Address, Block, createPublicClient, encodeFunctionData, http, isAddress } from "viem";
@@ -224,3 +225,47 @@ export const validateCsvData = (data: any[]): { isValid: boolean; error?: string
 
   return { isValid: true };
 };
+
+interface EmailValidationCache {
+  data: {
+    success: boolean;
+    address: string;
+  };
+  timestamp: number;
+}
+
+// create email validation cache map
+const emailValidationCache = new Map<string, EmailValidationCache>();
+
+// cache expiry time (ms)
+const EMAIL_CACHE_EXPIRY = 5 * 60 * 1000; // 5 minutes
+
+export async function validateEmailWithCache(email: string) {
+  // check cache
+  const cached = emailValidationCache.get(email);
+  const now = Date.now();
+  
+  if (cached && (now - cached.timestamp < EMAIL_CACHE_EXPIRY)) {
+    // return cache data in the same format as the original API response
+    return {
+      data: cached.data
+    };
+  }
+
+  // call original API
+  const res = await api.get(`/address/`, {
+    params: { email }
+  });
+
+  // update cache
+  emailValidationCache.set(email, {
+    data: res.data,
+    timestamp: now
+  });
+
+  return res;
+}
+
+export function clearEmailValidationCache() {
+  emailValidationCache.clear();
+}
