@@ -9,14 +9,19 @@ import { DeleteIcon } from "./DeleteIcon";
 import { TokenDropdownMenu } from "./TokenDropdownMenu";
 import { ExitPromptModal } from "./ExitPromptModal";
 import { useNavigationGuard } from "@/hooks/useNavigationGuard";
-import { TotalAmount, useMultisender } from "./useMultisender";
+import { GasFees, TotalAmount, useMultisender } from "./useMultisender";
 import { AmountInput } from "./AmountInput";
 import { DailyLimitAlert } from "./DailyLimitAlert";
 import { InsufficientBalanceAlert } from "./InsufficientBalanceAlert";
 import { TokenType } from "@/types/tokens";
 import { useNavigate } from "react-router-dom";
+import { TransferResult } from "../../page";
 
-export default function MultisenderPage() {
+export default function MultisenderPage({
+  onSent,
+}: {
+  onSent: (results: TransferResult[], gasFees: GasFees | null) => void;
+}) {
   const {
     transfers,
     toValidations,
@@ -39,10 +44,10 @@ export default function MultisenderPage() {
     gasFees,
     isEstimatingFee,
     hasInsufficientBalance,
-    isResultMode,
-    setIsResultMode,
-    transferResults,
-  } = useMultisender();
+    handleFileChange,
+  } = useMultisender({
+    onSent,
+  });
 
   const { showExitPrompt, handleExitPrompt } = useNavigationGuard({
     shouldBlock: hasContent
@@ -81,6 +86,7 @@ export default function MultisenderPage() {
           tokenPrices={tokenPrices}
           totalAmount={totalAmount}
           hasInsufficientBalance={hasInsufficientBalance}
+          gasFees={gasFees}
         />
       )}
 
@@ -91,7 +97,7 @@ export default function MultisenderPage() {
           'text-black/90 text-xs font-normal leading-snug',
           'desktop:gap-[28px] laptop:gap-[23px]',
         )}>
-          <div className="desktop:w-[382px] laptop:w-[318px]">To{(transfers.length > 1 && !isResultMode) && `(${transfers.length})`}</div>
+          <div className="desktop:w-[382px] laptop:w-[318px]">To{(transfers.length > 1) && `(${transfers.length})`}</div>
           <div className="desktop:w-[308px] laptop:w-[299px] hidden laptop:block">Notes</div>
           <div className="flex-1 text-right hidden tablet:block">Amount</div>
         </header>
@@ -203,10 +209,27 @@ export default function MultisenderPage() {
       </div>
 
       <div className="flex items-center justify-end gap-[12px] mt-[24px]">
+        <div>
         <Button
           variant="outline"
           className="h-[24px] text-xs"
-        >Import CSV</Button>
+          onClick={() => {
+            // Find and click the hidden input
+            const input = document.querySelector('input[type="file"]');
+            if (input) {
+              (input as HTMLInputElement).click();
+            }
+          }}
+        >
+          <span>Import CSV</span>
+        </Button>
+        <input
+          className="hidden"
+          type="file"
+          accept=".csv"
+          onChange={handleFileChange}
+        />
+      </div>
         <Button
           variant="outline"
           className="h-[24px] text-xs px-[26px]"
@@ -229,14 +252,27 @@ export default function MultisenderPage() {
             <div className="flex items-center justify-end mt-0.5"><LoaderCircle className="animate-spin" size={14} /></div>
           ) : gasFees ? (
             <p className="text-black text-sm font-medium leading-none text-right mt-0.5">
-              {Object.entries(gasFees)
-                .filter(([token]) => token !== 'usdValue' && gasFees[token as keyof TotalAmount] !== '0')
-                .map(([token, amount], index, array) => (
-                  <span key={token}>
-                    {amount} {symbolByToken(token as TokenType)}
-                    {index < array.length - 1 && ' & '}
-                  </span>
-                ))}
+              {(() => {
+                // merge MATIC and TVWT gas fees
+                const mergedFees = Object.entries(gasFees).reduce((acc, [token, amount]) => {
+                  if (token === 'usdValue') return acc;
+                  if (token === 'MATIC' || token === 'TVWT') {
+                    acc['POL'] = (parseFloat(acc['POL'] || '0') + parseFloat(amount)).toString();
+                  } else {
+                    acc[token] = amount;
+                  }
+                  return acc;
+                }, {} as Record<string, string>);
+
+                return Object.entries(mergedFees)
+                  .filter(([_, amount]) => amount !== '0')
+                  .map(([token, amount], index, array) => (
+                    <span key={token}>
+                      {amount} {token}
+                      {index < array.length - 1 && ' & '}
+                    </span>
+                  ));
+              })()}
               {Object.values(gasFees).some(amount => amount !== '0') &&
                 ` (~$${gasFees.usdValue} USD)`}
             </p>
@@ -263,27 +299,12 @@ export default function MultisenderPage() {
         </p>
 
         <div className="mt-[104px]">
-          {isResultMode ? (
-            <div className="flex justify-center gap-4 mt-6">
-              <Button onClick={() => {
-                setIsResultMode(false);
-                // initTransfers();
-              }}>
-                Transfer again
-              </Button>
-              <Button variant="secondary" onClick={() => {
-              }}>
-                OK
-              </Button>
-            </div>
-          ) : (
-            <SlideToSend
-              onSuccess={handleSend}
-              loading={sending}
-              disabled={isDisabled || isEstimatingFee}
-              className="mx-auto"
-            />
-          )}
+          <SlideToSend
+            onSuccess={handleSend}
+            loading={sending}
+            disabled={isDisabled || isEstimatingFee}
+            className="mx-auto"
+          />
           {
             !sending && (
               <div className="flex items-center justify-center mt-[26px]">

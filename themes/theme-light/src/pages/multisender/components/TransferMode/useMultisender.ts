@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { TokenType } from "@/types/tokens";
 import { Address, isAddress, parseEther } from "viem";
-import { auth, emailRegex, formatNumberWithCommas, getEstimatedBatchGasFeeByToken, handleError, log } from "@/lib/utils";
+import { auth, emailRegex, formatDecimal, formatNumberWithCommas, handleError, log } from "@/lib/utils";
 import api from "@/lib/api";
 import { useTranslation } from "react-i18next";
 import { ToInputValidationState } from "./ToInput";
@@ -12,6 +12,9 @@ import { TokenTransferred } from "@/pages/profile/components/DailyTransactionLim
 import { useDailyWithdrawalLimits } from "@/hooks/useDailyWithdrawalLimits";
 import { useTransaction } from "@/components/VastWalletConnect/useTransaction";
 import { TransactionType } from "@/types/transaction";
+import { TransferResult } from "../../page";
+import { getEstimatedGasFeeByToken, validateCsvData } from "./helper";
+import Papa from 'papaparse';
 import { toast } from "react-toastify";
 
 export interface Transfer {
@@ -30,16 +33,11 @@ export type GasFees = Partial<Record<TokenType, string>> & {
   usdValue?: string;
 }
 
-interface TransferResult {
-  to: string;
-  type: 'transaction' | 'invitation';
-  status: 'sent' | 'failed' | 'pending';
-  statusMessage?: string;
-  amount: string;
-  token: TokenType;
-}
-
-export function useMultisender() {
+export function useMultisender({
+  onSent,
+}: {
+  onSent: (results: TransferResult[], gasFees: GasFees | null) => void;
+}) {
   const { address } = auth.all()
   const { t } = useTranslation();
   const { data: ethBalance, isFetched: ethBalanceFetched } = useTokenBalance('ETH')
@@ -62,16 +60,11 @@ export function useMultisender() {
   });
 
   const [gasFees, setGasFees] = useState<GasFees | null>(null);
-  const previousStateRef = useRef<string>('');
 
   const debouncedTransfers = useDebounce(transfers, 800);
   const debouncedToValidations = useDebounce(toValidations, 800);
 
-  const { signTransaction, waitForTransactionExection } = useTransaction()
-
-  // transfer result mode
-  const [isResultMode, setIsResultMode] = useState(false);
-  const [transferResults, setTransferResults] = useState<TransferResult[]>([]);
+  const { signTransaction } = useTransaction()
 
   // init transfers
   useEffect(() => {
@@ -126,11 +119,28 @@ export function useMultisender() {
     Object.entries(totalAmount)
       .filter(([token]) => token !== 'usdValue')
       .some(([token, amount]) => {
-        return parseFloat(amount) > parseFloat(tokenBalances[token as TokenType] || '0')
-      }
-      ),
-    [totalAmount, tokenBalances]
+        const tokenType = token as TokenType;
+        const totalBalance = parseFloat(tokenBalances[tokenType] || '0');
+        const transferAmount = parseFloat(amount);
+        const gasFeeAmount = gasFees && gasFees[tokenType] ? parseFloat(gasFees[tokenType]!) : 0;
+        
+        // total expense = transfer amount + gas fee
+        const totalExpense = transferAmount + gasFeeAmount;
+        
+        return totalExpense > totalBalance;
+      }),
+    [totalAmount, tokenBalances, gasFees]
   );
+
+  const isUnregisteredEmail = ({
+    transfer,
+    validation,
+  }: {
+    transfer: Transfer;
+    validation: ToInputValidationState;
+  }) => {
+    return emailRegex.test(transfer.to) && validation?.error === t('/dashboard.[token].sendModal.unregisteredEmailNotice');
+  }
 
   // check if send button is disabled
   const isDisabled = useMemo(() => {
@@ -139,10 +149,10 @@ export function useMultisender() {
       if (!t.to || !t.amount || !t.token) {
         return true;
       }
-
+      
       // check if address/email is valid
       const validation = toValidations[index];
-      if (validation?.error || validation?.isValidating) {
+      if ((validation?.error && !isUnregisteredEmail({ transfer: t, validation })) || validation?.isValidating) {
         return true;
       }
 
@@ -183,94 +193,76 @@ export function useMultisender() {
   }, [debouncedToValidations, debouncedTransfers]);
 
   const calculateGasFee = useCallback(async () => {
-    // compare state
-    const currentState = JSON.stringify({
-      validations: debouncedToValidations,
-      transfers: debouncedTransfers
-    });
-
-    // if state is the same, skip calculation
-    if (currentState === previousStateRef.current) {
-      return;
-    }
-    previousStateRef.current = currentState;
-
-    // check if send button is disabled
     if (isDisabled) {
       return;
     }
 
-    // filter out valid transfer params
-    const getValidTransferParams = (tokenType: TokenType) => {
-      return debouncedTransfers
-        .filter((t, index) => {
-          const isValid = t.token === tokenType && t.amount && (
-            // case 1: direct address
-            isAddress(t.to) ||
-            // case 2: registered email, has fullAddress
-            (debouncedToValidations[index]?.fullAddress)
-          )
-          return isValid;
-        })
-        .map((t, index) => ({
-          to: isAddress(t.to)
-            ? t.to as Address
-            : debouncedToValidations[index]?.fullAddress as Address,
-          amount: parseEther(t.amount)
-        }));
-    };
-
-    const ethTransferParams = getValidTransferParams('ETH');
-    const maticTransferParams = getValidTransferParams('MATIC');
-    const tvwtTransferParams = getValidTransferParams('TVWT');
-
     setIsEstimatingFee(true);
     try {
       const tokenTypes: TokenType[] = ['ETH', 'MATIC', 'TVWT'];
-      const transferParamsMap = {
-        ETH: ethTransferParams,
-        MATIC: maticTransferParams,
-        TVWT: tvwtTransferParams
+      const newGasFees: GasFees = {};
+
+      const getValidTransferParams = (tokenType: TokenType) => {
+        return debouncedTransfers
+          .filter((t, index) => {
+            const isValid = t.token === tokenType && t.amount && (
+              isAddress(t.to) ||
+              debouncedToValidations[index]?.fullAddress
+            )
+            return isValid;
+          })
+          .map((t, index) => ({
+            to: isAddress(t.to)
+              ? t.to as Address
+              : debouncedToValidations[index]?.fullAddress as Address,
+            amount: parseEther(t.amount)
+          }));
       };
 
+      // calculate gas fee for each token
       for (const token of tokenTypes) {
-        const params = transferParamsMap[token];
+        const params = getValidTransferParams(token);
         if (params.length > 0) {
-          log('start estimating gas fee', token, params);
-          const fee = await getEstimatedBatchGasFeeByToken(token, params, address);
-          if (fee) {
-            setGasFees(prev => ({
-              ...prev,
-              [token]: fee.feeInTokens,
-            }));
+          const estimations = await Promise.all(
+            params.map(param => 
+              getEstimatedGasFeeByToken({
+                tokenType: token,
+                transferParams: param,
+                fromAddress: address,
+              })
+            )
+          );
+
+          // calculate total gas fee
+          const totalFee = estimations.reduce(
+            (sum, est) => est ? sum + parseFloat(est.feeInTokens) : sum,
+            0
+          );
+
+          if (totalFee > 0) {
+            newGasFees[token] = formatDecimal(totalFee.toString());
           }
-        } else {
-          setGasFees(prev => ({
-            ...prev,
-            [token]: undefined
-          }));
         }
       }
 
-      // calculate usd value
-      if (gasFees && tokenPrices) {
-        const ethUsdValue = gasFees.ETH ? parseFloat(gasFees.ETH) * parseFloat(tokenPrices.ETH) : 0;
-        const maticUsdValue = gasFees.MATIC ? parseFloat(gasFees.MATIC) * parseFloat(tokenPrices.MATIC) : 0;
-        const tvwtUsdValue = gasFees.TVWT ? parseFloat(gasFees.TVWT) * parseFloat(tokenPrices.TVWT) : 0;
+      // calculate USD value
+      if (tokenPrices) {
+        const ethUsdValue = newGasFees.ETH ? parseFloat(newGasFees.ETH) * parseFloat(tokenPrices.ETH) : 0;
+        const maticUsdValue = newGasFees.MATIC ? parseFloat(newGasFees.MATIC) * parseFloat(tokenPrices.MATIC) : 0;
+        const tvwtUsdValue = newGasFees.TVWT ? parseFloat(newGasFees.TVWT) * parseFloat(tokenPrices.TVWT) : 0;
 
         const usdValue = ethUsdValue + maticUsdValue + tvwtUsdValue;
-        setGasFees(prev => ({
-          ...prev,
-          usdValue: formatNumberWithCommas(usdValue.toString(), 2)
-        }));
+        newGasFees.usdValue = formatNumberWithCommas(usdValue.toString(), 2);
       }
+
+      setGasFees(newGasFees);
     } catch (error) {
       console.error('Failed to calculate gas fee:', error);
       setGasFees(null);
     } finally {
       setIsEstimatingFee(false);
     }
-  }, [debouncedToValidations, debouncedTransfers, isDisabled]);
+  }, [debouncedToValidations, debouncedTransfers, isDisabled, address, tokenPrices]);
 
   const initTransfers = () => {
     setTransfers([{
@@ -429,19 +421,9 @@ export function useMultisender() {
     }
   };
 
-  const isUnregisteredEmail = ({
-    transfer,
-    validation,
-  }: {
-    transfer: Transfer;
-    validation: ToInputValidationState;
-  }) => {
-    return emailRegex.test(transfer.to) && validation?.error === t('/dashboard.[token].sendModal.unregisteredEmailNotice');
-  }
-
   const handleSingleSend = async (transfer: Transfer, index: number) => {
     const validation = toValidations[index];
-    const amount = parseEther(transfer.amount).toString();
+    const amount = transfer.amount;
     let toAddress: Address;
     let toEmail: string | undefined;
 
@@ -454,11 +436,10 @@ export function useMultisender() {
       await api.post('/invite/invite-register', {
         toEmail,
         from: address,
-        amount,
+        amount: parseEther(amount).toString(),
         token: transfer.token,
         note: transfer.note,
       });
-      toast.success(t('/dashboard.[token].sendModal.emailSentToUnregistered'));
       return;
     } else {
       // send by email
@@ -470,7 +451,11 @@ export function useMultisender() {
       amount,
       data: '',
       token: transfer.token,
-      transactionType: TransactionType.SWAP,
+      transactionType: TransactionType.TRANSFER,
+      note: transfer.note,
+      isNotifySubmit: false,
+      isNotifyOtp: false,
+      isNotifyError: false,
     })
 
     return result;
@@ -478,7 +463,6 @@ export function useMultisender() {
 
   const handleSend = async () => {
     setSending(true);
-    const results: TransferResult[] = [];
 
     try {
       // send each transfer
@@ -491,7 +475,7 @@ export function useMultisender() {
                 to: transfer.to,
                 type: 'invitation',
                 status: 'sent',
-                statusMessage: 'Sent. The recipient will receive an invitation email to sign up their account.',
+                statusMessage: 'Invitation email sent. The recipient will receive an invitation email to sign up their account.',
                 amount: transfer.amount,
                 token: transfer.token
               } as TransferResult;
@@ -510,6 +494,7 @@ export function useMultisender() {
           .catch((error) => {
             const type = isUnregisteredEmail({ transfer, validation: toValidations[index] }) ? 'invitation' : 'transaction';
             const errorInfo = handleError(error);
+            log('handleSend', { errorInfo });
             return {
               to: transfer.to,
               type,
@@ -523,12 +508,7 @@ export function useMultisender() {
 
       // wait for all transfers to complete
       const results = await Promise.all(transferPromises);
-
-      setTransferResults(results);
-      setIsResultMode(true);
-
-      // refresh data
-      await fetchTransferred();
+      onSent(results, gasFees);
     } catch (error) {
       console.error('Failed to send transfers:', error);
     } finally {
@@ -559,6 +539,53 @@ export function useMultisender() {
     setToValidations(toValidations.filter((_, i) => i !== index));
   };
 
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      Papa.parse<string[]>(file, {
+        header: false,
+        complete: (results: Papa.ParseResult<string[]>) => {
+          const validation = validateCsvData(results.data);
+          
+          if (!validation.isValid) {
+            toast.error(validation.error);
+            setTransfers([]);
+            event.target.value = '';
+            return;
+          }
+
+          // skip header and empty rows
+          const transfers: Transfer[] = results.data
+            .slice(1) // skip header
+            .filter(row => row[0] && row[0].trim() !== '') // skip empty rows
+            .map(row => ({
+              to: row[0],
+              note: row[1],
+              token: row[2] as TokenType,
+              amount: row[3],
+              balance: tokenBalances[row[2] as TokenType] || '0',
+            }));
+
+          setTransfers(transfers);
+          
+          // init validation state
+          setToValidations(transfers.map(() => ({
+            isValidating: false,
+            isValidEmail: false,
+            fullAddress: '',
+            error: ''
+          })));
+
+          toast.success('CSV file uploaded successfully');
+        },
+        error: (error: Error) => {
+          toast.error(`Error parsing CSV: ${error.message}`);
+        }
+      });
+    }
+  };
+
+
   return {
     transfers,
     toValidations,
@@ -577,12 +604,10 @@ export function useMultisender() {
     handleSend,
     handleAddTransfer,
     handleDeleteTransfer,
+    handleFileChange,
     totalAmount,
     todayTokenTransferred,
     defaultLimits,
     gasFees,
-    isResultMode,
-    transferResults,
-    setIsResultMode,
   };
 }

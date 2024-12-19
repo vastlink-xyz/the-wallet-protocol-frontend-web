@@ -4,7 +4,7 @@ import { CHAIN_NAMESPACES, CustomChainConfig } from "@web3auth/base";
 import { http, createPublicClient, Address, encodeFunctionData, formatEther, Block } from "viem";
 import { sepolia, polygonAmoy } from "viem/chains";
 
-const erc20Abi = ERC20_TVWT_ABI;
+export const erc20Abi = ERC20_TVWT_ABI;
 
 export const formatDecimal = (amount: string, decimal=6) => parseFloat(amount).toFixed(decimal)
 

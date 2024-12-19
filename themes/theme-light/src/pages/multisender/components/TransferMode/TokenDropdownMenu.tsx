@@ -4,7 +4,7 @@ import { DropdownMenu } from "@/components/ui/dropdown-menu";
 import { symbolByToken } from "@/lib/utils";
 import { TokenFactory } from "@/services/TokenService";
 import { TokenType } from "@/types/tokens";
-import { Transfer } from "../useMultisender";
+import { Transfer } from "./useMultisender";
 
 
 const tokenImageByType = (type: TokenType) => {

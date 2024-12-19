@@ -20,16 +20,20 @@ export const useTransaction = () => {
     data,
     token='ETH',
     transactionType,
+    note,
     isNotifySubmit=true,
     isNotifyOtp=true,
+    isNotifyError=true,
   }: {
     to: Address;
     amount: string;
     data?: string;
     token: TokenType;
     transactionType: TransactionType;
+    note?: string;
     isNotifySubmit?: boolean;
     isNotifyOtp?: boolean;
+    isNotifyError?: boolean;
   }) => {
     tokenRef.current = TokenFactory.getInstance().createToken(token)
 
@@ -44,6 +48,7 @@ export const useTransaction = () => {
         amount: amt,
         token: token,
         transactionType: transactionType,
+        note,
       })
 
       const {
@@ -65,8 +70,12 @@ export const useTransaction = () => {
 
       return result
     } catch (error: unknown) {
-      const errorInfo = handleError(error)
-      toast.error(errorInfo.message)
+      if (isNotifyError) {
+        const errorInfo = handleError(error)
+        toast.error(errorInfo.message)
+      } else {
+        throw error
+      }
     } finally {
       setSending(false);
     }

@@ -1,5 +1,5 @@
 import { Input } from "@/components/ui/input";
-import { Transfer } from "../useMultisender";
+import { Transfer } from "./useMultisender";
 import { cn } from "@/lib/utils";
 import { AlertCircle, CircleCheck, Loader } from "lucide-react";
 import { useTranslation } from "react-i18next";

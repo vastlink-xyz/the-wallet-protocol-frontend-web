@@ -2,8 +2,8 @@ import { DailyTransactionLimitModal, TokenLimit, TokenTransferred } from "@/page
 import { useState } from "react";
 import { formatDecimal, symbolByToken } from "@/lib/utils";
 import { TokenType } from "@/types/tokens";
-import { TotalAmount } from "../useMultisender";
-import { formatEther, parseEther } from "viem";
+import { TotalAmount } from "./useMultisender";
+import { parseEther } from "viem";
 
 export function DailyLimitAlert({
   todayTokenTransferred,

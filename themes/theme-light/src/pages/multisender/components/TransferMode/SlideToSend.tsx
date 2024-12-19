@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils"
+import { cn, log } from "@/lib/utils"
 import { ChevronsRight, LoaderCircle } from "lucide-react"
 import { useState, useRef, useEffect } from "react"
 
@@ -47,6 +47,7 @@ export function SlideToSend({
       newPosition = TRACK_INNER_WIDTH - thumb.offsetWidth
       setSuccess(true)
       setIsDragging(false)
+      log('onSuccess')
       onSuccess?.()
     }
 
