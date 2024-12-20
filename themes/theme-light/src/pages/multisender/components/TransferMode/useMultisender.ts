@@ -49,6 +49,7 @@ export function useMultisender({
 
   const [transfers, setTransfers] = useState<Transfer[]>([]);
   const [toValidations, setToValidations] = useState<ToInputValidationState[]>([]);
+  const [amountRequiredValidations, setAmountRequiredValidations] = useState<boolean[]>([]);
   const [sending, setSending] = useState(false);
   const [isEstimatingFee, setIsEstimatingFee] = useState(false);
 
@@ -282,6 +283,8 @@ export function useMultisender({
       fullAddress: '',
       error: ''
     }]);
+
+    setAmountRequiredValidations([false]);
   }
 
   const validateAddress = async (to: string, index: number) => {
@@ -389,6 +392,15 @@ export function useMultisender({
     validateAddress(transfers[index].to, index);
   };
 
+  const handleAmountBlur = (index: number) => {
+    const value = transfers[index].amount;
+    setAmountRequiredValidations(prev => {
+      const newValidations = [...prev];
+      newValidations[index] = value === '';
+      return newValidations;
+    });
+  };
+
   const handleNoteChange = (e: React.ChangeEvent<HTMLTextAreaElement>, index: number) => {
     const newTransfers = [...transfers];
     newTransfers[index].note = e.target.value;
@@ -400,6 +412,13 @@ export function useMultisender({
     const newTransfers = [...transfers];
     newTransfers[index].amount = value;
     setTransfers(newTransfers);
+    
+    // reset validation state
+    setAmountRequiredValidations(prev => {
+      const newValidations = [...prev];
+      newValidations[index] = false;
+      return newValidations;
+    });
   };
 
   const handleTokenTypeChange = async (type: TokenType, index: number) => {
@@ -532,11 +551,14 @@ export function useMultisender({
       fullAddress: '',
       error: ''
     }]);
+
+    setAmountRequiredValidations([...amountRequiredValidations, false]);
   }
 
   const handleDeleteTransfer = (index: number) => {
     setTransfers(transfers.filter((_, i) => i !== index));
     setToValidations(toValidations.filter((_, i) => i !== index));
+    setAmountRequiredValidations(amountRequiredValidations.filter((_, i) => i !== index));
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -576,6 +598,8 @@ export function useMultisender({
             error: ''
           })));
 
+          setAmountRequiredValidations(transfers.map(() => false));
+
           toast.success('CSV file uploaded successfully');
         },
         error: (error: Error) => {
@@ -609,5 +633,7 @@ export function useMultisender({
     todayTokenTransferred,
     defaultLimits,
     gasFees,
+    handleAmountBlur,
+    amountRequiredValidations,
   };
 }

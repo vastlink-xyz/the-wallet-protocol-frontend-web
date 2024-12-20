@@ -63,7 +63,7 @@ export function TotalAmountComponent({
       </div>
       <p className="text-black text-xl font-medium leading-none text-right mt-0.5">
         {items().map((item, index, array) => (
-          <span>
+          <span key={index}>
             {item.amount} {item.symbol}
             {index < array.length - 1 && ' & '}
           </span>

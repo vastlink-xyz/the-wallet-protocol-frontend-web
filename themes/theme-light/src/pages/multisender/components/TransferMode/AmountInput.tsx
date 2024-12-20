@@ -7,6 +7,8 @@ interface AmountInputProps {
   handleAmountChange: (e: React.ChangeEvent<HTMLInputElement>, index: number) => void;
   index: number;
   sending: boolean;
+  handleAmountBlur: (index: number) => void;
+  isEmpty: boolean;
 }
 
 export function AmountInput({
@@ -14,6 +16,8 @@ export function AmountInput({
   sending,
   handleAmountChange,
   index,
+  handleAmountBlur,
+  isEmpty,
 }: AmountInputProps) {
   return (
     <>
@@ -23,6 +27,7 @@ export function AmountInput({
         type="number"
         inputMode="decimal"
         onChange={(e) => handleAmountChange(e, index)}
+        onBlur={() => handleAmountBlur(index)}
         className={cn(
           "pl-[110px] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
           transfer.token === 'ETH' && 'pl-[144px]',
@@ -31,7 +36,7 @@ export function AmountInput({
         )}
         placeholder="Amount"
         />
-      {!transfer.amount && (
+      {isEmpty && (
         <p className={cn(
           "absolute -bottom-[20px] left-[0] text-xs text-destructive",
         )}>

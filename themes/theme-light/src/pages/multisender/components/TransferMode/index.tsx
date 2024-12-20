@@ -47,6 +47,8 @@ export default function MultisenderPage({
     isEstimatingFee,
     hasInsufficientBalance,
     handleFileChange,
+    handleAmountBlur,
+    amountRequiredValidations,
   } = useMultisender({
     onSent,
   });
@@ -156,6 +158,8 @@ export default function MultisenderPage({
                         transfer={transfer}
                         handleAmountChange={handleAmountChange}
                         sending={sending}
+                        handleAmountBlur={handleAmountBlur}
+                        isEmpty={amountRequiredValidations[index]}
                       />
                       <div className="absolute left-[12px] top-1/2 -translate-y-1/2 flex items-center">
                         <TokenDropdownMenu
