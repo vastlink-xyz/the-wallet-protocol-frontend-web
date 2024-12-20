@@ -16,11 +16,13 @@ import { InsufficientBalanceAlert } from "./InsufficientBalanceAlert";
 import { TokenType } from "@/types/tokens";
 import { useNavigate } from "react-router-dom";
 import { TransferResult } from "../../page";
+import { TotalAmountComponent } from "./TotalAmountComponent";
+import { mergeGasFees } from "./helper";
 
 export default function MultisenderPage({
   onSent,
 }: {
-  onSent: (results: TransferResult[], gasFees: GasFees | null) => void;
+  onSent: (results: TransferResult[], gasFees: GasFees | null, totalAmount: TotalAmount) => void;
 }) {
   const {
     transfers,
@@ -262,18 +264,8 @@ export default function MultisenderPage({
           ) : gasFees ? (
             <p className="text-black text-sm font-medium leading-none text-right mt-0.5">
               {(() => {
-                // merge MATIC and TVWT gas fees
-                const mergedFees = Object.entries(gasFees).reduce((acc, [token, amount]) => {
-                  if (token === 'usdValue') return acc;
-                  if (token === 'MATIC' || token === 'TVWT') {
-                    acc['POL'] = (parseFloat(acc['POL'] || '0') + parseFloat(amount)).toString();
-                  } else {
-                    acc[token] = amount;
-                  }
-                  return acc;
-                }, {} as Record<string, string>);
-
-                return Object.entries(mergedFees)
+                const mergedFees = mergeGasFees(gasFees);
+                return Object.entries(mergedFees || {})
                   .filter(([_, amount]) => amount !== '0')
                   .map(([token, amount], index, array) => (
                     <span key={token}>
@@ -291,21 +283,10 @@ export default function MultisenderPage({
         }
 
         {/* Total amount */}
-        <div className="mt-[16px] text-[#929292] text-sm font-normal leading-none flex items-center justify-end gap-1">
-          <p>Total amount:</p>
-        </div>
-        <p className="text-black text-xl font-medium leading-none text-right mt-0.5">
-          {Object.entries(totalAmount)
-            .filter(([token]) => token !== 'usdValue' && totalAmount[token as keyof TotalAmount] !== '0')
-            .map(([token, amount], index, array) => (
-              <span key={token}>
-                {amount} {symbolByToken(token as TokenType)}
-                {index < array.length - 1 && ' & '}
-              </span>
-            ))}
-          {Object.values(totalAmount).some(amount => amount !== '0') &&
-            ` (~$${totalAmount.usdValue} USD)`}
-        </p>
+        <TotalAmountComponent
+          totalAmount={totalAmount}
+          gasFees={gasFees}
+        />
 
         <div className="mt-[104px]">
           <SlideToSend

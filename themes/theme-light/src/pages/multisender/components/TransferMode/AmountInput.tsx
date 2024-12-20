@@ -30,7 +30,14 @@ export function AmountInput({
           'desktop:w-[219px] laptop:w-[228px] tablet:w-[265px] w-[216px]',
         )}
         placeholder="Amount"
-      />
+        />
+      {!transfer.amount && (
+        <p className={cn(
+          "absolute -bottom-[20px] left-[0] text-xs text-destructive",
+        )}>
+          Amount is required
+        </p>
+      )}
     </>
   )
 }

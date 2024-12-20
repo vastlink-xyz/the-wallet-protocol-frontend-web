@@ -8,49 +8,52 @@ import { useNavigate } from "react-router-dom";
 import { GasFees } from "../TransferMode/useMultisender";
 import { useMemo } from "react";
 import { useTokenPrice } from "@/hooks/useTokenPrice";
+import { TotalAmountComponent } from "../TransferMode/TotalAmountComponent";
 
 export function ResultMode({
   transferResults,
   onTransferAgain,
   gasFees,
+  totalAmount,
 }: {
   transferResults: TransferResult[];
   onTransferAgain: () => void;
   gasFees: GasFees | null;
+  totalAmount: TotalAmount;
 }) {
   const navigate = useNavigate();
   const { data: tokenPrices } = useTokenPrice();
 
-  const totalAmount = useMemo(() => {
-    const total = {
-      ETH: 0,
-      MATIC: 0,
-      TVWT: 0
-    };
+  // const totalAmount = useMemo(() => {
+  //   const total = {
+  //     ETH: 0,
+  //     MATIC: 0,
+  //     TVWT: 0
+  //   };
 
-    transferResults.forEach(transfer => {
-      if (
-        transfer.amount && 
-        !isNaN(parseFloat(transfer.amount)) && 
-        transfer.status === 'sent'
-      ) {
-        total[transfer.token] += parseFloat(transfer.amount);
-      }
-    });
+  //   transferResults.forEach(transfer => {
+  //     if (
+  //       transfer.amount && 
+  //       !isNaN(parseFloat(transfer.amount)) && 
+  //       transfer.status === 'sent'
+  //     ) {
+  //       total[transfer.token] += parseFloat(transfer.amount);
+  //     }
+  //   });
 
-    const usdValue = tokenPrices ? 
-      total.ETH * parseFloat(tokenPrices.ETH || '0') +
-      total.MATIC * parseFloat(tokenPrices.MATIC || '0') +
-      total.TVWT * parseFloat(tokenPrices.TVWT || '0') :
-      0;
+  //   const usdValue = tokenPrices ? 
+  //     total.ETH * parseFloat(tokenPrices.ETH || '0') +
+  //     total.MATIC * parseFloat(tokenPrices.MATIC || '0') +
+  //     total.TVWT * parseFloat(tokenPrices.TVWT || '0') :
+  //     0;
 
-    return {
-      ETH: total.ETH.toString(),
-      MATIC: total.MATIC.toString(),
-      TVWT: total.TVWT.toString(),
-      usdValue: formatNumberWithCommas(usdValue.toString(), 2)
-    };
-  }, [transferResults, tokenPrices]);
+  //   return {
+  //     ETH: total.ETH.toString(),
+  //     MATIC: total.MATIC.toString(),
+  //     TVWT: total.TVWT.toString(),
+  //     usdValue: formatNumberWithCommas(usdValue.toString(), 2)
+  //   };
+  // }, [transferResults, tokenPrices]);
 
   return <div className={cn(
     "pt-[76px] mx-auto pb-[320px]",
@@ -93,12 +96,14 @@ export function ResultMode({
                 )}>
                   <div className="w-[22px]">{index + 1}.</div>
                   <div className={cn(
-                    "flex items-center justify-between",
+                    "flex items-center",
                     'desktop:w-[297px] laptop:w-[297px] tablet:w-[297px] w-[302px]',
                     'desktop:mr-[100px] laptop:mr-[100px] tablet:mr-[20px]',
                     'py-[8px] tablet:py-0',
                   )}>
                     <p className={cn(
+                      'mr-1',
+                      '[text-decoration:none]',
                       (transfer.type === 'transaction' && transfer.status === 'sent') && 'text-green-500',
                       (transfer.type === 'invitation' && transfer.status === 'sent') && 'text-blue-500',
                       (transfer.status === 'failed') && 'text-destructive',
@@ -119,9 +124,8 @@ export function ResultMode({
 
                 {/* Status */}
                 <p className={cn(
-                  'text-xs text-black font-normal leading-tight break-all',
+                  'text-xs text-black font-normal leading-tight break-words',
                   'desktop:w-[362px] laptop:w-[348px] tablet:w-[252px] w-full',
-                  'text-right tablet:text-left',
                   'mb-1 tablet:mb-0',
                   transfer.status === 'failed' && 'text-destructive',
                 )}>{transfer.statusMessage}</p>
@@ -164,7 +168,7 @@ export function ResultMode({
       </p>
 
       {/* Total amount */}
-      <div className="mt-[16px] text-[#929292] text-sm font-normal leading-none flex items-center justify-end gap-1">
+      {/* <div className="mt-[16px] text-[#929292] text-sm font-normal leading-none flex items-center justify-end gap-1">
         <p>Total amount:</p>
       </div>
       <p className="text-black text-xl font-medium leading-none text-right mt-0.5">
@@ -191,7 +195,12 @@ export function ResultMode({
         })()}
         {Object.values(totalAmount).some(amount => amount !== '0') &&
           ` (~$${totalAmount.usdValue} USD)`}
-      </p>
+      </p> */}
+
+      <TotalAmountComponent
+        totalAmount={totalAmount}
+        gasFees={gasFees}
+      />
 
       <div className="mt-[104px]">
         <div className="flex justify-center flex-wrap gap-4 mt-6 w-full">

@@ -2,7 +2,7 @@ import { TokenType } from "@/types/tokens";
 import TransferMode from "./components/TransferMode";
 import { useState } from "react";
 import { ResultMode } from "./components/ResultMode";
-import { GasFees } from "./components/TransferMode/useMultisender";
+import { GasFees, TotalAmount } from "./components/TransferMode/useMultisender";
 
 export interface TransferResult {
   to: string;
@@ -53,10 +53,18 @@ export default function MultisenderPage() {
   const [isResultMode, setIsResultMode] = useState(false);
   const [transferResults, setTransferResults] = useState<TransferResult[]>([]);
   const [gasFees, setGasFees] = useState<GasFees | null>(null);
+  const [totalAmount, setTotalAmount] = useState<TotalAmount>({
+    ETH: '0',
+    MATIC: '0',
+    TVWT: '0',
+    usdValue: '0'
+  });
+  
 
-  const handleSent = (results: TransferResult[], gasFees: GasFees | null) => {
+  const handleSent = (results: TransferResult[], gasFees: GasFees | null, totalAmount: TotalAmount) => {
     setTransferResults(results);
     setGasFees(gasFees);
+    setTotalAmount(totalAmount);
     setIsResultMode(true);
   }
 
@@ -69,6 +77,7 @@ export default function MultisenderPage() {
             setIsResultMode(false);
           }}
           gasFees={gasFees}
+          totalAmount={totalAmount}
         />
       ) : (
         <TransferMode

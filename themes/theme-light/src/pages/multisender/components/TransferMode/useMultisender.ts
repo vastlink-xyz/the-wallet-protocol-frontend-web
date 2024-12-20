@@ -36,7 +36,7 @@ export type GasFees = Partial<Record<TokenType, string>> & {
 export function useMultisender({
   onSent,
 }: {
-  onSent: (results: TransferResult[], gasFees: GasFees | null) => void;
+  onSent: (results: TransferResult[], gasFees: GasFees | null, totalAmount: TotalAmount) => void;
 }) {
   const { address } = auth.all()
   const { t } = useTranslation();
@@ -195,6 +195,8 @@ export function useMultisender({
 
   const calculateGasFee = useCallback(async () => {
     if (isDisabled) {
+      // if there is any error, do not calculate gas fee and set gasFees to null
+      setGasFees(null);
       return;
     }
 
@@ -464,50 +466,49 @@ export function useMultisender({
     setSending(true);
 
     try {
-      // send each transfer
-      const transferPromises = transfers.map((transfer, index) =>
-        handleSingleSend(transfer, index)
-          .then((result: any) => {
-            if (isUnregisteredEmail({ transfer, validation: toValidations[index] })) {
-              // unregistered email invitation scenario
-              return {
-                to: transfer.to,
-                type: 'invitation',
-                status: 'sent',
-                statusMessage: 'Invitation email sent. The recipient will receive an invitation email to sign up their account.',
-                amount: transfer.amount,
-                token: transfer.token
-              } as TransferResult;
-            } else {
-              // normal transfer scenario
-              return {
-                to: transfer.to,
-                type: 'transaction',
-                status: result?.hash ? 'sent' : 'failed',
-                statusMessage: result?.needOtp ?  'Daily transaction limit exceeded. Please check your email and verify by the OTP.' : 'Sent and received',
-                amount: transfer.amount,
-                token: transfer.token
-              } as TransferResult;
-            }
-          })
-          .catch((error) => {
-            const type = isUnregisteredEmail({ transfer, validation: toValidations[index] }) ? 'invitation' : 'transaction';
-            const errorInfo = handleError(error);
-            log('handleSend', { errorInfo });
-            return {
+      const results: TransferResult[] = [];
+      
+      // handle each transfer
+      for (let i = 0; i < transfers.length; i++) {
+        const transfer = transfers[i];
+        try {
+          const result = await handleSingleSend(transfer, i);
+          
+          if (isUnregisteredEmail({ transfer, validation: toValidations[i] })) {
+            results.push({
               to: transfer.to,
-              type,
-              status: 'failed',
-              statusMessage: type === 'transaction' ? errorInfo.message : 'Not sent. Please try transferring again.',
+              type: 'invitation',
+              status: 'sent',
+              statusMessage: 'Invitation email sent. The recipient will receive an invitation email to sign up their account.',
               amount: transfer.amount,
               token: transfer.token
-            } as TransferResult;
-          })
-      );
+            });
+          } else {
+            results.push({
+              to: transfer.to,
+              type: 'transaction',
+              status: result?.hash ? 'sent' : 'failed',
+              statusMessage: result?.needOtp ? 'Daily transaction limit exceeded. Please check your email and verify by the OTP.' : 'Sent and received',
+              amount: transfer.amount,
+              token: transfer.token
+            });
+          }
+        } catch (error) {
+          const type = isUnregisteredEmail({ transfer, validation: toValidations[i] }) ? 'invitation' : 'transaction';
+          const errorInfo = handleError(error);
+          log('handleSend', { errorInfo });
+          results.push({
+            to: transfer.to,
+            type,
+            status: 'failed',
+            statusMessage: type === 'transaction' ? errorInfo.message : 'Not sent. Please try transferring again.',
+            amount: transfer.amount,
+            token: transfer.token
+          });
+        }
+      }
 
-      // wait for all transfers to complete
-      const results = await Promise.all(transferPromises);
-      onSent(results, gasFees);
+      onSent(results, gasFees, totalAmount);
     } catch (error) {
       console.error('Failed to send transfers:', error);
     } finally {

@@ -3,6 +3,7 @@ import { emailRegex, erc20Abi, formatDecimal, log, viemChainByToken } from "@/li
 import { TokenType } from "@/types/tokens";
 import { Address, Block, createPublicClient, encodeFunctionData, http, isAddress } from "viem";
 import { PromiseCache } from "@/lib/utils/promiseCache";
+import { GasFees } from "./useMultisender";
 
 interface GasEstimationResult {
   estimatedGas: bigint;
@@ -274,4 +275,18 @@ export async function validateEmailWithCache(email: string) {
 
 export function clearEmailValidationCache() {
   emailValidationCache.clear();
+}
+
+export const mergeGasFees = (gasFees: GasFees | null) => {
+  if (!gasFees) return null;
+
+  return Object.entries(gasFees).reduce((acc, [token, amount]) => {
+    if (token === 'usdValue') return acc;
+    if (token === 'MATIC' || token === 'TVWT') {
+      acc['POL'] = (parseFloat(acc['POL'] || '0') + parseFloat(amount)).toString();
+    } else if (token === 'ETH') {
+      acc['ETH'] = amount;
+    }
+    return acc;
+  }, {} as Record<'POL' | 'ETH', string>);
 }
