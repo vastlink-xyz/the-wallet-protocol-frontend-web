@@ -3,9 +3,10 @@ import { IProduct } from "@/pages/marketplace/types";
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { PurchaseModal } from './PurchaseModal';
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ZoomableImage } from './ZoomableImage';
 import { Back } from "@/components/Back";
+import { useTokenPrice } from "@/hooks/useTokenPrice";
 
 export function Detail({
   product,
@@ -16,8 +17,15 @@ export function Detail({
   balance: string,
   onPurchaseSuccess: () => void
 }) {
-  const [isChecked, setIsChecked] = useState(false);
+  const [isChecked, setIsChecked] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
+  const { data: tokenPrices } = useTokenPrice();
+
+  const usdPrice = useMemo(() => {
+    const a = Number(tokenPrices?.TVWT);
+    const b = Number(product?.price);
+    return (a * b);
+  }, [tokenPrices, product?.price]);
 
   const buttonText = () => {
     if (product?.price === 0) {
@@ -68,15 +76,35 @@ export function Detail({
           product?.banners?.map(banner => (
             <div key={banner} className="w-[312px] shrink-0 p-2.5 bg-[#161616] rounded-[20px]">
               {/* not enlarge on mobile */}
-              <img className={cn([
-                'w-full h-auto object-cover',
-                'tablet:hidden',
-              ])} src={banner} alt={product?.name} />
+              {banner.endsWith('.mp4') ? (
+                <video
+                  src={banner}
+                  autoPlay
+                  muted
+                  loop
+                  className={cn([
+                    'w-full h-auto object-cover',
+                    'tablet:hidden',
+                  ])}
+                >
+                  <source src={banner} type="video/mp4" />
+                </video>
+              ) : (
+                <img
+                  className={cn([
+                    'w-full h-auto object-cover',
+                    'tablet:hidden',
+                  ])}
+                  src={banner}
+                  alt={product?.name}
+                />
+              )}
 
               {/* enlarge on desktop */}
               <ZoomableImage
                 src={banner}
                 alt={product?.name}
+                type={banner.endsWith('.mp4') ? 'video' : 'image'}
                 className={cn([
                   'w-full h-auto object-cover',
                   'tablet:block hidden',
@@ -93,7 +121,7 @@ export function Detail({
       'tablet:mt-[76px] mt-[34px]',
       'mx-auto',
     ])}>
-      <div className="text-black text-xl font-bold leading-none mb-2">Version {product?.version}</div>
+      {/* <div className="text-black text-xl font-bold leading-none mb-2">Version {product?.version}</div> */}
       <div className="text-black text-sm font-normal leading-none">{product?.description}</div>
     </div>
 
@@ -101,8 +129,8 @@ export function Detail({
       'tablet:w-[548px] w-[334px]',
       'mt-[40px] mx-auto',
     ])}>
-      <div className="text-black text-xl font-bold leading-none mb-2">Subscription plan</div>
-      <div className="text-black text-sm font-bold leading-none mb-1">{product?.price}V</div>
+      {/* <div className="text-black text-xl font-bold leading-none mb-2">Subscription plan</div> */}
+      <div className="text-black text-sm font-bold leading-none mb-1">{product?.price} TWVT ( {usdPrice} USDT)</div>
       {/* <div className="text-black text-sm font-normal leading-none">To manage your plan, go to Profile page, under purchase and select manage.</div> */}
     </div>
 
@@ -111,12 +139,12 @@ export function Detail({
       'tablet:px-4 px-0',
       'mt-[56px] mx-auto',
     ])}>
-      <label className="flex items-center gap-x-2 cursor-pointer">
+      {/* <label className="flex items-center gap-x-2 cursor-pointer">
         <Checkbox checked={isChecked} onCheckedChange={() => setIsChecked(!isChecked)} />
         <div className="text-center text-black text-xs font-normal leading-none select-none">
           I have read and agree the above terms and conditions
         </div>
-      </label>
+      </label> */}
       <Button
         className="w-full mt-4"
         disabled={!isChecked}

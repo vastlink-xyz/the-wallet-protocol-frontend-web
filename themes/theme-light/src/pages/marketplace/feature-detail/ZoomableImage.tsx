@@ -6,24 +6,65 @@ interface ZoomableImageProps {
   src: string;
   alt?: string;
   className?: string;
+  type?: 'image' | 'video';
 }
 
-export function ZoomableImage({ src, alt, className }: ZoomableImageProps) {
+export function ZoomableImage({ src, alt, className, type = 'image' }: ZoomableImageProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   if (!src) return null;
 
-  return (
-    <>
-      {/* Thumbnail image */}
+  const renderMedia = () => {
+    if (type === 'video') {
+      return (
+        <video 
+          src={src}
+          controls={false}
+          className={className}
+          onClick={() => setIsOpen(true)}
+        />
+      );
+    }
+    
+    return (
       <img 
         src={src} 
         alt={alt} 
         className={`cursor-zoom-in ${className}`}
         onClick={() => setIsOpen(true)}
       />
+    );
+  };
 
-      {/* Zoom view modal */}
+  const renderZoomedMedia = () => {
+    if (type === 'video') {
+      return (
+        <video
+          src={src}
+          controls
+          className="w-full object-contain"
+          onClick={(e) => e.stopPropagation()}
+          autoPlay
+        />
+      );
+    }
+
+    return (
+      <img
+        src={src}
+        alt={alt}
+        className="w-full object-contain"
+        onClick={(e) => e.stopPropagation()}
+      />
+    );
+  };
+
+  return (
+    <>
+      {/* thumbnail/video */}
+      {renderMedia()}
+
+      {/* zoomout modal */}
       {isOpen && (
         <Dialog 
           open={isOpen} 
@@ -35,12 +76,7 @@ export function ZoomableImage({ src, alt, className }: ZoomableImageProps) {
             onClick={() => setIsOpen(false)}
           >
             <div className="relative w-[60vw]">
-              <img
-                src={src}
-                alt={alt}
-                className="w-full object-contain"
-                onClick={(e) => e.stopPropagation()}  // Prevent modal closing when clicking image
-              />
+              {renderZoomedMedia()}
             </div>
           </div>
         </Dialog>
