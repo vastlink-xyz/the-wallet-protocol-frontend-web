@@ -14,6 +14,14 @@ export default function FeatureDetailPage() {
   const [balance, setBalance] = useState('')
   const [product, setProduct] = useState<IProduct | null>(null)
   const [showSuccess, setShowSuccess] = useState(false)
+  const [countdownParams, setCountdownParams] = useState({
+    title: '',
+    buttonText: '',
+    redirectUrl: '',
+    description: '',
+    defaultCountdown: 10,
+    openInNewTab: false,
+  })
 
   useEffect(() => {
     init()
@@ -33,6 +41,25 @@ export default function FeatureDetailPage() {
   }
 
   const handlePurchaseSuccess = () => {
+    if (product?.integrationPoints.includes('standalone') && product.serviceUrl && product.vendor !== 'Moonpay') {
+      setCountdownParams({
+        title: `${product?.name} added successfully`,
+        buttonText: 'Open',
+        redirectUrl: product.serviceUrl,
+        description: `You will be redirected to ${product?.name} in`,
+        defaultCountdown: 3,
+        openInNewTab: true,
+      })
+    } else {
+      setCountdownParams({
+        title: `${product?.name} added successfully`,
+        buttonText: 'Back to Marketplace',
+        redirectUrl: '/marketplace',
+        description: `You can find the purchased product under the "Added" tab in the Marketplace. You will be directed to Marketplace in`,
+        defaultCountdown: 10,
+        openInNewTab: false,
+      })
+    }
     setShowSuccess(true)
   }
 
@@ -47,10 +74,7 @@ export default function FeatureDetailPage() {
       ) : (
         // <Success product={product} />
         <CountdownSuccess
-          title={`${product?.name} added successfully`}
-          buttonText="Back to Marketplace"
-          redirectUrl="/marketplace"
-          description={`You can find the purchased product under the "Added" tab in the Marketplace. You will be directed to Marketplace in`}
+          {...countdownParams}
         />
       )}
     </ContentContainer>

@@ -67,7 +67,12 @@ export const useClickProduct = ({
       const params = new URLSearchParams()
       params.set('flowId', product.id)
       params.set('flowIndex', '0')
-      navigate(`${product.serviceUrl}?${params.toString()}`);
+      const url = `${product.serviceUrl}?${params.toString()}`
+      if (product.integrationPoints.includes('standalone')) {
+        window.open(url, '_blank')
+      } else {
+        navigate(url)
+      }
       return
     }
 
@@ -104,12 +109,9 @@ export const useClickProduct = ({
       return
     }
 
-    if (product.serviceUrl.startsWith('http')) {
-      // open in new tab
+    // standalone
+    if (product.integrationPoints.includes('standalone')) {
       window.open(product.serviceUrl, '_blank')
-    } else if (product.serviceUrl.startsWith('/')) {
-      // navigate to the product page
-      navigate(product.serviceUrl)
     }
   }
 

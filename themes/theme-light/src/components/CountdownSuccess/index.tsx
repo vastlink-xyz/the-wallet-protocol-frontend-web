@@ -8,28 +8,40 @@ export function CountdownSuccess({
   buttonText,
   redirectUrl,
   description,
+  defaultCountdown = 10,
+  openInNewTab = false,
 }: {
   title: string;
   buttonText: string;
   redirectUrl: string;
   description: string;
+  defaultCountdown?: number;
+  openInNewTab?: boolean;
 }) {
   const navigate = useNavigate();
-  const [countdown, setCountdown] = useState(10);
+  const [countdown, setCountdown] = useState(defaultCountdown);
+  const [isRedirected, setIsRedirected] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setCountdown((prev) => prev - 1);
+      if (!isRedirected) {
+        setCountdown((prev) => prev - 1);
+      }
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [isRedirected]);
 
   useEffect(() => {
-    if (countdown === 0) {
-      navigate(redirectUrl);
+    if (countdown === 0 && !isRedirected) {
+      if (openInNewTab) {
+        window.open(redirectUrl, '_blank');
+        setIsRedirected(true);
+      } else {
+        navigate(redirectUrl);
+      }
     }
-  }, [countdown, navigate]);
+  }, [countdown, navigate, redirectUrl, openInNewTab, isRedirected]);
 
   return <>
     <div className="mt-[48px] mb-[27px] text-center text-black text-[28px] font-bold leading-[36.96px]">
@@ -52,7 +64,13 @@ export function CountdownSuccess({
       <img src="/imgs/icons/success_added.png" alt="success" />
       <Button
         className="w-full mt-[46px]"
-        onClick={() => navigate(redirectUrl)}
+        onClick={() => {
+          if (openInNewTab) {
+            window.open(redirectUrl, '_blank')
+          } else {
+            navigate(redirectUrl)
+          }
+        }}
       >
         {buttonText}
       </Button>
