@@ -6,7 +6,7 @@ import { Modal } from '@/components/Modal';
 import { OnInitiateDepositProps } from '@/types/moonpayTypes';
 import { MoonPayBuyWidget, MoonPaySellWidget } from '@moonpay/moonpay-react'
 import { Id, toast } from 'react-toastify';
-import { Token, TokenFactory } from '@/services/TokenService';
+import { theTokenService, Token } from '@/services/TokenService';
 import { TokenType } from '@/types/tokens';
 import { LogoLoading } from '@/components/LogoLoading';
 import { TransactionType } from '@/types/transaction';
@@ -81,7 +81,7 @@ export function RampModal({
     setSending(false)
     const confirmed = await handleConfirm(props)
     if (confirmed) {
-      const token = TokenFactory.getInstance().createToken(props.cryptoCurrency.code.toUpperCase() as TokenType)
+      const token = theTokenService.getToken(props.cryptoCurrency.code.toUpperCase() as TokenType)
       tokenRef.current = token
       const hash = await handleSignTransaction(props)
       return {

@@ -7,7 +7,7 @@ import { Send } from "./Send";
 import { Address } from "viem";
 import { RecentTransactions } from "./RecentTransactions";
 import { TokenType } from "@/types/tokens";
-import { TokenFactory } from "@/services/TokenService";
+import { theTokenService } from "@/services/TokenService";
 import { auth, formatDecimal } from "@/lib/utils";
 import { LogoLoading } from "@/components/LogoLoading";
 import { Card } from "@/components/ui/card";
@@ -41,7 +41,7 @@ export function TokenDetail({
   
   const syncBalance = async (address: Address) => {
     setLoading(true)
-    const token = TokenFactory.getInstance().createToken(tokenType)
+    const token = theTokenService.getToken(tokenType)
     let b = await token.getBalance(address)
     b = formatDecimal(b)
     setBalance(b)
@@ -51,7 +51,7 @@ export function TokenDetail({
   const syncTransactions = async (address: Address) => {
     try {
       setTxLoading(true)
-      const token = TokenFactory.getInstance().createToken(tokenType)
+      const token = theTokenService.getToken(tokenType)
       const txs = await token.getRecentTransactions(address)
       setTransactions(txs)
     } catch(err) {

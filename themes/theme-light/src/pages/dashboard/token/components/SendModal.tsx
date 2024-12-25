@@ -1,14 +1,14 @@
 import { useState, useEffect, useRef, useMemo } from "react"
 import { Address, parseEther, isAddress } from 'viem'
 
-import { cn, emailRegex, formatDecimal, getEstimatedGasFeeByToken, handleError, log, symbolByToken } from "@/lib/utils"
+import { cn, emailRegex, formatDecimal, getEstimatedGasFeeByToken, handleError, log } from "@/lib/utils"
 
 import { Loader, CircleCheck, AlertCircle, X, LoaderCircle } from "lucide-react"
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "react-toastify";
 import { TokenType } from "@/types/tokens";
-import { Token, TokenFactory } from "@/services/TokenService";
+import { theTokenService, Token } from "@/services/TokenService";
 import { LogoLoading } from "@/components/LogoLoading";
 import { useTranslation } from "react-i18next";
 import { Textarea } from "@/components/ui/textarea";
@@ -28,7 +28,7 @@ import { notification } from "antd"
 import { DailyTransactionLimitModal } from "@/pages/profile/components/DailyTransactionLimitModal"
 import { useDailyWithdrawalLimits } from "@/hooks/useDailyWithdrawalLimits"
 
-const tokenTypes = TokenFactory.getInstance().getAllTokenTypes()
+const tokenTypes = theTokenService.getAllTokens()
 
 export function SendModal({
   open,
@@ -55,7 +55,7 @@ export function SendModal({
   const [amount, setAmount] = useState('')
   const [note, setNote] = useState('')
   const [sending, setSending] = useState(false)
-  const [symbol, setSymbol] = useState('')
+  // const [symbol, setSymbol] = useState('')
   const tokenRef = useRef<Token>()
   
   // daily limit
@@ -87,6 +87,13 @@ export function SendModal({
   //     initDefaults()
   //   }
   // }, [open])
+
+  const symbol = useMemo(() => {
+    if (currentTokenType) {
+      return theTokenService.getToken(currentTokenType).symbol
+    }
+    return ''
+  }, [currentTokenType])
 
   useEffect(() => {
     log('open', open, 'address', address)
@@ -180,10 +187,10 @@ export function SendModal({
     setEstimatedFee('')
     setAmountError('')
     setCurrentTokenType(newTokenType)
-    const token = TokenFactory.getInstance().createToken(newTokenType)
+    const token = theTokenService.getToken(newTokenType)
     tokenRef.current = token
-    setSymbol(tokenRef.current.symbol)
-    let b = await tokenRef.current.getBalance(address)
+    // setSymbol(token.symbol)
+    let b = await token.getBalance(address)
     b = formatDecimal(b)
     setCurrentBalance(b)
   }
@@ -284,7 +291,7 @@ export function SendModal({
   }
 
   const openTxPage = (txHash: string) => {
-    const url = `${tokenRef.current?.openUrl}/${txHash}`
+    const url = `${tokenRef.current?.scanTransactionUrl}/${txHash}`
     window.open(url, '_blank')
   }
 
@@ -510,14 +517,14 @@ export function SendModal({
                   <div className="absolute left-2 top-1/2 -translate-y-1/2">
                     <DropdownMenu>
                       <DropdownMenuTrigger className="flex items-center gap-[6px] px-0 py-1">
-                        <span className="font-medium text-sm">{symbolByToken(currentTokenType)}</span>
+                        <span className="font-medium text-sm">{theTokenService.getToken(currentTokenType).symbol}</span>
                         <ChevronDown className="h-4 w-4 opacity-50" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="start" className="bg-white">
                         {
-                          tokenTypes.map((type) => {
+                          tokenTypes.map((t) => {
                             return (
-                              <DropdownMenuItem key={type} onClick={() => handleTokenTypeChange(type)}>{symbolByToken(type)}</DropdownMenuItem>
+                              <DropdownMenuItem key={t.tokenType} onClick={() => handleTokenTypeChange(t.tokenType)}>{t.symbol}</DropdownMenuItem>
                             );
                           })
                         }
@@ -537,7 +544,7 @@ export function SendModal({
                   isEstimatingFee ? (
                     <span><LoaderCircle className="animate-spin" size={14} /></span>
                   ) : estimatedFee ? (
-                    <span className="text-black">~ {estimatedFee} {symbol === 'TVWT' ? 'POL' : symbol}</span>
+                    <span className="text-black">~ {estimatedFee} {symbol}</span>
                   ) : (
                     <span className="text-black">-</span>
                   )

@@ -1,9 +1,10 @@
 import { DailyTransactionLimitModal, TokenLimit, TokenTransferred } from "@/pages/profile/components/DailyTransactionLimitModal";
 import { useState } from "react";
-import { formatDecimal, symbolByToken } from "@/lib/utils";
+import { formatDecimal } from "@/lib/utils";
 import { TokenType } from "@/types/tokens";
 import { TotalAmount } from "./useMultisender";
 import { parseEther } from "viem";
+import { theTokenService } from "@/services/TokenService";
 
 export function DailyLimitAlert({
   todayTokenTransferred,
@@ -16,7 +17,7 @@ export function DailyLimitAlert({
 }) {
   const [isOpenDailyWithdrawalLimitModal, setIsOpenDailyWithdrawalLimitModal] = useState(false);
 
-  const tokens: TokenType[] = ['ETH', 'MATIC', 'TVWT'];
+  const tokens: TokenType[] = theTokenService.getAllTokens().map(t => t.tokenType)
   const exceededTokens = tokens.filter(token => {
     const todayTransferred = BigInt(todayTokenTransferred[token]);
     const totalAmountValue = BigInt(parseEther(totalAmount[token]));
@@ -34,7 +35,7 @@ export function DailyLimitAlert({
           <div>
             {exceededTokens.map(token => (
               <p key={token} className="text-xs text-black font-normal leading-snug">
-                {symbolByToken(token)} daily transaction limit exceeded. Current {symbolByToken(token)} limit: {formatDecimal(defaultLimits[token] || '0')} {symbolByToken(token)}
+                {theTokenService.getToken(token).symbol} daily transaction limit exceeded. Current {theTokenService.getToken(token).symbol} limit: {formatDecimal(defaultLimits[token] || '0')} {theTokenService.getToken(token).symbol}
               </p>
             ))}
             <div

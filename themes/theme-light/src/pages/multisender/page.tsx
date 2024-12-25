@@ -3,6 +3,7 @@ import TransferMode from "./components/TransferMode";
 import { useState } from "react";
 import { ResultMode } from "./components/ResultMode";
 import { GasFees, TotalAmount } from "./components/TransferMode/useMultisender";
+import { theTokenService } from "@/services/TokenService";
 
 export interface TransferResult {
   to: string;
@@ -20,7 +21,7 @@ const mockTransferResults: TransferResult[] = [
     status: 'sent',
     statusMessage: 'Sent and received',
     amount: '100.00',
-    token: 'ETH',
+    token: TokenType.ETH,
   },
   {
     to: '0x123',
@@ -28,7 +29,7 @@ const mockTransferResults: TransferResult[] = [
     status: 'failed',
     statusMessage: 'Daily transaction limit exceeded. Please check your 0x56ed57816E32138668ebFf838c9859a583a04c43 email and verify by the OTP.',
     amount: '0.0001',
-    token: 'ETH',
+    token: TokenType.ETH,
   },
   {
     to: '0x123',
@@ -36,7 +37,7 @@ const mockTransferResults: TransferResult[] = [
     status: 'failed',
     statusMessage: 'Not sent. Please try transferring again.',
     amount: '100',
-    token: 'ETH',
+    token: TokenType.ETH,
   },
   {
     to: '0x123',
@@ -44,7 +45,7 @@ const mockTransferResults: TransferResult[] = [
     status: 'sent',
     statusMessage: 'Sent. The recipient will receive an invitation email to sign up their account.',
     amount: '100',
-    token: 'ETH',
+    token: TokenType.ETH,
   },
 ]
 
@@ -54,9 +55,7 @@ export default function MultisenderPage() {
   const [transferResults, setTransferResults] = useState<TransferResult[]>([]);
   const [gasFees, setGasFees] = useState<GasFees | null>(null);
   const [totalAmount, setTotalAmount] = useState<TotalAmount>({
-    ETH: '0',
-    MATIC: '0',
-    TVWT: '0',
+    ...theTokenService.createTokenMap(() => '0'),
     usdValue: '0'
   });
   

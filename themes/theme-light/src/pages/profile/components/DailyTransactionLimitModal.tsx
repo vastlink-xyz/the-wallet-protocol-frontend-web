@@ -1,36 +1,21 @@
 import { Modal } from "@/components/Modal";
 import { Input } from "@/components/ui/input";
 import { useTokenPrice } from "@/hooks/useTokenPrice";
-import { cn, handleError, log, symbolByToken } from "@/lib/utils";
+import { cn, handleError, log } from "@/lib/utils";
 import { useState, useEffect, useMemo } from "react";
 import api from "@/lib/api";
 import { formatEther, parseEther } from "viem";
 import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
 import { LogoLoading } from "@/components/LogoLoading";
-import { TokenType } from "@/types/tokens";
-import { useTokenBalance } from "@/hooks/useTokenBalance";
+import { TokenRecord, TokenType } from "@/types/tokens";
+import { useAllTokenBalances } from "@/hooks/useTokenBalance";
+import { theTokenService } from "@/services/TokenService";
 
 interface TokenConfig {
-  type: 'ETH' | 'MATIC' | 'TVWT';
+  type: TokenType;
   balance: string;
   todayTransferred?: string;
-}
-
-export interface TokenLimit {
-  [key: string]: string;
-}
-
-interface TokenPrices {
-  ETH: string;
-  MATIC: string;
-  TVWT: string;
-}
-
-export interface TokenTransferred {
-  ETH: string;
-  MATIC: string;
-  TVWT: string;
 }
 
 export function DailyTransactionLimitModal({
@@ -40,21 +25,15 @@ export function DailyTransactionLimitModal({
 }: {
   isOpen: boolean;
   onClose: () => void;
-  defaultLimits: TokenLimit;
+  defaultLimits: Record<TokenType, string>;
 }) {
-  const { data: ethBalance } = useTokenBalance('ETH')
-  const { data: maticBalance } = useTokenBalance('MATIC')
-  const { data: tvwtBalance } = useTokenBalance('TVWT')
+  const {data: tokenBalances} = useAllTokenBalances()
 
   const { data: tokenPrices } = useTokenPrice();
-  const [tokenTransferred, setTokenTransferred] = useState<TokenTransferred | null>(null);
+  const [tokenTransferred, setTokenTransferred] = useState<TokenRecord<string> | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const [limits, setLimits] = useState<TokenLimit>({
-    ETH: '',
-    MATIC: '',
-    TVWT: ''
-  });
+  const [limits, setLimits] = useState<Record<TokenType, string>>(theTokenService.createTokenMap(() => ''));
 
   useEffect(() => {
     if (isOpen) {
@@ -63,7 +42,7 @@ export function DailyTransactionLimitModal({
   }, [isOpen]);
 
   const disabledButton = useMemo(() => {
-    return !limits.ETH || !limits.MATIC || !limits.TVWT;
+    return theTokenService.getAllTokens().some(token => !limits[token.tokenType]);
   }, [limits]);
 
   const init = async () => {
@@ -74,7 +53,7 @@ export function DailyTransactionLimitModal({
   const fetchTransferred = async () => {
     try {
       const { data } = await api.post('/transaction/outbound-amount', {
-        tokens: ['ETH', 'MATIC', 'TVWT'],
+        tokens: theTokenService.getAllTokens().map(t => t.tokenType),
       });
       setTokenTransferred(data);
     } catch (error) {
@@ -82,13 +61,13 @@ export function DailyTransactionLimitModal({
     }
   };
 
-  const tokens: TokenConfig[] = useMemo(() => [
-    { type: 'ETH', balance: ethBalance?.balance || '0', todayTransferred: tokenTransferred?.ETH || '0' },
-    { type: 'MATIC', balance: maticBalance?.balance || '0', todayTransferred: tokenTransferred?.MATIC || '0' },
-    { type: 'TVWT', balance: tvwtBalance?.balance || '0', todayTransferred: tokenTransferred?.TVWT || '0' },
-  ], [ethBalance, maticBalance, tvwtBalance, tokenTransferred]);
+  const tokens: TokenConfig[] = useMemo(() => theTokenService.getAllTokens().map(token => ({
+    type: token.tokenType,
+    balance: tokenBalances?.[token.tokenType] || '0',
+    todayTransferred: tokenTransferred?.[token.tokenType] || '0'
+  })), [tokenBalances, tokenTransferred]);
 
-  const handleLimitChange = (type: keyof TokenLimit, value: string) => {
+  const handleLimitChange = (type: TokenType, value: string) => {
     // Only allow numbers and decimal point
     if (value && !/^\d*\.?\d*$/.test(value)) return;
     
@@ -98,7 +77,7 @@ export function DailyTransactionLimitModal({
     }));
   };
 
-  const calculateUSDValue = (type: keyof TokenPrices, amount: string): string => {
+  const calculateUSDValue = (type: TokenType, amount: string): string => {
     if (!amount || !tokenPrices || !tokenPrices[type]) return '0';
     
     const price = parseFloat(tokenPrices[type]);
@@ -114,20 +93,10 @@ export function DailyTransactionLimitModal({
     
     try {
       setLoading(true);
-      const limitsInWei: { type: TokenType; value: string }[] = [
-        {
-          type: 'ETH',
-          value: parseEther(limits.ETH || '0').toString()
-        },
-        {
-          type: 'MATIC',
-          value: parseEther(limits.MATIC || '0').toString()
-        },
-        {
-          type: 'TVWT',
-          value: parseEther(limits.TVWT || '0').toString()
-        }
-      ];
+      const limitsInWei: { type: TokenType; value: string }[] = theTokenService.getAllTokens().map(token => ({
+        type: token.tokenType,
+        value: parseEther(limits[token.tokenType] || '0').toString()
+      }));
       await api.post('/auth/generate-otp-for-daily-limit-update', {
         limits: limitsInWei,
       });
@@ -204,7 +173,7 @@ export function DailyTransactionLimitModal({
           <div className="mt-3 bg-black/5 border-black/10 rounded-[8px] py-3 px-4 flex items-center gap-2.5">
             <img src="/imgs/icons/information_filled.svg" width={16} height={16} alt="" />
             <p className="text-black text-xs font-normal leading-none">
-              {loading ? '' : `You've transferred ${formatTransactionAmount(token.todayTransferred ?? '0')} ${symbolByToken(token.type)} today`}
+              {loading ? '' : `You've transferred ${formatTransactionAmount(token.todayTransferred ?? '0')} ${theTokenService.getToken(token.type as TokenType).symbol} today`}
             </p>
           </div>
         </div>

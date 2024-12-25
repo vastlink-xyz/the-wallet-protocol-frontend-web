@@ -1,5 +1,8 @@
 import { GasFees, TotalAmount } from "./useMultisender";
 import { mergeGasFees } from "./helper";
+import { ERC20TokenType, GasFeeSymbol } from "@/types/tokens";
+import { theTokenService } from "@/services/TokenService";
+import { formatDecimal, formatNumberWithCommas, trimTrailingZeros } from "@/lib/utils";
 
 export function TotalAmountComponent({
   totalAmount,
@@ -10,42 +13,46 @@ export function TotalAmountComponent({
 }) {
   const mergedGasFees = mergeGasFees(gasFees);
 
-  const totalAmountBySymbol = (symbol: 'ETH' | 'TVWT' | 'POL') => {
-    let amount = 0;
-    try {
-      if (symbol === 'POL') {
-        const maticAmount = parseFloat(totalAmount.MATIC || '0');
-        const polFees = parseFloat(mergedGasFees?.POL || '0');
-        amount = maticAmount + polFees;
-      } else if (symbol === 'ETH') {
-        const ethAmount = parseFloat(totalAmount.ETH || '0');
-        const ethFees = parseFloat(mergedGasFees?.ETH || '0');
-        amount = ethAmount + ethFees;
-      } else if (symbol === 'TVWT') {
-        const tvwtAmount = parseFloat(totalAmount.TVWT || '0');
-        amount = tvwtAmount;
-      }
-
-      if (amount === 0) {
-        return null;
-      }
-
-      return {
-        amount,
-        symbol,
-      }
-    } catch (error) {
-      console.error('Error calculating total amount:', error);
+  const totalAmountByGasSymbol = (symbol: GasFeeSymbol) => {
+    const tokenType = theTokenService.getTokenTypeByGasSymbol(symbol);
+    const amount = parseFloat(totalAmount[tokenType] || '0') + parseFloat(mergedGasFees?.[symbol] || '0');
+    if (!amount) {
       return null;
+    }
+
+    return {
+      amount: trimTrailingZeros(formatDecimal(amount.toString())),
+      symbol,
+    }
+  }
+
+  const totalAmountByERC20TokenType = (symbol: ERC20TokenType) => {
+    const tokenType = symbol as ERC20TokenType;
+    const amount = parseFloat(totalAmount[tokenType] || '0')
+    if (!amount) {
+      return null;
+    }
+
+    return {
+      amount: trimTrailingZeros(formatDecimal(amount.toString())),
+      symbol: tokenType,
     }
   }
 
   const items = () => {
-    const items = [];
+    const items: ({ amount: string; symbol: GasFeeSymbol | ERC20TokenType; } | null)[] = [];
 
-    items.push(totalAmountBySymbol('ETH'));
-    items.push(totalAmountBySymbol('TVWT'));
-    items.push(totalAmountBySymbol('POL'));
+    // add all gas symbols
+    Object.values(GasFeeSymbol).forEach(symbol => {
+      items.push(totalAmountByGasSymbol(symbol));
+    });
+
+    // add all ERC20 tokens
+    theTokenService.getAllTokens()
+      .filter(token => theTokenService.isERC20Token(token.tokenType))
+      .forEach(token => {
+        items.push(totalAmountByERC20TokenType(token.tokenType as ERC20TokenType));
+      });
 
     return items.filter(item => item !== null);
   }
@@ -53,7 +60,8 @@ export function TotalAmountComponent({
   const totalUsdValue = () => {
     const usdValue = parseFloat(totalAmount.usdValue);
     const gasFeesUsdValue = parseFloat(gasFees?.usdValue || '0');
-    return usdValue + gasFeesUsdValue;
+    const totalUsdValue = usdValue + gasFeesUsdValue;
+    return formatNumberWithCommas(totalUsdValue.toString());
   }
 
   return (
@@ -68,7 +76,7 @@ export function TotalAmountComponent({
             {index < array.length - 1 && ' & '}
           </span>
         ))}
-        {totalUsdValue() !== 0 &&
+        {parseFloat(totalUsdValue()) !== 0 &&
           ` (~$${totalUsdValue()} USD)`}
       </p>
     </>

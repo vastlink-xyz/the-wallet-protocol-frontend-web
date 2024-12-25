@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/api';
-import { auth } from '@/lib/utils';
+import { TokenRecord } from '@/types/tokens';
 
 export interface IPurchasedProduct {
   productId: string;
@@ -20,11 +20,7 @@ export interface UserInfo {
   kycVerified: boolean;
   kycVerificationTimestamp?: string;  // iso string
   purchasedProducts: IPurchasedProduct[];
-  dailyWithdrawalLimits?: {
-    ETH?: string;
-    MATIC?: string;
-    TVWT?: string;
-  };
+  dailyWithdrawalLimits?: Partial<TokenRecord<string>>;
 }
 
 const fetchUserInfo = async (): Promise<UserInfo> => {

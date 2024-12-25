@@ -1,14 +1,15 @@
-import { useEffect, useRef, useState } from 'react';
-import { auth, handleError, log } from "@/lib/utils";
+import { useRef, useState } from 'react';
+import { handleError, log } from "@/lib/utils";
 import { Address, parseEther } from "viem";
 import { toast } from 'react-toastify';
 import { CircleCheck } from 'lucide-react';
 import { Button } from '../ui/button';
 import { TokenType } from '@/types/tokens';
-import { Token, TokenFactory } from '@/services/TokenService';
+import { theTokenService } from '@/services/TokenService';
 import { TransactionType } from '@/types/transaction';
 import api from '@/lib/api';
 import keyManagementService from '@/services/KeyManagementService';
+import { Token } from '@/services/TokenService/tokens/Token';
 
 export const useTransaction = () => {
   const [sending, setSending] = useState(false);
@@ -18,7 +19,7 @@ export const useTransaction = () => {
     to,
     amount,
     data,
-    token='ETH',
+    token=TokenType.ETH,
     transactionType,
     note,
     isNotifySubmit=true,
@@ -35,7 +36,7 @@ export const useTransaction = () => {
     isNotifyOtp?: boolean;
     isNotifyError?: boolean;
   }) => {
-    tokenRef.current = TokenFactory.getInstance().createToken(token)
+    tokenRef.current = theTokenService.getToken(token)
 
     try {
       const amt = parseEther(amount).toString();
@@ -104,7 +105,7 @@ export const useTransaction = () => {
   };
 
   const openTxPage = (txHash: string) => {
-    const url = `${tokenRef.current?.openUrl}/${txHash}`
+    const url = `${tokenRef.current?.scanTransactionUrl}/${txHash}`
     window.open(url, '_blank')
   }
 
@@ -131,9 +132,9 @@ export const useTransaction = () => {
 
   const tokenTypeByChainId = (chainId: string): TokenType => {
     if (chainId === 'eip155:11155111') {
-      return 'ETH'
+      return TokenType.ETH
     }
-    return 'ETH'
+    return TokenType.ETH
   }
 
   return { signTransaction, sending, waitForTransactionExection, tokenTypeByChainId };

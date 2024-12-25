@@ -1,14 +1,13 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
-import { TokenType } from "@/types/tokens";
+import { TokenRecord, TokenType } from "@/types/tokens";
 import { Address, isAddress, parseEther } from "viem";
 import { auth, emailRegex, formatDecimal, formatNumberWithCommas, handleError, log } from "@/lib/utils";
 import api from "@/lib/api";
 import { useTranslation } from "react-i18next";
 import { ToInputValidationState } from "./ToInput";
 import { useDebounce } from "@/hooks/useDebounce";
-import { useTokenBalance } from "@/hooks/useTokenBalance";
+import { useAllTokenBalances } from "@/hooks/useTokenBalance";
 import { useTokenPrice } from "@/hooks/useTokenPrice";
-import { TokenTransferred } from "@/pages/profile/components/DailyTransactionLimitModal";
 import { useDailyWithdrawalLimits } from "@/hooks/useDailyWithdrawalLimits";
 import { useTransaction } from "@/components/VastWalletConnect/useTransaction";
 import { TransactionType } from "@/types/transaction";
@@ -16,6 +15,7 @@ import { TransferResult } from "../../page";
 import { clearEmailValidationCache, getEstimatedGasFeeByToken, validateCsvData, validateEmailWithCache } from "./helper";
 import Papa from 'papaparse';
 import { toast } from "react-toastify";
+import { theTokenService } from "@/services/TokenService";
 
 export interface Transfer {
   to: string;
@@ -25,11 +25,11 @@ export interface Transfer {
   balance: string;
 }
 
-export interface TotalAmount extends Record<TokenType, string> {
+export interface TotalAmount extends TokenRecord<string> {
   usdValue: string;
 }
 
-export type GasFees = Partial<Record<TokenType, string>> & {
+export type GasFees = Partial<TokenRecord<string>> & {
   usdValue?: string;
 }
 
@@ -40,12 +40,10 @@ export function useMultisender({
 }) {
   const { address } = auth.all()
   const { t } = useTranslation();
-  const { data: ethBalance, isFetched: ethBalanceFetched } = useTokenBalance('ETH')
-  const { data: maticBalance, isFetched: maticBalanceFetched } = useTokenBalance('MATIC')
-  const { data: tvwtBalance, isFetched: tvwtBalanceFetched } = useTokenBalance('TVWT')
+  const { data: tokenBalances, isFetched: tokenBalancesFetched } = useAllTokenBalances()
   const { data: tokenPrices } = useTokenPrice();
   const { data: defaultLimits } = useDailyWithdrawalLimits();
-  const [todayTokenTransferred, setTodayTokenTransferred] = useState<TokenTransferred | null>(null);
+  const [todayTokenTransferred, setTodayTokenTransferred] = useState<TokenRecord<string> | null>(null);
 
   const [transfers, setTransfers] = useState<Transfer[]>([]);
   const [toValidations, setToValidations] = useState<ToInputValidationState[]>([]);
@@ -54,9 +52,7 @@ export function useMultisender({
   const [isEstimatingFee, setIsEstimatingFee] = useState(false);
 
   const [totalAmount, setTotalAmount] = useState<TotalAmount>({
-    ETH: '0',
-    MATIC: '0',
-    TVWT: '0',
+    ...theTokenService.createTokenMap(() => '0'),
     usdValue: '0'
   });
 
@@ -69,10 +65,10 @@ export function useMultisender({
 
   // init transfers
   useEffect(() => {
-    if (ethBalanceFetched && maticBalanceFetched && tvwtBalanceFetched) {
+    if (tokenBalancesFetched) {
       initTransfers();
     }
-  }, [ethBalanceFetched, maticBalanceFetched, tvwtBalanceFetched]);
+  }, [tokenBalancesFetched]);
 
   // init today's token transferred
   useEffect(() => {
@@ -82,11 +78,7 @@ export function useMultisender({
 
   // calculate total amount
   useEffect(() => {
-    const total = {
-      ETH: 0,
-      MATIC: 0,
-      TVWT: 0
-    };
+    const total = theTokenService.createTokenMap(() => 0);
 
     transfers.forEach(transfer => {
       if (transfer.amount && !isNaN(parseFloat(transfer.amount))) {
@@ -94,35 +86,30 @@ export function useMultisender({
       }
     });
 
-    const usdValue = tokenPrices ?
-      total.ETH * parseFloat(tokenPrices.ETH) +
-      total.MATIC * parseFloat(tokenPrices.MATIC) +
-      total.TVWT * parseFloat(tokenPrices.TVWT) :
-      0;
+    let usdValue = 0;
+    if (tokenPrices) {
+      usdValue = Object.values(TokenType).reduce((sum, type) => {
+        return sum + (total[type] * parseFloat(tokenPrices[type] || '0'));
+      }, 0);
+    }
+
+    const totalStrs = theTokenService.getAllTokens().reduce((acc, token) => ({
+      ...acc,
+      [token.tokenType]: total[token.tokenType].toString()
+    }), {} as TokenRecord<string>);
 
     setTotalAmount({
-      ETH: total.ETH.toString(),
-      MATIC: total.MATIC.toString(),
-      TVWT: total.TVWT.toString(),
+      ...totalStrs,
       usdValue: formatNumberWithCommas(usdValue.toString(), 2)
     });
   }, [transfers, tokenPrices]);
-
-  // token balances
-  const tokenBalances = useMemo(() => {
-    return {
-      ETH: ethBalance?.balance || '0',
-      MATIC: maticBalance?.balance || '0',
-      TVWT: tvwtBalance?.balance || '0',
-    }
-  }, [ethBalance, maticBalance, tvwtBalance]);
 
   const hasInsufficientBalance = useMemo(() =>
     Object.entries(totalAmount)
       .filter(([token]) => token !== 'usdValue')
       .some(([token, amount]) => {
         const tokenType = token as TokenType;
-        const totalBalance = parseFloat(tokenBalances[tokenType] || '0');
+        const totalBalance = parseFloat(tokenBalances?.[tokenType] || '0');
         const transferAmount = parseFloat(amount);
         const gasFeeAmount = gasFees && gasFees[tokenType] ? parseFloat(gasFees[tokenType]!) : 0;
         
@@ -203,7 +190,7 @@ export function useMultisender({
 
     setIsEstimatingFee(true);
     try {
-      const tokenTypes: TokenType[] = ['ETH', 'MATIC', 'TVWT'];
+      const tokenTypes: TokenType[] = theTokenService.getAllTokens().map(t => t.tokenType);
       const newGasFees: GasFees = {};
 
       const getValidTransferParams = (tokenType: TokenType) => {
@@ -250,15 +237,12 @@ export function useMultisender({
       }
 
       // calculate USD value
-      if (tokenPrices) {
-        const ethUsdValue = newGasFees.ETH ? parseFloat(newGasFees.ETH) * parseFloat(tokenPrices.ETH) : 0;
-        const maticUsdValue = newGasFees.MATIC ? parseFloat(newGasFees.MATIC) * parseFloat(tokenPrices.MATIC) : 0;
-        const tvwtUsdValue = newGasFees.TVWT ? parseFloat(newGasFees.TVWT) * parseFloat(tokenPrices.TVWT) : 0;
-
-        const usdValue = ethUsdValue + maticUsdValue + tvwtUsdValue;
-        newGasFees.usdValue = formatNumberWithCommas(usdValue.toString(), 2);
-      }
-
+      const usdValue = theTokenService.getAllTokens().reduce((sum, token) => {
+        const gasFee = newGasFees[token.tokenType];
+        const price = tokenPrices?.[token.tokenType];
+        return sum + (gasFee && price ? parseFloat(gasFee) * parseFloat(price) : 0);
+      }, 0);
+      newGasFees.usdValue = formatNumberWithCommas(usdValue.toString(), 2);
       setGasFees(newGasFees);
     } catch (error) {
       console.error('Failed to calculate gas fee:', error);
@@ -273,8 +257,8 @@ export function useMultisender({
       to: "",
       note: "",
       amount: '',
-      token: "TVWT",
-      balance: tokenBalances['TVWT'] || '0',
+      token: TokenType.TVWT,
+      balance: tokenBalances?.[TokenType.TVWT] || '0',
     }]);
 
     setToValidations([{
@@ -371,7 +355,7 @@ export function useMultisender({
   const fetchTransferred = async () => {
     try {
       const { data } = await api.post('/transaction/outbound-amount', {
-        tokens: ['ETH', 'MATIC', 'TVWT'],
+        tokens: theTokenService.getAllTokens().map(t => t.tokenType),
       });
       // data is in format of { ETH: '0', MATIC: '0', TVWT: '0' }
       // unit is wei
@@ -425,7 +409,7 @@ export function useMultisender({
     setIsEstimatingFee(false);
 
     try {
-      const balance = tokenBalances[type] || '0';
+      const balance = tokenBalances?.[type] || '0';
       setTransfers(prev => {
         const newTransfers = [...prev];
         newTransfers[index] = {
@@ -540,8 +524,8 @@ export function useMultisender({
       to: "",
       note: "",
       amount: '',
-      token: "TVWT",
-      balance: tokenBalances['TVWT'] || '0',
+      token: TokenType.TVWT,
+      balance: tokenBalances?.[TokenType.TVWT] || '0',
     };
     setTransfers([...transfers, newTransfer]);
 
@@ -585,7 +569,7 @@ export function useMultisender({
               note: row[1],
               token: row[2] as TokenType,
               amount: row[3],
-              balance: tokenBalances[row[2] as TokenType] || '0',
+              balance: tokenBalances?.[row[2] as TokenType] || '0',
             }));
 
           setTransfers(transfers);

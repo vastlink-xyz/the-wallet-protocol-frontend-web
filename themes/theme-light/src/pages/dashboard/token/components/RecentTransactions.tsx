@@ -14,12 +14,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Token, TokenFactory } from "@/services/TokenService";
 import { TokenType } from "@/types/tokens";
 import { MoveDownLeft, MoveUpRight } from "lucide-react";
 import { CopyClipboardAddress } from "@/components/CopyClipboardAddress";
 import { Card } from "@/components/ui/card";
 import { LogoLoading } from "@/components/LogoLoading";
+import {theTokenService, Token } from "@/services/TokenService";
 
 export function RecentTransactions({
   address,
@@ -36,13 +36,13 @@ export function RecentTransactions({
   const { t } = useTranslation()
 
   useEffect(() => {
-    const token = TokenFactory.getInstance().createToken(tokenType)
+    const token = theTokenService.getToken(tokenType)
     tokenRef.current = token
   }, [tokenType])
 
   const openTxPage = (tx: any) => {
     log('tx open', tx)
-    const url = `${tokenRef.current?.openUrl}/${tx.hash}`
+    const url = `${tokenRef.current?.scanTransactionUrl}/${tx.hash}`
     window.open(url, '_blank')
   }
 

@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { DailyTransactionLimitModal } from "./DailyTransactionLimitModal";
 import { useState } from "react";
 import { useDailyWithdrawalLimits } from "@/hooks/useDailyWithdrawalLimits";
+import { theTokenService } from "@/services/TokenService";
 
 export function DailyTransactionLimit() {
   const { data: defaultLimits } = useDailyWithdrawalLimits()
@@ -22,9 +23,9 @@ export function DailyTransactionLimit() {
         <Button className="hidden tablet:inline-block h-[36px]" variant="outline" onClick={handleOpen}>Change limit</Button>
       </div>
       <div className="text-[#929292] text-xs font-normal leading-relaxed mt-2 tablet:mt-1">
-        <p>{defaultLimits.ETH} SepoliaETH</p>
-        <p>{defaultLimits.MATIC} POL</p>
-        <p>{defaultLimits.TVWT} TVWT</p>
+        {theTokenService.getAllTokens().map(t => (
+          <p>{defaultLimits[t.tokenType]} {t.symbol}</p>
+        ))}
       </div>
 
       {/* mobile button */}

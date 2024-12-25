@@ -1,13 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/api';
+import { TokenRecord } from '@/types/tokens';
 
-export interface TokenPrices {
-  ETH: string;
-  MATIC: string;
-  TVWT: string;
-}
-
-const fetchTokenPrices = async (): Promise<TokenPrices> => {
+const fetchTokenPrices = async (): Promise<TokenRecord<string>> => {
   const { data } = await api.get('/user-assets/token-prices');
   return data;
 };
@@ -15,7 +10,7 @@ const fetchTokenPrices = async (): Promise<TokenPrices> => {
 export const useTokenPrice = (options?: {
   enabled?: boolean;
   onError?: (error: any) => void;
-  onSettled?: (data: TokenPrices | undefined, error: any) => void;
+  onSettled?: (data: TokenRecord<string> | undefined, error: any) => void;
 }) => {
   return useQuery({
     queryKey: ['tokenPrices'],

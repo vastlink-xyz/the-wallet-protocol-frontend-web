@@ -5,8 +5,9 @@ import { Detail } from '@/pages/marketplace/feature-detail/Detail';
 import { IProduct } from '@/pages/marketplace/types';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { TokenFactory } from '@/services/TokenService';
+import { theTokenService, Token } from '@/services/TokenService';
 import { CountdownSuccess } from '@/components/CountdownSuccess';
+import { TokenType } from '@/types/tokens';
 
 export default function FeatureDetailPage() {
   const { productId } = useParams<{ productId: string }>();
@@ -36,7 +37,7 @@ export default function FeatureDetailPage() {
 
   const refreshTVWTBalance = async () => {
     const addr = auth.all().address
-    const b = await TokenFactory.getInstance().createToken('TVWT').getBalance(addr)
+    const b = await theTokenService.getToken(TokenType.TVWT).getBalance(addr)
     setBalance(b)
   }
 

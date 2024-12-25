@@ -1,8 +1,7 @@
-import { TokenType } from "@/types/tokens";
-import { formatNumberWithCommas, symbolByToken } from "@/lib/utils";
-import { TokenPrices } from "@/hooks/useTokenPrice";
+import { TokenRecord, TokenType } from "@/types/tokens";
+import { formatNumberWithCommas } from "@/lib/utils";
 import { GasFees, TotalAmount } from "./useMultisender";
-
+import { theTokenService } from "@/services/TokenService";
 export function InsufficientBalanceAlert({
   tokenBalances,
   tokenPrices,  
@@ -10,8 +9,8 @@ export function InsufficientBalanceAlert({
   hasInsufficientBalance,
   gasFees,
 }: {
-  tokenBalances: Record<TokenType, string>;
-  tokenPrices: TokenPrices;
+  tokenBalances: TokenRecord<string>;
+  tokenPrices: TokenRecord<string>;
   totalAmount: TotalAmount;
   hasInsufficientBalance: boolean;
   gasFees: GasFees | null;
@@ -40,10 +39,10 @@ export function InsufficientBalanceAlert({
             return totalExpense > balance && (
               <div key={token} className="mb-3">
                 <p className="text-xs text-black/50 font-normal leading-none mb-[4px]">
-                  {symbolByToken(tokenType)} balance: {formatNumberWithCommas(balance.toString(), 6)} {symbolByToken(tokenType)} ~{getUSDValue(balance.toString(), tokenType)} USDT
+                  {theTokenService.getToken(tokenType).symbol} balance: {formatNumberWithCommas(balance.toString(), 6)} {theTokenService.getToken(tokenType).symbol} ~{getUSDValue(balance.toString(), tokenType)} USDT
                 </p>
                 <p className="text-xs text-black/50 font-normal leading-none mb-[4px]">
-                  Required: {formatNumberWithCommas(totalExpense.toString(), 6)} {symbolByToken(tokenType)} (Transfer: {formatNumberWithCommas(transferAmount.toString(), 6)} + Gas: {formatNumberWithCommas(gasFeeAmount.toString(), 6)})
+                  Required: {formatNumberWithCommas(totalExpense.toString(), 6)} {theTokenService.getToken(tokenType).symbol} (Transfer: {formatNumberWithCommas(transferAmount.toString(), 6)} + Gas: {formatNumberWithCommas(gasFeeAmount.toString(), 6)})
                 </p>
               </div>
             );

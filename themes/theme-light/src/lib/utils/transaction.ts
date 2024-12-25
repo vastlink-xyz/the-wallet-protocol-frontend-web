@@ -1,10 +1,11 @@
 import { ERC20_TVWT_ABI } from "@/abis/TheVastWalletToken";
+import { theTokenService } from "@/services/TokenService";
 import { TokenType } from "@/types/tokens";
-import { CHAIN_NAMESPACES, CustomChainConfig } from "@web3auth/base";
 import { http, createPublicClient, Address, encodeFunctionData, formatEther, Block } from "viem";
-import { sepolia, polygonAmoy } from "viem/chains";
 
 export const erc20Abi = ERC20_TVWT_ABI;
+
+export const trimTrailingZeros = (num: string) => num.replace(/\.?0+$/, '');
 
 export const formatDecimal = (amount: string, decimal=6) => parseFloat(amount).toFixed(decimal)
 
@@ -34,40 +35,6 @@ export function truncateMiddle(str: string, startChars = 8, endChars = 10, ellip
   return `${start}${ellipsis}${end}`;
 }
 
-export const chainConfigByToken = (tokenType: TokenType): CustomChainConfig | undefined => {
-  if (tokenType === 'ETH') {
-    return {
-      chainId: "0xaa36a7",
-      displayName: "Sepolia Testnet ETH",
-      chainNamespace: CHAIN_NAMESPACES.EIP155,
-      tickerName: "Sepolia Testnet ETH",
-      ticker: "ETH",
-      decimals: 18,
-      rpcTarget: import.meta.env.VITE_ETH_JSON_RPC!,
-      blockExplorerUrl: "https://sepolia.etherscan.io",
-    };
-  } else if (tokenType === 'MATIC' || tokenType === 'TVWT') {
-    return {
-      chainId: '0x13882',
-      displayName: 'Polygon Amoy Testnet',
-      chainNamespace: CHAIN_NAMESPACES.EIP155,
-      tickerName: 'Amoy MATIC',
-      ticker: 'MATIC',
-      decimals: 18,
-      rpcTarget: import.meta.env.VITE_POLYGON_JSON_RPC!,
-      blockExplorerUrl: "https://amoy.polygonscan.com",
-    }
-  }
-}
-
-export function viemChainByToken(tokenType: TokenType) {
-  if (tokenType === 'ETH') {
-    return sepolia
-  } else if (tokenType === 'MATIC' || tokenType === 'TVWT') {
-    return polygonAmoy
-  }
-}
-
 export async function getEstimatedGasFeeByToken({
   tokenType,
   transferParams,
@@ -85,7 +52,7 @@ export async function getEstimatedGasFeeByToken({
   defaultBlock?: Block
 }) {
   try {
-    const chain = viemChainByToken(tokenType);
+    const chain = theTokenService.getToken(tokenType).viemChain;
     if (!chain) return null;
 
     const publicClient = createPublicClient({
@@ -95,8 +62,8 @@ export async function getEstimatedGasFeeByToken({
 
     // Get contract address from mapping if it's an ERC20 token
     let contractAddress = undefined;
-    if (tokenType === 'TVWT') {
-      contractAddress = import.meta.env.VITE_TVWT_TOKEN_CONTRACT_ADDRESS as Address;
+    if (theTokenService.isERC20Token(tokenType)) {
+      contractAddress = theTokenService.getToken(tokenType).contractAddress;
       
       if (!contractAddress) {
         throw new Error('Invalid token contract address');
@@ -105,7 +72,7 @@ export async function getEstimatedGasFeeByToken({
 
     // create transaction object
     let transaction;
-    if (tokenType === 'TVWT') {
+    if (theTokenService.isERC20Token(tokenType)) {
       // ERC20 transfer: construct transfer method call data
       const data = encodeFunctionData({
         abi: erc20Abi,
@@ -230,15 +197,5 @@ export async function getEstimatedBatchGasFeeByToken(
   } catch (error) {
     console.error('Batch transaction gas estimation error:', error);
     throw error;
-  }
-}
-
-export function symbolByToken(tokenType: TokenType) {
-  if (tokenType === 'ETH') {
-    return 'SepoliaETH'
-  } else if (tokenType === 'MATIC') {
-    return 'POL'
-  } else if (tokenType === 'TVWT') {
-    return 'TVWT'
   }
 }

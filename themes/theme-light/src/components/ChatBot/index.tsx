@@ -4,7 +4,7 @@ import { Params, Flow, Settings, getDefaultSettings, Styles } from "react-chatbo
 import ChatBot from 'react-chatbotify'
 import { Address } from "viem";
 import { TokenType } from "@/types/tokens";
-import { TokenFactory } from "@/services/TokenService";
+import { theTokenService } from "@/services/TokenService";
 import '@/styles/react-chatbotify.css'
 import api from "@/lib/api";
 import { SendButton } from "@/pages/dashboard/token/components/SendButton";
@@ -94,7 +94,7 @@ export default function ChatBotComponent() {
     setAddress(address)
 
     // balance
-    const tokenInstance = TokenFactory.getInstance().createToken(tokenType)
+    const tokenInstance = theTokenService.getToken(tokenType)
     let b = await tokenInstance.getBalance(address)
     b = formatDecimal(b)
     setBalance(b)

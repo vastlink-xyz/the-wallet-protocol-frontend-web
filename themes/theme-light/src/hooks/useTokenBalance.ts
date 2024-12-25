@@ -1,35 +1,44 @@
 import { useQuery } from '@tanstack/react-query';
-import { TokenType } from '@/types/tokens';
-import { TokenFactory } from '@/services/TokenService';
+import { TokenRecord, TokenType } from '@/types/tokens';
+import { theTokenService } from '@/services/TokenService';
 import { auth, formatDecimal } from '@/lib/utils';
 
-export interface TokenBalance {
-  balance: string;
-  tokenType: TokenType;
-}
-
-const fetchTokenBalance = async (tokenType: TokenType): Promise<TokenBalance> => {
-  const token = TokenFactory.getInstance().createToken(tokenType)
+const fetchTokenBalance = async (tokenType: TokenType): Promise<string> => {
+  const token = theTokenService.getToken(tokenType)
   const { address } = auth.all()
   const b = await token.getBalance(address)
-  const bFormatted = formatDecimal(b)
-  return { balance: bFormatted, tokenType }
+  return formatDecimal(b) || '0'
 }
 
-export const useTokenBalance = (
-  tokenType: TokenType,
-  options?: {
-    enabled?: boolean;
-    onError?: (error: any) => void;
-    onSettled?: (data: TokenBalance | undefined, error: any) => void;
-  }
-) => {
-  return useQuery({
+const fetchAllTokenBalances = async (): Promise<TokenRecord<string>> => {
+  const emptyMap = theTokenService.createTokenMap(() => '0');
+  const tokens = Object.values(TokenType);
+  const balances = await Promise.all(tokens.map(type => fetchTokenBalance(type)));
+  
+  return tokens.reduce((acc, type, index) => ({
+    ...acc,
+    [type]: balances[index] || '0'
+  }), emptyMap);
+}
+
+// fetch single token balance
+export const useSingleTokenBalance = (tokenType: TokenType) => {
+  return useQuery<string>({
     queryKey: ['tokenBalance', tokenType],
     queryFn: () => fetchTokenBalance(tokenType),
-    enabled: options?.enabled !== false,
+    enabled: true,
     retry: false,
     gcTime: 0,
-    ...options
+  });
+};
+
+// fetch all token balances
+export const useAllTokenBalances = () => {
+  return useQuery<TokenRecord<string>>({
+    queryKey: ['tokenBalances'],
+    queryFn: fetchAllTokenBalances,
+    enabled: true,
+    retry: false,
+    gcTime: 0,
   });
 };

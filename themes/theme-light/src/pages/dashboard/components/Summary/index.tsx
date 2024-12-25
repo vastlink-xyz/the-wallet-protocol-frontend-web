@@ -6,21 +6,7 @@ import { TokenType } from "@/types/tokens";
 import { ReceiveModal } from "../ReceiveModal";
 import { useTotalAsset } from "@/hooks/useTotalAsset";
 import { useUserInfo } from "@/hooks/user/useUserInfo";
-
-const tokenTypeIcons = [
-  {
-    name: 'SepoliaETH',
-    icon: '/imgs/logos/eth.png',
-  },
-  {
-    name: 'POL',
-    icon: '/imgs/logos/matic.png',
-  },
-  {
-    name: 'TVWT',
-    icon: '/imgs/logos/tvwt.png',
-  },
-] as const;
+import { theTokenService } from "@/services/TokenService";
 
 export function Summary() {
   const { address } = auth.all();
@@ -33,7 +19,7 @@ export function Summary() {
 
   const [sendOpen, setSendOpen] = useState(false)
   const [receiveOpen, setReceiveOpen] = useState(false)
-  const [tokenType, setTokenType] = useState<TokenType>('ETH')
+  const [tokenType, setTokenType] = useState<TokenType>(TokenType.ETH)
   const [hideTotalAsset, setHideTotalAsset] = useState(hideTotalAssetStorage.getData() ?? true)
 
   useEffect(() => {
@@ -45,10 +31,6 @@ export function Summary() {
       setAvatarUrl(userInfo.avatar || auth.getUserRandomAvatar(userInfo.avatarIndex))
     }
   }, [userInfo])
-
-  const tokenTypeIcon = () => {
-    return tokenTypeIcons.find(token => token.name === tokenType)?.icon
-  }
 
   const handleTokenTypeChange = async (tokenType: TokenType) => {
     setTokenType(tokenType)

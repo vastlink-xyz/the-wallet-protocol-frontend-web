@@ -6,19 +6,20 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { cn, log } from "@/lib/utils";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, RefreshCcw } from "lucide-react";
 import dayjs from 'dayjs';
+import { theTokenService } from "@/services/TokenService";
 
 const { RangePicker } = DatePicker;
 
 const tokens = [
   { symbol: 'ALL', icon: '' },
-  { symbol: 'SepoliaETH', icon: '/imgs/logos/eth.png' },
-  { symbol: 'POL', icon: '/imgs/logos/matic.png' },
-  { symbol: 'TVWT', icon: '/imgs/logos/tvwt.png' },
-];
+  ...theTokenService.getAllTokens().map(token => ({
+    symbol: token.symbol,
+    icon: token.logo,
+  })),
+]
 
 export function Search({
   onDateChange,

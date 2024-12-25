@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useState, useEffect, useCallback } from "react";
 
 import { handleError, log } from '@/lib/utils';
-import { TokenFactory } from '@/services/TokenService';
+import { theTokenService, Token } from '@/services/TokenService';
 import { toast } from 'react-toastify';
 import keyManagementService from '@/services/KeyManagementService';
 import { Loading } from '@/components/Loading';
@@ -21,7 +21,7 @@ export default function Page() {
         otp,
       })
 
-      const publicClient = TokenFactory.getInstance().createToken(token).publicClient
+      const publicClient = theTokenService.getToken(token).publicClient
       const receipt = await publicClient.waitForTransactionReceipt({ hash })
       if (receipt.status === 'success') {
         setStatus('success')

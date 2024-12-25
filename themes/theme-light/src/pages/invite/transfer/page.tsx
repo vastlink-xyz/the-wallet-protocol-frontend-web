@@ -7,7 +7,7 @@ import { LogoLoading } from "@/components/LogoLoading";
 import { Address, formatEther } from "viem";
 import { InviteInfoData, InviteStatus } from "../util";
 import { useTransaction } from "@/components/VastWalletConnect/useTransaction";
-import { Token, TokenFactory } from "@/services/TokenService";
+import { theTokenService, Token } from "@/services/TokenService";
 import { TokenType } from "@/types/tokens";
 import { TransactionType } from "@/types/transaction";
 import api from "@/lib/api";
@@ -46,7 +46,7 @@ export default function Page() {
     const response = await api.get(`/invite/invite-info/${id}`)
     if (response.data.success) {
       setInviteInfo(response.data.inviteInfo)
-      const token = TokenFactory.getInstance().createToken(response.data.inviteInfo.token as TokenType)
+      const token = theTokenService.getToken(response.data.inviteInfo.token as TokenType)
       tokenRef.current = token
     }
   }

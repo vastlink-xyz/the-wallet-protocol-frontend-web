@@ -1,9 +1,10 @@
 import api from "@/lib/api";
-import { emailRegex, erc20Abi, formatDecimal, log, viemChainByToken } from "@/lib/utils";
-import { TokenType } from "@/types/tokens";
+import { emailRegex, erc20Abi, formatDecimal, log } from "@/lib/utils";
+import { GasFeeSymbol, TokenType } from "@/types/tokens";
 import { Address, Block, createPublicClient, encodeFunctionData, http, isAddress } from "viem";
 import { PromiseCache } from "@/lib/utils/promiseCache";
 import { GasFees } from "./useMultisender";
+import { theTokenService } from "@/services/TokenService";
 
 interface GasEstimationResult {
   estimatedGas: bigint;
@@ -80,7 +81,7 @@ export async function getEstimatedGasFeeByToken({
     }
 
     try {
-      const chain = viemChainByToken(tokenType);
+      const chain = theTokenService.getToken(tokenType).viemChain;
       if (!chain) return null;
 
       const publicClient = createPublicClient({
@@ -90,15 +91,15 @@ export async function getEstimatedGasFeeByToken({
 
       // original contract address and transaction object creation logic
       let contractAddress = undefined;
-      if (tokenType === 'TVWT') {
-        contractAddress = import.meta.env.VITE_TVWT_TOKEN_CONTRACT_ADDRESS as Address;
+      if (theTokenService.isERC20Token(tokenType)) {
+        contractAddress = theTokenService.getToken(tokenType).contractAddress;
         if (!contractAddress) {
           throw new Error('Invalid token contract address');
         }
       }
 
       let transaction;
-      if (tokenType === 'TVWT') {
+      if (theTokenService.isERC20Token(tokenType)) {
         const data = encodeFunctionData({
           abi: erc20Abi,
           functionName: 'transfer',
@@ -196,7 +197,7 @@ export const validateCsvData = (data: any[]): { isValid: boolean; error?: string
   }
 
   // Validate data rows
-  const validTokens = ['TVWT', 'ETH', 'MATIC'];
+  const validTokens = theTokenService.getAllTokens().map(token => token.tokenType);
   
   for (let i = 1; i < data.length; i++) {
     const row = data[i];
@@ -280,13 +281,12 @@ export function clearEmailValidationCache() {
 export const mergeGasFees = (gasFees: GasFees | null) => {
   if (!gasFees) return null;
 
-  return Object.entries(gasFees).reduce((acc, [token, amount]) => {
+  return Object.entries(gasFees).reduce((acc, [token, gasAmount]) => {
     if (token === 'usdValue') return acc;
-    if (token === 'MATIC' || token === 'TVWT') {
-      acc['POL'] = (parseFloat(acc['POL'] || '0') + parseFloat(amount)).toString();
-    } else if (token === 'ETH') {
-      acc['ETH'] = amount;
-    }
+    const gasSymbol = theTokenService.getToken(token as TokenType).gasSymbol;
+    const gasSumAmount = parseFloat(acc[gasSymbol] || '0');
+    acc[gasSymbol] = (gasSumAmount + parseFloat(gasAmount)).toString();
+
     return acc;
-  }, {} as Record<'POL' | 'ETH', string>);
+  }, {} as Record<GasFeeSymbol, string>);
 }

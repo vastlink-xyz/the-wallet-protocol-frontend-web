@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { cn, symbolByToken } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { InfoIcon, LoaderCircle, PlusIcon } from "lucide-react";
 import { Divider, Tooltip } from "antd";
 import { SlideToSend } from "./SlideToSend";
@@ -84,7 +84,7 @@ export default function MultisenderPage({
         />
       )}
 
-      {tokenPrices && (
+      {(tokenPrices && tokenBalances) && (
         <InsufficientBalanceAlert
           tokenBalances={tokenBalances}
           tokenPrices={tokenPrices}

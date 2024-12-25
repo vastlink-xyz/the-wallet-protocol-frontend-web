@@ -1,4 +1,4 @@
-import { cn, formatNumberWithCommas, symbolByToken } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { TransferResult } from "../../page";
 import { Button } from "@/components/ui/button";
 import { TokenType } from "@/types/tokens";
@@ -6,10 +6,9 @@ import { TotalAmount } from "../TransferMode/useMultisender";
 import { AlertCircle, CircleCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { GasFees } from "../TransferMode/useMultisender";
-import { useMemo } from "react";
 import { useTokenPrice } from "@/hooks/useTokenPrice";
 import { TotalAmountComponent } from "../TransferMode/TotalAmountComponent";
-
+import { theTokenService } from "@/services/TokenService";
 export function ResultMode({
   transferResults,
   onTransferAgain,
@@ -135,7 +134,7 @@ export function ResultMode({
                   'flex-1 text-sm text-black font-normal leading-none text-right',
                   'pr-0 tablet:pr-[8px]',
                 )}>
-                  <p>{transfer.amount} {symbolByToken(transfer.token as TokenType)}</p>
+                  <p>{transfer.amount} {theTokenService.getToken(transfer.token as TokenType).symbol}</p>
                   {
                     (transfer.type === 'transaction' && transfer.status === 'failed') && (
                       <p>(Not Sent)</p>
@@ -159,43 +158,13 @@ export function ResultMode({
           .filter(([token]) => token !== 'usdValue' && gasFees[token as keyof TotalAmount] !== '0')
           .map(([token, amount], index, array) => (
             <span key={token}>
-              {amount} {token === 'TVWT' ? 'POL' : symbolByToken(token as TokenType)}
+              {amount} {theTokenService.getToken(token as TokenType).symbol}
               {index < array.length - 1 && ' & '}
             </span>
           ))}
         {gasFees && Object.values(gasFees).some(amount => amount !== '0') &&
           ` (~$${gasFees.usdValue} USD)`}
       </p>
-
-      {/* Total amount */}
-      {/* <div className="mt-[16px] text-[#929292] text-sm font-normal leading-none flex items-center justify-end gap-1">
-        <p>Total amount:</p>
-      </div>
-      <p className="text-black text-xl font-medium leading-none text-right mt-0.5">
-        {(() => {
-          // merge MATIC and TVWT amounts
-          const mergedAmounts = Object.entries(totalAmount).reduce((acc, [token, amount]) => {
-            if (token === 'usdValue') return acc;
-            if (token === 'MATIC' || token === 'TVWT') {
-              acc['POL'] = (parseFloat(acc['POL'] || '0') + parseFloat(amount)).toString();
-            } else {
-              acc[token] = amount;
-            }
-            return acc;
-          }, {} as Record<string, string>);
-
-          return Object.entries(mergedAmounts)
-            .filter(([_, amount]) => amount !== '0')
-            .map(([token, amount], index, array) => (
-              <span key={token}>
-                {amount} {token}
-                {index < array.length - 1 && ' & '}
-              </span>
-            ));
-        })()}
-        {Object.values(totalAmount).some(amount => amount !== '0') &&
-          ` (~$${totalAmount.usdValue} USD)`}
-      </p> */}
 
       <TotalAmountComponent
         totalAmount={totalAmount}

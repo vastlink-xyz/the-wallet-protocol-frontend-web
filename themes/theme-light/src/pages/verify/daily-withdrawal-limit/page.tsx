@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 import { Loading } from '@/components/Loading';
 import api from '@/lib/api';
 import { UserInfo } from '@/hooks/user/useUserInfo';
+import { theTokenService } from '@/services/TokenService';
 
 export default function Page() {  
   const [searchParams] = useSearchParams();
@@ -19,20 +20,10 @@ export default function Page() {
     otp: string;
     limits: UserInfo['dailyWithdrawalLimits'];
   }) => {
-    const limitsList = [
-      {
-        type: 'ETH',
-        value: limits?.ETH || '0',
-      },
-      {
-        type: 'MATIC',
-        value: limits?.MATIC || '0',
-      },
-      {
-        type: 'TVWT',
-        value: limits?.TVWT || '0',
-      },
-    ]
+    const limitsList = theTokenService.getAllTokens().map(token => ({
+      type: token.tokenType,
+      value: limits?.[token.tokenType] || '0',
+    }));
     try {
       await api.post('/user/update-daily-withdrawal-limits-with-otp', {
         otp,
@@ -52,15 +43,7 @@ export default function Page() {
   useEffect(() => {
     const email = searchParams?.get('email')
     const otp = searchParams?.get('otp')
-    const ETH = searchParams?.get('ETH') ?? undefined
-    const MATIC = searchParams?.get('MATIC') ?? undefined
-    const TVWT = searchParams?.get('TVWT') ?? undefined
-
-    const limits: UserInfo['dailyWithdrawalLimits'] = {
-      ETH,
-      MATIC,
-      TVWT,
-    }
+    const limits = theTokenService.createTokenMap(token => (searchParams?.get(token.tokenType) ?? undefined));
 
     if (email && otp) {
       console.log(`verify-transaction ${email} ${otp}`);

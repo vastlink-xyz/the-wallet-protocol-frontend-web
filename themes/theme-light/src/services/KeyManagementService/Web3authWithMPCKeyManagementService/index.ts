@@ -1,12 +1,12 @@
 import { KeyManagementServiceType } from '@/types/keymanagement';
 import { KeyManagementService } from '../KeyManagement';
-import { auth, chainConfigByToken, log, viemChainByToken } from '@/lib/utils';
-import { makeEthereumSigner, Web3AuthMPCCoreKit } from '@web3auth/mpc-core-kit';
-import { EthereumSigningProvider } from '@web3auth/ethereum-mpc-provider';
-import { Address, createPublicClient, createWalletClient, custom } from 'viem'
+import { auth, log } from '@/lib/utils';
+import { Web3AuthMPCCoreKit } from '@web3auth/mpc-core-kit';
+import { Address } from 'viem'
 import { TokenType } from '@/types/tokens';
 import api from '@/lib/api';
 import { TransactionType } from '@/types/transaction';
+import { theTokenService } from '@/services/TokenService';
 
 export class Web3authWithMPCKeyManagement extends KeyManagementService {
   coreKitInstance: Web3AuthMPCCoreKit | undefined;
@@ -125,31 +125,8 @@ export class Web3authWithMPCKeyManagement extends KeyManagementService {
     }
   }
 
-  private createClientByToken(token: TokenType) {
-    const coreKitInstance = this.coreKitInstance!
-    const chainConfig = chainConfigByToken(token)!
-
-    // Setup provider for EVM Chain
-    const evmProvider = new EthereumSigningProvider({ config: { chainConfig } });
-    evmProvider.setupProvider(makeEthereumSigner(coreKitInstance));
-
-    const walletClient = createWalletClient({
-      chain: viemChainByToken(token),
-      transport: custom(evmProvider),
-    })
-    const publicClient = createPublicClient({
-      chain: viemChainByToken(token),
-      transport: custom(evmProvider),
-    })
-
-    return {
-      walletClient,
-      publicClient,
-    }
-  }
-
   async waitForTransactionReceipt(hash: `0x${string}`, token: TokenType) {
-    const { publicClient } = this.createClientByToken(token)
+    const publicClient = theTokenService.getToken(token).publicClient
     const receipt = await publicClient.waitForTransactionReceipt({
       hash,
     })
