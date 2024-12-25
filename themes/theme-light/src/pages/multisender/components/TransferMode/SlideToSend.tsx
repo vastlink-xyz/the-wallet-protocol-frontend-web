@@ -59,7 +59,7 @@ export function SlideToSend({
     }
 
     if (newPosition + thumb.offsetWidth >= TRACK_INNER_WIDTH) {
-      newPosition = TRACK_INNER_WIDTH - thumb.offsetWidth
+      newPosition = TRACK_INNER_WIDTH - thumb.offsetWidth - 2
       throttledSuccess()
     }
 
@@ -124,7 +124,7 @@ export function SlideToSend({
       <div
         ref={thumbRef}
         className={cn(
-          "absolute z-10 left-0 top-1/2 -translate-y-1/2 w-[42px] h-[42px] bg-black rounded-full flex items-center justify-center cursor-grab",
+          "absolute z-10 left-0 top-1/2 -translate-y-1/2 w-[40px] h-[40px] bg-black rounded-full flex items-center justify-center cursor-grab",
           isDragging && "cursor-grabbing",
           disabled && "bg-[#f2f2f2]"
         )}

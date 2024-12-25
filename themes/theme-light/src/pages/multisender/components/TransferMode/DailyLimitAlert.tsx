@@ -1,7 +1,7 @@
-import { DailyTransactionLimitModal, TokenLimit, TokenTransferred } from "@/pages/profile/components/DailyTransactionLimitModal";
+import { DailyTransactionLimitModal } from "@/pages/profile/components/DailyTransactionLimitModal";
 import { useState } from "react";
 import { formatDecimal } from "@/lib/utils";
-import { TokenType } from "@/types/tokens";
+import { TokenRecord, TokenType } from "@/types/tokens";
 import { TotalAmount } from "./useMultisender";
 import { parseEther } from "viem";
 import { theTokenService } from "@/services/TokenService";
@@ -11,8 +11,8 @@ export function DailyLimitAlert({
   defaultLimits,
   totalAmount,
 }: {
-  todayTokenTransferred: TokenTransferred;
-  defaultLimits: TokenLimit;
+  todayTokenTransferred: TokenRecord<string>;
+  defaultLimits: TokenRecord<string>;
   totalAmount: TotalAmount;
 }) {
   const [isOpenDailyWithdrawalLimitModal, setIsOpenDailyWithdrawalLimitModal] = useState(false);
