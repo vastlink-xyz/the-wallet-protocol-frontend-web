@@ -24,8 +24,16 @@ export default function MainLayout() {
           <div className="text-center text-black text-sm font-bold leading-none">Complete KYB &KYC</div>
           <img src="/imgs/icons/arrow_right.svg" />
         </div>
-      </div> */}
-        <div className='flex-grow min-h-[calc(100vh-60px)]'>
+        </div> */}
+
+        {/* alpha version */}
+        <div className="w-full h-[45px] py-[9px] bg-[#fffbe6] rounded-sm border border-[#ffe58f] justify-between items-center gap-1.5 inline-flex px-8">
+          <div className="flex-1 text-center">
+            <div className="grow shrink basis-0 text-center text-black/90 text-sm font-normal font-['Roboto'] leading-snug">Alpha version on testnets</div>
+          </div>
+        </div>
+
+        <div className='flex-grow min-h-custom-main'>
           <MarketplaceProvider>
             <Outlet />
           </MarketplaceProvider>

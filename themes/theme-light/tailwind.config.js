@@ -92,6 +92,12 @@ const config = {
         "cool-frosted-aqua": "linear-gradient(to top left, #7FBFBF, #5AA6A6)",
         "cool-frosted-aqua-80": "linear-gradient(to top left, rgba(127,191,191,0.8), rgba(90,166,166,0.8))",
       },
+      minHeight: {
+        'custom-main': 'calc(100vh - 105px)',
+      },
+      height: {
+        'custom-main': 'calc(100vh - 105px)',
+      }
     },
   },
   plugins: [
