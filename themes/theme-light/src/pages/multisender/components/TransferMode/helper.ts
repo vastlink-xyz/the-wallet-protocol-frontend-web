@@ -1,7 +1,7 @@
 import api from "@/lib/api";
-import { emailRegex, erc20Abi, formatDecimal, log } from "@/lib/utils";
+import { emailRegex, erc20Abi, formatDecimal, log, trimTrailingZeros } from "@/lib/utils";
 import { GasFeeSymbol, TokenType } from "@/types/tokens";
-import { Address, Block, createPublicClient, encodeFunctionData, http, isAddress } from "viem";
+import { Address, Block, createPublicClient, encodeFunctionData, formatUnits, http, isAddress, parseUnits } from "viem";
 import { PromiseCache } from "@/lib/utils/promiseCache";
 import { GasFees } from "./useMultisender";
 import { theTokenService } from "@/services/TokenService";
@@ -137,7 +137,8 @@ export async function getEstimatedGasFeeByToken({
       const estimatedTotalFee = estimatedGas * maxFeePerGas;
       
       const feeInTokens = formatDecimal(
-        (Number(estimatedTotalFee) / Math.pow(10, 18)).toString()
+        (Number(estimatedTotalFee) / Math.pow(10, 18)).toString(),
+        18
       );
       
       const result = {
@@ -147,7 +148,7 @@ export async function getEstimatedGasFeeByToken({
         estimatedTotalFee,
         baseFee,
         gasPrice,
-        feeInTokens,
+        feeInTokens: trimTrailingZeros(feeInTokens),
       };
 
       // store to cache
@@ -284,8 +285,10 @@ export const mergeGasFees = (gasFees: GasFees | null) => {
   return Object.entries(gasFees).reduce((acc, [token, gasAmount]) => {
     if (token === 'usdValue') return acc;
     const gasSymbol = theTokenService.getToken(token as TokenType).gasSymbol;
-    const gasSumAmount = parseFloat(acc[gasSymbol] || '0');
-    acc[gasSymbol] = (gasSumAmount + parseFloat(gasAmount)).toString();
+    // const gasSumAmount = parseFloat(acc[gasSymbol] || '0');
+    // acc[gasSymbol] = (gasSumAmount + parseFloat(gasAmount)).toString();
+    const gasSumAmount = parseUnits(acc[gasSymbol] || '0', 18);
+    acc[gasSymbol] = formatUnits(gasSumAmount + parseUnits(gasAmount, 18), 18);
 
     return acc;
   }, {} as Record<GasFeeSymbol, string>);

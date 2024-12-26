@@ -11,7 +11,7 @@ export class ETH extends Token {
       name: 'Ethereum Sepolia',
       symbol: 'SepoliaETH',
       decimals: 18,
-      gasSymbol: GasFeeSymbol.ETH,
+      gasSymbol: GasFeeSymbol.SepoliaETH,
       logo: '/imgs/logos/eth.png',
       color: '#3d7dc9',
       viemChain: sepolia,

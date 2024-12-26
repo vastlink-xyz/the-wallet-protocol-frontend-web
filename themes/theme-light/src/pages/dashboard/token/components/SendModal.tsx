@@ -425,7 +425,7 @@ export function SendModal({
   }
 
   const modalContent = open ? (
-    <div className="fixed inset-0 z-50 flex items-center justify-center font-['Roboto']">
+    <div className="fixed inset-0 z-[10001] flex items-center justify-center font-['Roboto']">
       {/* background */}
       <div className="fixed inset-0 bg-[#1f2533]/40"></div>
 
@@ -517,7 +517,7 @@ export function SendModal({
                   <div className="absolute left-2 top-1/2 -translate-y-1/2">
                     <DropdownMenu>
                       <DropdownMenuTrigger className="flex items-center gap-[6px] px-0 py-1">
-                        <span className="font-medium text-sm">{theTokenService.getToken(currentTokenType).symbol}</span>
+                        <span className="font-medium text-sm">{symbol}</span>
                         <ChevronDown className="h-4 w-4 opacity-50" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="start" className="bg-white">

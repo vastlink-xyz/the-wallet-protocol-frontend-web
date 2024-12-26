@@ -9,8 +9,8 @@ export enum TokenType {
 
 export enum GasFeeSymbol {
   POL = 'POL',
-  ETH = 'ETH',
-  BASE = 'BASE',
+  SepoliaETH = 'SepoliaETH',
+  BaseETH = 'BaseETH',
 }
 
 export type TokenRecord<T> = Record<TokenType, T>;

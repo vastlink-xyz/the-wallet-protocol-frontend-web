@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { TokenRecord, TokenType } from "@/types/tokens";
 import { Address, isAddress, parseEther } from "viem";
-import { auth, emailRegex, formatDecimal, formatNumberWithCommas, handleError, log } from "@/lib/utils";
+import { auth, emailRegex, formatDecimal, formatNumberWithCommas, handleError, log, trimTrailingZeros } from "@/lib/utils";
 import api from "@/lib/api";
 import { useTranslation } from "react-i18next";
 import { ToInputValidationState } from "./ToInput";
@@ -231,7 +231,8 @@ export function useMultisender({
           );
 
           if (totalFee > 0) {
-            newGasFees[token] = formatDecimal(totalFee.toString());
+            const f = formatDecimal(totalFee.toFixed(18), 18);
+            newGasFees[token] = trimTrailingZeros(f);
           }
         }
       }

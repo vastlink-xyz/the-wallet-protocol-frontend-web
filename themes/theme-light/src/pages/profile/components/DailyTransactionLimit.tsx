@@ -24,7 +24,7 @@ export function DailyTransactionLimit() {
       </div>
       <div className="text-[#929292] text-xs font-normal leading-relaxed mt-2 tablet:mt-1">
         {theTokenService.getAllTokens().map(t => (
-          <p>{defaultLimits[t.tokenType]} {t.symbol}</p>
+          <p key={t.tokenType}>{defaultLimits[t.tokenType]} {t.symbol}</p>
         ))}
       </div>
 

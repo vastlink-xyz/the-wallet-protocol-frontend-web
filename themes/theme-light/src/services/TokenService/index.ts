@@ -41,8 +41,8 @@ export class TokenService {
     return token === TokenType.ETH || token === TokenType.MATIC;
   }
 
-  public isERC20Token(token: TokenType): token is Extract<TokenType, TokenType.TVWT> {
-    return token === TokenType.TVWT;
+  public isERC20Token(token: TokenType): token is Extract<TokenType, TokenType.TVWT | TokenType.VAST> {
+    return token === TokenType.TVWT || token === TokenType.VAST;
   }
 
   public createTokenMap<T>(mapper: (token: Token) => T): Record<TokenType, T> {
@@ -52,12 +52,9 @@ export class TokenService {
     }, {} as Record<TokenType, T>);
   }
 
-  public getTokenTypeByGasSymbol(symbol: GasFeeSymbol): TokenType {
-    const tokenType = Array.from(this.tokenMap.values()).find(token => token.gasSymbol === symbol)?.tokenType;
-    if (!tokenType) {
-      throw new Error(`No token found for gas symbol: ${symbol}`);
-    }
-    return tokenType;
+  public getNativeTokenTypeByGasSymbol(symbol: GasFeeSymbol): TokenType | null {
+    const tokenType = Array.from(this.tokenMap.values()).find(token => token.gasSymbol === symbol && this.isNativeToken(token.tokenType))?.tokenType;
+    return tokenType || null;
   }
 }
 

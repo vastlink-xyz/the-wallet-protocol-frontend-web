@@ -2,7 +2,7 @@ import { GasFees, TotalAmount } from "./useMultisender";
 import { mergeGasFees } from "./helper";
 import { ERC20TokenType, GasFeeSymbol } from "@/types/tokens";
 import { theTokenService } from "@/services/TokenService";
-import { formatDecimal, formatNumberWithCommas, trimTrailingZeros } from "@/lib/utils";
+import { formatDecimal, formatNumberWithCommas, log, trimTrailingZeros } from "@/lib/utils";
 
 export function TotalAmountComponent({
   totalAmount,
@@ -14,14 +14,19 @@ export function TotalAmountComponent({
   const mergedGasFees = mergeGasFees(gasFees);
 
   const totalAmountByGasSymbol = (symbol: GasFeeSymbol) => {
-    const tokenType = theTokenService.getTokenTypeByGasSymbol(symbol);
-    const amount = parseFloat(totalAmount[tokenType] || '0') + parseFloat(mergedGasFees?.[symbol] || '0');
+    const nativeTokenType = theTokenService.getNativeTokenTypeByGasSymbol(symbol);
+    let amount = 0;
+    if (nativeTokenType) {
+      amount = parseFloat(totalAmount[nativeTokenType] || '0') + parseFloat(mergedGasFees?.[symbol] || '0');
+    } else {
+      amount = parseFloat(mergedGasFees?.[symbol] || '0');
+    }
     if (!amount) {
       return null;
     }
 
     return {
-      amount: trimTrailingZeros(formatDecimal(amount.toString())),
+      amount: trimTrailingZeros(formatDecimal(amount.toString(), 18)),
       symbol,
     }
   }

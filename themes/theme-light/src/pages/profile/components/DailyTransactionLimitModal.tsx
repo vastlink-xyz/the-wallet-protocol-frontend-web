@@ -145,6 +145,7 @@ export function DailyTransactionLimitModal({
       title="Daily Transaction Limit"
       footer={footer}
       contentClassName="p-6"
+      className="z-[10002]"
     >
       {tokens.map((token, index) => (
         <div key={token.type} className={index > 0 ? 'mt-6' : ''}>

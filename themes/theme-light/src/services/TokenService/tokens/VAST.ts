@@ -12,7 +12,7 @@ export class VAST extends Token {
       name: 'TheVastlinkToken',
       symbol: 'VAST',
       decimals: 18,
-      gasSymbol: GasFeeSymbol.BASE,
+      gasSymbol: GasFeeSymbol.BaseETH,
       logo: '/imgs/logos/tvwt.png',
       color: '#52c41a',
       viemChain: baseSepolia,

@@ -3,7 +3,7 @@ import { createContext, Dispatch, lazy, SetStateAction, Suspense, useEffect, use
 import { Params, Flow, Settings, getDefaultSettings, Styles } from "react-chatbotify"
 import ChatBot from 'react-chatbotify'
 import { Address } from "viem";
-import { TokenType } from "@/types/tokens";
+import { GasFeeSymbol, TokenType } from "@/types/tokens";
 import { theTokenService } from "@/services/TokenService";
 import '@/styles/react-chatbotify.css'
 import api from "@/lib/api";
@@ -121,10 +121,12 @@ export default function ChatBotComponent() {
     } else {
       let tokenType = coin
       if (typeof coin === 'string') {
-        if (coin.toLocaleLowerCase() === 'pol') {
-          tokenType = 'MATIC'
-        } else if (coin.toLocaleLowerCase() === 'sepoliaeth') {
-          tokenType = 'ETH'
+        const gasFeeSymbol = Object.values(GasFeeSymbol).find(
+          symbol => symbol.toUpperCase() === coin
+        );
+
+        if (gasFeeSymbol) {
+          tokenType = theTokenService.getNativeTokenTypeByGasSymbol(gasFeeSymbol);
         }
       }
       setTransactionInfo({
