@@ -23,7 +23,6 @@ export function usePagination({
   });
 
   const handlePageChange = (page: number) => {
-    log('handlePageChange', page);
     setPagination(prev => ({
       ...prev,
       current: page

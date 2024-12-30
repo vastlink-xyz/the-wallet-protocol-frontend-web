@@ -122,6 +122,10 @@ export function HeaderActions() {
                 )}
               </DropdownMenuItem>
 
+              <DropdownMenuItem onSelect={() => navigate('/my-rewards')}>
+                My Rewards
+              </DropdownMenuItem>
+
               <hr />
               <DropdownMenuItem
                 onSelect={(e) => e.preventDefault()}
@@ -163,6 +167,9 @@ export function HeaderActions() {
                 ) : (
                   <div className="">Profile</div>
                 )}
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => navigate('/my-rewards')}>
+                My Rewards
               </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => handleLogout()}>
                 Logout

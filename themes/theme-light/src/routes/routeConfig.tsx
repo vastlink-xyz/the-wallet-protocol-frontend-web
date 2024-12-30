@@ -192,6 +192,13 @@ const router = createBrowserRouter([
               const { default: MultisenderPage } = await import('@/pages/multisender/page');
               return { Component: MultisenderPage };
             },
+          },
+          {
+            path: 'my-rewards',
+            async lazy() {
+              const { default: MyRewardsPage } = await import('@/pages/my-rewards/page');
+              return { Component: MyRewardsPage };
+            },
           }
         ]
       }
