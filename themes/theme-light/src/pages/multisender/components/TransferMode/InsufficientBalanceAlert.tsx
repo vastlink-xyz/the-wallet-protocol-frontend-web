@@ -1,7 +1,7 @@
 import { TokenRecord, TokenType } from "@/types/tokens";
 import { formatNumberWithCommas } from "@/lib/utils";
 import { GasFees, TotalAmount } from "./useMultisender";
-import { theTokenService } from "@/services/TokenService";
+import { theTokenListingService } from "@/services/TokenListingService";
 export function InsufficientBalanceAlert({
   tokenBalances,
   tokenPrices,  
@@ -39,10 +39,10 @@ export function InsufficientBalanceAlert({
             return totalExpense > balance && (
               <div key={token} className="mb-3">
                 <p className="text-xs text-black/50 font-normal leading-none mb-[4px]">
-                  {theTokenService.getToken(tokenType).symbol} balance: {formatNumberWithCommas(balance.toString(), 6)} {theTokenService.getToken(tokenType).symbol} ~{getUSDValue(balance.toString(), tokenType)} USDT
+                  {theTokenListingService.getToken(tokenType).symbol} balance: {formatNumberWithCommas(balance.toString(), 6)} {theTokenListingService.getToken(tokenType).symbol} ~{getUSDValue(balance.toString(), tokenType)} USDT
                 </p>
                 <p className="text-xs text-black/50 font-normal leading-none mb-[4px]">
-                  Required: {formatNumberWithCommas(totalExpense.toString(), 6)} {theTokenService.getToken(tokenType).symbol} (Transfer: {formatNumberWithCommas(transferAmount.toString(), 6)} + Gas: {formatNumberWithCommas(gasFeeAmount.toString(), 6)})
+                  Required: {formatNumberWithCommas(totalExpense.toString(), 6)} {theTokenListingService.getToken(tokenType).symbol} (Transfer: {formatNumberWithCommas(transferAmount.toString(), 6)} + Gas: {formatNumberWithCommas(gasFeeAmount.toString(), 6)})
                 </p>
               </div>
             );

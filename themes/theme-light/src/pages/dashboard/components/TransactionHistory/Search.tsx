@@ -9,13 +9,13 @@ import { cn, log } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, RefreshCcw } from "lucide-react";
 import dayjs from 'dayjs';
-import { theTokenService } from "@/services/TokenService";
+import { theTokenListingService } from "@/services/TokenListingService";
 
 const { RangePicker } = DatePicker;
 
 const tokens = [
   { symbol: 'ALL', icon: '' },
-  ...theTokenService.getAllTokens().map(token => ({
+  ...theTokenListingService.getAllTokens().map(token => ({
     symbol: token.symbol,
     icon: token.logo,
   })),

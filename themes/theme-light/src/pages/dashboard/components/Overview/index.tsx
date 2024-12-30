@@ -7,9 +7,9 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { usePerformanceChart } from "@/hooks/usePerformanceChart";
 import dayjs from "dayjs";
-import { theTokenService } from "@/services/TokenService";
+import { theTokenListingService } from "@/services/TokenListingService";
 
-const tokenColors = theTokenService.createTokenMap(token => token.color)
+const tokenColors = theTokenListingService.createTokenMap(token => token.color)
 
 type timeRangeType = '1Y' | 'YTD' | '1M' | '7D'
 

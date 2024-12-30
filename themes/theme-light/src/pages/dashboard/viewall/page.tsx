@@ -16,9 +16,9 @@ import { toast } from "react-toastify";
 import { SendModal } from "@/pages/dashboard/token/components/SendModal";
 import { ReceiveModal } from "@/pages/dashboard/components/ReceiveModal";
 import { TokenType } from "@/types/tokens";
-import { theTokenService } from "@/services/TokenService";
+import { theTokenListingService } from "@/services/TokenListingService";
 
-const tokenImages = theTokenService.createTokenMap(token => token.logo)
+const tokenImages = theTokenListingService.createTokenMap(token => token.logo)
 
 export default function ViewAllPage() {
   const { address } = auth.all()
@@ -91,7 +91,7 @@ export default function ViewAllPage() {
               <div className="flex items-center gap-3">
                 <img src={tokenImages[item.token as keyof typeof tokenImages]} alt="img" className="w-[28px] h-[28px]" />
                 <div className="flex flex-col">
-                  <span className="text-base font-bold leading-tight text-[#3d3d3d]">{theTokenService.getToken(item.token as TokenType).symbol}</span>
+                  <span className="text-base font-bold leading-tight text-[#3d3d3d]">{theTokenListingService.getToken(item.token as TokenType).symbol}</span>
                 </div>
               </div>
             </TableCell>

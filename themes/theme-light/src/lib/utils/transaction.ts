@@ -1,5 +1,5 @@
 import { ERC20_TVWT_ABI } from "@/abis/TheVastWalletToken";
-import { theTokenService } from "@/services/TokenService";
+import { theTokenListingService } from "@/services/TokenListingService";
 import { TokenType } from "@/types/tokens";
 import { http, createPublicClient, Address, encodeFunctionData, formatEther, Block } from "viem";
 
@@ -52,7 +52,7 @@ export async function getEstimatedGasFeeByToken({
   defaultBlock?: Block
 }) {
   try {
-    const chain = theTokenService.getToken(tokenType).viemChain;
+    const chain = theTokenListingService.getToken(tokenType).viemChain;
     if (!chain) return null;
 
     const publicClient = createPublicClient({
@@ -62,8 +62,8 @@ export async function getEstimatedGasFeeByToken({
 
     // Get contract address from mapping if it's an ERC20 token
     let contractAddress = undefined;
-    if (theTokenService.isERC20Token(tokenType)) {
-      contractAddress = theTokenService.getToken(tokenType).contractAddress;
+    if (theTokenListingService.isERC20Token(tokenType)) {
+      contractAddress = theTokenListingService.getToken(tokenType).contractAddress;
       
       if (!contractAddress) {
         throw new Error('Invalid token contract address');
@@ -72,7 +72,7 @@ export async function getEstimatedGasFeeByToken({
 
     // create transaction object
     let transaction;
-    if (theTokenService.isERC20Token(tokenType)) {
+    if (theTokenListingService.isERC20Token(tokenType)) {
       // ERC20 transfer: construct transfer method call data
       const data = encodeFunctionData({
         abi: erc20Abi,

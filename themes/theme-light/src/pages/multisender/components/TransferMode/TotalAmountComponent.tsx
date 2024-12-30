@@ -1,7 +1,7 @@
 import { GasFees, TotalAmount } from "./useMultisender";
 import { mergeGasFees } from "./helper";
 import { ERC20TokenType, GasFeeSymbol } from "@/types/tokens";
-import { theTokenService } from "@/services/TokenService";
+import { theTokenListingService } from "@/services/TokenListingService";
 import { formatDecimal, formatNumberWithCommas, log, trimTrailingZeros } from "@/lib/utils";
 
 export function TotalAmountComponent({
@@ -14,7 +14,7 @@ export function TotalAmountComponent({
   const mergedGasFees = mergeGasFees(gasFees);
 
   const totalAmountByGasSymbol = (symbol: GasFeeSymbol) => {
-    const nativeTokenType = theTokenService.getNativeTokenTypeByGasSymbol(symbol);
+    const nativeTokenType = theTokenListingService.getNativeTokenTypeByGasSymbol(symbol);
     let amount = 0;
     if (nativeTokenType) {
       amount = parseFloat(totalAmount[nativeTokenType] || '0') + parseFloat(mergedGasFees?.[symbol] || '0');
@@ -53,8 +53,8 @@ export function TotalAmountComponent({
     });
 
     // add all ERC20 tokens
-    theTokenService.getAllTokens()
-      .filter(token => theTokenService.isERC20Token(token.tokenType))
+    theTokenListingService.getAllTokens()
+      .filter(token => theTokenListingService.isERC20Token(token.tokenType))
       .forEach(token => {
         items.push(totalAmountByERC20TokenType(token.tokenType as ERC20TokenType));
       });

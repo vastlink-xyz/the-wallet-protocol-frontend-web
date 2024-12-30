@@ -5,11 +5,11 @@ import { toast } from 'react-toastify';
 import { CircleCheck } from 'lucide-react';
 import { Button } from '../ui/button';
 import { TokenType } from '@/types/tokens';
-import { theTokenService } from '@/services/TokenService';
+import { theTokenListingService } from '@/services/TokenListingService';
 import { TransactionType } from '@/types/transaction';
 import api from '@/lib/api';
 import keyManagementService from '@/services/KeyManagementService';
-import { Token } from '@/services/TokenService/tokens/Token';
+import { Token } from '@/services/TokenListingService/tokens/Token';
 
 export const useTransaction = () => {
   const [sending, setSending] = useState(false);
@@ -36,7 +36,7 @@ export const useTransaction = () => {
     isNotifyOtp?: boolean;
     isNotifyError?: boolean;
   }) => {
-    tokenRef.current = theTokenService.getToken(token)
+    tokenRef.current = theTokenListingService.getToken(token)
 
     try {
       const amt = parseEther(amount).toString();

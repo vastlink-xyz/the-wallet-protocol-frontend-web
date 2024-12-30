@@ -6,7 +6,7 @@ import { toast } from 'react-toastify';
 import { Loading } from '@/components/Loading';
 import api from '@/lib/api';
 import { UserInfo } from '@/hooks/user/useUserInfo';
-import { theTokenService } from '@/services/TokenService';
+import { theTokenListingService } from '@/services/TokenListingService';
 
 export default function Page() {  
   const [searchParams] = useSearchParams();
@@ -20,7 +20,7 @@ export default function Page() {
     otp: string;
     limits: UserInfo['dailyWithdrawalLimits'];
   }) => {
-    const limitsList = theTokenService.getAllTokens().map(token => ({
+    const limitsList = theTokenListingService.getAllTokens().map(token => ({
       type: token.tokenType,
       value: limits?.[token.tokenType] || '0',
     }));
@@ -43,7 +43,7 @@ export default function Page() {
   useEffect(() => {
     const email = searchParams?.get('email')
     const otp = searchParams?.get('otp')
-    const limits = theTokenService.createTokenMap(token => (searchParams?.get(token.tokenType) ?? undefined));
+    const limits = theTokenListingService.createTokenMap(token => (searchParams?.get(token.tokenType) ?? undefined));
 
     if (email && otp) {
       console.log(`verify-transaction ${email} ${otp}`);

@@ -2,9 +2,9 @@ import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { formatEther } from 'viem';
 import { TokenRecord, TokenType } from '@/types/tokens';
-import { theTokenService } from '@/services/TokenService';
+import { theTokenListingService } from '@/services/TokenListingService';
 
-const DEFAULT_LIMITS: TokenRecord<string> = theTokenService.createTokenMap(() => '0');
+const DEFAULT_LIMITS: TokenRecord<string> = theTokenListingService.createTokenMap(() => '0');
 
 const fetchDailyWithdrawalLimits = async (): Promise<TokenRecord<string>> => {
   const { data } = await api.get('/transaction/default-daily-withdrawal-limits', {

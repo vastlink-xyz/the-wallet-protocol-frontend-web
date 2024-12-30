@@ -58,10 +58,10 @@ export class TokenService {
   }
 }
 
-const theTokenService = TokenService.getInstance();
-Object.freeze(theTokenService);
+const theTokenListingService = TokenService.getInstance();
+Object.freeze(theTokenListingService);
 
 export {
-  theTokenService,
+  theTokenListingService,
   Token,
 }

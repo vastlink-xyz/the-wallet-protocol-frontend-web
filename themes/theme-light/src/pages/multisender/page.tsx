@@ -3,7 +3,7 @@ import TransferMode from "./components/TransferMode";
 import { useState } from "react";
 import { ResultMode } from "./components/ResultMode";
 import { GasFees, TotalAmount } from "./components/TransferMode/useMultisender";
-import { theTokenService } from "@/services/TokenService";
+import { theTokenListingService } from "@/services/TokenListingService";
 
 export interface TransferResult {
   to: string;
@@ -55,7 +55,7 @@ export default function MultisenderPage() {
   const [transferResults, setTransferResults] = useState<TransferResult[]>([]);
   const [gasFees, setGasFees] = useState<GasFees | null>(null);
   const [totalAmount, setTotalAmount] = useState<TotalAmount>({
-    ...theTokenService.createTokenMap(() => '0'),
+    ...theTokenListingService.createTokenMap(() => '0'),
     usdValue: '0'
   });
   

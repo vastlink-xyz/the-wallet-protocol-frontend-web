@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { GasFees } from "../TransferMode/useMultisender";
 import { useTokenPrice } from "@/hooks/useTokenPrice";
 import { TotalAmountComponent } from "../TransferMode/TotalAmountComponent";
-import { theTokenService } from "@/services/TokenService";
+import { theTokenListingService } from "@/services/TokenListingService";
 export function ResultMode({
   transferResults,
   onTransferAgain,
@@ -102,7 +102,7 @@ export function ResultMode({
                   'flex-1 text-sm text-black font-normal leading-none text-right',
                   'pr-0 tablet:pr-[8px]',
                 )}>
-                  <p>{transfer.amount} {theTokenService.getToken(transfer.token as TokenType).symbol}</p>
+                  <p>{transfer.amount} {theTokenListingService.getToken(transfer.token as TokenType).symbol}</p>
                   {
                     (transfer.type === 'transaction' && transfer.status === 'failed') && (
                       <p>(Not Sent)</p>
@@ -126,7 +126,7 @@ export function ResultMode({
           .filter(([token]) => token !== 'usdValue' && gasFees[token as keyof TotalAmount] !== '0')
           .map(([token, amount], index, array) => (
             <span key={token}>
-              {amount} {theTokenService.getToken(token as TokenType).symbol}
+              {amount} {theTokenListingService.getToken(token as TokenType).symbol}
               {index < array.length - 1 && ' & '}
             </span>
           ))}

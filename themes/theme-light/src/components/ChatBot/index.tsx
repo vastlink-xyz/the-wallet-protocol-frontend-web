@@ -4,7 +4,7 @@ import { Params, Flow, Settings, getDefaultSettings, Styles } from "react-chatbo
 import ChatBot from 'react-chatbotify'
 import { Address } from "viem";
 import { GasFeeSymbol, TokenType } from "@/types/tokens";
-import { theTokenService } from "@/services/TokenService";
+import { theTokenListingService } from "@/services/TokenListingService";
 import '@/styles/react-chatbotify.css'
 import api from "@/lib/api";
 import { SendButton } from "@/pages/dashboard/token/components/SendButton";
@@ -94,7 +94,7 @@ export default function ChatBotComponent() {
     setAddress(address)
 
     // balance
-    const tokenInstance = theTokenService.getToken(tokenType)
+    const tokenInstance = theTokenListingService.getToken(tokenType)
     let b = await tokenInstance.getBalance(address)
     b = formatDecimal(b)
     setBalance(b)
@@ -126,7 +126,7 @@ export default function ChatBotComponent() {
         );
 
         if (gasFeeSymbol) {
-          tokenType = theTokenService.getNativeTokenTypeByGasSymbol(gasFeeSymbol);
+          tokenType = theTokenListingService.getNativeTokenTypeByGasSymbol(gasFeeSymbol);
         }
       }
       setTransactionInfo({

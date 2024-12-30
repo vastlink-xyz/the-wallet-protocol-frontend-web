@@ -10,12 +10,12 @@ import { Tooltip } from 'antd';
 import { cn } from "@/lib/utils"
 import { formatEther } from "viem"
 import { CopyClipboardAddress } from "@/components/CopyClipboardAddress";
-import { theTokenService } from "@/services/TokenService";
+import { theTokenListingService } from "@/services/TokenListingService";
 import { TokenType } from "@/types/tokens";
 
 const tokenImages: Record<TokenType, string> = Object.values(TokenType).reduce((acc, type) => ({
   ...acc,
-  [type]: theTokenService.getToken(type).logo
+  [type]: theTokenListingService.getToken(type).logo
 }), {} as Record<TokenType, string>);
 
 
@@ -54,7 +54,7 @@ const formatLargeNumber = (value: string, maxDigits: number = 12) => {
 };
 
 const openTxPage = (tx: any) => {
-  const tokenInstance = theTokenService.getToken(tx.token)
+  const tokenInstance = theTokenListingService.getToken(tx.token)
   const url = `${tokenInstance.scanTransactionUrl}/${tx.hash}`
   window.open(url, '_blank')
 }
@@ -106,7 +106,7 @@ export function TableList({ data, isLoading }: { data: any[], isLoading: boolean
                 transaction.type === 'Receive' ? 'text-[#00a478]' : 'text-[#ff6363]'
               )}>
                 {transaction.type === 'Receive' ? '+' : '-'}
-                {formatLargeNumber(transaction.amount)} {theTokenService.getToken(transaction.token).symbol}
+                {formatLargeNumber(transaction.amount)} {theTokenListingService.getToken(transaction.token).symbol}
               </span>
             </TableCell>
 

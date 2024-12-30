@@ -6,7 +6,7 @@ import { TokenType } from "@/types/tokens";
 import { ReceiveModal } from "../ReceiveModal";
 import { useTotalAsset } from "@/hooks/useTotalAsset";
 import { useUserInfo } from "@/hooks/user/useUserInfo";
-import { theTokenService } from "@/services/TokenService";
+import { theTokenListingService } from "@/services/TokenListingService";
 
 export function Summary() {
   const { address } = auth.all();

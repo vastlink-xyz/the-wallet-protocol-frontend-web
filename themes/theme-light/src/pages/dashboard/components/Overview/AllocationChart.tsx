@@ -1,7 +1,7 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { useMemo } from 'react';
 import { TokenType } from '@/types/tokens';
-import { theTokenService } from '@/services/TokenService';
+import { theTokenListingService } from '@/services/TokenListingService';
 
 interface AllocationData {
   label: string;
@@ -63,7 +63,7 @@ export function AllocationChart({ data }: AllocationChartProps) {
               className="w-3 h-3 rounded-full" 
               style={{ backgroundColor: item.color }}
             />
-            <span className="text-sm text-gray-600">{theTokenService.getToken(item.label as TokenType).symbol}</span>
+            <span className="text-sm text-gray-600">{theTokenListingService.getToken(item.label as TokenType).symbol}</span>
           </div>
         ))}
       </div>

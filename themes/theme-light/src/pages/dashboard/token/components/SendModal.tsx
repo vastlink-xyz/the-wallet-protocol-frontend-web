@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "react-toastify";
 import { TokenType } from "@/types/tokens";
-import { theTokenService, Token } from "@/services/TokenService";
+import { theTokenListingService, Token } from "@/services/TokenListingService";
 import { LogoLoading } from "@/components/LogoLoading";
 import { useTranslation } from "react-i18next";
 import { Textarea } from "@/components/ui/textarea";
@@ -28,7 +28,7 @@ import { notification } from "antd"
 import { DailyTransactionLimitModal } from "@/pages/profile/components/DailyTransactionLimitModal"
 import { useDailyWithdrawalLimits } from "@/hooks/useDailyWithdrawalLimits"
 
-const tokenTypes = theTokenService.getAllTokens()
+const tokenTypes = theTokenListingService.getAllTokens()
 
 export function SendModal({
   open,
@@ -90,7 +90,7 @@ export function SendModal({
 
   const symbol = useMemo(() => {
     if (currentTokenType) {
-      return theTokenService.getToken(currentTokenType).symbol
+      return theTokenListingService.getToken(currentTokenType).symbol
     }
     return ''
   }, [currentTokenType])
@@ -187,7 +187,7 @@ export function SendModal({
     setEstimatedFee('')
     setAmountError('')
     setCurrentTokenType(newTokenType)
-    const token = theTokenService.getToken(newTokenType)
+    const token = theTokenListingService.getToken(newTokenType)
     tokenRef.current = token
     // setSymbol(token.symbol)
     let b = await token.getBalance(address)

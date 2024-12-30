@@ -19,7 +19,7 @@ import { MoveDownLeft, MoveUpRight } from "lucide-react";
 import { CopyClipboardAddress } from "@/components/CopyClipboardAddress";
 import { Card } from "@/components/ui/card";
 import { LogoLoading } from "@/components/LogoLoading";
-import {theTokenService, Token } from "@/services/TokenService";
+import {theTokenListingService, Token } from "@/services/TokenListingService";
 
 export function RecentTransactions({
   address,
@@ -36,7 +36,7 @@ export function RecentTransactions({
   const { t } = useTranslation()
 
   useEffect(() => {
-    const token = theTokenService.getToken(tokenType)
+    const token = theTokenListingService.getToken(tokenType)
     tokenRef.current = token
   }, [tokenType])
 

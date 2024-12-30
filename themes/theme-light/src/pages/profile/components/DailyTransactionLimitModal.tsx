@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { LogoLoading } from "@/components/LogoLoading";
 import { TokenRecord, TokenType } from "@/types/tokens";
 import { useAllTokenBalances } from "@/hooks/useTokenBalance";
-import { theTokenService } from "@/services/TokenService";
+import { theTokenListingService } from "@/services/TokenListingService";
 
 interface TokenConfig {
   type: TokenType;
@@ -33,7 +33,7 @@ export function DailyTransactionLimitModal({
   const [tokenTransferred, setTokenTransferred] = useState<TokenRecord<string> | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const [limits, setLimits] = useState<Record<TokenType, string>>(theTokenService.createTokenMap(() => ''));
+  const [limits, setLimits] = useState<Record<TokenType, string>>(theTokenListingService.createTokenMap(() => ''));
 
   useEffect(() => {
     if (isOpen) {
@@ -42,7 +42,7 @@ export function DailyTransactionLimitModal({
   }, [isOpen]);
 
   const disabledButton = useMemo(() => {
-    return theTokenService.getAllTokens().some(token => !limits[token.tokenType]);
+    return theTokenListingService.getAllTokens().some(token => !limits[token.tokenType]);
   }, [limits]);
 
   const init = async () => {
@@ -53,7 +53,7 @@ export function DailyTransactionLimitModal({
   const fetchTransferred = async () => {
     try {
       const { data } = await api.post('/transaction/outbound-amount', {
-        tokens: theTokenService.getAllTokens().map(t => t.tokenType),
+        tokens: theTokenListingService.getAllTokens().map(t => t.tokenType),
       });
       setTokenTransferred(data);
     } catch (error) {
@@ -61,7 +61,7 @@ export function DailyTransactionLimitModal({
     }
   };
 
-  const tokens: TokenConfig[] = useMemo(() => theTokenService.getAllTokens().map(token => ({
+  const tokens: TokenConfig[] = useMemo(() => theTokenListingService.getAllTokens().map(token => ({
     type: token.tokenType,
     balance: tokenBalances?.[token.tokenType] || '0',
     todayTransferred: tokenTransferred?.[token.tokenType] || '0'
@@ -93,7 +93,7 @@ export function DailyTransactionLimitModal({
     
     try {
       setLoading(true);
-      const limitsInWei: { type: TokenType; value: string }[] = theTokenService.getAllTokens().map(token => ({
+      const limitsInWei: { type: TokenType; value: string }[] = theTokenListingService.getAllTokens().map(token => ({
         type: token.tokenType,
         value: parseEther(limits[token.tokenType] || '0').toString()
       }));
@@ -174,7 +174,7 @@ export function DailyTransactionLimitModal({
           <div className="mt-3 bg-black/5 border-black/10 rounded-[8px] py-3 px-4 flex items-center gap-2.5">
             <img src="/imgs/icons/information_filled.svg" width={16} height={16} alt="" />
             <p className="text-black text-xs font-normal leading-none">
-              {loading ? '' : `You've transferred ${formatTransactionAmount(token.todayTransferred ?? '0')} ${theTokenService.getToken(token.type as TokenType).symbol} today`}
+              {loading ? '' : `You've transferred ${formatTransactionAmount(token.todayTransferred ?? '0')} ${theTokenListingService.getToken(token.type as TokenType).symbol} today`}
             </p>
           </div>
         </div>

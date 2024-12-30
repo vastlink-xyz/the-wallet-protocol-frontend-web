@@ -1,17 +1,17 @@
 import { useQuery } from '@tanstack/react-query';
 import { TokenRecord, TokenType } from '@/types/tokens';
-import { theTokenService } from '@/services/TokenService';
+import { theTokenListingService } from '@/services/TokenListingService';
 import { auth, formatDecimal } from '@/lib/utils';
 
 const fetchTokenBalance = async (tokenType: TokenType): Promise<string> => {
-  const token = theTokenService.getToken(tokenType)
+  const token = theTokenListingService.getToken(tokenType)
   const { address } = auth.all()
   const b = await token.getBalance(address)
   return formatDecimal(b) || '0'
 }
 
 const fetchAllTokenBalances = async (): Promise<TokenRecord<string>> => {
-  const emptyMap = theTokenService.createTokenMap(() => '0');
+  const emptyMap = theTokenListingService.createTokenMap(() => '0');
   const tokens = Object.values(TokenType);
   const balances = await Promise.all(tokens.map(type => fetchTokenBalance(type)));
   

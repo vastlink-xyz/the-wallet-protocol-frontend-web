@@ -6,7 +6,7 @@ import { Address } from 'viem'
 import { TokenType } from '@/types/tokens';
 import api from '@/lib/api';
 import { TransactionType } from '@/types/transaction';
-import { theTokenService } from '@/services/TokenService';
+import { theTokenListingService } from '@/services/TokenListingService';
 
 export class Web3authWithMPCKeyManagement extends KeyManagementService {
   coreKitInstance: Web3AuthMPCCoreKit | undefined;
@@ -126,7 +126,7 @@ export class Web3authWithMPCKeyManagement extends KeyManagementService {
   }
 
   async waitForTransactionReceipt(hash: `0x${string}`, token: TokenType) {
-    const publicClient = theTokenService.getToken(token).publicClient
+    const publicClient = theTokenListingService.getToken(token).publicClient
     const receipt = await publicClient.waitForTransactionReceipt({
       hash,
     })

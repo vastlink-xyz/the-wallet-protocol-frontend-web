@@ -15,7 +15,7 @@ import { TransferResult } from "../../page";
 import { clearEmailValidationCache, getEstimatedGasFeeByToken, validateCsvData, validateEmailWithCache } from "./helper";
 import Papa from 'papaparse';
 import { toast } from "react-toastify";
-import { theTokenService } from "@/services/TokenService";
+import { theTokenListingService } from "@/services/TokenListingService";
 
 export interface Transfer {
   to: string;
@@ -52,7 +52,7 @@ export function useMultisender({
   const [isEstimatingFee, setIsEstimatingFee] = useState(false);
 
   const [totalAmount, setTotalAmount] = useState<TotalAmount>({
-    ...theTokenService.createTokenMap(() => '0'),
+    ...theTokenListingService.createTokenMap(() => '0'),
     usdValue: '0'
   });
 
@@ -78,7 +78,7 @@ export function useMultisender({
 
   // calculate total amount
   useEffect(() => {
-    const total = theTokenService.createTokenMap(() => 0);
+    const total = theTokenListingService.createTokenMap(() => 0);
 
     transfers.forEach(transfer => {
       if (transfer.amount && !isNaN(parseFloat(transfer.amount))) {
@@ -93,7 +93,7 @@ export function useMultisender({
       }, 0);
     }
 
-    const totalStrs = theTokenService.getAllTokens().reduce((acc, token) => ({
+    const totalStrs = theTokenListingService.getAllTokens().reduce((acc, token) => ({
       ...acc,
       [token.tokenType]: total[token.tokenType].toString()
     }), {} as TokenRecord<string>);
@@ -190,7 +190,7 @@ export function useMultisender({
 
     setIsEstimatingFee(true);
     try {
-      const tokenTypes: TokenType[] = theTokenService.getAllTokens().map(t => t.tokenType);
+      const tokenTypes: TokenType[] = theTokenListingService.getAllTokens().map(t => t.tokenType);
       const newGasFees: GasFees = {};
 
       const getValidTransferParams = (tokenType: TokenType) => {
@@ -238,7 +238,7 @@ export function useMultisender({
       }
 
       // calculate USD value
-      const usdValue = theTokenService.getAllTokens().reduce((sum, token) => {
+      const usdValue = theTokenListingService.getAllTokens().reduce((sum, token) => {
         const gasFee = newGasFees[token.tokenType];
         const price = tokenPrices?.[token.tokenType];
         return sum + (gasFee && price ? parseFloat(gasFee) * parseFloat(price) : 0);
@@ -356,7 +356,7 @@ export function useMultisender({
   const fetchTransferred = async () => {
     try {
       const { data } = await api.post('/transaction/outbound-amount', {
-        tokens: theTokenService.getAllTokens().map(t => t.tokenType),
+        tokens: theTokenListingService.getAllTokens().map(t => t.tokenType),
       });
       // data is in format of { ETH: '0', MATIC: '0', TVWT: '0' }
       // unit is wei
