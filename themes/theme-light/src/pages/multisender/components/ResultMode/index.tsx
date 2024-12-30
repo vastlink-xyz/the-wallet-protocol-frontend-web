@@ -21,38 +21,6 @@ export function ResultMode({
   totalAmount: TotalAmount;
 }) {
   const navigate = useNavigate();
-  const { data: tokenPrices } = useTokenPrice();
-
-  // const totalAmount = useMemo(() => {
-  //   const total = {
-  //     ETH: 0,
-  //     MATIC: 0,
-  //     TVWT: 0
-  //   };
-
-  //   transferResults.forEach(transfer => {
-  //     if (
-  //       transfer.amount && 
-  //       !isNaN(parseFloat(transfer.amount)) && 
-  //       transfer.status === 'sent'
-  //     ) {
-  //       total[transfer.token] += parseFloat(transfer.amount);
-  //     }
-  //   });
-
-  //   const usdValue = tokenPrices ? 
-  //     total.ETH * parseFloat(tokenPrices.ETH || '0') +
-  //     total.MATIC * parseFloat(tokenPrices.MATIC || '0') +
-  //     total.TVWT * parseFloat(tokenPrices.TVWT || '0') :
-  //     0;
-
-  //   return {
-  //     ETH: total.ETH.toString(),
-  //     MATIC: total.MATIC.toString(),
-  //     TVWT: total.TVWT.toString(),
-  //     usdValue: formatNumberWithCommas(usdValue.toString(), 2)
-  //   };
-  // }, [transferResults, tokenPrices]);
 
   return <div className={cn(
     "pt-[76px] mx-auto pb-[320px]",

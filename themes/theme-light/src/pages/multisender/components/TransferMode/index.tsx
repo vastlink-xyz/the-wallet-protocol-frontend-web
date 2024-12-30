@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn, handleDownloadByUrl } from "@/lib/utils";
 import { InfoIcon, LoaderCircle, PlusIcon } from "lucide-react";
 import { Divider, Tooltip } from "antd";
 import { SlideToSend } from "./SlideToSend";
@@ -222,28 +222,41 @@ export default function MultisenderPage({
       </div>
 
       <div className="flex items-center justify-end gap-[12px] mt-[24px]">
-        <div>
+        {/* download csv template button */}
         <Button
-          variant="outline"
           className="h-[24px] text-xs"
-          disabled={sending}
           onClick={() => {
-            // Find and click the hidden input
-            const input = document.querySelector('input[type="file"]');
-            if (input) {
-              (input as HTMLInputElement).click();
-            }
+            handleDownloadByUrl('/static/files/multisender_template.csv', 'multisender_template.csv');
           }}
         >
-          <span>Import CSV</span>
+          <span>Download CSV Template</span>
         </Button>
-        <input
-          className="hidden"
-          type="file"
-          accept=".csv"
-          onChange={handleFileChange}
-        />
-      </div>
+
+        {/* import csv button */}
+        <div>
+          <Button
+            variant="outline"
+            className="h-[24px] text-xs"
+            disabled={sending}
+            onClick={() => {
+              // Find and click the hidden input
+              const input = document.querySelector('input[type="file"]');
+              if (input) {
+                (input as HTMLInputElement).click();
+              }
+            }}
+          >
+            <span>Import CSV</span>
+          </Button>
+          <input
+            className="hidden"
+            type="file"
+            accept=".csv"
+            onChange={handleFileChange}
+          />
+        </div>
+
+        {/* add recipient button */}
         <Button
           variant="outline"
           className="h-[24px] text-xs px-[26px]"
