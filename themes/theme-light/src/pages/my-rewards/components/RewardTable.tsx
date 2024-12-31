@@ -63,12 +63,11 @@ export function RewardTable() {
       <Table className={cn(loading && "opacity-50")}>
         <TableHeader>
           <TableRow>
-            <TableHead>Action</TableHead>
+            <TableHead>Type</TableHead>
             <TableHead className="text-right">Amount</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Created At</TableHead>
             <TableHead>Fulfilled At</TableHead>
-            <TableHead>Claimed At</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -76,21 +75,27 @@ export function RewardTable() {
             <TableRow key={reward._id}>
               <TableCell>{reward.action}</TableCell>
               <TableCell className="text-right">{reward.amount} VAST</TableCell>
-              <TableCell>{reward.status}</TableCell>
+              <TableCell>
+                {reward.status === 'FULFILLED' ? (
+                  <span className="text-green-500">Fulfilled</span>
+                ) : (
+                  <span className="text-yellow-500">Processing</span>
+                )
+                }
+              </TableCell>
               <TableCell>{new Date(reward.createdAt).toLocaleString()}</TableCell>
               <TableCell>{reward.fulfilledAt ? new Date(reward.fulfilledAt).toLocaleString() : '-'}</TableCell>
-              <TableCell>{reward.claimedAt ? new Date(reward.claimedAt).toLocaleString() : '-'}</TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
 
       <div className='mt-[80px] text-center'>
-          <Pagination
-            {...pagination}
-            onChange={onPageChange}
-          />
-        </div>
+        <Pagination
+          {...pagination}
+          onChange={onPageChange}
+        />
+      </div>
     </div>
   );
 }
