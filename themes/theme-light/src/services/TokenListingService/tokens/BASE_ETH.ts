@@ -1,42 +1,36 @@
-import { formatEther, Address, http, createPublicClient, erc20Abi, PublicClient } from "viem";
+import { formatEther, Address, http, createPublicClient, PublicClient } from "viem";
 import { Token } from "./Token";
 import axios from "axios";
 import { baseSepolia } from "viem/chains";
 import { GasFeeSymbol, TokenType } from "@/types/tokens";
 
-export class VAST extends Token {
-
+export class BASE_ETH extends Token {
   constructor() {
     super({
-      tokenType: TokenType.VAST,
-      name: 'TheVastlinkToken',
-      symbol: 'VAST',
+      tokenType: TokenType.BASE_ETH,
+      name: 'Base Sepolia',
+      symbol: 'BaseSepoliaETH',
       decimals: 18,
       gasSymbol: GasFeeSymbol.BaseSepoliaETH,
-      logo: '/imgs/logos/tvwt.png',
-      color: '#52c41a',
+      logo: '/imgs/logos/eth.png',
+      color: '#3d7dc9',
       viemChain: baseSepolia,
       publicClient: createPublicClient({
         chain: baseSepolia,
         transport: http(import.meta.env.VITE_BASE_JSON_RPC),
       }) as PublicClient,
       scanTransactionUrl: `${import.meta.env.VITE_BASE_SCAN_TRANSACTION}/`,
-      contractAddress: import.meta.env.VITE_VAST_TOKEN_CONTRACT_ADDRESS as Address,
-      contractAbi: erc20Abi, // kkktodo: add vast abi
     });
   }
-
+  
   async getBalance(address: Address): Promise<string> {
-    const balance = await this.publicClient.readContract({
-      address: this.contractAddress as Address,
-      abi: this.contractAbi as typeof erc20Abi,
-      functionName: 'balanceOf',
-      args: [address],
+    const balance = await this.publicClient.getBalance({
+      address,
     })
     const b = formatEther(balance)
     return b
   }
-
+  
   async getRecentTransactions(address: string): Promise<any[]> {
     const scanApi = import.meta.env.VITE_BASE_SCAN_API as string
     const apiKey = import.meta.env.VITE_BASE_SCAN_API_KEY
@@ -50,9 +44,8 @@ export class VAST extends Token {
     const res = await axios.get(scanApi, {
       params: {
         ...query,
-        action: 'tokentx',
+        action: 'txlist',
         address,
-        contractaddress: import.meta.env.VITE_VAST_TOKEN_CONTRACT_ADDRESS,
         startblock: '0',
         endblock: 'latest',
       }

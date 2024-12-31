@@ -1,23 +1,21 @@
 import { Button } from "@/components/ui/button";
 import { cn, handleDownloadByUrl } from "@/lib/utils";
 import { InfoIcon, LoaderCircle, PlusIcon } from "lucide-react";
-import { Divider, Tooltip } from "antd";
+import { Tooltip } from "antd";
 import { SlideToSend } from "./SlideToSend";
 import { ToInput } from "./ToInput";
 import { NoteArea } from "./NoteArea";
 import { DeleteIcon } from "./DeleteIcon";
-import { TokenDropdownMenu } from "./TokenDropdownMenu";
 import { ExitPromptModal } from "./ExitPromptModal";
 import { useNavigationGuard } from "@/hooks/useNavigationGuard";
 import { GasFees, TotalAmount, useMultisender } from "./useMultisender";
-import { AmountInput } from "./AmountInput";
 import { DailyLimitAlert } from "./DailyLimitAlert";
 import { InsufficientBalanceAlert } from "./InsufficientBalanceAlert";
-import { TokenType } from "@/types/tokens";
 import { useNavigate } from "react-router-dom";
 import { TransferResult } from "../../page";
 import { TotalAmountComponent } from "./TotalAmountComponent";
 import { mergeGasFees } from "./helper";
+import { TokenAmountInput } from "./TokenAmountInput";
 
 export default function MultisenderPage({
   onSent,
@@ -153,23 +151,15 @@ export default function MultisenderPage({
                       "relative",
                       'ml-[22px] tablet:ml-0',
                     )}>
-                      <AmountInput
+                      <TokenAmountInput
                         index={index}
                         transfer={transfer}
                         handleAmountChange={handleAmountChange}
+                        handleTokenTypeChange={handleTokenTypeChange}
                         sending={sending}
                         handleAmountBlur={handleAmountBlur}
                         isEmpty={amountRequiredValidations[index]}
                       />
-                      <div className="absolute left-[12px] top-1/2 -translate-y-1/2 flex items-center">
-                        <TokenDropdownMenu
-                          index={index}
-                          transfer={transfer}
-                          handleTokenTypeChange={handleTokenTypeChange}
-                          sending={sending}
-                        />
-                        <Divider type="vertical" className="h-[16px]" />
-                      </div>
                       {/* Delete button */}
                       <div className={cn(
                         "absolute top-1/2 -translate-y-1/2",

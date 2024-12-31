@@ -24,9 +24,9 @@ export function AllocationChart({ data }: AllocationChartProps) {
   }, [data]);
   
   return (
-    <div className="flex flex-col h-full">
+    <div className="">
       {/* Chart */}
-      <div className="flex-1">
+      <div className="h-[160px]">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
@@ -56,7 +56,7 @@ export function AllocationChart({ data }: AllocationChartProps) {
       </div>
 
       {/* Legend */}
-      <div className="flex gap-4 mt-4 mx-auto">
+      <div className="flex gap-x-4 gap-y-2 flex-wrap justify-center mt-4 mx-auto">
         {data.map((item, index) => (
           <div key={index} className="flex items-center gap-2" title={`$${item.value}`}>
             <div 

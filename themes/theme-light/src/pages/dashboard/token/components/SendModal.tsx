@@ -57,11 +57,11 @@ export function SendModal({
   const [sending, setSending] = useState(false)
   // const [symbol, setSymbol] = useState('')
   const tokenRef = useRef<Token>()
-  
+
   // daily limit
   const [isOpenDailyWithdrawalLimitModal, setIsOpenDailyWithdrawalLimitModal] = useState(false)
   const { data: defaultLimits } = useDailyWithdrawalLimits()
-  
+
   const [currentTokenType, setCurrentTokenType] = useState<TokenType>(tokenType)
   const [currentBalance, setCurrentBalance] = useState<string>('0')
   const [estimatedFee, setEstimatedFee] = useState<string>('')
@@ -80,13 +80,8 @@ export function SendModal({
   const debouncedAmount = useDebounce(amount, 800)
   const debouncedTo = useDebounce(to, 800)
 
-  // useEffect(() => {
-  //   if (open) {
-  //     handleTokenTypeChange(tokenType)
-  //   } else {
-  //     initDefaults()
-  //   }
-  // }, [open])
+  const symbolRef = useRef<HTMLDivElement>(null);
+  const [symbolWidth, setSymbolWidth] = useState(0);
 
   const symbol = useMemo(() => {
     if (currentTokenType) {
@@ -94,6 +89,18 @@ export function SendModal({
     }
     return ''
   }, [currentTokenType])
+
+  useEffect(() => {
+    if (symbolRef.current) {
+      // Add small delay to ensure DOM is rendered
+      setTimeout(() => {
+        const width = symbolRef.current?.getBoundingClientRect().width;
+        if (width) {
+          setSymbolWidth(width + 34);
+        }
+      }, 0);
+    }
+  }, [symbol, open]); // recalculate when symbol changes or modal opens
 
   useEffect(() => {
     log('open', open, 'address', address)
@@ -366,7 +373,7 @@ export function SendModal({
     }
 
   }
- 
+
   const checkAmountExceed = async () => {
     // check amount exceeded
     if (parseFloat(amount) > parseFloat(currentBalance)) {
@@ -507,17 +514,18 @@ export function SendModal({
                     inputMode="decimal"
                     id="amount"
                     className={cn(
-                      "pl-[80px] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
-                      currentTokenType === 'ETH' &&'pl-[110px]',
-                      currentTokenType === 'MATIC' &&'pl-[70px]',
+                      "[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
                     )}
                     required
                     onBlur={checkAmountExceed}
+                    style={{
+                      paddingLeft: `${symbolWidth}px`
+                    }}
                   />
                   <div className="absolute left-2 top-1/2 -translate-y-1/2">
                     <DropdownMenu>
                       <DropdownMenuTrigger className="flex items-center gap-[6px] px-0 py-1">
-                        <span className="font-medium text-sm">{symbol}</span>
+                        <span ref={symbolRef} className="font-medium text-sm">{symbol}</span>
                         <ChevronDown className="h-4 w-4 opacity-50" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="start" className="bg-white">

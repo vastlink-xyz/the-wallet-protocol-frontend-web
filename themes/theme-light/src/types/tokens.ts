@@ -2,6 +2,7 @@
 
 export enum TokenType {
   ETH = 'ETH',
+  BASE_ETH = 'BASE_ETH',
   MATIC = 'MATIC',
   TVWT = 'TVWT',
   VAST = 'VAST',
@@ -10,11 +11,11 @@ export enum TokenType {
 export enum GasFeeSymbol {
   POL = 'POL',
   SepoliaETH = 'SepoliaETH',
-  BaseETH = 'BaseETH',
+  BaseSepoliaETH = 'BaseSepoliaETH',
 }
 
 export type TokenRecord<T> = Record<TokenType, T>;
 
 export type ERC20TokenType = Extract<TokenType, TokenType.TVWT | TokenType.VAST>;
 
-export type NativeTokenType = Extract<TokenType, TokenType.ETH | TokenType.MATIC>;
+export type NativeTokenType = Extract<TokenType, TokenType.ETH | TokenType.BASE_ETH | TokenType.MATIC>;

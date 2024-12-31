@@ -144,7 +144,7 @@ export function DailyTransactionLimitModal({
       onClose={onClose}
       title="Daily Transaction Limit"
       footer={footer}
-      contentClassName="p-6"
+      contentClassName="p-6 max-h-[80vh] overflow-y-auto"
       className="z-[10002]"
     >
       {tokens.map((token, index) => (

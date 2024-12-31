@@ -352,7 +352,7 @@ export function TableList({ data, isLoading }: { data: any[], isLoading: boolean
                         transaction.type === 'Receive' ? 'text-[#00a478]' : 'text-[#ff6363]'
                       )}>
                         {transaction.type === 'Receive' ? '+' : '-'}
-                        {formatLargeNumber(transaction.amount)} {transaction.token}
+                        {formatLargeNumber(transaction.amount)} {theTokenListingService.getToken(transaction.token).symbol}
                       </p>
                       <p>
                         {new Date(transaction.timestamp).toLocaleString('en-US', {
