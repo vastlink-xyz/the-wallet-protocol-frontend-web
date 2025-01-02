@@ -44,7 +44,7 @@ export const useClickProduct = ({
   const handleClick = async (product: IProduct) => {
     // user has not purchased this product
     if (checkPurchaseStatus(product) !== 'active') {
-      navigate(`/marketplace/feature-detail/${product.id}`)
+      window.open(`/marketplace/feature-detail/${product.id}`, '_blank')
       return
     }
 

@@ -7,6 +7,7 @@ import { useMemo, useState } from "react";
 import { ZoomableImage } from './ZoomableImage';
 import { Back } from "@/components/Back";
 import { useTokenPrice } from "@/hooks/useTokenPrice";
+import { useNavigate } from "react-router-dom";
 
 export function Detail({
   product,
@@ -17,6 +18,7 @@ export function Detail({
   balance: string,
   onPurchaseSuccess: () => void
 }) {
+  const navigate = useNavigate();
   const [isChecked, setIsChecked] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   const { data: tokenPrices } = useTokenPrice();
@@ -52,10 +54,13 @@ export function Detail({
 
   return <>
     {/* back button on mobile */}
-    <Back className={cn([
-      'mb-[16px] mt-[20px]',
-      'tablet:hidden',
-    ])} />
+    <Back
+      className={cn([
+        'mb-[16px] mt-[20px]',
+        'tablet:hidden',
+      ])}
+      onClick={() => navigate('/marketplace')}
+    />
 
     {/* title */}
     <div className={cn([
@@ -63,10 +68,13 @@ export function Detail({
       'tablet:w-[646px]',
     ])}>
       {/* back button on desktop */}
-      <Back className={cn([
-        'absolute left-0 top-1/2 -translate-y-1/2 cursor-pointer',
-        'hidden tablet:block',
-      ])} />
+      <Back
+        className={cn([
+          'absolute left-0 top-1/2 -translate-y-1/2 cursor-pointer',
+          'hidden tablet:block',
+        ])}
+        onClick={() => navigate('/marketplace')}
+      />
       <span>{product?.name}</span>
     </div>
 

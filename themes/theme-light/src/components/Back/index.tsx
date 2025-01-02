@@ -1,11 +1,21 @@
 import { cn } from "@/lib/utils"
 import { useNavigate } from "react-router-dom";
 
-export function Back({ className }: { className?: string }) {
+export function Back({
+  className,
+  onClick
+}: {
+  className?: string,
+  onClick?: () => void
+}) {
   const navigate = useNavigate();
 
   const handleBack = () => {
-    navigate(-1);
+    if (onClick) {
+      onClick()
+    } else {
+      navigate(-1);
+    }
   }
 
   return <div className={cn([
