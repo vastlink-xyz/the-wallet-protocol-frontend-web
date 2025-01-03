@@ -142,7 +142,7 @@ export default function ChatBotComponent() {
 
   const flow: Flow = {
     start: {
-      message: "Welcome! I can help you transfer cryptocurrencies. You can send SepoliaETH, POL, or TVWT to any email address. For example, you can say: 'Send 1 TVWT to example@gmail.com'. How can I assist you today?",
+      message: "Welcome! I can help you transfer cryptocurrencies. You can send SepoliaETH, POL, TVWT or VAST to any email address. For example, you can say: 'Send 1 VAST to example@gmail.com'. How can I assist you today?",
       function: handleQuestion,
       path: "transfer",
     },

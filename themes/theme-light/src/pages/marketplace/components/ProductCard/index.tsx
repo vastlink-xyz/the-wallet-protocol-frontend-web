@@ -87,13 +87,13 @@ export function ProductCard({
               {
                 product.discount && (
                   <>
-                    <span className="text-[#979797] text-sm font-normal line-through leading-none">{product.price} V</span>
+                    <span className="text-[#979797] text-sm font-normal line-through leading-none">{product.price} VAST</span>
                   </>
                 )
               }
               {/* discounted price */}
               <span className="text-[#111111] text-base font-bold leading-none ml-1">
-                {product.discount ? product.price * (100 - product.discount) / 100 : product.price} V
+                {product.discount ? product.price * (100 - product.discount) / 100 : product.price} VAST
               </span>
               {/* discount */}
               {product.discount && (

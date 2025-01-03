@@ -37,7 +37,7 @@ export default function FeatureDetailPage() {
 
   const refreshTVWTBalance = async () => {
     const addr = auth.all().address
-    const b = await theTokenListingService.getToken(TokenType.TVWT).getBalance(addr)
+    const b = await theTokenListingService.getToken(TokenType.VAST).getBalance(addr)
     setBalance(b)
   }
 
