@@ -142,7 +142,7 @@ export function SlideToSend({
           <span className={cn(
             "text-black text-base font-bold leading-tight",
             disabled && "text-[#e0e0e0]"
-          )}>Scroll to send</span>
+          )}>Slide to send</span>
         )}
       </div>
     </div>
