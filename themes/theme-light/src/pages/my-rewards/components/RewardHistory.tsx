@@ -7,7 +7,7 @@ import api from "@/lib/api";
 import { IRewardRequest } from "../types";
 import { toast } from "react-toastify";
 
-export function RewardTable() {
+export function RewardHistory() {
   const {
     pagination,
     handlePageChange,
@@ -35,6 +35,7 @@ export function RewardTable() {
       setLoading(true);
       const res = await api.get('/reward/reward-list', {
         params: {
+          status: 'FULFILLED',
           page,
           pageSize,
         }
@@ -60,31 +61,23 @@ export function RewardTable() {
 
   return (
     <div>
-      <Table className={cn(loading && "opacity-50")}>
+      <h2 className="text-xl font-bold mt-12 mb-2">Reward History</h2>
+      <Table className={cn(
+        loading && "opacity-50",
+      )}>
         <TableHeader>
-          <TableRow>
-            <TableHead>Type</TableHead>
+          <TableRow className="hover:bg-transparent">
+            <TableHead>Name</TableHead>
             <TableHead className="text-right">Amount</TableHead>
-            <TableHead>Status</TableHead>
             <TableHead>Created At</TableHead>
-            <TableHead>Fulfilled At</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {rewards.map((reward) => (
-            <TableRow key={reward._id}>
-              <TableCell>{reward.action}</TableCell>
-              <TableCell className="text-right">{reward.amount} VAST</TableCell>
-              <TableCell>
-                {reward.status === 'FULFILLED' ? (
-                  <span className="text-green-500">Fulfilled</span>
-                ) : (
-                  <span className="text-yellow-500">Processing</span>
-                )
-                }
-              </TableCell>
+            <TableRow key={reward._id} className="hover:bg-transparent">
+              <TableCell>{reward.displayName}</TableCell>
+              <TableCell className="text-right text-green-500">+ {reward.amount} VAST</TableCell>
               <TableCell>{new Date(reward.createdAt).toLocaleString()}</TableCell>
-              <TableCell>{reward.fulfilledAt ? new Date(reward.fulfilledAt).toLocaleString() : '-'}</TableCell>
             </TableRow>
           ))}
         </TableBody>

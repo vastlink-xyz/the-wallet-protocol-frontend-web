@@ -221,7 +221,7 @@ export default function ChatBotComponent() {
         <Suspense fallback={null}>
           <div>
             <SettingsContext.Provider value={{ settings: settings, setSettings: setSettings }}>
-              <ChatBot settings={settings} flow={flow} styles={styles} />
+              <ChatBot id="vastlink-chatbot" settings={settings} flow={flow} styles={styles} />
             </SettingsContext.Provider>
 
             <SendModal

@@ -11,7 +11,7 @@ export function Loading() {
         <img 
           src="/imgs/icons/loading.svg" 
           alt="loading" 
-          className="h-[100px] w-[100px] animate-spin mt-[100px]"
+          className="h-[100px] w-[100px] mt-[160px]"
         />
       </div>
 

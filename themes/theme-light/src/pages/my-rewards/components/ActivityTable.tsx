@@ -39,7 +39,6 @@ export function ActivityTable() {
           pageSize,
         }
       });
-      log('res', res)
       setActivities(res.data.items);
       updateTotal(res.data.total);
     } catch (err) {
@@ -62,7 +61,7 @@ export function ActivityTable() {
     <div>
       <Table className={cn(loading && "opacity-50")}>
         <TableHeader>
-          <TableRow>
+          <TableRow className="hover:bg-transparent">
             <TableHead>Type</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Created At</TableHead>
@@ -70,7 +69,7 @@ export function ActivityTable() {
         </TableHeader>
         <TableBody>
           {activities.map((activity) => (
-            <TableRow key={activity._id}>
+            <TableRow key={activity._id} className="hover:bg-transparent">
               <TableCell>{activity.activityType}</TableCell>
               <TableCell>{activity.status}</TableCell>
               <TableCell>{new Date(activity.createdAt).toLocaleString()}</TableCell>
