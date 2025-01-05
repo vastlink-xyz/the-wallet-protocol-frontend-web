@@ -1,11 +1,21 @@
 import axios, { AxiosError } from 'axios';
 
-export function handleError(error: unknown): { message: string } {
+export function handleError(error: unknown): { message: string, errorType?: string } {
   if (axios.isAxiosError(error)) {
     const axiosError = error as AxiosError;
     if (axiosError.response) {
-      // Error response from the server
-      return { message: `${(axiosError.response.data as { message?: string })?.message || axiosError.message}` };
+      // Error response data from the server
+      const responseData = axiosError.response.data as any
+      if (responseData && responseData.message) {
+        const { errorType, message } = responseData
+        if (errorType) {
+          return {
+            message,
+            errorType,
+          }
+        }
+      }
+      return { message: `${axiosError.message}` };
     } else if (axiosError.request) {
       // Request was made but no response was received
       return { message: 'Network error, please check your internet connection' };
