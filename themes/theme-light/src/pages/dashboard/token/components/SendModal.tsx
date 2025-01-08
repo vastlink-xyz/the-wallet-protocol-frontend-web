@@ -90,6 +90,13 @@ export function SendModal({
     return ''
   }, [currentTokenType])
 
+  const gasSymbol = useMemo(() => {
+    if (currentTokenType) {
+      return theTokenListingService.getToken(currentTokenType).gasSymbol
+    }
+    return ''
+  }, [currentTokenType])
+
   useEffect(() => {
     if (symbolRef.current) {
       // Add small delay to ensure DOM is rendered
@@ -552,7 +559,7 @@ export function SendModal({
                   isEstimatingFee ? (
                     <span><LoaderCircle className="animate-spin" size={14} /></span>
                   ) : estimatedFee ? (
-                    <span className="text-black">~ {estimatedFee} {symbol}</span>
+                    <span className="text-black">~ {estimatedFee} {gasSymbol}</span>
                   ) : (
                     <span className="text-black">-</span>
                   )

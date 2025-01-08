@@ -55,6 +55,18 @@ export async function getEstimatedGasFeeByToken({
     const chain = theTokenListingService.getToken(tokenType).viemChain;
     if (!chain) return null;
 
+    if (theTokenListingService.getToken(tokenType).gasless) {
+      return {
+        estimatedGas: BigInt(0),
+        maxFeePerGas: BigInt(0),
+        maxPriorityFeePerGas: BigInt(0),
+        estimatedTotalFee: BigInt(0),
+        baseFee: BigInt(0),
+        gasPrice: BigInt(0),
+        feeInTokens: '0',
+      };
+    }
+
     const publicClient = createPublicClient({
       chain,
       transport: http()

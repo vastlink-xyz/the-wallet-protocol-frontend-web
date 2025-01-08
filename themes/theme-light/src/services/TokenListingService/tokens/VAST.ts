@@ -23,6 +23,7 @@ export class VAST extends Token {
       scanTransactionUrl: `${import.meta.env.VITE_BASE_SCAN_TRANSACTION}/`,
       contractAddress: import.meta.env.VITE_VAST_TOKEN_CONTRACT_ADDRESS as Address,
       contractAbi: erc20Abi, // kkktodo: add vast abi
+      gasless: true,
     });
   }
 

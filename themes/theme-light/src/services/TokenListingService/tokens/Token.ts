@@ -15,6 +15,7 @@ export abstract class Token {
   scanTransactionUrl: string;
   contractAddress?: Address;
   contractAbi?: any;
+  gasless?: boolean;
 
   constructor({
     tokenType,
@@ -29,6 +30,7 @@ export abstract class Token {
     scanTransactionUrl,
     contractAddress,
     contractAbi,
+    gasless = false,
   }: {
     tokenType: TokenType;
     name: string;
@@ -42,6 +44,7 @@ export abstract class Token {
     scanTransactionUrl: string;
     contractAddress?: Address;
     contractAbi?: any;
+    gasless?: boolean;
   }) {
     this.tokenType = tokenType;
     this.name = name;
@@ -55,6 +58,7 @@ export abstract class Token {
     this.scanTransactionUrl = scanTransactionUrl;
     this.contractAddress = contractAddress;
     this.contractAbi = contractAbi;
+    this.gasless = gasless;
   }
 
   abstract getBalance(address: Address): Promise<string>;
