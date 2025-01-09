@@ -19,7 +19,7 @@ export function Summary() {
 
   const [sendOpen, setSendOpen] = useState(false)
   const [receiveOpen, setReceiveOpen] = useState(false)
-  const [tokenType, setTokenType] = useState<TokenType>(TokenType.ETH)
+  const [tokenType, setTokenType] = useState<TokenType>(TokenType.VAST)
   const [hideTotalAsset, setHideTotalAsset] = useState(hideTotalAssetStorage.getData() ?? true)
 
   useEffect(() => {

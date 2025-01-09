@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef, useMemo } from "react"
-import { Address, parseEther, isAddress } from 'viem'
+import { Address, parseEther, isAddress, formatEther } from 'viem'
 
-import { cn, emailRegex, formatDecimal, getEstimatedGasFeeByToken, handleError, log } from "@/lib/utils"
+import { cn, emailRegex, formatDecimal, getEstimatedGasFeeByToken, handleError, log, trimTrailingZeros } from "@/lib/utils"
 
 import { Loader, CircleCheck, AlertCircle, X, LoaderCircle } from "lucide-react"
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "react-toastify";
-import { TokenType } from "@/types/tokens";
+import { TokenRecord, TokenType } from "@/types/tokens";
 import { theTokenListingService, Token } from "@/services/TokenListingService";
 import { LogoLoading } from "@/components/LogoLoading";
 import { useTranslation } from "react-i18next";
@@ -61,6 +61,7 @@ export function SendModal({
   // daily limit
   const [isOpenDailyWithdrawalLimitModal, setIsOpenDailyWithdrawalLimitModal] = useState(false)
   const { data: defaultLimits } = useDailyWithdrawalLimits()
+  const [todayTokenTransferred, setTodayTokenTransferred] = useState<TokenRecord<string> | null>(null);
 
   const [currentTokenType, setCurrentTokenType] = useState<TokenType>(tokenType)
   const [currentBalance, setCurrentBalance] = useState<string>('0')
@@ -157,6 +158,7 @@ export function SendModal({
     if (defaultNote) {
       setNote(defaultNote)
     }
+    fetchTransferred()
     setIsInitialized(true)
   }
 
@@ -176,6 +178,19 @@ export function SendModal({
       isEstimatingFee
     );
   }, [to, amount, sending, isValidEmail, isValidating, error, currentBalance, isEstimatingFee]);
+
+  const fetchTransferred = async () => {
+    try {
+      const { data } = await api.post('/transaction/outbound-amount', {
+        tokens: theTokenListingService.getAllTokens().map(t => t.tokenType),
+      });
+      // data is in format of { ETH: '0', MATIC: '0', TVWT: '0' }
+      // unit is wei
+      setTodayTokenTransferred(data);
+    } catch (error) {
+      console.error('Failed to fetch token transferred:', error);
+    }
+  };
 
   const handleOpenDailyWithdrawalLimitNotification = () => {
     const btn = (
@@ -438,6 +453,11 @@ export function SendModal({
     }
   }
 
+  const todayTransferred = useMemo(() => {
+    const rawValue = todayTokenTransferred?.[currentTokenType] || '0'
+    return formatDecimal(formatEther(BigInt(rawValue)))
+  }, [currentTokenType, todayTokenTransferred])
+
   const modalContent = open ? (
     <div className="fixed inset-0 z-[10001] flex items-center justify-center font-['Roboto']">
       {/* background */}
@@ -460,7 +480,7 @@ export function SendModal({
             </button>
           </header>
 
-          <div className="p-6 border-b border-[#EBEBEB]">
+          <div className="p-6 border-b border-[#EBEBEB] max-h-[90vh] overflow-y-auto">
             <form>
               {/* to */}
               <div className="mb-6">
@@ -567,14 +587,25 @@ export function SendModal({
               </div>
 
               {/* daily limit */}
-              <div className="flex items-center justify-between mb-[20px]">
-                <p className="text-[#979797] text-sm leading-none">Daily limit: <span>{currentDailyLimit} {symbol}</span></p>
-                <Button
-                  variant={'outline'}
-                  className="h-[24px] py-1 px-2 text-xs"
-                  onClick={() => setIsOpenDailyWithdrawalLimitModal(true)}
-                  type="button"
-                >Change limit</Button>
+              <div className="flex flex-col gap-2 mb-[20px]">
+                <div className="flex items-center justify-between">
+                  <p className="text-[#979797] text-sm leading-none">
+                    Daily limit: <span>{currentDailyLimit} {symbol}</span>
+                  </p>
+                  <Button
+                    variant={'outline'}
+                    className="h-[24px] py-1 px-2 text-xs"
+                    onClick={() => setIsOpenDailyWithdrawalLimitModal(true)}
+                    type="button"
+                  >Change limit</Button>
+                </div>
+                
+                <div className="bg-black/5 rounded-[8px] py-3 px-4 flex items-center gap-2.5">
+                  <img src="/imgs/icons/information_filled.svg" width={16} height={16} alt="" />
+                  <p className="text-black text-xs font-normal leading-none">
+                    You've transferred {trimTrailingZeros(todayTransferred)} {symbol} today
+                  </p>
+                </div>
               </div>
 
               {

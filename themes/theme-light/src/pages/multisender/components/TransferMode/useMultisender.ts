@@ -258,8 +258,8 @@ export function useMultisender({
       to: "",
       note: "",
       amount: '',
-      token: TokenType.TVWT,
-      balance: tokenBalances?.[TokenType.TVWT] || '0',
+      token: TokenType.VAST,
+      balance: tokenBalances?.[TokenType.VAST] || '0',
     }]);
 
     setToValidations([{
@@ -525,8 +525,8 @@ export function useMultisender({
       to: "",
       note: "",
       amount: '',
-      token: TokenType.TVWT,
-      balance: tokenBalances?.[TokenType.TVWT] || '0',
+      token: TokenType.VAST,
+      balance: tokenBalances?.[TokenType.VAST] || '0',
     };
     setTransfers([...transfers, newTransfer]);
 
