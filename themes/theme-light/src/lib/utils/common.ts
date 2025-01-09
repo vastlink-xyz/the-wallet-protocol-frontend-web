@@ -10,3 +10,5 @@ export const handleDownloadByUrl = (url: string, filename: string) => {
   a.click();
   document.body.removeChild(a);
 };
+
+export const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
