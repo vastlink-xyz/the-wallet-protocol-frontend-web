@@ -551,7 +551,7 @@ export function SendModal({
                   />
                   <div className="absolute left-2 top-1/2 -translate-y-1/2">
                     <DropdownMenu>
-                      <DropdownMenuTrigger className="flex items-center gap-[6px] px-0 py-1">
+                      <DropdownMenuTrigger className="flex items-center gap-[6px] px-0 py-1 focus:outline-none">
                         <span ref={symbolRef} className="font-medium text-sm">{symbol}</span>
                         <ChevronDown className="h-4 w-4 opacity-50" />
                       </DropdownMenuTrigger>
@@ -600,7 +600,7 @@ export function SendModal({
                   >Change limit</Button>
                 </div>
                 
-                <div className="bg-black/5 rounded-[8px] py-3 px-4 flex items-center gap-2.5">
+                <div className="border border-black/10 bg-black/5 rounded-[8px] py-3 px-4 flex items-center gap-2.5">
                   <img src="/imgs/icons/information_filled.svg" width={16} height={16} alt="" />
                   <p className="text-black text-xs font-normal leading-none">
                     You've transferred {trimTrailingZeros(todayTransferred)} {symbol} today
@@ -609,7 +609,7 @@ export function SendModal({
               </div>
 
               {
-                estimatedFee && (
+                (estimatedFee && estimatedFee !== '0') && (
                   <div className="rounded-lg border border-black/10 bg-black/5 p-3 mb-4 flex items-start">
                     <img className="w-4 h-4 mr-2" src="/imgs/icons/information_filled.svg" alt="information" />
                     <p className="text-xs text-black">Estimated fees may vary and will be recalculated during backend checks.</p>
