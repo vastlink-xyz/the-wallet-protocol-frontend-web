@@ -141,11 +141,12 @@ export function ResultMode({
 
       <div className="mt-[104px]">
         <div className="flex justify-center flex-wrap gap-4 mt-6 w-full">
-          <Button className="w-[343px] tablet:w-[242px]" variant="outline" onClick={onTransferAgain}>
+          {/* <Button className="w-[343px] tablet:w-[242px]" variant="outline" onClick={onTransferAgain}>
             Transfer again
-          </Button>
+          </Button> */}
           <Button className="w-[343px] tablet:w-[242px]" onClick={() => {
-            navigate(-1);
+            // navigate(-1);
+            onTransferAgain();
           }}>
             OK
           </Button>
