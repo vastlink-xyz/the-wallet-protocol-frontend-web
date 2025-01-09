@@ -1,5 +1,5 @@
 import "./vendor-radix-AvjOLIap.js";
-import { b3 as n } from "./main-BMueK7Y5.js";
+import { b4 as n } from "./main-DuqIT5w7.js";
 export {
   n as mountFunction
 };
