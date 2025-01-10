@@ -75,6 +75,7 @@ export class Web3authWithMPCKeyManagement extends KeyManagementService {
       hash,
       message,
       transactionId,
+      relayerTransactionId,
       // not used
       transactionPayload,
       userEmail,
@@ -94,6 +95,7 @@ export class Web3authWithMPCKeyManagement extends KeyManagementService {
       hash,
       message,
       transactionId,
+      relayerTransactionId,
     }
   }
 

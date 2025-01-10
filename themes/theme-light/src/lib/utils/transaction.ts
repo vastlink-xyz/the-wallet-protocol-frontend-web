@@ -2,6 +2,7 @@ import { ERC20_TVWT_ABI } from "@/abis/TheVastWalletToken";
 import { theTokenListingService } from "@/services/TokenListingService";
 import { TokenType } from "@/types/tokens";
 import { http, createPublicClient, Address, encodeFunctionData, formatEther, Block } from "viem";
+import api from "../api";
 
 export const erc20Abi = ERC20_TVWT_ABI;
 
@@ -209,5 +210,46 @@ export async function getEstimatedBatchGasFeeByToken(
   } catch (error) {
     console.error('Batch transaction gas estimation error:', error);
     throw error;
+  }
+}
+
+async function getRelayerTransactionStatus(transactionId: string) {
+  try {
+    const res = await api.get('/smartcontract/get-relayer-transaction-by-id', {
+      params: {
+        transactionId,
+      }
+    })
+    return res.data.status;
+  } catch (error) {
+    console.error('Get relayer transaction status error:', error);
+    throw error;
+  }
+}
+
+export async function waitForRelayerTransactionDone(transactionId: string, timeout = 180000): Promise<boolean> {
+  const startTime = Date.now();
+  
+  while (true) {
+    try {
+      const status = await getRelayerTransactionStatus(transactionId);
+      
+      if (status === 'mined' || status === 'confirmed') {
+        return true;
+      }
+      
+      if (Date.now() - startTime > timeout) {
+        return false;
+      }
+      
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+    } catch (error) {
+      console.error('Get relayer transaction status error:', error);
+      if (Date.now() - startTime > timeout) {
+        return false;
+      }
+      await new Promise(resolve => setTimeout(resolve, 3000));
+    }
   }
 }

@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { TokenRecord, TokenType } from "@/types/tokens";
 import { Address, isAddress, parseEther } from "viem";
-import { auth, emailRegex, formatDecimal, formatNumberWithCommas, handleError, log, sleep, trimTrailingZeros } from "@/lib/utils";
+import { auth, emailRegex, formatDecimal, formatNumberWithCommas, handleError, log, trimTrailingZeros, waitForRelayerTransactionDone, waitForRelayerTransactionMined } from "@/lib/utils";
 import api from "@/lib/api";
 import { useTranslation } from "react-i18next";
 import { ToInputValidationState } from "./ToInput";
@@ -451,7 +451,6 @@ export function useMultisender({
       toAddress = validation?.fullAddress as Address;
     }
 
-    await sleep(1500);
     const result = await signTransaction({
       to: toAddress,
       amount,
@@ -463,6 +462,14 @@ export function useMultisender({
       isNotifyOtp: false,
       isNotifyError: false,
     })
+
+    const tokenInstance = theTokenListingService.getToken(transfer.token);
+    if (result?.relayerTransactionId && tokenInstance?.gasless) {
+      const isDone = await waitForRelayerTransactionDone(result.relayerTransactionId);
+      if (!isDone) {
+        throw new Error('Transaction is being processed. Please check your transaction history later.');
+      }
+    }
 
     return result;
   }
