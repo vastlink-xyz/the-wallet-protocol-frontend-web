@@ -465,9 +465,9 @@ export function useMultisender({
 
     const tokenInstance = theTokenListingService.getToken(transfer.token);
     if (result?.hash && tokenInstance?.gasless) {
-      const isConfirmed = await waitForTransactionConfirmed(result.hash, transfer.token);
-      if (!isConfirmed) {
-        throw new Error('Transaction is being processed. Please check your transaction history later.');
+      const receipt = await waitForTransactionConfirmed(result.hash, transfer.token);
+      if (!receipt || receipt.status !== 'success') {
+        throw new Error('Transfer failed. Please try again.');
       }
     }
 
