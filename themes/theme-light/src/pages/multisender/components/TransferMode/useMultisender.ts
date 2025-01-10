@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { TokenRecord, TokenType } from "@/types/tokens";
 import { Address, isAddress, parseEther } from "viem";
-import { auth, emailRegex, formatDecimal, formatNumberWithCommas, handleError, log, trimTrailingZeros, waitForRelayerTransactionDone, waitForRelayerTransactionMined } from "@/lib/utils";
+import { auth, emailRegex, formatDecimal, formatNumberWithCommas, handleError, log, trimTrailingZeros, waitForRelayerTransactionDone } from "@/lib/utils";
 import api from "@/lib/api";
 import { useTranslation } from "react-i18next";
 import { ToInputValidationState } from "./ToInput";
