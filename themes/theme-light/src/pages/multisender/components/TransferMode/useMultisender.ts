@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { TokenRecord, TokenType } from "@/types/tokens";
 import { Address, isAddress, parseEther } from "viem";
-import { auth, emailRegex, formatDecimal, formatNumberWithCommas, handleError, log, trimTrailingZeros, waitForRelayerTransactionDone } from "@/lib/utils";
+import { auth, emailRegex, formatDecimal, formatNumberWithCommas, handleError, log, trimTrailingZeros, waitForRelayerTransactionDone, waitForTransactionConfirmed } from "@/lib/utils";
 import api from "@/lib/api";
 import { useTranslation } from "react-i18next";
 import { ToInputValidationState } from "./ToInput";
@@ -464,9 +464,9 @@ export function useMultisender({
     })
 
     const tokenInstance = theTokenListingService.getToken(transfer.token);
-    if (result?.relayerTransactionId && tokenInstance?.gasless) {
-      const isDone = await waitForRelayerTransactionDone(result.relayerTransactionId);
-      if (!isDone) {
+    if (result?.hash && tokenInstance?.gasless) {
+      const isConfirmed = await waitForTransactionConfirmed(result.hash, transfer.token);
+      if (!isConfirmed) {
         throw new Error('Transaction is being processed. Please check your transaction history later.');
       }
     }

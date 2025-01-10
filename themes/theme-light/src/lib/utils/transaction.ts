@@ -1,7 +1,7 @@
 import { ERC20_TVWT_ABI } from "@/abis/TheVastWalletToken";
 import { theTokenListingService } from "@/services/TokenListingService";
 import { TokenType } from "@/types/tokens";
-import { http, createPublicClient, Address, encodeFunctionData, formatEther, Block } from "viem";
+import { http, createPublicClient, Address, encodeFunctionData, formatEther, Block, Hex } from "viem";
 import api from "../api";
 
 export const erc20Abi = ERC20_TVWT_ABI;
@@ -250,6 +250,33 @@ export async function waitForRelayerTransactionDone(transactionId: string, timeo
         return false;
       }
       await new Promise(resolve => setTimeout(resolve, 3000));
+    }
+  }
+}
+
+export async function waitForTransactionConfirmed(hash: Hex, tokenType: TokenType, timeout = 180000): Promise<boolean> {
+  const startTime = Date.now();
+  const publicClient = theTokenListingService.getToken(tokenType).publicClient;
+  
+  while (true) {
+    try {
+      const receipt = await publicClient.getTransactionReceipt({ hash });
+      if (receipt) {
+        return true;
+      }
+      
+      if (Date.now() - startTime > timeout) {
+        throw new Error('Transaction timeout');
+      }
+      
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+    } catch (error) {
+      console.error('Get transaction receipt error:', error);
+      if (Date.now() - startTime > timeout) {
+        throw error;
+      }
+      await new Promise(resolve => setTimeout(resolve, 2000));
     }
   }
 }
