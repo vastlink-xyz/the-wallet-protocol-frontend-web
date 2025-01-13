@@ -55,7 +55,7 @@ export default function AuthRegister() {
     log('call register')
     try {
       setRegistering(true)
-      const response = await axios.post(`${import.meta.env.VITE_WALLET_PROTOCAL_API_BASEURL}/auth/generate-otp`,
+      const response = await axios.post(`${import.meta.env.VITE_WALLET_PROTOCAL_API_BASEURL}/auth/generate-registration-otp`,
         {
           email: username,
           displayName: displayName,

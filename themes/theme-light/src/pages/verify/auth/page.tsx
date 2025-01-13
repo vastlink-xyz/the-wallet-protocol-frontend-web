@@ -55,7 +55,7 @@ export default function VerifyAuthPage() {
     setLoading(true);
     try {
       // verify otp and get idToken
-      await verifyOtp({
+      await verifyLoginOtp({
         username: authUsername,
         otp,
         isRememberMe,
@@ -88,7 +88,7 @@ export default function VerifyAuthPage() {
     setLoading(true);
     try {
       // verify otp and get idToken
-      await verifyOtp({
+      await verifyRegistrationOtp({
         username: registerUsername,
         otp,
         isRememberMe,
@@ -109,7 +109,7 @@ export default function VerifyAuthPage() {
     }
   }
 
-  async function verifyOtp({
+  async function verifyRegistrationOtp({
     username,
     otp,
     isRememberMe = true,
@@ -118,7 +118,26 @@ export default function VerifyAuthPage() {
     otp: string;
     isRememberMe?: boolean;
   }) {
-    const response = await axios.post(`${import.meta.env.VITE_WALLET_PROTOCAL_API_BASEURL}/auth/verify-otp`,
+    const response = await axios.post(`${import.meta.env.VITE_WALLET_PROTOCAL_API_BASEURL}/auth/verify-registration-otp`,
+      {
+        email: username,
+        OTP: otp,
+        rememberMe: isRememberMe,
+      }
+    );
+    return response.data;
+  }
+
+  async function verifyLoginOtp({
+    username,
+    otp,
+    isRememberMe = true,
+  }: {
+    username: string;
+    otp: string;
+    isRememberMe?: boolean;
+  }) {
+    const response = await axios.post(`${import.meta.env.VITE_WALLET_PROTOCAL_API_BASEURL}/auth/verify-login-otp`,
       {
         email: username,
         OTP: otp,

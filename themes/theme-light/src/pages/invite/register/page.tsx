@@ -98,8 +98,8 @@ export default function Page() {
     return 'Click To Sign Up'
   }
 
-  async function verifyOtp(username: string, otp: string) {
-    const response = await axios.post(`${import.meta.env.VITE_WALLET_PROTOCAL_API_BASEURL}/auth/verify-otp`, 
+  async function verifyRegistrationOtp(username: string, otp: string) {
+    const response = await axios.post(`${import.meta.env.VITE_WALLET_PROTOCAL_API_BASEURL}/auth/verify-registration-otp`, 
       {
         email: username,
         OTP: otp,
@@ -119,7 +119,7 @@ export default function Page() {
       setRegistering(true);
 
       // verify otp and get idToken
-      const idToken = await verifyOtp(registerUsername, otp)
+      const idToken = await verifyRegistrationOtp(registerUsername, otp)
 
       // sign up with keyManagementService
       await keyManagementService.signUp({
@@ -155,24 +155,6 @@ export default function Page() {
       ...updateData,
     })
     return res
-  }
-
-  async function authenticate(authUsername: string, toastError=true) {
-    try {
-      // verify otp and get idToken
-      // const idToken = await verifyOtp(authUsername, otp)
-      
-      await keyManagementService.signIn({
-        authUsername,
-      })
-
-      return true
-    } catch (error: any) {
-      if (toastError) {
-        toast.error(error.message)
-      }
-      return false
-    }
   }
 
   const handleSendEmail = async () => {
