@@ -9,13 +9,15 @@ interface VerificationModalProps {
   onClose: () => void;
   onVerify: (code: string) => void;
   loading?: boolean;
+  modalClassName?: string;
 }
 
 export function VerificationModal({ 
   isOpen, 
   onClose,
   onVerify,
-  loading = false
+  loading = false,
+  modalClassName = ''
 }: VerificationModalProps) {
   const [code, setCode] = useState('');
 
@@ -31,6 +33,7 @@ export function VerificationModal({
       onClose={onClose}
       title="Verification Code"
       containerClassName="w-[343px] tablet:w-[420px]"
+      className={modalClassName}
     >
       <div>
         <p className="text-sm text-gray-500 mb-6">

@@ -9,9 +9,14 @@ import { toast } from "react-toastify";
 import { useTranslation } from 'react-i18next';
 import { Checkbox } from "@/components/ui/checkbox";
 import { LogoLoading } from "../LogoLoading";
+import { otpService } from "@/services/OTPService";
+import { VerificationModal } from "../VerificationModal";
+import keyManagementService from "@/services/KeyManagementService";
+import { useNavigate } from "react-router-dom";
 
 export default function AuthRegister() {
   const { t } = useTranslation()
+  const navigate = useNavigate()
 
   const [displayName, setDisplayName] = useState("");
   const [username, setUsername] = useState("");
@@ -22,6 +27,8 @@ export default function AuthRegister() {
   const [authenticateSetup, setAuthenticateSetup] = useState(true);
 
   const [emailError, setEmailError] = useState(false);
+  const [verificationOpen, setVerificationOpen] = useState(false);
+  const [verificationLoading, setVerificationLoading] = useState(false);
 
   const validateEmail = async (value: string) => {
     if (!value) {
@@ -85,9 +92,13 @@ export default function AuthRegister() {
         }
       );
       if (response.status === 200) {
-        toast.success(
-          t('/.otpLoginSentMessage')
-        )
+        if (otpService.getVerifyMethod() === 'email-by-nodemailer') {
+          toast.success(
+            t('/.otpLoginSentMessage')
+          )
+        } else if (otpService.getVerifyMethod() === 'email-by-sendgrid') {
+          setVerificationOpen(true)
+        }
         setAuthenticating(false);
       }
     } catch (error) {
@@ -95,6 +106,32 @@ export default function AuthRegister() {
       toast.error(errorInfo.message)
     } finally {
       setAuthenticating(false);
+    }
+  }
+
+  async function handleVerify(code: string) {
+    try {
+      setVerificationLoading(true);
+      const response = await axios.post(
+        `${import.meta.env.VITE_WALLET_PROTOCAL_API_BASEURL}/auth/verify-login-otp`,
+        {
+          email: username,
+          OTP: code,
+          rememberMe: rememberMe,
+        }
+      );
+      log('verify res', response);
+      if (response.data) {
+        await keyManagementService.signIn({
+          authUsername: username,
+        });
+        navigate('/dashboard');
+      }
+    } catch (error) {
+      const errorInfo = handleError(error);
+      toast.error(errorInfo.message);
+    } finally {
+      setVerificationLoading(false);
     }
   }
 
@@ -233,6 +270,13 @@ export default function AuthRegister() {
           authenticateSetup ? t('/.signUp') : t('/.alreadyHaveAccount')
         }
       </div>
+
+      <VerificationModal
+        isOpen={verificationOpen}
+        onClose={() => setVerificationOpen(false)}
+        loading={verificationLoading}
+        onVerify={handleVerify}
+      />
     </div>
   );
 }

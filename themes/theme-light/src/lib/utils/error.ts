@@ -1,4 +1,5 @@
 import axios, { AxiosError } from 'axios';
+import { log } from './logger';
 
 export function handleError(error: unknown): { message: string, errorType?: string } {
   if (axios.isAxiosError(error)) {
@@ -15,7 +16,7 @@ export function handleError(error: unknown): { message: string, errorType?: stri
           }
         }
       }
-      return { message: `${axiosError.message}` };
+      return { message: responseData.message || `${axiosError.message}` };
     } else if (axiosError.request) {
       // Request was made but no response was received
       return { message: 'Network error, please check your internet connection' };

@@ -10,6 +10,7 @@ import { InviteInfoData, InviteStatus } from "../util";
 import api from "@/lib/api";
 import keyManagementService from "@/services/KeyManagementService";
 import { Loading } from "@/components/Loading";
+import { otpService } from "@/services/OTPService";
 
 export default function Page() {
   const [searchParams] = useSearchParams();
@@ -99,10 +100,12 @@ export default function Page() {
   }
 
   async function verifyRegistrationOtp(username: string, otp: string) {
+    const fromInvitation = otpService.getVerifyMethod() === 'email-by-sendgrid'
     const response = await axios.post(`${import.meta.env.VITE_WALLET_PROTOCAL_API_BASEURL}/auth/verify-registration-otp`, 
       {
         email: username,
         OTP: otp,
+        fromInvitation,
       }
     );
     return response.data;
@@ -119,7 +122,7 @@ export default function Page() {
       setRegistering(true);
 
       // verify otp and get idToken
-      const idToken = await verifyRegistrationOtp(registerUsername, otp)
+      await verifyRegistrationOtp(registerUsername, otp)
 
       // sign up with keyManagementService
       await keyManagementService.signUp({

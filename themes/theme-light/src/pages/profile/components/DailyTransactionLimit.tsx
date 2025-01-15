@@ -3,13 +3,22 @@ import { DailyTransactionLimitModal } from "./DailyTransactionLimitModal";
 import { useState } from "react";
 import { useDailyWithdrawalLimits } from "@/hooks/useDailyWithdrawalLimits";
 import { theTokenListingService } from "@/services/TokenListingService";
+import { useQueryClient } from "@tanstack/react-query";
 
 export function DailyTransactionLimit() {
+  const queryClient = useQueryClient()
   const { data: defaultLimits } = useDailyWithdrawalLimits()
   const [isOpen, setIsOpen] = useState(false)
 
   const handleOpen = () => {
     setIsOpen(true)
+  }
+
+  const handleClose = (reload = false) => {
+    setIsOpen(false)
+    if (reload) {
+      queryClient.invalidateQueries({ queryKey: ['dailyWithdrawalLimits'] })
+    }
   }
 
   return <div className="pt-[36px]">
@@ -37,7 +46,7 @@ export function DailyTransactionLimit() {
     {/* modal */}
     <DailyTransactionLimitModal
       isOpen={isOpen}
-      onClose={() => setIsOpen(false)}
+      onClose={handleClose}
       defaultLimits={defaultLimits}
     />
   </div>;

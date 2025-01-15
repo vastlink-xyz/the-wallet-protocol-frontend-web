@@ -11,6 +11,8 @@ import { LogoLoading } from "@/components/LogoLoading";
 import { TokenRecord, TokenType } from "@/types/tokens";
 import { useAllTokenBalances } from "@/hooks/useTokenBalance";
 import { theTokenListingService } from "@/services/TokenListingService";
+import { VerificationModal } from "@/components/VerificationModal";
+import { otpService } from "@/services/OTPService";
 
 interface TokenConfig {
   type: TokenType;
@@ -24,7 +26,7 @@ export function DailyTransactionLimitModal({
   defaultLimits,
 }: {
   isOpen: boolean;
-  onClose: () => void;
+  onClose: (reload?: boolean) => void;
   defaultLimits: Record<TokenType, string>;
 }) {
   const {data: tokenBalances} = useAllTokenBalances()
@@ -34,6 +36,9 @@ export function DailyTransactionLimitModal({
   const [loading, setLoading] = useState(false);
 
   const [limits, setLimits] = useState<Record<TokenType, string>>(theTokenListingService.createTokenMap(() => ''));
+  const [verificationOpen, setVerificationOpen] = useState(false);
+  const [verificationLoading, setVerificationLoading] = useState(false);
+  const [pendingLimits, setPendingLimits] = useState<{ type: TokenType; value: string }[]>([]);
 
   useEffect(() => {
     if (isOpen) {
@@ -97,19 +102,45 @@ export function DailyTransactionLimitModal({
         type: token.tokenType,
         value: parseEther(limits[token.tokenType] || '0').toString()
       }));
+      
+      setPendingLimits(limitsInWei);
+
       await api.post('/auth/generate-otp-for-daily-limit-update', {
         limits: limitsInWei,
       });
-      toast.info('Please check your email to confirm the transaction limit update', {
-        autoClose: false,
-        closeButton: true,
-      });
-      onClose();
+
+      if (otpService.getVerifyMethod() === 'email-by-nodemailer') {
+        toast.info('Please check your email to confirm the transaction limit update', {
+          autoClose: false,
+          closeButton: true,
+        });
+        onClose();
+      } else if (otpService.getVerifyMethod() === 'email-by-sendgrid') {
+        setVerificationOpen(true);
+      }
     } catch (error) {
       const errorInfo = handleError(error);
       toast.error(errorInfo.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleVerify = async (code: string) => {
+    try {
+      setVerificationLoading(true);
+      await api.post('/user/update-daily-withdrawal-limits-with-otp', {
+        otp: code,
+        limits: pendingLimits,
+      });
+      toast.success('Daily transaction limit successfully updated');
+      setVerificationOpen(false);
+      onClose(true);
+    } catch (error) {
+      const errorInfo = handleError(error);
+      toast.error(errorInfo.message);
+    } finally {
+      setVerificationLoading(false);
     }
   };
 
@@ -179,6 +210,13 @@ export function DailyTransactionLimitModal({
           </div>
         </div>
       ))}
+      <VerificationModal
+        isOpen={verificationOpen}
+        onClose={() => setVerificationOpen(false)}
+        loading={verificationLoading}
+        onVerify={handleVerify}
+        modalClassName="z-[10004]"
+      />
     </Modal>
   );
 }
