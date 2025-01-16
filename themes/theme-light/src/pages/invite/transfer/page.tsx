@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { log } from "@/lib/utils";
+import { handleError, log } from "@/lib/utils";
 import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
 import { LogoLoading } from "@/components/LogoLoading";
@@ -12,6 +12,9 @@ import { TokenType } from "@/types/tokens";
 import { TransactionType } from "@/types/transaction";
 import api from "@/lib/api";
 import { Loading } from "@/components/Loading";
+import { VerificationModal } from "@/components/VerificationModal";
+import { otpService } from "@/services/OTPService";
+import keyManagementService from "@/services/KeyManagementService";
 
 export default function Page() {
   const [searchParams] = useSearchParams();
@@ -23,6 +26,9 @@ export default function Page() {
   const [sending, setSending] = useState(false)
   
   const tokenRef = useRef<Token>()
+  const [verificationOpen, setVerificationOpen] = useState(false);
+  const [verificationLoading, setVerificationLoading] = useState(false);
+  const [verificationTransactionId, setVerificationTransactionId] = useState<string | null>(null);
 
   useEffect(() => {
     init()
@@ -61,7 +67,7 @@ export default function Page() {
 
   const handleSignTransaction = async () => {
     if (!inviteInfo) {
-      return
+      return;
     }
 
     try {
@@ -80,6 +86,10 @@ export default function Page() {
       log('result', result)
 
       if (result?.needOtp) {
+        if (otpService.getVerifyMethod() === 'email-by-sendgrid') {
+          setVerificationTransactionId(result.transactionId);
+          setVerificationOpen(true);
+        }
         // Transaction requires OTP verification
         // Wait for the backend to complete OTP verification and execute the transaction
         // This may take some time, the function will periodically check the transaction status
@@ -100,7 +110,32 @@ export default function Page() {
     } finally {
       setSending(false);
     }
-  }
+  };
+
+  const handleVerify = async (code: string) => {
+    if (!verificationTransactionId) {
+      toast.error('No transaction id');
+      return;
+    }
+
+    try {
+      setVerificationLoading(true);
+
+      const { hash } = await keyManagementService.signTransactionWithOTP({
+        transactionId: verificationTransactionId,
+        otp: code,
+      });
+
+      if (hash) {
+        setVerificationOpen(false);
+      }
+    } catch (error) {
+      const errorInfo = handleError(error);
+      toast.error(errorInfo.message);
+    } finally {
+      setVerificationLoading(false);
+    }
+  };
 
   const updateInviteInfo = async (inviteInfoId: string, updateData: Partial<InviteInfoData>) => {
     const res = await api.post(`/invite/update-invite-info`, {
@@ -165,6 +200,14 @@ export default function Page() {
         }
 
       </div>
+      
+      <VerificationModal
+        isOpen={verificationOpen}
+        onClose={() => setVerificationOpen(false)}
+        loading={verificationLoading}
+        onVerify={handleVerify}
+        modalClassName="z-[10004]"
+      />
     </div>
   );
 }

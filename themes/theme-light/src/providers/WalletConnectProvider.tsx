@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { createContext, ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react'
-import { auth, log, cn } from '@/lib/utils';
+import { auth, log, cn, handleError } from '@/lib/utils';
 import { Core } from '@walletconnect/core'
 import { buildApprovedNamespaces, getSdkError } from '@walletconnect/utils'
 import { IWeb3Wallet, Web3Wallet, Web3WalletTypes } from '@walletconnect/web3wallet'
@@ -11,6 +11,9 @@ import { toast } from 'react-toastify';
 import { useTransaction } from '@/components/VastWalletConnect/useTransaction';
 import { TokenType } from '@/types/tokens';
 import { TransactionType } from '@/types/transaction';
+import { VerificationModal } from '@/components/VerificationModal';
+import { otpService } from "@/services/OTPService";
+import keyManagementService from "@/services/KeyManagementService";
 
 interface WalletConnectContextType {
   isAuthenticated: boolean;
@@ -82,6 +85,10 @@ export function WalletConnectProvider({ children }: { children: ReactNode }) {
   const [isConnected, setIsConnected] = useState(false);
   const [web3wallet, setWeb3Wallet] = useState<IWeb3Wallet>();
   const web3walletRef = useRef<IWeb3Wallet>();
+
+  const [verificationOpen, setVerificationOpen] = useState(false);
+  const [verificationLoading, setVerificationLoading] = useState(false);
+  const [verificationTransactionId, setVerificationTransactionId] = useState<string | null>(null);
 
   const setWeb3WalletWithRef = (w: IWeb3Wallet) => {
     setWeb3Wallet(w);
@@ -275,6 +282,10 @@ export function WalletConnectProvider({ children }: { children: ReactNode }) {
       })
 
       if (result?.needOtp) {
+        if (otpService.getVerifyMethod() === 'email-by-sendgrid') {
+          setVerificationTransactionId(result.transactionId);
+          setVerificationOpen(true);
+        }
         // Transaction requires OTP verification
         // Wait for the backend to complete OTP verification and execute the transaction
         // This may take some time, the function will periodically check the transaction status
@@ -302,6 +313,43 @@ export function WalletConnectProvider({ children }: { children: ReactNode }) {
       toast.error('Transfer failed');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleVerify = async (code: string) => {
+    if (!verificationTransactionId) {
+      toast.error('No transaction id');
+      return;
+    }
+
+    try {
+      setVerificationLoading(true);
+
+      const { hash } = await keyManagementService.signTransactionWithOTP({
+        transactionId: verificationTransactionId,
+        otp: code,
+      });
+
+      if (hash) {
+        const { topic, response } = requestContent;
+        const res = {
+          ...response,
+          result: hash,
+        }
+        await web3wallet?.respondSessionRequest({
+          topic,
+          response: res as { id: number; jsonrpc: string; result: `0x${string}`; },
+        });
+
+        setVerificationOpen(false);
+        setTransferOpen(false);
+        toast.success('Transaction submitted successfully');
+      }
+    } catch (error) {
+      const errorInfo = handleError(error);
+      toast.error(errorInfo.message);
+    } finally {
+      setVerificationLoading(false);
     }
   };
 
@@ -384,6 +432,13 @@ export function WalletConnectProvider({ children }: { children: ReactNode }) {
   return (
     <WalletConnectContext.Provider value={value}>
       {children}
+      <VerificationModal
+        isOpen={verificationOpen}
+        onClose={() => setVerificationOpen(false)}
+        loading={verificationLoading}
+        onVerify={handleVerify}
+        modalClassName="z-[10004]"
+      />
     </WalletConnectContext.Provider>
   );
 }

@@ -12,6 +12,9 @@ import ReactDOM from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import { parseEther } from 'viem';
+import { VerificationModal } from "@/components/VerificationModal";
+import { otpService } from "@/services/OTPService";
+import keyManagementService from "@/services/KeyManagementService";
 
 interface ModalProps {
   isOpen: boolean;
@@ -25,6 +28,12 @@ export const PurchaseModal: React.FC<ModalProps> = ({ isOpen, onClose, product, 
   const [isPurchasing, setIsPurchasing] = useState(false)
   const { signTransaction, waitForTransactionExection } = useTransaction()
   const { t } = useTranslation()
+  
+  // Add verification related states
+  const [verificationOpen, setVerificationOpen] = useState(false);
+  const [verificationLoading, setVerificationLoading] = useState(false);
+  const [verificationTransactionId, setVerificationTransactionId] = useState<string | null>(null);
+
   const finalPrice = product.discount 
     ? product.price * (1 - product.discount / 100)
     : product.price
@@ -48,8 +57,13 @@ export const PurchaseModal: React.FC<ModalProps> = ({ isOpen, onClose, product, 
         toast.success(t('/marketplace.productCard.purchaseSuccess'))
         setIsPurchasing(false)
       } else if (needOtp) {
-        // daily limit exceeded, need otp
-        toast.warning(t('/marketplace.productCard.dailyLimitExceededOtpRequired'))
+        if (otpService.getVerifyMethod() === 'email-by-sendgrid') {
+          setVerificationTransactionId(transactionId);
+          setVerificationOpen(true);
+        } else if (otpService.getVerifyMethod() === 'email-by-nodemailer') {
+          // daily limit exceeded, need otp
+          toast.warning(t('/marketplace.productCard.dailyLimitExceededOtpRequired'))
+        }
 
         // Wait for the user to complete the transaction, polling the current transaction status
         const hash = await waitForTransactionExection(transactionId)
@@ -70,6 +84,37 @@ export const PurchaseModal: React.FC<ModalProps> = ({ isOpen, onClose, product, 
       setIsPurchasing(false)
     }
   }
+
+  const handleVerify = async (code: string) => {
+    if (!verificationTransactionId) {
+      toast.error('No transaction id');
+      return;
+    }
+
+    try {
+      setVerificationLoading(true);
+
+      const { hash } = await keyManagementService.signTransactionWithOTP({
+        transactionId: verificationTransactionId,
+        otp: code,
+      });
+
+      if (hash) {
+        const { data } = await api.post('/user/purchase/saveProducts', {
+          productId: product.id,
+        })
+        await queryClient.invalidateQueries({ queryKey: ['userInfo'] })
+        setVerificationOpen(false);
+        onClose(true)
+        toast.success(t('/marketplace.productCard.purchaseSuccess'))
+      }
+    } catch (error) {
+      const errorInfo = handleError(error);
+      toast.error(errorInfo.message);
+    } finally {
+      setVerificationLoading(false);
+    }
+  };
 
   const modalContent = isOpen ? (
     <div className="fixed inset-0 z-50 flex items-center justify-center font-['Roboto']">
@@ -155,6 +200,14 @@ export const PurchaseModal: React.FC<ModalProps> = ({ isOpen, onClose, product, 
           </footer>
         </div>
       </div>
+
+      <VerificationModal
+        isOpen={verificationOpen}
+        onClose={() => setVerificationOpen(false)}
+        loading={verificationLoading}
+        onVerify={handleVerify}
+        modalClassName="z-[10004]"
+      />
     </div>
   ) : null;
 

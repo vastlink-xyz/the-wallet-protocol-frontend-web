@@ -27,6 +27,8 @@ import { useDebounce } from "@/hooks/useDebounce"
 import { notification } from "antd"
 import { DailyTransactionLimitModal } from "@/pages/profile/components/DailyTransactionLimitModal"
 import { useDailyWithdrawalLimits } from "@/hooks/useDailyWithdrawalLimits"
+import { otpService } from "@/services/OTPService";
+import { VerificationModal } from "@/components/VerificationModal";
 
 const tokenTypes = theTokenListingService.getAllTokens()
 
@@ -97,6 +99,10 @@ export function SendModal({
     }
     return ''
   }, [currentTokenType])
+
+  const [verificationOpen, setVerificationOpen] = useState(false);
+  const [verificationLoading, setVerificationLoading] = useState(false);
+  const [verificationTransactionId, setVerificationTransactionId] = useState<string | null>(null);
 
   useEffect(() => {
     if (symbolRef.current) {
@@ -293,6 +299,7 @@ export function SendModal({
         needOtp,
         hash,
         message,
+        transactionId
       } = await keyManagementService.signTransaction({
         toAddress,
         amount: amt,
@@ -304,11 +311,19 @@ export function SendModal({
       if (hash) {
         setOpen(false)
         notifyTransactionSubmitted(hash)
+        return true
       } else if (needOtp) {
         // need to be verified
         // toast.error(message)
-        handleOpenDailyWithdrawalLimitNotification()
-        setOpen(false)
+        log('otpService.getVerifyMethod()', otpService.getVerifyMethod())
+        if (otpService.getVerifyMethod() === 'email-by-sendgrid') {
+          setVerificationOpen(true);
+          setVerificationTransactionId(transactionId)
+          return false
+        } else if (otpService.getVerifyMethod() === 'email-by-nodemailer') {
+          handleOpenDailyWithdrawalLimitNotification()
+          return true
+        }
       }
     } catch (error: unknown) {
       const errorInfo = handleError(error)
@@ -382,10 +397,12 @@ export function SendModal({
         toAddress = fullAddress as Address;
       }
 
-      await signTransaction(toAddress);
+      const closeModal = await signTransaction(toAddress);
+      if (closeModal) {
+        initDefaults()
+        setOpen(false);
+      }
 
-      initDefaults()
-      setOpen(false);
     } catch (error) {
       const errorInfo = handleError(error)
       log('errorInfo', errorInfo)
@@ -457,6 +474,33 @@ export function SendModal({
     const rawValue = todayTokenTransferred?.[currentTokenType] || '0'
     return formatDecimal(formatEther(BigInt(rawValue)))
   }, [currentTokenType, todayTokenTransferred])
+
+  const handleVerify = async (code: string) => {
+    if (!verificationTransactionId) {
+      toast.error('No transaction id')
+      return
+    }
+
+    try {
+      setVerificationLoading(true);
+
+      const { hash, token } = await keyManagementService.signTransactionWithOTP({
+        transactionId: verificationTransactionId,
+        otp: code,
+      })
+
+      if (hash) {
+        setVerificationOpen(false);
+        setOpen(false);
+        notifyTransactionSubmitted(hash);
+      }
+    } catch (error) {
+      const errorInfo = handleError(error);
+      toast.error(errorInfo.message);
+    } finally {
+      setVerificationLoading(false);
+    }
+  };
 
   const modalContent = open ? (
     <div className="fixed inset-0 z-[10001] flex items-center justify-center font-['Roboto']">
@@ -665,6 +709,15 @@ export function SendModal({
         isOpen={isOpenDailyWithdrawalLimitModal}
         onClose={() => setIsOpenDailyWithdrawalLimitModal(false)}
         defaultLimits={defaultLimits}
+      />
+
+      {/* verification modal */}
+      <VerificationModal
+        isOpen={verificationOpen}
+        onClose={() => setVerificationOpen(false)}
+        loading={verificationLoading}
+        onVerify={handleVerify}
+        modalClassName="z-[10004]"
       />
     </div>
   ) : null;

@@ -71,10 +71,14 @@ export default function AuthRegister() {
       );
       log('register res', response);
       if (response.status === 200) {
-        toast.success(
-          t('/.otpSentMessage')
-        )
-        setRegistering(false);
+        if (otpService.getVerifyMethod() === 'email-by-nodemailer') {
+          toast.success(
+            t('/.otpSentMessage')
+          )
+          setRegistering(false);
+        } else if (otpService.getVerifyMethod() === 'email-by-sendgrid') {
+          setVerificationOpen(true)
+        }
       }
     } catch (error) {
       const errorInfo = handleError(error)
@@ -96,10 +100,10 @@ export default function AuthRegister() {
           toast.success(
             t('/.otpLoginSentMessage')
           )
+          setAuthenticating(false);
         } else if (otpService.getVerifyMethod() === 'email-by-sendgrid') {
           setVerificationOpen(true)
         }
-        setAuthenticating(false);
       }
     } catch (error) {
       const errorInfo = handleError(error)
@@ -110,6 +114,41 @@ export default function AuthRegister() {
   }
 
   async function handleVerify(code: string) {
+    if (authenticating) {
+      handleVerifyLogin(code)
+    } else if (registering) {
+      handleVerifyRegister(code)
+    }
+  }
+
+  async function handleVerifyRegister(code: string) {
+    try {
+      setVerificationLoading(true);
+      const response = await axios.post(
+        `${import.meta.env.VITE_WALLET_PROTOCAL_API_BASEURL}/auth/verify-registration-otp`,
+        {
+          email: username,
+          OTP: code,
+          rememberMe: rememberMe,
+        }
+      );
+      log('verify res', response);
+      if (response.data) {
+        await keyManagementService.signUp({
+          username,
+        });
+        navigate('/dashboard');
+      }
+    } catch (error) {
+      const errorInfo = handleError(error);
+      toast.error(errorInfo.message);
+    } finally {
+      setVerificationLoading(false);
+      setRegistering(false);
+    }
+  }
+
+  async function handleVerifyLogin(code: string) {
     try {
       setVerificationLoading(true);
       const response = await axios.post(
@@ -132,6 +171,7 @@ export default function AuthRegister() {
       toast.error(errorInfo.message);
     } finally {
       setVerificationLoading(false);
+      setAuthenticating(false);
     }
   }
 

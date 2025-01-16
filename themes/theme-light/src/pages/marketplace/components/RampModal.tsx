@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeftRight, ShoppingCart } from 'lucide-react';
-import { auth, cn, log } from '@/lib/utils';
+import { auth, cn, handleError, log } from '@/lib/utils';
 import { Modal } from '@/components/Modal';
 import { OnInitiateDepositProps } from '@/types/moonpayTypes';
 import { MoonPayBuyWidget, MoonPaySellWidget } from '@moonpay/moonpay-react'
@@ -15,6 +15,9 @@ import { Address, formatEther } from 'viem';
 import { useTranslation } from 'react-i18next';
 import api from '@/lib/api';
 import { Loading } from '@/components/Loading';
+import { VerificationModal } from "@/components/VerificationModal";
+import { otpService } from "@/services/OTPService";
+import keyManagementService from "@/services/KeyManagementService";
 
 export function RampModal({
   isOpen,
@@ -38,6 +41,10 @@ export function RampModal({
   const tokenRef = useRef<Token>()
   const toastId = useRef<Id>();
   const { signTransaction, waitForTransactionExection } = useTransaction()
+
+  const [verificationOpen, setVerificationOpen] = useState(false);
+  const [verificationLoading, setVerificationLoading] = useState(false);
+  const [verificationTransactionId, setVerificationTransactionId] = useState<string | null>(null);
 
   useEffect(() => {
     init();
@@ -155,6 +162,16 @@ export function RampModal({
         transactionType: TransactionType.SELL,
         data: '',
       })
+
+      if (result?.needOtp) {
+        if (otpService.getVerifyMethod() === 'email-by-sendgrid') {
+          setVerificationTransactionId(result.transactionId);
+          setVerificationOpen(true);
+          return;
+        }
+      }
+
+      return result?.hash;
     } catch (error) {
       const res = (error as any).response
       if (res && res.data) {
@@ -164,6 +181,32 @@ export function RampModal({
       setSending(false);
     }
   }
+
+  const handleVerify = async (code: string) => {
+    if (!verificationTransactionId) {
+      toast.error('No transaction id');
+      return;
+    }
+
+    try {
+      setVerificationLoading(true);
+
+      const { hash } = await keyManagementService.signTransactionWithOTP({
+        transactionId: verificationTransactionId,
+        otp: code,
+      });
+
+      if (hash) {
+        setVerificationOpen(false);
+        toast.success('Transaction submitted successfully');
+      }
+    } catch (error) {
+      const errorInfo = handleError(error);
+      toast.error(errorInfo.message);
+    } finally {
+      setVerificationLoading(false);
+    }
+  };
 
   const handleTransactionCreated = async (props: any) => {
     log('transactionCreated', props)
@@ -254,6 +297,14 @@ export function RampModal({
           <Loading />
         )
       }
+
+      <VerificationModal
+        isOpen={verificationOpen}
+        onClose={() => setVerificationOpen(false)}
+        loading={verificationLoading}
+        onVerify={handleVerify}
+        modalClassName="z-[10004]"
+      />
     </Modal>
   )
 }
