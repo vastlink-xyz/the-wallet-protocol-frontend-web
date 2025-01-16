@@ -10,20 +10,22 @@ export function DailyLimitAlert({
   todayTokenTransferred,
   defaultLimits,
   totalAmount,
+  exceededTokens,
 }: {
   todayTokenTransferred: TokenRecord<string>;
   defaultLimits: TokenRecord<string>;
   totalAmount: TotalAmount;
+  exceededTokens: TokenType[];
 }) {
   const [isOpenDailyWithdrawalLimitModal, setIsOpenDailyWithdrawalLimitModal] = useState(false);
 
-  const tokens: TokenType[] = theTokenListingService.getAllTokens().map(t => t.tokenType)
-  const exceededTokens = tokens.filter(token => {
-    const todayTransferred = BigInt(todayTokenTransferred[token]);
-    const totalAmountValue = BigInt(parseEther(totalAmount[token]));
-    const limit = BigInt(parseEther(defaultLimits[token]));
-    return todayTransferred + totalAmountValue > limit;
-  });
+  // const tokens: TokenType[] = theTokenListingService.getAllTokens().map(t => t.tokenType)
+  // const exceededTokens = tokens.filter(token => {
+  //   const todayTransferred = BigInt(todayTokenTransferred[token]);
+  //   const totalAmountValue = BigInt(parseEther(totalAmount[token]));
+  //   const limit = BigInt(parseEther(defaultLimits[token]));
+  //   return todayTransferred + totalAmountValue > limit;
+  // });
 
   if (exceededTokens.length === 0) return null;
 

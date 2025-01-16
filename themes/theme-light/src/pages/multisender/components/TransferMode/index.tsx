@@ -47,6 +47,7 @@ export default function MultisenderPage({
     handleFileChange,
     handleAmountBlur,
     amountRequiredValidations,
+    exceededTokens,
   } = useMultisender({
     onSent,
   });
@@ -79,6 +80,7 @@ export default function MultisenderPage({
           todayTokenTransferred={todayTokenTransferred}
           defaultLimits={defaultLimits}
           totalAmount={totalAmount}
+          exceededTokens={exceededTokens}
         />
       )}
 

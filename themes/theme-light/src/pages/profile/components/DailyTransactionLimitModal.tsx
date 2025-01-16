@@ -13,6 +13,7 @@ import { useAllTokenBalances } from "@/hooks/useTokenBalance";
 import { theTokenListingService } from "@/services/TokenListingService";
 import { VerificationModal } from "@/components/VerificationModal";
 import { otpService } from "@/services/OTPService";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface TokenConfig {
   type: TokenType;
@@ -29,6 +30,7 @@ export function DailyTransactionLimitModal({
   onClose: (reload?: boolean) => void;
   defaultLimits: Record<TokenType, string>;
 }) {
+  const queryClient = useQueryClient()
   const {data: tokenBalances} = useAllTokenBalances()
 
   const { data: tokenPrices } = useTokenPrice();
@@ -135,6 +137,7 @@ export function DailyTransactionLimitModal({
       });
       toast.success('Daily transaction limit successfully updated');
       setVerificationOpen(false);
+      queryClient.invalidateQueries({ queryKey: ['dailyWithdrawalLimits'] });
       onClose(true);
     } catch (error) {
       const errorInfo = handleError(error);

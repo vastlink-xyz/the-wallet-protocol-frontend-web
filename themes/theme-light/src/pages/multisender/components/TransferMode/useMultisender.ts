@@ -131,6 +131,18 @@ export function useMultisender({
     return emailRegex.test(transfer.to) && validation?.error === t('/dashboard.[token].sendModal.unregisteredEmailNotice');
   }
 
+  const exceededTokens = useMemo(() => {
+    if (!todayTokenTransferred || !defaultLimits || !totalAmount) return [];
+    
+    const tokens: TokenType[] = theTokenListingService.getAllTokens().map(t => t.tokenType);
+    return tokens.filter(token => {
+      const todayTransferred = BigInt(todayTokenTransferred[token]);
+      const totalAmountValue = BigInt(parseEther(totalAmount[token]));
+      const limit = BigInt(parseEther(defaultLimits[token]));
+      return todayTransferred + totalAmountValue > limit;
+    });
+  }, [todayTokenTransferred, defaultLimits, totalAmount]);
+
   // check if send button is disabled
   const isDisabled = useMemo(() => {
     return transfers.some((t, index) => {
@@ -156,9 +168,14 @@ export function useMultisender({
         return true;
       }
 
+      // check if daily limit is exceeded
+      if (exceededTokens.length > 0) {
+        return true;
+      }
+
       return false;
     });
-  }, [transfers, toValidations, hasInsufficientBalance]);
+  }, [transfers, toValidations, hasInsufficientBalance, exceededTokens]);
 
   // check if there is any content, used for exit prompt
   const hasContent = useMemo(() => {
@@ -602,7 +619,6 @@ export function useMultisender({
     }
   };
 
-
   return {
     transfers,
     toValidations,
@@ -628,5 +644,6 @@ export function useMultisender({
     gasFees,
     handleAmountBlur,
     amountRequiredValidations,
+    exceededTokens,
   };
 }
