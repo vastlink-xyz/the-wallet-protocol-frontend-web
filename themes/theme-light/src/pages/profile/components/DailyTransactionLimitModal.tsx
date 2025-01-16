@@ -215,6 +215,7 @@ export function DailyTransactionLimitModal({
         onClose={() => setVerificationOpen(false)}
         loading={verificationLoading}
         onVerify={handleVerify}
+        message="To update your daily transaction limits, please enter the verification code we sent to your email."
         modalClassName="z-[10004]"
       />
     </Modal>

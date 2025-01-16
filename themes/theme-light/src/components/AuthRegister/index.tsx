@@ -29,6 +29,23 @@ export default function AuthRegister() {
   const [emailError, setEmailError] = useState(false);
   const [verificationOpen, setVerificationOpen] = useState(false);
   const [verificationLoading, setVerificationLoading] = useState(false);
+  const [verificationMessage, setVerificationMessage] = useState('');
+  const [verificationType, setVerificationType] = useState<'signin' | 'signup'>('signin');
+
+  useEffect(() => {
+    initDefaults()
+  }, [])
+
+  const initDefaults = () => {
+    setUsername('')
+    setRegistering(false)
+    setAuthenticating(false)
+    setAuthenticateSetup(true)
+    setEmailError(false)
+    setVerificationOpen(false)
+    setVerificationLoading(false)
+    setVerificationMessage('')
+  }
 
   const validateEmail = async (value: string) => {
     if (!value) {
@@ -59,7 +76,6 @@ export default function AuthRegister() {
   };
 
   async function preRegister() {
-    log('call register')
     try {
       setRegistering(true)
       const response = await axios.post(`${import.meta.env.VITE_WALLET_PROTOCAL_API_BASEURL}/auth/generate-registration-otp`,
@@ -69,15 +85,14 @@ export default function AuthRegister() {
           rememberMe: rememberMe,
         }
       );
-      log('register res', response);
       if (response.status === 200) {
         if (otpService.getVerifyMethod() === 'email-by-nodemailer') {
-          toast.success(
-            t('/.otpSentMessage')
-          )
+          toast.success(t('/.otpSentMessage'))
           setRegistering(false);
         } else if (otpService.getVerifyMethod() === 'email-by-sendgrid') {
           setVerificationOpen(true)
+          setVerificationType('signup')
+          setVerificationMessage('A verification code has been sent to your email. Please check your inbox and enter the code to sign up.')
         }
       }
     } catch (error) {
@@ -97,12 +112,12 @@ export default function AuthRegister() {
       );
       if (response.status === 200) {
         if (otpService.getVerifyMethod() === 'email-by-nodemailer') {
-          toast.success(
-            t('/.otpLoginSentMessage')
-          )
+          toast.success(t('/.otpLoginSentMessage'))
           setAuthenticating(false);
         } else if (otpService.getVerifyMethod() === 'email-by-sendgrid') {
           setVerificationOpen(true)
+          setVerificationType('signin')
+          setVerificationMessage('A verification code has been sent to your email. Please check your inbox and enter the code to sign in.')
         }
       }
     } catch (error) {
@@ -114,9 +129,9 @@ export default function AuthRegister() {
   }
 
   async function handleVerify(code: string) {
-    if (authenticating) {
+    if (verificationType === 'signin') {
       handleVerifyLogin(code)
-    } else if (registering) {
+    } else if (verificationType === 'signup') {
       handleVerifyRegister(code)
     }
   }
@@ -132,7 +147,6 @@ export default function AuthRegister() {
           rememberMe: rememberMe,
         }
       );
-      log('verify res', response);
       if (response.data) {
         await keyManagementService.signUp({
           username,
@@ -144,13 +158,13 @@ export default function AuthRegister() {
       toast.error(errorInfo.message);
     } finally {
       setVerificationLoading(false);
-      setRegistering(false);
     }
   }
 
   async function handleVerifyLogin(code: string) {
     try {
       setVerificationLoading(true);
+      log('verify login', code)
       const response = await axios.post(
         `${import.meta.env.VITE_WALLET_PROTOCAL_API_BASEURL}/auth/verify-login-otp`,
         {
@@ -171,7 +185,6 @@ export default function AuthRegister() {
       toast.error(errorInfo.message);
     } finally {
       setVerificationLoading(false);
-      setAuthenticating(false);
     }
   }
 
@@ -221,14 +234,18 @@ export default function AuthRegister() {
       )}>
         {authenticateSetup ? t('/.signinTitle') : t('/.signupTitle')}
       </div>
-      <div className={cn(
-        'mt-[8px]',
-        'tablet:whitespace-nowrap',
-        'text-[#979797]/90 font-normal leading-snug',
-        'text-[10px] tablet:text-sm',
-      )}>
-        A sign up link will be sent to your email. Please check your inbox and click the link to sign in.
-      </div>
+
+      {
+        otpService.getVerifyMethod() === 'email-by-nodemailer' && 
+        <div className={cn(
+          'mt-[8px]',
+          'tablet:whitespace-nowrap',
+          'text-[#979797]/90 font-normal leading-snug',
+          'text-[10px] tablet:text-sm',
+        )}>
+          A sign up link will be sent to your email. Please check your inbox and click the link to sign in.
+        </div>
+      }
 
       <form
         className={cn(
@@ -312,10 +329,17 @@ export default function AuthRegister() {
       </div>
 
       <VerificationModal
+        key={verificationType}
         isOpen={verificationOpen}
-        onClose={() => setVerificationOpen(false)}
+        onClose={() => {
+          setVerificationOpen(false)
+          setRegistering(false)
+          setAuthenticating(false)
+          setEmailError(false)
+        }}
         loading={verificationLoading}
         onVerify={handleVerify}
+        message={verificationMessage}
       />
     </div>
   );

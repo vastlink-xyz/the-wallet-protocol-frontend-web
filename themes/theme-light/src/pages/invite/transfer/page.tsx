@@ -207,6 +207,7 @@ export default function Page() {
         loading={verificationLoading}
         onVerify={handleVerify}
         modalClassName="z-[10004]"
+        message="Your transaction exceeds the daily limit. Please enter the verification code we sent to your email to proceed."
       />
     </div>
   );

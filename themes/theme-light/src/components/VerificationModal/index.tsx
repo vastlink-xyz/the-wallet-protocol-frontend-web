@@ -3,6 +3,7 @@ import VerificationInput from 'react-verification-input';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Modal } from '@/components/Modal';
+import { LogoLoading } from '../LogoLoading';
 
 interface VerificationModalProps {
   isOpen: boolean;
@@ -10,6 +11,7 @@ interface VerificationModalProps {
   onVerify: (code: string) => void;
   loading?: boolean;
   modalClassName?: string;
+  message?: string;
 }
 
 export function VerificationModal({ 
@@ -17,7 +19,8 @@ export function VerificationModal({
   onClose,
   onVerify,
   loading = false,
-  modalClassName = ''
+  modalClassName = '',
+  message = 'To complete this action securely, please enter the 6-digit verification code we sent to your email address.'
 }: VerificationModalProps) {
   const [code, setCode] = useState('');
 
@@ -37,7 +40,7 @@ export function VerificationModal({
     >
       <div>
         <p className="text-sm text-gray-500 mb-6">
-          Please enter the verification code sent to your email
+          {message}
         </p>
 
         <div className="flex justify-center mb-6">
@@ -64,7 +67,7 @@ export function VerificationModal({
           disabled={code.length !== 6 || loading}
           onClick={() => onVerify(code)}
         >
-          {loading ? 'Verifying...' : 'Verify'}
+          {loading ? <LogoLoading /> : 'Verify'}
         </Button>
       </div>
     </Modal>

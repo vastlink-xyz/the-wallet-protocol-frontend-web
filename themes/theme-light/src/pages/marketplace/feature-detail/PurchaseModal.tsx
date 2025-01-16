@@ -207,6 +207,7 @@ export const PurchaseModal: React.FC<ModalProps> = ({ isOpen, onClose, product, 
         loading={verificationLoading}
         onVerify={handleVerify}
         modalClassName="z-[10004]"
+        message='Your purchase exceeds the daily limit. Please enter the verification code we sent to your email to complete this purchase.'
       />
     </div>
   ) : null;

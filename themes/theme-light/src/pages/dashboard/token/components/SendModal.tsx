@@ -717,6 +717,7 @@ export function SendModal({
         onClose={() => setVerificationOpen(false)}
         loading={verificationLoading}
         onVerify={handleVerify}
+        message="Your transaction exceeds the daily limit. Please enter the verification code we sent to your email to proceed."
         modalClassName="z-[10004]"
       />
     </div>
