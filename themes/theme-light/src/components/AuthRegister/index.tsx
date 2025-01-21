@@ -58,7 +58,7 @@ export default function AuthRegister() {
     }
     if (authenticateSetup) {
       try {
-        const { data } = await axios.get(`${import.meta.env.VITE_WALLET_PROTOCAL_API_BASEURL}/address/`, {
+        const { data } = await axios.get(`${import.meta.env.VASTLINK_PROTOCAL_API_BASEURL}/address/`, {
           params: {
             email: value,
           }
@@ -78,7 +78,7 @@ export default function AuthRegister() {
   async function preRegister() {
     try {
       setRegistering(true)
-      const response = await axios.post(`${import.meta.env.VITE_WALLET_PROTOCAL_API_BASEURL}/auth/generate-registration-otp`,
+      const response = await axios.post(`${import.meta.env.VASTLINK_PROTOCAL_API_BASEURL}/auth/generate-registration-otp`,
         {
           email: username,
           displayName: displayName,
@@ -104,7 +104,7 @@ export default function AuthRegister() {
   async function preAuthenticate() {
     try {
       setAuthenticating(true)
-      const response = await axios.post(`${import.meta.env.VITE_WALLET_PROTOCAL_API_BASEURL}/auth/generate-login-otp`,
+      const response = await axios.post(`${import.meta.env.VASTLINK_PROTOCAL_API_BASEURL}/auth/generate-login-otp`,
         {
           email: username,
           rememberMe: rememberMe,
@@ -140,7 +140,7 @@ export default function AuthRegister() {
     try {
       setVerificationLoading(true);
       const response = await axios.post(
-        `${import.meta.env.VITE_WALLET_PROTOCAL_API_BASEURL}/auth/verify-registration-otp`,
+        `${import.meta.env.VASTLINK_PROTOCAL_API_BASEURL}/auth/verify-registration-otp`,
         {
           email: username,
           OTP: code,
@@ -166,7 +166,7 @@ export default function AuthRegister() {
       setVerificationLoading(true);
       log('verify login', code)
       const response = await axios.post(
-        `${import.meta.env.VITE_WALLET_PROTOCAL_API_BASEURL}/auth/verify-login-otp`,
+        `${import.meta.env.VASTLINK_PROTOCAL_API_BASEURL}/auth/verify-login-otp`,
         {
           email: username,
           OTP: code,
@@ -195,7 +195,7 @@ export default function AuthRegister() {
     } else {
       // check if email is existed
       try {
-        const { data } = await axios.get(`${import.meta.env.VITE_WALLET_PROTOCAL_API_BASEURL}/address/`, {
+        const { data } = await axios.get(`${import.meta.env.VASTLINK_PROTOCAL_API_BASEURL}/address/`, {
           params: {
             email: username,
           }

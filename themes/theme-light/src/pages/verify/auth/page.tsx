@@ -118,7 +118,7 @@ export default function VerifyAuthPage() {
     otp: string;
     isRememberMe?: boolean;
   }) {
-    const response = await axios.post(`${import.meta.env.VITE_WALLET_PROTOCAL_API_BASEURL}/auth/verify-registration-otp`,
+    const response = await axios.post(`${import.meta.env.VASTLINK_PROTOCAL_API_BASEURL}/auth/verify-registration-otp`,
       {
         email: username,
         OTP: otp,
@@ -137,7 +137,7 @@ export default function VerifyAuthPage() {
     otp: string;
     isRememberMe?: boolean;
   }) {
-    const response = await axios.post(`${import.meta.env.VITE_WALLET_PROTOCAL_API_BASEURL}/auth/verify-login-otp`,
+    const response = await axios.post(`${import.meta.env.VASTLINK_PROTOCAL_API_BASEURL}/auth/verify-login-otp`,
       {
         email: username,
         OTP: otp,

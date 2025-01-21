@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 axios.defaults.withCredentials = true
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_WALLET_PROTOCAL_API_BASEURL,
+  baseURL: import.meta.env.VASTLINK_PROTOCAL_API_BASEURL,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',

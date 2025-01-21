@@ -120,7 +120,7 @@ export function VastWalletConnect({ className }: VastWalletConnectProps) {
   }
 
   const init = async () => {
-    const core = new Core({ projectId: import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID });
+    const core = new Core({ projectId: import.meta.env.VASTLINK_CONNECT_PROJECT_ID });
     const w3w = await Web3Wallet.init({
       core,
       metadata: { name: 'Vastlink', description: 'Vastlink', url: 'www.walletconnect.com', icons: [] }
