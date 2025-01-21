@@ -21,28 +21,28 @@ export class Web3authWithMPCKeyManagement extends KeyManagementService {
 
   async init() {}
 
-  async signUp({username, idToken}: {username: string, idToken: string}) {
+  async signUp({username, jwt}: {username: string, jwt: string}) {
     const {data} = await api.post('/keymanagement/signup', {
       username,
-      idToken,
+      jwt,
     })
     const { address } = data
 
     // save auth storage
-    auth.saveAuthDataByKey('idToken', idToken)
+    auth.saveAuthDataByKey('jwt', jwt)
     auth.saveAuthDataByKey('address', address)
     auth.saveAuthDataByKey('username', username)
   }
   
-  async signIn({authUsername, idToken}: {authUsername: string, idToken: string}) {
+  async signIn({authUsername, jwt}: {authUsername: string, jwt: string}) {
     const {data} = await api.post('/keymanagement/signin', {
       username: authUsername,
-      idToken,
+      jwt,
     })
     const { address } = data
 
     // save auth storage
-    auth.saveAuthDataByKey('idToken', idToken)
+    auth.saveAuthDataByKey('jwt', jwt)
     auth.saveAuthDataByKey('address', address)
     auth.saveAuthDataByKey('username', authUsername)
   }

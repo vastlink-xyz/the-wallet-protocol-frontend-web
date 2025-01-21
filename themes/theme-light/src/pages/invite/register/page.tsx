@@ -121,7 +121,7 @@ export default function Page() {
     try {
       setRegistering(true);
 
-      // verify otp and get idToken
+      // verify otp and get jwt
       await verifyRegistrationOtp(registerUsername, otp)
 
       // sign up with keyManagementService

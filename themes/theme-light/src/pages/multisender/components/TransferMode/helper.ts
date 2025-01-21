@@ -210,7 +210,7 @@ export const validateCsvData = (data: any[]): { isValid: boolean; error?: string
   }
 
   // Validate data rows
-  const validTokens = theTokenListingService.getAllTokens().map(token => token.tokenType);
+  const valjwts = theTokenListingService.getAllTokens().map(token => token.tokenType);
   
   for (let i = 1; i < data.length; i++) {
     const row = data[i];
@@ -228,10 +228,10 @@ export const validateCsvData = (data: any[]): { isValid: boolean; error?: string
     }
 
     // Token validation (third column)
-    if (!row[2] || !validTokens.includes(row[2].toUpperCase())) {
+    if (!row[2] || !valjwts.includes(row[2].toUpperCase())) {
       return {
         isValid: false,
-        error: `Invalid token type at row ${i + 1}. Allowed tokens: ${validTokens.join(', ')}`
+        error: `Invalid token type at row ${i + 1}. Allowed tokens: ${valjwts.join(', ')}`
       };
     }
 

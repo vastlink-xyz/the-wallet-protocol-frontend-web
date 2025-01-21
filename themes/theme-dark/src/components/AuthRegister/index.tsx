@@ -88,13 +88,13 @@ export default function AuthRegister() {
     setAuthenticateSetup(false)
     setRegistering(true);
     try {
-      // verify otp and get idToken
-      const idToken = await verifyOtp(registerUsername, otp)
+      // verify otp and get jwt
+      const jwt = await verifyOtp(registerUsername, otp)
 
       // sign up with keyManagementService
       await keyManagementService.signUp({
         username: registerUsername,
-        idToken: idToken,
+        jwt: jwt,
       })
 
       setRedirecting(true);
@@ -138,12 +138,12 @@ export default function AuthRegister() {
     log('call authenticate', authUsername)
     setAuthenticating(true);
     try {
-      // verify otp and get idToken
-      const idToken = await verifyOtp(authUsername, otp)
+      // verify otp and get jwt
+      const jwt = await verifyOtp(authUsername, otp)
 
       await keyManagementService.signIn({
         authUsername,
-        idToken,
+        jwt,
       })
 
       setRedirecting(true);

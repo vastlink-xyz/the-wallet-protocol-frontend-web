@@ -115,13 +115,13 @@ export default function Page() {
     try {
       setRegistering(true);
 
-      // verify otp and get idToken
-      const idToken = await verifyOtp(registerUsername, otp)
+      // verify otp and get jwt
+      const jwt = await verifyOtp(registerUsername, otp)
 
       // sign up with keyManagementService
       await keyManagementService.signUp({
         username: registerUsername,
-        idToken: idToken,
+        jwt: jwt,
       })
 
       // setRegistering(false);
@@ -157,13 +157,13 @@ export default function Page() {
 
   async function authenticate(authUsername: string, toastError=true) {
     try {
-      // verify otp and get idToken
-      // const idToken = await verifyOtp(authUsername, otp)
-      const { idToken } = auth.all()
+      // verify otp and get jwt
+      // const jwt = await verifyOtp(authUsername, otp)
+      const { jwt } = auth.all()
 
       await keyManagementService.signIn({
         authUsername,
-        idToken,
+        jwt,
       })
 
       return true

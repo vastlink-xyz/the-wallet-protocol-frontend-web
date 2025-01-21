@@ -7,7 +7,7 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-    const token = auth.all().idToken;
+    const token = auth.all().jwt;
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }

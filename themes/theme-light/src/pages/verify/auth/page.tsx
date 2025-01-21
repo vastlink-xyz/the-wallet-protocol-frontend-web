@@ -54,7 +54,7 @@ export default function VerifyAuthPage() {
     log('call authenticate', authUsername)
     setLoading(true);
     try {
-      // verify otp and get idToken
+      // verify otp and get jwt
       await verifyLoginOtp({
         username: authUsername,
         otp,
@@ -87,7 +87,7 @@ export default function VerifyAuthPage() {
     setAuthenticateSetup(false)
     setLoading(true);
     try {
-      // verify otp and get idToken
+      // verify otp and get jwt
       await verifyRegistrationOtp({
         username: registerUsername,
         otp,

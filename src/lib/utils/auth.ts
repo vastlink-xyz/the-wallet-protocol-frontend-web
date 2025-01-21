@@ -1,6 +1,6 @@
 import { CustomStorage } from "./storage";
 
-export type AuthStoreType = 'idToken' | 'address' | 'username' |
+export type AuthStoreType = 'jwt' | 'address' | 'username' |
 'authenticatedHeader' | 'authenticated' | 'desUsername' | 'aeskey';
 
 class Auth {
@@ -8,7 +8,7 @@ class Auth {
 
   constructor() {
     this.storages = {
-      idToken: new CustomStorage('idToken'),
+      jwt: new CustomStorage('jwt'),
       username: new CustomStorage('username'),
       address: new CustomStorage('address'),
       authenticatedHeader: new CustomStorage('authenticatedHeader'),
