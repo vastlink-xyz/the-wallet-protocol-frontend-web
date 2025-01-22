@@ -3,7 +3,7 @@ import { auth } from "@/lib/utils";
 import { toast } from 'react-toastify';
 
 const api = axios.create({
-  baseURL: import.meta.env.VASTLINK_PROTOCAL_API_BASEURL,
+  baseURL: import.meta.env.VITE_VASTLINK_PROTOCAL_API_BASEURL,
 });
 
 api.interceptors.request.use(

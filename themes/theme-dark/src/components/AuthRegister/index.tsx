@@ -52,7 +52,7 @@ export default function AuthRegister() {
     log('call register')
     try {
       setRegistering(true)
-      const response = await axios.post(`${import.meta.env.VASTLINK_PROTOCAL_API_BASEURL}/auth/generate-otp`, 
+      const response = await axios.post(`${import.meta.env.VITE_VASTLINK_PROTOCAL_API_BASEURL}/auth/generate-otp`, 
         {
           email: username,
         }
@@ -74,7 +74,7 @@ export default function AuthRegister() {
   }
 
   async function verifyOtp(username: string, otp: string) {
-    const response = await axios.post(`${import.meta.env.VASTLINK_PROTOCAL_API_BASEURL}/auth/verify-otp`, 
+    const response = await axios.post(`${import.meta.env.VITE_VASTLINK_PROTOCAL_API_BASEURL}/auth/verify-otp`, 
       {
         email: username,
         OTP: otp,
@@ -112,7 +112,7 @@ export default function AuthRegister() {
   async function preAuthenticate() {
     try {
       setAuthenticating(true)
-      const response = await axios.post(`${import.meta.env.VASTLINK_PROTOCAL_API_BASEURL}/auth/generate-login-otp`, 
+      const response = await axios.post(`${import.meta.env.VITE_VASTLINK_PROTOCAL_API_BASEURL}/auth/generate-login-otp`, 
         {
           email: username,
         }
@@ -163,7 +163,7 @@ export default function AuthRegister() {
     } else {
       // check if email is existed
       try {
-        const { data } = await axios.get(`${import.meta.env.VASTLINK_PROTOCAL_API_BASEURL}/address/`, {
+        const { data } = await axios.get(`${import.meta.env.VITE_VASTLINK_PROTOCAL_API_BASEURL}/address/`, {
           params: {
             email: username,
           }

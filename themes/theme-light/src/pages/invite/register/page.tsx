@@ -101,7 +101,7 @@ export default function Page() {
 
   async function verifyRegistrationOtp(username: string, otp: string) {
     const fromInvitation = otpService.getVerifyMethod() === 'email-by-sendgrid'
-    const response = await axios.post(`${import.meta.env.VASTLINK_PROTOCAL_API_BASEURL}/auth/verify-registration-otp`, 
+    const response = await axios.post(`${import.meta.env.VITE_VASTLINK_PROTOCAL_API_BASEURL}/auth/verify-registration-otp`, 
       {
         email: username,
         OTP: otp,

@@ -96,7 +96,7 @@ export default function Page() {
   }
 
   async function verifyOtp(username: string, otp: string) {
-    const response = await axios.post(`${import.meta.env.VASTLINK_PROTOCAL_API_BASEURL}/auth/verify-otp`, 
+    const response = await axios.post(`${import.meta.env.VITE_VASTLINK_PROTOCAL_API_BASEURL}/auth/verify-otp`, 
       {
         email: username,
         OTP: otp,
