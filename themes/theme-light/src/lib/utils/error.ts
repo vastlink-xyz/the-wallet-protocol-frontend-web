@@ -17,9 +17,6 @@ export function handleError(error: unknown): { message: string, errorType?: stri
         }
       }
       return { message: responseData.message || `${axiosError.message}` };
-    } else if (axiosError.request) {
-      // Request was made but no response was received
-      return { message: 'Network error, please check your internet connection' };
     } else {
       // Error occurred while setting up the request
       return { message: `Request error: ${axiosError.message}` };

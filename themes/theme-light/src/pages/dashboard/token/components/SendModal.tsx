@@ -524,7 +524,7 @@ export function SendModal({
             </button>
           </header>
 
-          <div className="p-6 border-b border-[#EBEBEB] max-h-[90vh] overflow-y-auto">
+          <div className="p-6 border-b border-[#EBEBEB] max-h-[70vh] overflow-y-auto">
             <form>
               {/* to */}
               <div className="mb-6">
