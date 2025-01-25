@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
-import { auth, formatNumberWithCommas, handleError } from '@/lib/utils'
+import { auth, formatNumberWithCommas, handleError, getRandomizedTime, OneHourMs } from '@/lib/utils'
 
 interface TotalAssetResponse {
   totalAssets: number
@@ -44,7 +44,6 @@ export function useTotalAsset(options?: {
     queryKey: [...TOTAL_ASSET_KEY, address],
     queryFn: () => fetchTotalAsset(address),
     enabled: options?.enabled && !!address,
-    staleTime: 1000 * 60 * 5,  // data is fresh within 5 minutes
-    gcTime: 1000 * 60 * 30,    // cache for 30 minutes
+    staleTime: getRandomizedTime(OneHourMs),
   })
 }

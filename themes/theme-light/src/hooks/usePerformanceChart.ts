@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
-import { auth, handleError } from '@/lib/utils'
+import { auth, handleError, getRandomizedTime, REACT_QUERY_STALE_TIME, OneHourMs } from '@/lib/utils'
 
 interface ChartDataItem {
   value: number
@@ -53,5 +53,6 @@ export function usePerformanceChart(days: number, options?: {
     queryKey: [...PERFORMANCE_CHART_KEY, address],
     queryFn: () => fetchPerformanceChart(address, days),
     enabled: options?.enabled && !!address,
+    staleTime: getRandomizedTime(OneHourMs),
   })
 }

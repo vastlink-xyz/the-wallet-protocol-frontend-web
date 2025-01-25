@@ -25,13 +25,14 @@ import { I18nextProvider } from "react-i18next";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { FontLoader } from "./components/FontLoader";
+import { REACT_QUERY_STALE_TIME, REACT_QUERY_GC_TIME } from "@/lib/utils";
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 2,
-      staleTime: 1000 * 60 * 5,  // data is fresh within 5 minutes
-      gcTime: 1000 * 60 * 30,  // cache for 30 minutes
+      staleTime: REACT_QUERY_STALE_TIME,  // data is fresh within 1 hour
+      gcTime: REACT_QUERY_GC_TIME,  // cache for 24 hours
     },
   },
 })

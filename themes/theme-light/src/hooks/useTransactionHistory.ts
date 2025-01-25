@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
-import { auth, handleError } from '@/lib/utils'
+import { auth, getRandomizedTime, handleError, OneHourMs } from '@/lib/utils'
 
 interface TransactionHistoryParams {
   startDate?: number;
@@ -42,5 +42,6 @@ export function useTransactionHistory(params?: TransactionHistoryParams & {
     queryKey: [...TRANSACTION_HISTORY_KEY, address, params?.startDate, params?.endDate, params?.tokenType, params?.useCache],
     queryFn: () => fetchTransactionHistory(address, params),
     enabled: params?.enabled && !!address,
+    staleTime: getRandomizedTime(OneHourMs),
   })
 }
