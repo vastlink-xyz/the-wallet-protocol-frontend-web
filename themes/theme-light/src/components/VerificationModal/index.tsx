@@ -62,6 +62,10 @@ export function VerificationModal({
           />
         </div>
 
+        <p className="text-xs text-gray-400 mb-6">
+          It may take a few minutes to receive the code. Please wait patiently.
+        </p>
+
         <Button
           className="w-full"
           disabled={code.length !== 6 || loading}
