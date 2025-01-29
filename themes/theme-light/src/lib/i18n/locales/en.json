@@ -11,8 +11,8 @@
     "registering": "Registering...",
     "alreadyHaveAccount": "Already have an account? Sign in here",
     "signUp": "Don’t have an account yet? Sign up here",
-    "otpSentMessage": "A sign up link will be sent to your email. Please check your inbox and click the link to sign in.",
-    "otpLoginSentMessage": "A login link will be sent to your email. Please check your inbox and click the link to sign in.",
+    "otpSentMessage": "A sign up verification code will be sent to your email. Please check your inbox and get it.",
+    "otpLoginSentMessage": "A login verification code will be sent to your email. Please check your inbox and get it.",
     "emailAlreadySignedUp": "This email address is already signed up. Please use a different email to sign up."
   },
   "/dashboard": {
