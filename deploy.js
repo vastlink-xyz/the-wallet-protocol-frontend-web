@@ -58,7 +58,7 @@ const main = () => {
   }
 
   // Set heroku env vars
-  setHerokuConfig()
+  // setHerokuConfig()
 
   // Deploy the application
   console.log('Deploying application to Heroku...');
