@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build --mode heroku",
+    "build-staging": "tsc -b && vite build --mode staging",
     "build-local": "tsc -b && vite build",
     "lint": "eslint . --quiet",
     "preview": "vite preview"
