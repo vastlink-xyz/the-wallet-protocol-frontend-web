@@ -5,7 +5,7 @@ const fs = require('fs');
 // Load heroku env vars
 const envConfig = dotenv.parse(fs.readFileSync('.env.heroku'));
 
-const APP_NAME = 'the-wallet-protocol-app-poc';
+const APP_NAME = 'staging-app-vastlink-xyz';
 
 function runCommand(command) {
   const output = execSync(command, { encoding: 'utf8' });
@@ -50,7 +50,7 @@ const main = () => {
     }
   } catch (error) {
     console.log(`Creating Heroku app: ${APP_NAME}`);
-    const createResult = runCommand(`heroku create ${APP_NAME} --team j-labs`);
+    const createResult = runCommand(`heroku create ${APP_NAME} --team vastlink`);
     if (!createResult) {
       console.error('Failed to create Heroku app. Exiting.');
       process.exit(1);
@@ -62,7 +62,7 @@ const main = () => {
 
   // Deploy the application
   console.log('Deploying application to Heroku...');
-  runCommand('git push heroku-dev main');
+  runCommand('git push heroku main');
 
   // Ensure at least one instance is running
   runCommand(`heroku ps:scale web=1 --app ${APP_NAME}`);
