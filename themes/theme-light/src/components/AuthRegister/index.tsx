@@ -243,7 +243,7 @@ export default function AuthRegister() {
           'text-[#979797]/90 font-normal leading-snug',
           'text-[10px] tablet:text-sm',
         )}>
-          A sign up link will be sent to your email. Please check your inbox and click the link to sign in.
+          A sign up verification code will be sent to your email. Please check your inbox and get it.
         </div>
       }
 
