@@ -199,6 +199,13 @@ const router = createBrowserRouter([
               const { default: MyRewardsPage } = await import('@/pages/my-rewards/page');
               return { Component: MyRewardsPage };
             },
+          },
+          {
+            path: '/fireblocks_demo',
+            async lazy() {
+              const { default: FireblocksDemoPage } = await import('@/pages/fireblocks_demo/page');
+              return { Component: FireblocksDemoPage };
+            },
           }
         ]
       }

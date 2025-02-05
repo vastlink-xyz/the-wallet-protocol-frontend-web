@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@fireblocks/ncw-js-sdk':
+        specifier: ^12.5.3
+        version: 12.5.3
       '@fontsource/asap':
         specifier: ^5.0.0
         version: 5.1.0
@@ -98,6 +101,9 @@ importers:
       lucide-react:
         specifier: ^0.453.0
         version: 0.453.0(react@18.3.1)
+      node-forge:
+        specifier: ^1.3.1
+        version: 1.3.1
       nprogress:
         specifier: ^0.2.0
         version: 0.2.0
@@ -137,6 +143,9 @@ importers:
       recharts:
         specifier: ^2.13.3
         version: 2.13.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      socket.io-client:
+        specifier: ^4.8.1
+        version: 4.8.1
       tailwind-merge:
         specifier: ^2.5.4
         version: 2.5.4
@@ -156,6 +165,9 @@ importers:
       '@eslint/js':
         specifier: ^9.11.1
         version: 9.13.0
+      '@types/node-forge':
+        specifier: ^1.3.11
+        version: 1.3.11
       '@types/nprogress':
         specifier: ^0.2.3
         version: 0.2.3
@@ -602,6 +614,13 @@ packages:
 
   '@ethersproject/web@5.7.1':
     resolution: {integrity: sha512-Gueu8lSvyjBWL4cYsWsjh6MtMwM0+H4HvqFPZfB6dV8ctbP9zFAO73VG1cMWae0FLPCtz0peKPpZY8/ugJJX2w==}
+
+  '@fireblocks/ncw-js-infra@1.0.21':
+    resolution: {integrity: sha512-sGeTxGGMPXxT8saigEQUHJL1pFoN9RuvEKmfUdMTBfuQ0SvZkyg3uNdrq3ZnIvv6SVFDPZ4RNHjhgu39SKlv+Q==}
+
+  '@fireblocks/ncw-js-sdk@12.5.3':
+    resolution: {integrity: sha512-CTKrWh+vxOF4LFB2K9ekLk6h55H94t8FTE9XlV/C2aVC6cOrs2mzRBmgwLQxInfx0Fy4m3d1iIixDaoWcgtp0w==}
+    engines: {node: '>=18.0.0'}
 
   '@floating-ui/core@1.6.8':
     resolution: {integrity: sha512-7XJ9cPU+yI2QeLS+FCSlqNFZJq8arvswefkZrYI1yQBbftw6FyrZOxYSh+9S7z7TpeWlRt9zJ5IhM1WIL334jA==}
@@ -1818,6 +1837,9 @@ packages:
   '@types/d3-timer@3.0.2':
     resolution: {integrity: sha512-Ps3T8E8dZDam6fUyNiMkekK3XUsaUEik+idO9/YjPtfj2qruF8tFBXS7XhtE4iIXBLxhmLjP3SXpLhVf21I9Lw==}
 
+  '@types/emscripten@1.40.0':
+    resolution: {integrity: sha512-MD2JJ25S4tnjnhjWyalMS6K6p0h+zQV6+Ylm+aGbiS8tSn/aHLSGNzBgduj6FB4zH0ax2GRMGYi/8G1uOxhXWA==}
+
   '@types/estree@1.0.6':
     resolution: {integrity: sha512-AYnb1nQyY49te+VRAVgmzfcgjYS91mY5P0TKUDCLEM+gNnA+3T6rWITXRLYCpahpqSQbN5cE+gHpnPyXjHWxcw==}
 
@@ -1826,6 +1848,9 @@ packages:
 
   '@types/json5@0.0.29':
     resolution: {integrity: sha512-dRLjCWHYg4oaA77cxO64oO+7JwCwnIzkZPdrrC71jQmQtlhM556pwKo5bUzqvZndkVbeFLIIi+9TC40JNF5hNQ==}
+
+  '@types/node-forge@1.3.11':
+    resolution: {integrity: sha512-FQx220y22OKNTqaByeBGqHWYz4cl94tpcxeFdvBo3wjG6XPBuZ0BNgNZRV5J5TFmmcsJ4IzsLkmGRiQbnYsBEQ==}
 
   '@types/node@22.7.5':
     resolution: {integrity: sha512-jML7s2NAzMWc//QSJ1a3prpk78cOPchGvXJsC3C6R6PSMoooztvRVQEz89gmBTBY1SPMaqo5teB4uNHPdetShQ==}
@@ -3384,6 +3409,9 @@ packages:
   jsonschema@1.4.1:
     resolution: {integrity: sha512-S6cATIPVv1z0IlxdN+zUk5EPjkGCdnhN4wVSBlvoUO1tOLJootbo9CquNJmbIh4yikWHiUedhRYrNPn1arpEmQ==}
 
+  jwt-decode@3.1.2:
+    resolution: {integrity: sha512-UfpWE/VZn0iP50d8cz9NrZLM9lSWhcJ+0Gt/nm4by88UL+J1SiKN8/5dkjMmbEzwL2CAe+67GsegCbIKtbp75A==}
+
   jwt-decode@4.0.0:
     resolution: {integrity: sha512-+KJGIyHgkGuIq3IEBNftfhW/LfWhXUIY6OmyVWjliu5KH1y0fw7VQ8YndE2O4qZdMSd9SqbnC8GOcZEy0Om7sA==}
     engines: {node: '>=18'}
@@ -4379,8 +4407,8 @@ packages:
     resolution: {integrity: sha512-g9Q1haeby36OSStwb4ntCGGGaKsaVSjQ68fBxoQcutl5fS1vuY18H3wSt3jFyFtrkx+Kz0V1G85A4MyAdDMi2Q==}
     engines: {node: '>=8'}
 
-  socket.io-client@4.8.0:
-    resolution: {integrity: sha512-C0jdhD5yQahMws9alf/yvtsMGTaIDBnZ8Rb5HU56svyq0l5LIrGzIDZZD5pHQlmzxLuU91Gz+VpQMKgCTNYtkw==}
+  socket.io-client@4.8.1:
+    resolution: {integrity: sha512-hJVXfu3E28NmzGk8o1sHhN3om52tRvwYeidbj7xKy2eIIse5IoKX3USlS6Tqt3BHAtflLIkCQBkzVrEEfWUyYQ==}
     engines: {node: '>=10.0.0'}
 
   socket.io-parser@4.2.4:
@@ -5327,6 +5355,16 @@ snapshots:
       '@ethersproject/logger': 5.7.0
       '@ethersproject/properties': 5.7.0
       '@ethersproject/strings': 5.7.0
+
+  '@fireblocks/ncw-js-infra@1.0.21':
+    dependencies:
+      '@types/emscripten': 1.40.0
+
+  '@fireblocks/ncw-js-sdk@12.5.3':
+    dependencies:
+      '@fireblocks/ncw-js-infra': 1.0.21
+      jwt-decode: 3.1.2
+      node-forge: 1.3.1
 
   '@floating-ui/core@1.6.8':
     dependencies:
@@ -6425,7 +6463,7 @@ snapshots:
       '@toruslabs/metadata-helpers': 6.0.0(@babel/runtime@7.25.9)
       loglevel: 1.9.2
       oblivious-set: 1.4.0
-      socket.io-client: 4.8.0
+      socket.io-client: 4.8.1
       unload: 2.4.1
     transitivePeerDependencies:
       - '@sentry/types'
@@ -6575,7 +6613,7 @@ snapshots:
       '@toruslabs/http-helpers': 7.0.0(@babel/runtime@7.25.9)
       '@toruslabs/metadata-helpers': 6.0.0(@babel/runtime@7.25.9)
       loglevel: 1.9.2
-      socket.io-client: 4.8.0
+      socket.io-client: 4.8.1
     transitivePeerDependencies:
       - '@sentry/types'
       - bufferutil
@@ -6629,7 +6667,7 @@ snapshots:
       bn.js: 5.2.1
       elliptic: 6.5.7
       ethereum-cryptography: 3.0.0
-      socket.io-client: 4.8.0
+      socket.io-client: 4.8.1
     transitivePeerDependencies:
       - bufferutil
       - supports-color
@@ -6639,7 +6677,7 @@ snapshots:
     dependencies:
       '@toruslabs/tss-client-util': 0.1.1
       '@toruslabs/tss-frost-common': 1.0.1
-      socket.io-client: 4.8.0
+      socket.io-client: 4.8.1
     transitivePeerDependencies:
       - bufferutil
       - supports-color
@@ -6698,11 +6736,17 @@ snapshots:
 
   '@types/d3-timer@3.0.2': {}
 
+  '@types/emscripten@1.40.0': {}
+
   '@types/estree@1.0.6': {}
 
   '@types/json-schema@7.0.15': {}
 
   '@types/json5@0.0.29': {}
+
+  '@types/node-forge@1.3.11':
+    dependencies:
+      '@types/node': 22.7.8
 
   '@types/node@22.7.5':
     dependencies:
@@ -8837,6 +8881,8 @@ snapshots:
 
   jsonschema@1.4.1: {}
 
+  jwt-decode@3.1.2: {}
+
   jwt-decode@4.0.0: {}
 
   keyv@4.5.4:
@@ -9976,7 +10022,7 @@ snapshots:
 
   slash@3.0.0: {}
 
-  socket.io-client@4.8.0:
+  socket.io-client@4.8.1:
     dependencies:
       '@socket.io/component-emitter': 3.1.2
       debug: 4.3.7

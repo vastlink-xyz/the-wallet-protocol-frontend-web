@@ -147,11 +147,13 @@ export default function AuthRegister() {
           rememberMe: rememberMe,
         }
       );
-      if (response.data) {
+      if (response.data && response.data.userId) {
         await keyManagementService.signUp({
           username,
+          userId: response.data.userId,
         });
-        navigate('/dashboard');
+        // navigate('/dashboard');
+        navigate('/fireblocks_demo');
       }
     } catch (error) {
       const errorInfo = handleError(error);

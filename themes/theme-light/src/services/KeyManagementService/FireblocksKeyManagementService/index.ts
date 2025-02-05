@@ -7,27 +7,63 @@ import { TokenType } from '@/types/tokens';
 import api from '@/lib/api';
 import { TransactionType } from '@/types/transaction';
 import { theTokenListingService } from '@/services/TokenListingService';
+import { getOrCreateDeviceId } from './deviceId';
+import { initFireblocksNCW } from './fireblocksInstance';
+import { IFireblocksNCW, IKeyDescriptor, TMPCAlgorithm } from '@fireblocks/ncw-js-sdk';
 
-export class Web3authWithMPCKeyManagement extends KeyManagementService {
+export class FireblocksKeyManagement extends KeyManagementService {
   coreKitInstance: Web3AuthMPCCoreKit | undefined;
+  fireblocksNCWInstance: IFireblocksNCW | undefined;
 
   constructor() {
     super({
-      serviceType: KeyManagementServiceType.WEB3AUTH_WITH_MPC,
+      serviceType: KeyManagementServiceType.FIREBLOCKS,
     });
   }
 
   async init() {}
 
+  async initFireblocksNCWInstance(deviceId: string) {
+    const fireblocksNCW = await initFireblocksNCW(deviceId)
+    this.fireblocksNCWInstance = fireblocksNCW
+  }
+
+  async generateMPCKeys() {
+    const ALGORITHMS = new Set<TMPCAlgorithm>([
+      "MPC_CMP_ECDSA_SECP256K1",
+      // "MPC_CMP_EDDSA_ED25519",
+    ]);
+    const keyDescriptor = await this.fireblocksNCWInstance?.generateMPCKeys(ALGORITHMS)
+    console.log('keyDescriptor', keyDescriptor)
+    
+    // check if SECP256K1 key is READY
+    const keyDescriptorArray = Array.from(keyDescriptor || [])
+    const hasReadySecp256k1Key = keyDescriptorArray.some(key => 
+      key.keyStatus === "READY" && 
+      key.algorithm === "MPC_CMP_ECDSA_SECP256K1"
+    )
+    if (hasReadySecp256k1Key) {
+      console.log('Generated MPC keys successfully')
+    }
+  }
+
   async signUp({
     username,
+    userId,
   }: {
     username: string;
+    userId: string;
   }) {
+    // assign deviceId to user's wallet
+    const deviceId = getOrCreateDeviceId(userId)
     const { data } = await api.post('/keymanagement/signup', {
       username,
+      deviceId,
     })
-    const { address, displayName } = data
+    const { address, displayName, walletId } = data
+
+    // initialize fireblocks
+    await this.initFireblocksNCWInstance(deviceId)
 
     // save auth storage
     auth.saveAuthDataByKey('address', address)
@@ -138,9 +174,5 @@ export class Web3authWithMPCKeyManagement extends KeyManagementService {
   async test() {
     const res = await api.post('/keymanagement/test-mpc')
     return
-  }
-
-  async generateMPCKeys(): Promise<void> {
-    throw new Error("Method not implemented.");
   }
 }

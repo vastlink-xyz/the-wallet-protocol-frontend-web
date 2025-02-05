@@ -48,6 +48,8 @@ abstract class KeyManagementService {
   }): Promise<any>;
 
   abstract waitForTransactionReceipt(hash: `0x${string}`, token: TokenType): Promise<TransactionReceipt>;
+
+  abstract generateMPCKeys(): Promise<void>;
 }
 
 export {
