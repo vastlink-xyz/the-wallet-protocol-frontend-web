@@ -293,12 +293,12 @@ export class ApiService {
 
   public async addAsset(deviceId: string, accountId: number, assetId: string): Promise<IAssetAddress> {
     const response = await this._postCall(`api/devices/${deviceId}/accounts/${accountId}/assets/${assetId}`);
-    return await response;
+    return await response.data;
   }
 
   public async getAsset(deviceId: string, accountId: number, assetId: string): Promise<IWalletAsset> {
     const response = await this._getCall(`api/devices/${deviceId}/accounts/${accountId}/assets/${assetId}`);
-    return await response.json();
+    return await response.data;
   }
 
   public async getAccounts(deviceId: string): Promise<{ walletId: string; accountId: number }[]> {
@@ -308,17 +308,17 @@ export class ApiService {
 
   public async getAssets(deviceId: string, accountId: number): Promise<IWalletAsset[]> {
     const response = await this._getCall(`api/devices/${deviceId}/accounts/${accountId}/assets`);
-    return await response.json();
+    return await response.data;
   }
 
   public async getSupportedAssets(deviceId: string, accountId: number): Promise<IWalletAsset[]> {
     const response = await this._getCall(`api/devices/${deviceId}/accounts/${accountId}/assets/supported_assets`);
-    return await response.json();
+    return await response.data
   }
 
   public async getAddress(deviceId: string, accountId: number, assetId: string): Promise<IAssetAddress> {
     const response = await this._getCall(`api/devices/${deviceId}/accounts/${accountId}/assets/${assetId}/address`);
-    return await response.json();
+    return await response.data
   }
 
   public async getBalance(deviceId: string, accountId: number, assetId: string): Promise<IAssetBalance> {
