@@ -1,8 +1,8 @@
 export type OTPVerifyMethod = 'email-by-nodemailer' | 'email-by-sendgrid';
 
 class OTPService {
-  // private verifyMethod: OTPVerifyMethod = 'email-by-nodemailer';
-  private verifyMethod: OTPVerifyMethod = 'email-by-sendgrid';
+  private verifyMethod: OTPVerifyMethod = 'email-by-nodemailer';
+  // private verifyMethod: OTPVerifyMethod = 'email-by-sendgrid';
 
   setVerifyMethod(method: OTPVerifyMethod) {
     this.verifyMethod = method;

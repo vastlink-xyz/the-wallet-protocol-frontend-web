@@ -55,17 +55,21 @@ export default function VerifyAuthPage() {
     setLoading(true);
     try {
       // verify otp and get jwt
-      await verifyLoginOtp({
+      const response = await verifyLoginOtp({
         username: authUsername,
         otp,
         isRememberMe,
       })
 
-      await keyManagementService.signIn({
-        authUsername,
-      })
+      if (response.data && response.data.userId) {
+        await keyManagementService.signIn({
+          authUsername,
+          userId: response.data.userId,
+        })
+        // navigate('/dashboard')
+        navigate('/fireblocks_demo')
+      }
 
-      navigate('/dashboard')
     } catch (error: unknown) {
       const errorInfo = handleError(error)
       toast.error(errorInfo.message)
@@ -88,18 +92,20 @@ export default function VerifyAuthPage() {
     setLoading(true);
     try {
       // verify otp and get jwt
-      await verifyRegistrationOtp({
+      const response = await verifyRegistrationOtp({
         username: registerUsername,
         otp,
         isRememberMe,
       })
-
-      // sign up with keyManagementService
-      await keyManagementService.signUp({
-        username: registerUsername,
-      })
-
-      setShowCountdownSuccess(true)
+      if (response.data && response.data.userId) {
+        await keyManagementService.signUp({
+          username: registerUsername,
+          userId: response.data.userId,
+        });
+        // navigate('/dashboard');
+        navigate('/fireblocks_demo');
+        // setShowCountdownSuccess(true)
+      }
     } catch (error: unknown) {
       const errorInfo = handleError(error)
       toast.error(errorInfo.message)
@@ -125,7 +131,7 @@ export default function VerifyAuthPage() {
         rememberMe: isRememberMe,
       }
     );
-    return response.data;
+    return response;
   }
 
   async function verifyLoginOtp({
@@ -144,7 +150,7 @@ export default function VerifyAuthPage() {
         rememberMe: isRememberMe,
       }
     );
-    return response.data;
+    return response;
   }
 
   return (

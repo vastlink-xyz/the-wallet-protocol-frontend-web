@@ -108,7 +108,7 @@ export default function Page() {
         fromInvitation,
       }
     );
-    return response.data;
+    return response;
   }
 
   async function register() {
@@ -122,27 +122,23 @@ export default function Page() {
       setRegistering(true);
 
       // verify otp and get jwt
-      await verifyRegistrationOtp(registerUsername, otp)
+      const response = await verifyRegistrationOtp(registerUsername, otp)
 
-      // sign up with keyManagementService
-      await keyManagementService.signUp({
-        username: registerUsername,
-      })
+      if (response.data && response.data.userId) {
+        await keyManagementService.signUp({
+          username: registerUsername,
+          userId: response.data.userId,
+        });
+        navigate('/fireblocks_demo');
 
-      // setRegistering(false);
-      // setAuthenticating(true)
-      // const success = await authenticate(registerUsername)
-      // if (!success) {
-      //   return
-      // }
-
-      // update inviteInfo data, includes status and to address
-      const { address } = auth.all()
-      await updateInviteInfo(inviteInfo.id, {
-        status: 'REGISTERED',
-        to: address,
-      })
-      initInviteInfo(inviteInfo.id)
+        // update inviteInfo data, includes status and to address
+        const { address } = auth.all()
+        await updateInviteInfo(inviteInfo.id, {
+          status: 'REGISTERED',
+          to: address,
+        })
+        initInviteInfo(inviteInfo.id)
+      }
     } catch (error) {
       const errorInfo = handleError(error)
       toast.error(errorInfo.message)

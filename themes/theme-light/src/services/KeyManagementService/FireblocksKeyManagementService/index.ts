@@ -76,9 +76,13 @@ export class FireblocksKeyManagement extends KeyManagementService {
     }
   }
   
-  async signIn({authUsername}: {authUsername: string}) {
+  async signIn({authUsername, userId}: {authUsername: string, userId: string}) {
+    // assign deviceId to user's wallet
+    const deviceId = getOrCreateDeviceId(userId)
+
     const {data} = await api.post('/keymanagement/signin', {
       username: authUsername,
+      deviceId,
     })
     const { address, displayName } = data
 

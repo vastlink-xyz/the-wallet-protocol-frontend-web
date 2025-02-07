@@ -176,11 +176,13 @@ export default function AuthRegister() {
         }
       );
       log('verify res', response);
-      if (response.data) {
+      if (response.data && response.data.userId) {
         await keyManagementService.signIn({
           authUsername: username,
+          userId: response.data.userId,
         });
-        navigate('/dashboard');
+        // navigate('/dashboard');
+        navigate('/fireblocks_demo');
       }
     } catch (error) {
       const errorInfo = handleError(error);
