@@ -20,3 +20,5 @@ export interface INewTransactionData {
   feeLevel?: "LOW" | "MEDIUM" | "HIGH";
   estimateFee?: boolean;
 }
+
+export type TRequestDecodedData = { email: string; requestId: string; platform: string };

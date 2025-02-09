@@ -2,6 +2,7 @@
 import { KeyManagementServiceType } from '@/types/keymanagement';
 import { Web3authWithMPCKeyManagement } from './Web3authWithMPCKeyManagementService';
 import { FireblocksKeyManagement } from './FireblocksKeyManagementService';
+
 class KeyManagementServiceFactory {
   static getService(serviceType: KeyManagementServiceType) {
     switch (serviceType) {

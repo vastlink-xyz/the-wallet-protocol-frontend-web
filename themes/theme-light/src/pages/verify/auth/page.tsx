@@ -61,11 +61,11 @@ export default function VerifyAuthPage() {
         isRememberMe,
       })
 
-      if (response.data && response.data.userId) {
-        await keyManagementService.signIn({
-          authUsername,
-          userId: response.data.userId,
-        })
+      if (response.data && response.data.sub) {
+        // await keyManagementService.signIn({
+        //   authUsername,
+        //   sub: response.data.sub,
+        // })
         // navigate('/dashboard')
         navigate('/fireblocks_demo')
       }
@@ -97,11 +97,11 @@ export default function VerifyAuthPage() {
         otp,
         isRememberMe,
       })
-      if (response.data && response.data.userId) {
-        await keyManagementService.signUp({
-          username: registerUsername,
-          userId: response.data.userId,
-        });
+      if (response.data && response.data.sub) {
+        // await keyManagementService.signUp({
+        //   username: registerUsername,
+        //   sub: response.data.sub,
+        // });
         // navigate('/dashboard');
         navigate('/fireblocks_demo');
         // setShowCountdownSuccess(true)

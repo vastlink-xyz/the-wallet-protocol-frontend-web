@@ -2,21 +2,21 @@ const DEVICE_ID_KEY = "DEMO_APP:deviceId";
 
 export const generateDeviceId = () => crypto.randomUUID();
 
-export const loadDeviceId = (userId: string) => {
-  return localStorage.getItem(`${DEVICE_ID_KEY}-${userId}`);
+export const loadDeviceId = (sub: string) => {
+  return localStorage.getItem(`${DEVICE_ID_KEY}-${sub}`);
 };
 
-export const getOrCreateDeviceId = (userId: string) => {
-  const deviceId = loadDeviceId(userId);
+export const getOrCreateDeviceId = (sub: string) => {
+  const deviceId = loadDeviceId(sub);
   if (deviceId) {
     return deviceId;
   }
 
   const uuid = generateDeviceId();
-  storeDeviceId(uuid, userId);
+  storeDeviceId(uuid, sub);
   return uuid;
 };
 
-export const storeDeviceId = (deviceId: string, userId: string) => {
-  localStorage.setItem(`${DEVICE_ID_KEY}-${userId}`, deviceId);
+export const storeDeviceId = (deviceId: string, sub: string) => {
+  localStorage.setItem(`${DEVICE_ID_KEY}-${sub}`, deviceId);
 };

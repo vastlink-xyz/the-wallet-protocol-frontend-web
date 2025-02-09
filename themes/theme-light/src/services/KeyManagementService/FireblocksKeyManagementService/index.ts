@@ -26,6 +26,7 @@ export class FireblocksKeyManagement extends KeyManagementService {
   async initFireblocksNCWInstance(deviceId: string) {
     const fireblocksNCW = await initFireblocksNCW(deviceId)
     this.fireblocksNCWInstance = fireblocksNCW
+    this.config.fireblocksNCWInstance = fireblocksNCW
   }
 
   async generateMPCKeys() {
@@ -49,18 +50,18 @@ export class FireblocksKeyManagement extends KeyManagementService {
 
   async signUp({
     username,
-    userId,
+    sub,
   }: {
     username: string;
-    userId: string;
+    sub: string;
   }) {
     // assign deviceId to user's wallet
-    const deviceId = getOrCreateDeviceId(userId)
+    const deviceId = getOrCreateDeviceId(sub)
     const { data } = await api.post('/keymanagement/signup', {
       username,
       deviceId,
     })
-    const { address, displayName, walletId } = data
+    const { address, displayName } = data
 
     // initialize fireblocks
     await this.initFireblocksNCWInstance(deviceId)
@@ -76,15 +77,18 @@ export class FireblocksKeyManagement extends KeyManagementService {
     }
   }
   
-  async signIn({authUsername, userId}: {authUsername: string, userId: string}) {
+  async signIn({authUsername, sub}: {authUsername: string, sub: string}) {
     // assign deviceId to user's wallet
-    const deviceId = getOrCreateDeviceId(userId)
+    const deviceId = getOrCreateDeviceId(sub)
 
     const {data} = await api.post('/keymanagement/signin', {
       username: authUsername,
       deviceId,
     })
     const { address, displayName } = data
+
+    // initialize fireblocks
+    await this.initFireblocksNCWInstance(deviceId)
 
     // save auth storage
     auth.saveAuthDataByKey('address', address)

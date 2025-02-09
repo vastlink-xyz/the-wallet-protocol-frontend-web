@@ -2,9 +2,10 @@ import { KeyManagementServiceType } from '@/types/keymanagement';
 import { Address, TransactionReceipt } from 'viem';
 import { TokenType } from '@/types/tokens';
 import { TransactionType } from '@/types/transaction';
-
+import { IFireblocksNCW } from '@fireblocks/ncw-js-sdk';
 export interface KeyManagementServiceConfig {
   serviceType: KeyManagementServiceType;
+  fireblocksNCWInstance?: IFireblocksNCW;
 }
 abstract class KeyManagementService {
   config: KeyManagementServiceConfig;

@@ -201,6 +201,13 @@ export class ApiService {
     this.socket.on("disconnect", () => console.log("websocket disconnected"));
   }
 
+  public async getTransactionById(deviceId: string, txId: string): Promise<ITransactionData> {
+    const response = await this._getCall(
+      `api/devices/${deviceId}/transactions/${txId}`,
+    );
+    return await response.data;
+  }
+
   public async getWallets(): Promise<{ wallets: Array<{ walletId: string }> }> {
     const response = await this._getCall(`api/wallets`);
     return await response.data
@@ -283,7 +290,7 @@ export class ApiService {
 
   public async createTransaction(deviceId: string, dataToSend?: INewTransactionData): Promise<ITransactionData> {
     const createTxResponse = await this._postCall(`api/devices/${deviceId}/transactions`, dataToSend);
-    return createTxResponse;
+    return createTxResponse.data;
   }
 
   public async cancelTransaction(deviceId: string, txId: string): Promise<void> {
@@ -323,7 +330,7 @@ export class ApiService {
 
   public async getBalance(deviceId: string, accountId: number, assetId: string): Promise<IAssetBalance> {
     const response = await this._getCall(`api/devices/${deviceId}/accounts/${accountId}/assets/${assetId}/balance`);
-    return await response.json();
+    return await response.data;
   }
 
   public listenToTxs(deviceId: string, cb: TTxHandler): () => void {

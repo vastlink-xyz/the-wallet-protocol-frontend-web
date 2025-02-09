@@ -124,11 +124,11 @@ export default function Page() {
       // verify otp and get jwt
       const response = await verifyRegistrationOtp(registerUsername, otp)
 
-      if (response.data && response.data.userId) {
-        await keyManagementService.signUp({
-          username: registerUsername,
-          userId: response.data.userId,
-        });
+      if (response.data && response.data.sub) {
+        // await keyManagementService.signUp({
+        //   username: registerUsername,
+        //   sub: response.data.sub,
+        // });
         navigate('/fireblocks_demo');
 
         // update inviteInfo data, includes status and to address

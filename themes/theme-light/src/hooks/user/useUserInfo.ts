@@ -21,7 +21,7 @@ export interface UserInfo {
   kycVerificationTimestamp?: string;  // iso string
   purchasedProducts: IPurchasedProduct[];
   dailyWithdrawalLimits?: Partial<TokenRecord<string>>;
-  userId: string;
+  sub: string;
 }
 
 const fetchUserInfo = async (): Promise<UserInfo> => {

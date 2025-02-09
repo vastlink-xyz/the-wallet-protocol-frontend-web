@@ -147,11 +147,11 @@ export default function AuthRegister() {
           rememberMe: rememberMe,
         }
       );
-      if (response.data && response.data.userId) {
-        await keyManagementService.signUp({
-          username,
-          userId: response.data.userId,
-        });
+      if (response.data && response.data.sub) {
+        // await keyManagementService.signUp({
+        //   username,
+        //   sub: response.data.sub,
+        // });
         // navigate('/dashboard');
         navigate('/fireblocks_demo');
       }
@@ -176,11 +176,11 @@ export default function AuthRegister() {
         }
       );
       log('verify res', response);
-      if (response.data && response.data.userId) {
-        await keyManagementService.signIn({
-          authUsername: username,
-          userId: response.data.userId,
-        });
+      if (response.data && response.data.sub) {
+        // await keyManagementService.signIn({
+        //   authUsername: username,
+        //   sub: response.data.sub,
+        // });
         // navigate('/dashboard');
         navigate('/fireblocks_demo');
       }

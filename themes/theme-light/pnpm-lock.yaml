@@ -101,6 +101,9 @@ importers:
       i18next:
         specifier: ^23.16.2
         version: 23.16.2
+      js-base64:
+        specifier: ^3.7.7
+        version: 3.7.7
       lucide-react:
         specifier: ^0.453.0
         version: 0.453.0(react@18.3.1)
@@ -3621,6 +3624,9 @@ packages:
 
   jju@1.4.0:
     resolution: {integrity: sha512-8wb9Yw966OSxApiCt0K3yNJL8pnNeIv+OEq2YMidz4FKP6nonSRoOXc80iXY4JaN2FC11B9qsNmDsm+ZOfMROA==}
+
+  js-base64@3.7.7:
+    resolution: {integrity: sha512-7rCnleh0z2CkXhH67J8K1Ytz0b2Y+yxTPL+/KOJoa20hfnVQ/3/T6W/KflYI4bRHRagNeXeU2bkNGI3v1oS/lw==}
 
   js-sha3@0.8.0:
     resolution: {integrity: sha512-gF1cRrHhIzNfToc802P800N8PpXS+evLLXfsVpowqmAFR9uwbi89WvXg2QspOmXL8QL86J4T1EpFu+yUkwJY3Q==}
@@ -9519,6 +9525,8 @@ snapshots:
   jiti@2.3.3: {}
 
   jju@1.4.0: {}
+
+  js-base64@3.7.7: {}
 
   js-sha3@0.8.0: {}
 
