@@ -11,6 +11,16 @@ export interface IPurchasedProduct {
   lastUsedAt?: string;  // iso string
 }
 
+
+export enum ChainType {
+  BITCOIN = 'BITCOIN',
+  ETHEREUM = 'ETHEREUM',
+}
+
+export type ChainAddresses = {
+  [key in ChainType]?: string;
+};
+
 export interface UserInfo {
   email: string;
   displayName: string;
@@ -22,6 +32,7 @@ export interface UserInfo {
   purchasedProducts: IPurchasedProduct[];
   dailyWithdrawalLimits?: Partial<TokenRecord<string>>;
   sub: string;
+  chainAddresses?: ChainAddresses;
 }
 
 const fetchUserInfo = async (): Promise<UserInfo> => {

@@ -4,6 +4,7 @@ import {
   TReleaseSecureStorageCallback,
   decryptAesGCM,
   encryptAesGCM,
+  InMemorySecureStorageProvider
 } from "@fireblocks/ncw-js-sdk";
 import { sha256 } from "node-forge";
 
@@ -22,8 +23,10 @@ export class PasswordEncryptedLocalStorage extends BrowserLocalStorageProvider i
   }
 
   public async getAccess(): Promise<TReleaseSecureStorageCallback> {
+    console.log('getAccess called')
     this.encKey = await this._generateEncryptionKey();
     return async () => {
+      console.log('release called')
       await this._release();
     };
   }
@@ -36,12 +39,13 @@ export class PasswordEncryptedLocalStorage extends BrowserLocalStorageProvider i
     if (!this.encKey) {
       throw new Error("Storage locked");
     }
-
+    
     const encryptedData = await super.get(key);
     if (!encryptedData) {
       return null;
     }
-
+    
+    console.log('get called', key)
     return decryptAesGCM(encryptedData, this.encKey, this._salt);
   }
 
@@ -50,6 +54,7 @@ export class PasswordEncryptedLocalStorage extends BrowserLocalStorageProvider i
       throw new Error("Storage locked");
     }
 
+    console.log('set called', key)
     const encryptedData = await encryptAesGCM(data, this.encKey, this._salt);
     await super.set(key, encryptedData);
   }

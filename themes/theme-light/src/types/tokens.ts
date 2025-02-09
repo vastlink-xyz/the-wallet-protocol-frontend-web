@@ -6,6 +6,7 @@ export enum TokenType {
   MATIC = 'MATIC',
   TVWT = 'TVWT',
   VAST = 'VAST',
+  BTC = 'BTC',
 }
 
 export enum GasFeeSymbol {

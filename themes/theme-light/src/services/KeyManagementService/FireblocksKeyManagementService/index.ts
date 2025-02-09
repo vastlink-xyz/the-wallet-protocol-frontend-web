@@ -101,13 +101,15 @@ export class FireblocksKeyManagement extends KeyManagementService {
   }
 
   async signTransaction({
+    fromAddress,
     toAddress,
     amount,
     token,
     note,
     transactionType,
   }: {
-    toAddress: Address;
+    fromAddress?: string;
+    toAddress: string;
     amount: string;
     token: TokenType;
     note?: string;
@@ -120,12 +122,11 @@ export class FireblocksKeyManagement extends KeyManagementService {
       message,
       transactionId,
       relayerTransactionId,
-      // not used
-      transactionPayload,
-      userEmail,
-      toEmail,
+      // fireblocks
+      id,
+      status,
     } } = await api.post('/transaction/sign', {
-      from: auth.all().address,
+      from: fromAddress ?? auth.all().address,
       to: toAddress,
       amount,
       token,
@@ -140,6 +141,9 @@ export class FireblocksKeyManagement extends KeyManagementService {
       message,
       transactionId,
       relayerTransactionId,
+      // fireblocks
+      id,
+      status,
     }
   }
 

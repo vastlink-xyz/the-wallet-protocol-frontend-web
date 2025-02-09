@@ -63,7 +63,7 @@ export class Web3authWithMPCKeyManagement extends KeyManagementService {
     note,
     transactionType,
   }: {
-    toAddress: Address;
+    toAddress: string;
     amount: string;
     token: TokenType;
     note?: string;

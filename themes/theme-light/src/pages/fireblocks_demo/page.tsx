@@ -8,6 +8,10 @@ import { SigningInProgressError } from '@fireblocks/ncw-js-sdk';
 import { useState } from 'react';
 import { decode, encode } from "js-base64";
 import { apiService } from '@/services/KeyManagementService/FireblocksKeyManagementService/fireblocksInstance';
+import { Input } from '@/components/ui/input';
+import api from '@/lib/api';
+import { TokenType } from '@/types/tokens';
+import { TransactionType } from '@/types/transaction';
 
 export default function FireblocksDemoPage() {
   const { data: userInfo, isFetched: userInfoFetched } = useUserInfo()
@@ -15,6 +19,9 @@ export default function FireblocksDemoPage() {
   const [txId, setTxId] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(false)
   const [qrCodeValue, setQrCodeValue] = useState<string>('')
+
+  const [amount, setAmount] = useState<string>('')
+  const [destinationAddress, setDestinationAddress] = useState<string>('')
 
   // After successful OTP registration/login and JWT generation,
   // this function assigns deviceId to user's wallet and initializes Fireblocks
@@ -104,6 +111,7 @@ export default function FireblocksDemoPage() {
     }
     const accountId = 0
     const assetId = 'BTC_TEST'
+    // const assetId = 'ETH_TEST5'
     await apiService.addAsset(deviceId, accountId, assetId);
     const asset = await apiService.getAsset(deviceId, accountId, assetId);
     console.log('asset', asset)
@@ -151,23 +159,35 @@ export default function FireblocksDemoPage() {
     if (!deviceId) {
       return
     }
-    const accountId = '0'
-    const assetId = 'BTC_TEST'
-    const amount = '0.0001'
-    const destinationAddress = 'tb1q40gflfmq69hypcrwcmgxjvuzrjqnkkyvfxv7fm'
-    const dataToSend: INewTransactionData = {
-      note: `API Transaction by ${deviceId}`,
-      accountId: accountId,
-      assetId: assetId,
-      amount: amount,
-      destAddress: destinationAddress,
-      feeLevel: txFee,
-      estimateFee: false,
-    };
-    const data = await apiService.createTransaction(deviceId, dataToSend)
-    setTxId(data.id)
-    console.log('transaction', data)
-    setLoading(false)
+    // const accountId = '0'
+    // const assetId = 'BTC_TEST'
+    // // const amount = '0.0001'
+    // // const destinationAddress = 'tb1q40gflfmq69hypcrwcmgxjvuzrjqnkkyvfxv7fm'
+    // const dataToSend: INewTransactionData = {
+    //   note: `API Transaction by ${deviceId}`,
+    //   accountId: accountId,
+    //   assetId: assetId,
+    //   amount: amount,
+    //   destAddress: destinationAddress,
+    //   feeLevel: txFee,
+    //   estimateFee: false,
+    // };
+    // const data = await apiService.createTransaction(deviceId, dataToSend)
+    try {
+      const data: any = await keyManagementService.signTransaction({
+        fromAddress: userInfo.chainAddresses?.BITCOIN ?? '',
+        toAddress: destinationAddress,
+        amount: amount,
+        token: TokenType.BTC,
+        transactionType: TransactionType.TRANSFER,
+      })
+      setTxId(data.id)
+      console.log('transaction', data)
+    } catch(err) {
+      console.log('error', err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleGetTransaction = async () => {
@@ -280,8 +300,14 @@ export default function FireblocksDemoPage() {
     <hr />
     <Button disabled={loading} onClick={handleGetBalance}>Get balance</Button>
     <hr />
+
+    <div className='flex'>
+      <Input placeholder='btc amount' value={amount} onChange={(e) => setAmount(e.target.value)} />
+      <Input placeholder='destination address' value={destinationAddress} onChange={(e) => setDestinationAddress(e.target.value)} />
+    </div>
     <Button disabled={loading} onClick={handleCreateTransaction}>Create transaction</Button>
     {txId && <Button disabled={loading} onClick={handleGetTransaction}>Get transaction</Button>}
+
     <hr />
     <Button disabled={loading} onClick={handleSignTransactionByTxId}>Sign transaction</Button>
     <hr />
