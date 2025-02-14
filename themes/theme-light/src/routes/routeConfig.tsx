@@ -27,6 +27,13 @@ const router = createBrowserRouter([
             },
           },
           {
+            path: "/callback",
+            async lazy() {
+              const { default: CallbackPage } = await import('@/pages/callback/page');
+              return { Component: CallbackPage };
+            },
+          },
+          {
             path: "/auth",
             async lazy() {
               const { default: AuthPage } = await import('@/pages/auth/page');

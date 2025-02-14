@@ -12,6 +12,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@auth0/auth0-react": "^2.3.0",
     "@fireblocks/ncw-js-sdk": "^12.5.3",
     "@fontsource/asap": "^5.0.0",
     "@fontsource/roboto": "^5.1.0",
