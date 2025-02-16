@@ -1,6 +1,7 @@
 import { Manager, Socket, io } from "socket.io-client";
 import { IBackupInfo, INewTransactionData, IPassphraseInfo } from "@/services/KeyManagementService/FireblocksKeyManagementService/types";
 import api from "@/lib/api";
+import { auth0TokenManager } from "@/lib/utils/auth0TokenManager";
 
 export type TTransactionStatus =
   | "PENDING_SIGNATURE"
@@ -178,8 +179,8 @@ export class ApiService {
   private _disposed: boolean = false;
   private _pollingTxsActive: Map<string, boolean> = new Map();
 
-  private manager: Manager;
-  private socket: Socket;
+  private manager!: Manager;
+  private socket!: Socket;
 
   constructor(
     baseUrl: string,
@@ -189,14 +190,19 @@ export class ApiService {
     if (this._baseUrl.endsWith("/")) {
       this._baseUrl = this._baseUrl.slice(0, -1);
     }
-
+  }
+  
+  async initSocket() {
+  
     this.manager = new Manager(this._baseUrl, {
       autoConnect: true,
       withCredentials: true,
       // path: "/fireblocks",
     });
-    this.socket = this.manager.socket("/", {});
-
+    this.socket = this.manager.socket("/", {
+      auth: async (cb) => cb({ token: await auth0TokenManager.getToken() }),
+    });
+  
     this.socket.on("connect", () => console.log("websocket connected"));
     this.socket.on("disconnect", () => console.log("websocket disconnected"));
   }
@@ -422,6 +428,7 @@ export class ApiService {
   }
 
   private async _deleteCall(path: string): Promise<void> {
+    await api.delete(path)
   }
 
   private async _getCall(path: string): Promise<any> {

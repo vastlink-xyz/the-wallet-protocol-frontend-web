@@ -2,14 +2,12 @@ import DashboardLayout from '@/pages/dashboard/layout';
 import ErrorPage from '@/pages/error';
 import { marketplaceLoader } from '@/pages/marketplace/route';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { RootLayout } from '@/pages/root-layout';
 
 const router = createBrowserRouter([
   {
     path: "/",
-    async lazy() {
-      const { RootLayout } = await import('@/pages/root-layout');
-      return { Component: RootLayout };
-    },
+    Component: RootLayout,
     errorElement: <ErrorPage />,
     children: [
       {

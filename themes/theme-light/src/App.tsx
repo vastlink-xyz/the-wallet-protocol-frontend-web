@@ -26,6 +26,7 @@ import { I18nextProvider } from "react-i18next";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { FontLoader } from "./components/FontLoader";
 import { REACT_QUERY_STALE_TIME, REACT_QUERY_GC_TIME } from "@/lib/utils";
+import { Auth0NavigateProvider } from "./providers/Auth0Provider";
 
 const queryClient = new QueryClient({
   defaultOptions: {

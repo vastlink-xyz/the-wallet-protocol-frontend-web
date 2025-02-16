@@ -3,6 +3,7 @@ import { Outlet, useNavigation, useLocation } from "react-router-dom";
 import NProgress from 'nprogress';
 import 'nprogress/nprogress.css';
 import '@/styles/nprogress.css';
+import { Auth0NavigateProvider } from "@/providers/Auth0Provider";
 
 NProgress.configure({
   showSpinner: false,
@@ -29,7 +30,9 @@ export function RootLayout() {
     window.scrollTo(0, 0)
   }, [pathname])
 
-  return <>
-    <Outlet />
-  </>
+  return (
+    <Auth0NavigateProvider>
+      <Outlet />
+    </Auth0NavigateProvider>
+  );
 }

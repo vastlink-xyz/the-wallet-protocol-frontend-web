@@ -9,6 +9,10 @@ export const LoginButton = () => {
       appState: {
         returnTo: "/",
       },
+      authorizationParams: {
+        // screen_hint: "signup",
+        connection: 'email',
+      },
     });
   };
 

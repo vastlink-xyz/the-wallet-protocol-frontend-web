@@ -1,6 +1,7 @@
 import axios, { AxiosResponse, AxiosError } from 'axios'
 import { auth } from "@/lib/utils";
 import { toast } from 'react-toastify';
+import { auth0TokenManager } from '@/lib/utils/auth0TokenManager';
 
 axios.defaults.withCredentials = true
 
@@ -9,19 +10,24 @@ const api = axios.create({
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
+    'x-api-key': import.meta.env.VITE_VASTLINK_CLIENT_API_KEY,
+    'x-api-secret': import.meta.env.VITE_VASTLINK_CLIENT_API_SECRET,
   },
 });
 
-// api.interceptors.request.use(
-//   (config) => {
-//     const token = auth.all().jwt;
-//     if (token) {
-//       config.headers['Authorization'] = `Bearer ${token}`;
-//     }
-//     return config;
-//   },
-//   (error) => Promise.reject(error)
-// );
+api.interceptors.request.use(
+  async (config) => {
+    try {
+      const token = await auth0TokenManager.getToken();
+      console.log("token is", token);
+      config.headers.Authorization = `Bearer ${token}`;
+    } catch (error) {
+      console.error('Error getting access token:', error);
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 // Add response interceptor
 api.interceptors.response.use(
