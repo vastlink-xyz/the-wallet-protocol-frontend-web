@@ -21,6 +21,10 @@
       visibility: hidden;
     }
 
+    .hidden {
+      display: none;
+    }
+
     .login-container {
       position: relative;
       height: 100%;
@@ -74,19 +78,37 @@
 
     .btn-primary {
       border-radius: 24px;
-      background: #f2c94c;
-      color: #423939;
+      background: #f2c94c !important;
+      color: #423939 !important;
+      outline: none;
+      box-shadow: none;
+      border: none;
       width: 100%;
       height: 48px;
 
       &:hover {
-        background: #f2c94c;
-        color: #423939;
+        background: #f2c94c !important;
+        color: #423939 !important;
       }
 
       &:active {
-        background: #f2c94c;
-        color: #423939;
+        background: #f2c94c !important;
+        color: #423939 !important;
+      }
+    }
+
+    .btn-disabled {
+      color: #6c6c6c !important;
+      background: #4f4f4f !important;
+
+      &:hover {
+        color: #6c6c6c !important;
+        background: #4f4f4f !important;
+      }
+
+      &:active {
+        color: #6c6c6c !important;
+        background: #4f4f4f !important;
       }
     }
 
@@ -98,18 +120,105 @@
     .bottom-group {
       display: flex;
       justify-content: center;
-      margin-top: 0px;
+      margin-top: 20px;
     }
 
     #error-message {
       display: none;
       white-space: break-spaces;
     }
+
+    .modal-dialog-centered {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .verification-code-container {
+      width: 352px !important;
+      background-color: #424242 !important;
+      border-radius: 10px !important;
+      padding: 20px !important;
+
+      .verification-code-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        .title {
+          color: white;
+          font-size: 12px;
+          font-weight: 700;
+        }
+
+        .close {
+          background: none;
+          border: none;
+          outline: none;
+          text-shadow: none;
+          font-size: 24px;
+          font-weight: bold;
+          cursor: pointer;
+          padding: 0;
+          color: #828282;
+          opacity: 1;
+
+          span {
+            display: flex;
+            align-items: center;
+          }
+        }
+
+        .close:hover {
+          color: white;
+        }
+      }
+
+      .description {
+        color: white;
+        margin-top: 16px;
+        font-size: 12px;
+      }
+
+      .verify-code-footer {
+        margin-top: 30px;
+      }
+    }
+
+    .otp-input {
+      margin-top: 30px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+
+      .otp-input-item {
+        width: 26px;
+        height: 36px;
+        font-size: 16px;
+        font-weight: 700;
+        color: white;
+        background: none;
+        outline: none;
+        border: 1px solid #ffffff;
+        border-radius: 3px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+      }
+    }
   </style>
+
   <body>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <div class="login-container">
       <div class="col-xs-12 col-sm-4 col-sm-offset-4 login-box">
         <div class="login-header">
+          <img
+            src="https://imagedelivery.net/aoSLzf_oBNenfcsZSZuMrQ/3a00bdc5-ab56-4ef2-9ade-f7c261da1700/public"
+          />
           <h3>Let's sign in your account</h3>
           <h5>
             A sign in OTP will be sent to your email. Please check your inbox
@@ -126,13 +235,28 @@
               id="email"
               placeholder="Enter your email"
             />
+
+            <div id="input-code" class="hidden">
+              <label for="name">Code</label>
+              <input
+                type="text"
+                class="input-normal"
+                id="code"
+                placeholder="Enter your code"
+              />
+            </div>
           </div>
 
           <div class="captcha-container form-group"></div>
           <div class="btn-group">
-            <button type="submit" id="btn-send-email-code" class="btn-primary">
+            <button
+              type="submit"
+              id="btn-send-email-code"
+              class="btn-primary btn-disabled"
+            >
               Send to email
             </button>
+
             <button
               type="button"
               id="btn-login"
@@ -143,7 +267,7 @@
             <button
               type="button"
               id="btn-signup"
-              class="btn btn-default btn-block invisible"
+              class="btn btn-default btn-block hidden"
             >
               Sign Up
             </button>
@@ -163,6 +287,51 @@
           </div>
         </form>
       </div>
+
+      <div
+        class="modal fade"
+        id="exampleModal"
+        tabindex="-1"
+        role="dialog"
+        aria-labelledby="exampleModalLabel"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog modal-dialog-centered" role="document">
+          <div class="modal-content verification-code-container">
+            <div class="verification-code-header">
+              <div class="title">Verification Code</div>
+              <!-- Close modal when clicked -->
+              <div class="close">
+                <span aria-hidden="true">&times;</span>
+              </div>
+            </div>
+
+            <div class="description">
+              A verification code has been sent to your email.Please check your
+              inbox and enter the code to sign up.
+            </div>
+
+            <form id="otp-form" class="otp-input">
+              <input type="text" maxlength="1" class="otp-input-item" />
+              <input type="text" maxlength="1" class="otp-input-item" />
+              <input type="text" maxlength="1" class="otp-input-item" />
+              <input type="text" maxlength="1" class="otp-input-item" />
+              <input type="text" maxlength="1" class="otp-input-item" />
+              <input type="text" maxlength="1" class="otp-input-item" />
+            </form>
+
+            <div class="verify-code-footer">
+              <button
+                id="btn-verify-code"
+                type="button"
+                class="btn btn-primary btn-disabled"
+              >
+                Verify
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!--[if IE 8]>
@@ -177,6 +346,23 @@
     <script src="https://cdn.auth0.com/js/auth0/9.28/auth0.min.js"></script>
     <script src="https://cdn.auth0.com/js/polyfills/1.0/object-assign.min.js"></script>
     <script>
+      const isValidEmail = (email) => {
+        return email.includes("@");
+      };
+
+      // OTP inputs
+      document.addEventListener("DOMContentLoaded", () => {});
+
+      // When user inputs valid email, enable the send email code button
+      document.getElementById("email").addEventListener("input", (e) => {
+        const email = e.target.value;
+        if (isValidEmail(email)) {
+          document
+            .getElementById("btn-send-email-code")
+            .classList.remove("btn-disabled");
+        }
+      });
+
       window.addEventListener("load", function () {
         var config = JSON.parse(
           decodeURIComponent(escape(window.atob("@@config@@")))
@@ -220,34 +406,52 @@
           }
         );
 
-        function login(e) {
+        // function login(e) {
+        //   e.preventDefault();
+
+        //   var button = this;
+        //   var username = document.getElementById("email").value;
+        //   var password = document.getElementById("password").value;
+        //   button.disabled = true;
+
+        //   var request = () => {
+        //     webAuth.login(
+        //       {
+        //         realm: databaseConnection,
+        //         username: username,
+        //         password: password,
+        //         captcha: captcha.getValue(),
+        //       },
+        //       function (err) {
+        //         if (err) displayError(err);
+        //         button.disabled = false;
+        //       }
+        //     );
+        //   };
+
+        //   if (triggerCaptcha) {
+        //     triggerCaptcha(request);
+        //   } else {
+        //     request();
+        //   }
+        // }
+
+        function loginWithCode(e) {
           e.preventDefault();
 
-          webAuth.passwordlessStart(
-            {
-              connection: "email",
-              send: "code",
-              email: "wkq7740@gmail.com",
-            },
-            function (err, res) {
-              // handle errors or continue
-            }
-          );
-
           var button = this;
-          var username = document.getElementById("email").value;
-          var password = document.getElementById("password").value;
+          var email = document.getElementById("email").value;
+          var code = document.getElementById("code").value;
           button.disabled = true;
 
           var request = () => {
-            webAuth.login(
+            webAuth.passwordlessLogin(
               {
-                realm: databaseConnection,
-                username: username,
-                password: password,
-                captcha: captcha.getValue(),
+                connection: "email",
+                email: email,
+                verificationCode: code,
               },
-              function (err) {
+              function (err, res) {
                 if (err) displayError(err);
                 button.disabled = false;
               }
@@ -261,6 +465,40 @@
           }
         }
 
+        function sendEmailCode(e) {
+          e.preventDefault();
+
+          const emailInput = document.getElementById("email").value;
+          if (!isValidEmail(emailInput)) {
+            return;
+          }
+
+          var email = document.getElementById("email").value;
+          webAuth.passwordlessStart(
+            {
+              connection: "email",
+              send: "code",
+              email: email,
+            },
+            function (err, res) {
+              // handle errors or continue
+              console.log(err, res);
+              if(!err){
+                $("#exampleModal").modal("show");
+              } else {
+                displayError(err);
+              }
+            }
+          );
+
+          // var codeInput = document.getElementById("input-code");
+          // codeInput.classList.remove("hidden");
+          // var loginBtn = document.getElementById("btn-login");
+          // loginBtn.classList.remove("hidden");
+          // var sendCodeBtn = document.getElementById("btn-send-email-code");
+          // sendCodeBtn.classList.add("hidden");
+        }
+
         function toggleSignupLogin(e) {
           e.preventDefault();
           var loginSignupLink = e.target;
@@ -268,11 +506,11 @@
           var googleBtn = document.getElementById("btn-google");
           var signupBtn = document.getElementById("btn-signup");
           var msg = document.getElementById("login-signup-msg");
-          loginBtn.classList.toggle("invisible");
-          googleBtn.classList.toggle("invisible");
-          signupBtn.classList.toggle("invisible");
+          loginBtn.classList.toggle("hidden");
+          googleBtn.classList.toggle("hidden");
+          signupBtn.classList.toggle("hidden");
 
-          if (signupBtn.classList.contains("invisible")) {
+          if (signupBtn.classList.contains("hidden")) {
             loginSignupLink.innerHTML = "Sign Up";
             msg.innerHTML = "Don't have an account?";
 
@@ -347,7 +585,12 @@
           errorMessage.style.display = "block";
         }
 
-        document.getElementById("btn-login").addEventListener("click", login);
+        document
+          .getElementById("btn-login")
+          .addEventListener("click", loginWithCode);
+        document
+          .getElementById("btn-send-email-code")
+          .addEventListener("click", sendEmailCode);
         document
           .getElementById("btn-google")
           .addEventListener("click", loginWithGoogle);
@@ -355,6 +598,134 @@
         document
           .getElementById("link-signup-login")
           .addEventListener("click", toggleSignupLogin);
+
+        // Add modal close functionality
+        const closeBtn = document.querySelector(
+          ".verification-code-container .close"
+        );
+        closeBtn.addEventListener("click", () => {
+          $("#exampleModal").modal("hide");
+        });
+
+        // When user inputs all 6 digits, enable the verify button
+        const otpForm = document.getElementById("otp-form");
+        const btnVerifyCode = document.getElementById("btn-verify-code");
+        btnVerifyCode.addEventListener("click", (e) => {
+          e.preventDefault();
+          if (!isAllInputFilled()) {
+            return;
+          }
+
+          // Get the OTP input values
+          const otpInput = otpForm.querySelectorAll("input[type=text]");
+          const otpInputValues = Array.from(otpInput)
+            .map((input) => input.value)
+            .filter((value) => value !== "");
+          const otp = otpInputValues.join("");
+
+          var button = this;
+          var email = document.getElementById("email").value;
+          button.disabled = true;
+
+          // Verify the OTP
+          var request = () => {
+            webAuth.passwordlessLogin(
+              {
+                connection: "email",
+                email: email,
+                verificationCode: otp,
+              },
+              function (err, res) {
+                if (err) displayError(err);
+                button.disabled = false;
+              }
+            );
+          };
+
+          if (triggerCaptcha) {
+            triggerCaptcha(request);
+          } else {
+            request();
+          }
+        });
+
+        const form = document.getElementById("otp-form");
+        const inputs = [...form.querySelectorAll("input[type=text]")];
+        // const submit = form.querySelector('button[type=submit]')
+
+        const handleKeyDown = (e) => {
+          if (
+            !/^[0-9]{1}$/.test(e.key) &&
+            e.key !== "Backspace" &&
+            e.key !== "Delete" &&
+            e.key !== "Tab" &&
+            !e.metaKey
+          ) {
+            e.preventDefault();
+          }
+
+          if (e.key === "Delete" || e.key === "Backspace") {
+            const index = inputs.indexOf(e.target);
+            if (index > 0) {
+              inputs[index - 1].value = "";
+              inputs[index - 1].focus();
+            }
+          }
+        };
+
+        const isAllInputFilled = () => {
+          const otpInput = otpForm.querySelectorAll("input[type=text]");
+          const otpInputValues = Array.from(otpInput)
+            .map((input) => input.value)
+            .filter((value) => value !== "");
+          return otpInputValues.length === 6;
+        };
+
+        const toggleVerifyCodeBtn = () => {
+          if (isAllInputFilled()) {
+            btnVerifyCode.classList.remove("btn-disabled");
+          } else {
+            btnVerifyCode.classList.add("btn-disabled");
+          }
+        };
+
+        const handleInput = (e) => {
+          const { target } = e;
+          const index = inputs.indexOf(target);
+          if (target.value) {
+            if (index < inputs.length - 1) {
+              inputs[index + 1].focus();
+            } else {
+              // submit.focus()
+            }
+          }
+
+          toggleVerifyCodeBtn();
+        };
+
+        const handleFocus = (e) => {
+          e.target.select();
+        };
+
+        const handlePaste = (e) => {
+          e.preventDefault();
+          const text = e.clipboardData.getData("text");
+          if (!new RegExp(`^[0-9]{${inputs.length}}$`).test(text)) {
+            return;
+          }
+          const digits = text.split("");
+          inputs.forEach((input, index) => (input.value = digits[index]));
+
+          toggleVerifyCodeBtn();
+          // submit.focus()
+        };
+
+        inputs.forEach((input) => {
+          input.addEventListener("input", handleInput);
+          input.addEventListener("keydown", handleKeyDown);
+          input.addEventListener("focus", handleFocus);
+          input.addEventListener("paste", handlePaste);
+        });
       });
     </script>
   </body>
