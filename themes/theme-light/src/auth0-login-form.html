@@ -31,15 +31,24 @@
     }
 
     .login-box {
+      width: 360px;
       position: absolute;
       top: 50%;
       transform: translateY(-50%);
       padding: 15px;
       background-color: #000;
-      box-shadow: 0px 5px 5px #333;
       border-radius: 5px;
-      border-top: 1px solid #333;
+      border: 1px solid #333;
       color: #fff;
+
+      /* screen selector  */
+      @media (max-width: 768px) {
+        width: 100%;
+        border: none;
+        position: relative;
+        top: 5%;
+        transform: translateY(0);
+      }
     }
 
     .login-header {
@@ -48,9 +57,11 @@
 
     .login-header h3 {
       color: #fff;
+      margin-top: 50px;
     }
 
     .login-header h5 {
+      margin-top: 20px;
       color: #979797d9;
       text-align: start;
       line-height: 1.5;
@@ -58,6 +69,10 @@
 
     .login-header img {
       width: 75px;
+    }
+
+    .email-container {
+      margin-top: 20px;
     }
 
     .input-normal {
@@ -72,7 +87,7 @@
     }
 
     .btn-group {
-      margin-top: 50px;
+      margin-top: 30px;
       width: 100%;
     }
 
@@ -120,7 +135,8 @@
     .bottom-group {
       display: flex;
       justify-content: center;
-      margin-top: 20px;
+      margin-top: 12px;
+      margin-bottom: 30px;
     }
 
     #error-message {
@@ -132,6 +148,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
+      margin-top: 20%;
     }
 
     .verification-code-container {
@@ -219,15 +236,16 @@
           <img
             src="https://imagedelivery.net/aoSLzf_oBNenfcsZSZuMrQ/3a00bdc5-ab56-4ef2-9ade-f7c261da1700/public"
           />
-          <h3>Let's sign in your account</h3>
-          <h5>
-            A sign in OTP will be sent to your email. Please check your inbox
-            and click the link to sign in.
+
+          <h3 id="login-header-title">Let's sign up your account</h3>
+          <h5 id="login-header-description">
+            A sign up OTP will be sent to your email. Please check your inbox
+            and click the link to sign up.
           </h5>
         </div>
         <div id="error-message" class="alert alert-danger"></div>
         <form onsubmit="return false;" method="post">
-          <div class="form-group">
+          <div class="email-container">
             <label for="name">Email</label>
             <input
               type="email"
@@ -281,8 +299,8 @@
           </div>
 
           <div class="bottom-group">
-            <a id="link-signup-login" class="link"
-              >Don't have an account? Sign Up here</a
+            <div id="link-signup-login" class="link"
+              >Already have an account? Sign In here</div
             >
           </div>
         </form>
@@ -483,7 +501,7 @@
             function (err, res) {
               // handle errors or continue
               console.log(err, res);
-              if(!err){
+              if (!err) {
                 $("#exampleModal").modal("show");
               } else {
                 displayError(err);
@@ -499,44 +517,27 @@
           // sendCodeBtn.classList.add("hidden");
         }
 
+        let screen = 'signup';
         function toggleSignupLogin(e) {
           e.preventDefault();
+          console.log('toggleSignupLogin', screen);
+          
           var loginSignupLink = e.target;
-          var loginBtn = document.getElementById("btn-login");
-          var googleBtn = document.getElementById("btn-google");
-          var signupBtn = document.getElementById("btn-signup");
-          var msg = document.getElementById("login-signup-msg");
-          loginBtn.classList.toggle("hidden");
-          googleBtn.classList.toggle("hidden");
-          signupBtn.classList.toggle("hidden");
+          var loginHeaderTitle = document.getElementById("login-header-title");
+          var loginHeaderDescription = document.getElementById("login-header-description");
 
-          if (signupBtn.classList.contains("hidden")) {
-            loginSignupLink.innerHTML = "Sign Up";
-            msg.innerHTML = "Don't have an account?";
-
-            captcha = webAuth.renderCaptcha(
-              document.querySelector(".captcha-container"),
-              null,
-              (error, payload) => {
-                if (payload) {
-                  triggerCaptcha = payload.triggerCaptcha;
-                }
-              }
-            );
+          if (screen === 'signup') {
+            screen = 'login';
+            loginSignupLink.innerHTML = "Don't have an account? Sign Up here";
+            loginHeaderTitle.innerHTML = "Let's sign in your account";
+            loginHeaderDescription.innerHTML = "A sign in OTP will be sent to your email. Please check your inbox and click the link to sign in.";
           } else {
-            loginSignupLink.innerHTML = "Login";
-            msg.innerHTML = "Already have an account?";
-
-            signupCaptcha = webAuth.renderSignupCaptcha(
-              document.querySelector(".captcha-container"),
-              null,
-              (error, payload) => {
-                if (payload) {
-                  triggerCaptcha = payload.triggerCaptcha;
-                }
-              }
-            );
+            screen = 'signup';
+            loginSignupLink.innerHTML = "Already have an account? Sign In here";
+            loginHeaderTitle.innerHTML = "Let's sign up your account";
+            loginHeaderDescription.innerHTML = "A sign up OTP will be sent to your email. Please check your inbox and click the link to sign up.";
           }
+
         }
 
         function signup() {
@@ -600,8 +601,10 @@
           .addEventListener("click", toggleSignupLogin);
 
         // Add modal close functionality
+        // Query close button from class close-btn
+
         const closeBtn = document.querySelector(
-          ".verification-code-container .close"
+          ".close"
         );
         closeBtn.addEventListener("click", () => {
           $("#exampleModal").modal("hide");
