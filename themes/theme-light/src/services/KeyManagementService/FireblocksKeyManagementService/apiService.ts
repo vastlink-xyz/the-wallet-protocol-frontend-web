@@ -242,7 +242,7 @@ export class ApiService {
 
   public async getPassphraseInfos(): Promise<{ passphrases: IPassphraseInfo[] }> {
     const response = await this._getCall(`api/passphrase/`);
-    return await response.json();
+    return await response.data;
   }
 
   public async assignDevice(deviceId: string): Promise<string> {

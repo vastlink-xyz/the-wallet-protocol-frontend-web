@@ -3,7 +3,7 @@ import { useUserInfo } from '@/hooks/user/useUserInfo';
 import { OneHourMs } from '@/lib/utils';
 import keyManagementService from '@/services/KeyManagementService';
 import { loadDeviceId } from '@/services/KeyManagementService/FireblocksKeyManagementService/deviceId';
-import { INewTransactionData, TRequestDecodedData } from '@/services/KeyManagementService/FireblocksKeyManagementService/types';
+import { INewTransactionData, TPassphrases, TRequestDecodedData } from '@/services/KeyManagementService/FireblocksKeyManagementService/types';
 import { SigningInProgressError } from '@fireblocks/ncw-js-sdk';
 import { useState } from 'react';
 import { decode, encode } from "js-base64";
@@ -279,6 +279,46 @@ export default function FireblocksDemoPage() {
     setLoading(false)
   }
 
+  const handleGetPassphrases = async () => {
+    setLoading(true)
+    const { passphrases } = await apiService.getPassphraseInfos()
+    const reduced = passphrases.reduce<TPassphrases>((p, v) => {
+      p[v.passphraseId] = v;
+      return p;
+    }, {});
+    console.log('passphrases', reduced)
+    // try to reuse previous
+    // for (const info of Object.values(passphrases)) {
+    //   if (info.location === location) {
+    //     switch (location) {
+    //       case "GoogleDrive": {
+    //         const passphrase = await recoverGoogleDrive(info.passphraseId);
+    //         return { passphraseId: info.passphraseId, passphrase };
+    //       }
+    //       case "iCloud": {
+    //         if (!cloudkit || !appleSignedIn) {
+    //           throw new Error("Sign in with Apple ID required");
+    //         }
+
+    //         const passphrase = await cloudkitRecover(cloudkit, info.passphraseId);
+    //         return { passphraseId: info.passphraseId, passphrase };
+    //       }
+    //       default:
+    //         throw new Error(`Unsupported backup location ${location}`);
+    //     }
+    //   }
+    // }
+
+    setLoading(false)
+  }
+
+  const handleBackupWithGoogleDrive = async () => {
+    setLoading(true)
+    // await keyManagementService.config.fireblocksNCWInstance?.backupWallet()
+    setLoading(false)
+  }
+
+
   return <div>
     <Button disabled={loading} onClick={handleVerifyRegisterByUserSub}>Sign up by user id and init fireblocks</Button>
     <Button disabled={loading} onClick={handleSignInByUserSub}>Sign in by user id and init fireblocks</Button>
@@ -315,5 +355,10 @@ export default function FireblocksDemoPage() {
     request data: {qrCodeValue}
     <br />
     <Button disabled={loading} onClick={handleApproveJoinExistingDevice}>Approve joining wallet</Button>
+    <br />
+    <Button disabled={loading} onClick={handleGetPassphrases}>Get Passphrases</Button>
+    <br />
+    <Button disabled={loading} onClick={handleBackupWithGoogleDrive}>Backup wallet with Google Drive</Button>
+    <br />
   </div>;
 }

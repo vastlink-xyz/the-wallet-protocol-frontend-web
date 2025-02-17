@@ -22,3 +22,10 @@ export interface INewTransactionData {
 }
 
 export type TRequestDecodedData = { email: string; requestId: string; platform: string };
+
+export interface IPassphraseInfo {
+  passphraseId: string;
+  location: TPassphraseLocation;
+}
+
+export type TPassphrases = Record<string, IPassphraseInfo>;
