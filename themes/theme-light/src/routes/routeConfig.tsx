@@ -3,11 +3,12 @@ import ErrorPage from '@/pages/error';
 import { marketplaceLoader } from '@/pages/marketplace/route';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { RootLayout } from '@/pages/root-layout';
+import { Auth0NavigateProvider } from '@/providers/Auth0Provider';
 
 const router = createBrowserRouter([
   {
     path: "/",
-    Component: RootLayout,
+    element: <Auth0NavigateProvider><RootLayout /></Auth0NavigateProvider>,
     errorElement: <ErrorPage />,
     children: [
       {
@@ -95,7 +96,7 @@ const router = createBrowserRouter([
                   const { default: MarketplacePage } = await import('@/pages/marketplace/page');
                   return { Component: MarketplacePage };
                 },
-                loader: marketplaceLoader,
+                // loader: marketplaceLoader,
               },
               {
                 path: 'search-result',

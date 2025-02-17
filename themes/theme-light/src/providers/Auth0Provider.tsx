@@ -28,7 +28,7 @@ export const Auth0NavigateProvider = ({ children }: { children: React.ReactNode 
         scope: "openid profile email",
         connection: 'email',
       }}
-      onRedirectCallback={onRedirectCallback}
+      // onRedirectCallback={onRedirectCallback}
     >
       {children}
     </Auth0Provider>

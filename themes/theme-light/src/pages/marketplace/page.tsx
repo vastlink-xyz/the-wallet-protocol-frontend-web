@@ -29,11 +29,7 @@ export default function MarketplacePage() {
     updatePageSize,
   } = usePagination();
   
-  const { products: initialProducts, total } = useLoaderData() as { 
-    products: IProduct[],
-    total: number 
-  };
-  const [products, setProducts] = useState<IProduct[]>(initialProducts);
+  const [products, setProducts] = useState<IProduct[]>([]);
 
   const searchProducts = useCallback(async (params: SearchProductsParams) => {
     try {
@@ -50,19 +46,23 @@ export default function MarketplacePage() {
   }, [updateTotal]);  // Only depend on updateTotal
 
   useEffect(() => {
-    // Set page size only once when component mounts
-    updatePageSize(DEFAULT_PAGE_SIZE);
-    updateTotal(total);
+    const loadInitialData = async () => {
+      try {
+        const res = await api.post('/marketplace/product/search-products', {
+          page: 1,
+          pageSize: DEFAULT_PAGE_SIZE,
+        });
+        setProducts(res.data.products);
+        updateTotal(res.data.total);
+      } catch (err) {
+        const errorInfo = handleError(err);
+        toast.error(errorInfo.message);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    // Initial search
-    const p: SearchProductsParams = {
-      page: 1,
-      pageSize: DEFAULT_PAGE_SIZE,
-    }
-    if (initialCategory) {
-      p.category = initialCategory;
-      handleCategorySelect(initialCategory as Category);
-    }
+    loadInitialData();
   }, []);
 
   const handleCategorySelect = async (value: Category) => {
