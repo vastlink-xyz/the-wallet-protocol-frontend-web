@@ -11,7 +11,7 @@ export const LoginButton = () => {
       },
       authorizationParams: {
         // screen_hint: "signup",
-        connection: 'email',
+        // connection: 'email',
       },
     });
   };

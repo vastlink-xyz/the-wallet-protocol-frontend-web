@@ -23,10 +23,10 @@ export const Auth0NavigateProvider = ({ children }: { children: React.ReactNode 
       domain={domain}
       clientId={clientId}
       authorizationParams={{
-        audience: audience,
+        // audience: audience,
         redirect_uri: redirectUri,
-        scope: "openid profile email",
-        connection: 'email',
+        // scope: "openid profile email",
+        // connection: 'email',
       }}
       // onRedirectCallback={onRedirectCallback}
     >
