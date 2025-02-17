@@ -12,6 +12,7 @@ export const Auth0NavigateProvider = ({ children }: { children: React.ReactNode 
 
   const onRedirectCallback = (appState: any) => {
     navigate(appState?.returnTo || window.location.pathname);
+    console.log('appState', appState, window.location.pathname)
   };
 
   if (!(domain && clientId && redirectUri)) {
@@ -28,7 +29,8 @@ export const Auth0NavigateProvider = ({ children }: { children: React.ReactNode 
         scope: "openid profile email",
         // connection: 'email',
       }}
-      // onRedirectCallback={onRedirectCallback}
+      onRedirectCallback={onRedirectCallback}
+      useRefreshTokens={true}
     >
       {children}
     </Auth0Provider>
