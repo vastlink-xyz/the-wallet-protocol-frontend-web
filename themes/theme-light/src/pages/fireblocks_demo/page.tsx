@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { useUserInfo } from '@/hooks/user/useUserInfo';
 import { OneHourMs } from '@/lib/utils';
 import keyManagementService from '@/services/KeyManagementService';
-import { loadDeviceId } from '@/services/KeyManagementService/FireblocksKeyManagementService/deviceId';
+import { loadDeviceId, storeDeviceId } from '@/services/KeyManagementService/FireblocksKeyManagementService/deviceId';
 import { INewTransactionData, TPassphrases, TRequestDecodedData } from '@/services/KeyManagementService/FireblocksKeyManagementService/types';
 import { SigningInProgressError } from '@fireblocks/ncw-js-sdk';
 import { useState } from 'react';
@@ -189,6 +189,27 @@ export default function FireblocksDemoPage() {
     }
   }
 
+  const handleCreateTypedMessageTransaction = async () => {
+    setLoading(true)
+    if (!userInfoFetched || !userInfo) {
+      return
+    }
+    const deviceId = loadDeviceId(userInfo.sub)
+    console.log('deviceId', deviceId)
+    if (!deviceId) {
+      return
+    }
+    let dataToSend: INewTransactionData = {
+      note: `API Transaction by ${deviceId}`,
+      accountId: "0",
+      assetId: 'BTC_TEST',
+    };
+    const data = await apiService.createTransaction(deviceId, dataToSend)
+    console.log('transaction', data)
+    setTxId(data.id)
+    setLoading(false)
+  }
+
   const handleGetTransaction = async () => {
     setLoading(true)
     if (!userInfoFetched || !userInfo) {
@@ -311,13 +332,14 @@ export default function FireblocksDemoPage() {
       alert('No device id found')
       return
     }
-    // await keyManagementService.config.fireblocksNCWInstance?.recoverKeys(recoverPassphraseId)
-    const newNCWInstance = await initFireblocksNCW(deviceId)
-    if (!newNCWInstance) {
-      alert('Failed to initialize new NCW instance')
+
+    if (!userInfoFetched || !userInfo) {
       return
     }
-    await newNCWInstance.recoverKeys(recoverPassphraseId)
+    storeDeviceId(deviceId, userInfo.sub)
+
+    await keyManagementService.initFireblocksNCWInstance(deviceId)
+    await keyManagementService.config.fireblocksNCWInstance?.recoverKeys(recoverPassphraseId)
     console.log('keys recovered')
     const status = await keyManagementService.config.fireblocksNCWInstance?.getKeysStatus()
     console.log('keys status', status)
@@ -364,8 +386,10 @@ export default function FireblocksDemoPage() {
     <div className='flex'>
       <Input placeholder='btc amount' value={amount} onChange={(e) => setAmount(e.target.value)} />
       <Input placeholder='destination address' value={destinationAddress} onChange={(e) => setDestinationAddress(e.target.value)} />
+      <Input placeholder='transaction id' value={txId} onChange={(e) => setTxId(e.target.value)} />
     </div>
-    <Button disabled={loading} onClick={handleCreateTransaction}>Create transaction</Button>
+    <Button disabled={loading} onClick={handleCreateTransaction}>Create a transfer transaction</Button>
+    <Button disabled={loading} onClick={handleCreateTypedMessageTransaction}>Create a typed message transaction</Button>
     {txId && <Button disabled={loading} onClick={handleGetTransaction}>Get transaction</Button>}
 
     <hr />

@@ -51,6 +51,8 @@ abstract class KeyManagementService {
   abstract waitForTransactionReceipt(hash: `0x${string}`, token: TokenType): Promise<TransactionReceipt>;
 
   abstract generateMPCKeys(): Promise<void>;
+
+  abstract initFireblocksNCWInstance(deviceId: string): Promise<void>;
 }
 
 export {
