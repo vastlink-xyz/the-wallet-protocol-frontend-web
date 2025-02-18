@@ -209,18 +209,18 @@ export class ApiService {
 
   public async getTransactionById(deviceId: string, txId: string): Promise<ITransactionData> {
     const response = await this._getCall(
-      `api/devices/${deviceId}/transactions/${txId}`,
+      `fireblocks/devices/${deviceId}/transactions/${txId}`,
     );
     return await response.data;
   }
 
   public async getWallets(): Promise<{ wallets: Array<{ walletId: string }> }> {
-    const response = await this._getCall(`api/wallets`);
+    const response = await this._getCall(`fireblocks/wallets`);
     return await response.data
   }
 
   public async getLatestBackup(walletId: string): Promise<IBackupInfo | null> {
-    const response = await this._getCall(`api/wallets/${walletId}/backup/latest`);
+    const response = await this._getCall(`fireblocks/wallets/${walletId}/backup/latest`);
     if (response.status >= 200 && response.status < 300) {
       return await response.data;
     } else if (response.status === 404) {
@@ -231,33 +231,33 @@ export class ApiService {
   }
 
   public async getPassphraseInfo(passphraseId: string): Promise<{ location: TPassphraseLocation }> {
-    const response = await this._getCall(`api/passphrase/${passphraseId}`);
+    const response = await this._getCall(`fireblocks/passphrase/${passphraseId}`);
     return await response.json();
   }
 
   public async createPassphraseInfo(passphraseId: string, location: TPassphraseLocation) {
-    const response = await this._postCall(`api/passphrase/${passphraseId}`, { location });
+    const response = await this._postCall(`fireblocks/passphrase/${passphraseId}`, { location });
     return response;
   }
 
   public async getPassphraseInfos(): Promise<{ passphrases: IPassphraseInfo[] }> {
-    const response = await this._getCall(`api/passphrase/`);
+    const response = await this._getCall(`fireblocks/passphrase/`);
     return await response.data;
   }
 
   public async assignDevice(deviceId: string): Promise<string> {
-    const response = await this._postCall(`api/devices/${deviceId}/assign`);
+    const response = await this._postCall(`fireblocks/devices/${deviceId}/assign`);
     return response.walletId;
   }
 
   public async askToJoinWalletExisting(deviceId: string, walletId: string): Promise<string> {
-    const response = await this._postCall(`api/devices/${deviceId}/join`, { walletId });
+    const response = await this._postCall(`fireblocks/devices/${deviceId}/join`, { walletId });
     return response.walletId;
   }
 
   public async sendMessage(deviceId: string, message: string): Promise<any> {
     if (this.socket.connected) {
-      const response: RpcResponse = await this.socket.emitWithAck("rpc", deviceId, message);
+      const response: RpcResponse = await this.socket.emitWithAck("fireblocks:rpc", deviceId, message);
       if (!("response" in response)) {
         console.error("Failed to invoke RPC", response?.error);
         throw new Error("Failed to invoke RPC");
@@ -266,76 +266,76 @@ export class ApiService {
       return response.response;
     }
     
-    return this._postCall(`api/devices/${deviceId}/rpc`, { message });
+    return this._postCall(`fireblocks/devices/${deviceId}/rpc`, { message });
   }
 
   public async getWeb3Connections(deviceId: string): Promise<IWeb3Session[]> {
-    const response = await this._getCall(`api/devices/${deviceId}/web3/connections`);
+    const response = await this._getCall(`fireblocks/devices/${deviceId}/web3/connections`);
     return await response.json();
   }
 
   public async createWeb3Connection(deviceId: string, uri: string): Promise<ICreateWeb3ConnectionResponse> {
-    const response = await this._postCall(`api/devices/${deviceId}/web3/connections`, { uri });
+    const response = await this._postCall(`fireblocks/devices/${deviceId}/web3/connections`, { uri });
     return response;
   }
 
   public async approveWeb3Connection(deviceId: string, sessionId: string): Promise<void> {
-    const response = await this._postCall(`api/devices/${deviceId}/web3/connections/${sessionId}/approve`);
+    const response = await this._postCall(`fireblocks/devices/${deviceId}/web3/connections/${sessionId}/approve`);
     return response;
   }
 
   public async denyWeb3Connection(deviceId: string, sessionId: string): Promise<void> {
-    const response = await this._postCall(`api/devices/${deviceId}/web3/connections/${sessionId}/deny`);
+    const response = await this._postCall(`fireblocks/devices/${deviceId}/web3/connections/${sessionId}/deny`);
     return response;
   }
 
   public async removeWeb3Connection(deviceId: string, sessionId: string) {
-    const response = await this._deleteCall(`api/devices/${deviceId}/web3/connections/${sessionId}`);
+    const response = await this._deleteCall(`fireblocks/devices/${deviceId}/web3/connections/${sessionId}`);
     return response;
   }
 
   public async createTransaction(deviceId: string, dataToSend?: INewTransactionData): Promise<ITransactionData> {
-    const createTxResponse = await this._postCall(`api/devices/${deviceId}/transactions`, dataToSend);
+    const createTxResponse = await this._postCall(`fireblocks/devices/${deviceId}/transactions`, dataToSend);
     return createTxResponse.data;
   }
 
   public async cancelTransaction(deviceId: string, txId: string): Promise<void> {
-    const response = await this._postCall(`api/devices/${deviceId}/transactions/${txId}/cancel`);
+    const response = await this._postCall(`fireblocks/devices/${deviceId}/transactions/${txId}/cancel`);
     return response;
   }
 
   public async addAsset(deviceId: string, accountId: number, assetId: string): Promise<IAssetAddress> {
-    const response = await this._postCall(`api/devices/${deviceId}/accounts/${accountId}/assets/${assetId}`);
+    const response = await this._postCall(`fireblocks/devices/${deviceId}/accounts/${accountId}/assets/${assetId}`);
     return await response.data;
   }
 
   public async getAsset(deviceId: string, accountId: number, assetId: string): Promise<IWalletAsset> {
-    const response = await this._getCall(`api/devices/${deviceId}/accounts/${accountId}/assets/${assetId}`);
+    const response = await this._getCall(`fireblocks/devices/${deviceId}/accounts/${accountId}/assets/${assetId}`);
     return await response.data;
   }
 
   public async getAccounts(deviceId: string): Promise<{ walletId: string; accountId: number }[]> {
-    const response = await this._getCall(`api/devices/${deviceId}/accounts/`);
+    const response = await this._getCall(`fireblocks/devices/${deviceId}/accounts/`);
     return await response.json();
   }
 
   public async getAssets(deviceId: string, accountId: number): Promise<IWalletAsset[]> {
-    const response = await this._getCall(`api/devices/${deviceId}/accounts/${accountId}/assets`);
+    const response = await this._getCall(`fireblocks/devices/${deviceId}/accounts/${accountId}/assets`);
     return await response.data;
   }
 
   public async getSupportedAssets(deviceId: string, accountId: number): Promise<IWalletAsset[]> {
-    const response = await this._getCall(`api/devices/${deviceId}/accounts/${accountId}/assets/supported_assets`);
+    const response = await this._getCall(`fireblocks/devices/${deviceId}/accounts/${accountId}/assets/supported_assets`);
     return await response.data
   }
 
   public async getAddress(deviceId: string, accountId: number, assetId: string): Promise<IAssetAddress> {
-    const response = await this._getCall(`api/devices/${deviceId}/accounts/${accountId}/assets/${assetId}/address`);
+    const response = await this._getCall(`fireblocks/devices/${deviceId}/accounts/${accountId}/assets/${assetId}/address`);
     return await response.data
   }
 
   public async getBalance(deviceId: string, accountId: number, assetId: string): Promise<IAssetBalance> {
-    const response = await this._getCall(`api/devices/${deviceId}/accounts/${accountId}/assets/${assetId}/balance`);
+    const response = await this._getCall(`fireblocks/devices/${deviceId}/accounts/${accountId}/assets/${assetId}/balance`);
     return await response.data;
   }
 
@@ -384,7 +384,7 @@ export class ApiService {
     while (!this._disposed) {
       try {
         const response = await this._getCall(
-          `api/devices/${deviceId}/transactions?poll=true&startDate=${startDate}&details=true`,
+          `fireblocks/devices/${deviceId}/transactions?poll=true&startDate=${startDate}&details=true`,
         );
         if (!response.ok) {
           await sleep(5_000);
