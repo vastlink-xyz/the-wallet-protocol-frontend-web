@@ -7,13 +7,14 @@ import { INewTransactionData, TPassphrases, TRequestDecodedData } from '@/servic
 import { SigningInProgressError } from '@fireblocks/ncw-js-sdk';
 import { useState } from 'react';
 import { decode, encode } from "js-base64";
-import { apiService } from '@/services/KeyManagementService/FireblocksKeyManagementService/fireblocksInstance';
+import { apiService, initFireblocksNCW } from '@/services/KeyManagementService/FireblocksKeyManagementService/fireblocksInstance';
 import { Input } from '@/components/ui/input';
 import api from '@/lib/api';
 import { TokenType } from '@/types/tokens';
 import { TransactionType } from '@/types/transaction';
 import { authManager } from './auth/FirebaseAuthManager';
 import { gdriveRecover } from './auth/GoogleDrive';
+import { passphrasePersist, recoverPassphraseId } from './backupAndRecover';
 
 export default function FireblocksDemoPage() {
   const { data: userInfo, isFetched: userInfoFetched } = useUserInfo()
@@ -47,8 +48,8 @@ export default function FireblocksDemoPage() {
 
   const handleGetWallets = async () => {
     setLoading(true)
-    const wallets = await apiService.getWallets()
-    console.log('wallets', wallets)
+    const data = await apiService.getWallets()
+    console.log('wallets', data)
     setLoading(false)
   }
 
@@ -56,10 +57,6 @@ export default function FireblocksDemoPage() {
     setLoading(true)
     await keyManagementService.generateMPCKeys()
     setLoading(false)
-  }
-
-  const handleGoogleDriveBackup = async () => {
-    
   }
 
   const handleAssetManagement = async () => {
@@ -283,31 +280,64 @@ export default function FireblocksDemoPage() {
 
   const handleGetPassphrases = async () => {
     setLoading(true)
-    const { passphrases } = await apiService.getPassphraseInfos()
-    const reduced = passphrases.reduce<TPassphrases>((p, v) => {
-      p[v.passphraseId] = v;
-      return p;
-    }, {});
-    console.log('passphrases', reduced)
-    // try to reuse previous
-    for (const info of Object.values(passphrases)) {
-      if (info.location === 'GoogleDrive') {
-        // recover from google drive
-        const token = await authManager.getGoogleDriveCredentials();
-        const passphrase = gdriveRecover(token, info.passphraseId);
-        return { passphraseId: info.passphraseId, passphrase };
-      }
-    }
-
+    
     setLoading(false)
   }
-
+  
   const handleBackupWithGoogleDrive = async () => {
     setLoading(true)
-    // await keyManagementService.config.fireblocksNCWInstance?.backupWallet()
+    if (!authManager.loggedUser) {
+      alert('Please sign in first')
+    }
+    const { passphrase, passphraseId } = await passphrasePersist('GoogleDrive');
+    console.log('fireblocks ncw backupKeys called with', passphrase, passphraseId)
+    await keyManagementService.config.fireblocksNCWInstance?.backupKeys(passphrase, passphraseId);
+    console.log('backed up with google drive successfully')
     setLoading(false)
   }
 
+  const handleLoginWithGoogle = async () => {
+    setLoading(true)
+    await authManager.login('GOOGLE')
+    setLoading(false)
+  }
+
+  const handleRecoverWithGoogleDrive = async () => {
+    setLoading(true)
+    console.log('recovering keys')
+    const backupData = await handleGetLatestBackup()
+    const deviceId = backupData?.deviceId
+    if (!deviceId) {
+      alert('No device id found')
+      return
+    }
+    // await keyManagementService.config.fireblocksNCWInstance?.recoverKeys(recoverPassphraseId)
+    const newNCWInstance = await initFireblocksNCW(deviceId)
+    if (!newNCWInstance) {
+      alert('Failed to initialize new NCW instance')
+      return
+    }
+    await newNCWInstance.recoverKeys(recoverPassphraseId)
+    console.log('keys recovered')
+    const status = await keyManagementService.config.fireblocksNCWInstance?.getKeysStatus()
+    console.log('keys status', status)
+    setLoading(false)
+  }
+
+  const handleGetLatestBackup = async () => {
+    try {
+      setLoading(true)
+      const data = await apiService.getWallets()
+      console.log('wallets', data)
+      const backup = await apiService.getLatestBackup(data.wallets[0].walletId)
+      console.log('latest backup', backup)
+      return backup
+    } catch(err) {
+      console.log('error', err)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return <div>
     <Button disabled={loading} onClick={handleVerifyRegisterByUserSub}>Sign up by user id and init fireblocks</Button>
@@ -348,7 +378,10 @@ export default function FireblocksDemoPage() {
     <br />
     <Button disabled={loading} onClick={handleGetPassphrases}>Get Passphrases</Button>
     <br />
+    <Button disabled={loading} onClick={handleGetLatestBackup}>Get latest backup</Button>
+    <Button disabled={loading} onClick={handleLoginWithGoogle}>Login with Google</Button>
     <Button disabled={loading} onClick={handleBackupWithGoogleDrive}>Backup wallet with Google Drive</Button>
+    <Button disabled={loading} onClick={handleRecoverWithGoogleDrive}>Recover wallet with Google Drive</Button>
     <br />
   </div>;
 }

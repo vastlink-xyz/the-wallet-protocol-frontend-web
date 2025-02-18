@@ -222,7 +222,7 @@ export class ApiService {
   public async getLatestBackup(walletId: string): Promise<IBackupInfo | null> {
     const response = await this._getCall(`api/wallets/${walletId}/backup/latest`);
     if (response.status >= 200 && response.status < 300) {
-      return await response.json();
+      return await response.data;
     } else if (response.status === 404) {
       return null;
     } else {
