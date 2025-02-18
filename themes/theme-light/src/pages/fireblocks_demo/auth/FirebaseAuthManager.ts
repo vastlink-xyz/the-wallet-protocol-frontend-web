@@ -81,3 +81,5 @@ export class FirebaseAuthManager implements IAuthManager {
     return this._auth.onAuthStateChanged(callback);
   }
 }
+
+export const authManager: IAuthManager = new FirebaseAuthManager();

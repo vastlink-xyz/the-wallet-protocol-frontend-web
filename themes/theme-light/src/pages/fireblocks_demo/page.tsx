@@ -12,6 +12,8 @@ import { Input } from '@/components/ui/input';
 import api from '@/lib/api';
 import { TokenType } from '@/types/tokens';
 import { TransactionType } from '@/types/transaction';
+import { authManager } from './auth/FirebaseAuthManager';
+import { gdriveRecover } from './auth/GoogleDrive';
 
 export default function FireblocksDemoPage() {
   const { data: userInfo, isFetched: userInfoFetched } = useUserInfo()
@@ -288,26 +290,14 @@ export default function FireblocksDemoPage() {
     }, {});
     console.log('passphrases', reduced)
     // try to reuse previous
-    // for (const info of Object.values(passphrases)) {
-    //   if (info.location === location) {
-    //     switch (location) {
-    //       case "GoogleDrive": {
-    //         const passphrase = await recoverGoogleDrive(info.passphraseId);
-    //         return { passphraseId: info.passphraseId, passphrase };
-    //       }
-    //       case "iCloud": {
-    //         if (!cloudkit || !appleSignedIn) {
-    //           throw new Error("Sign in with Apple ID required");
-    //         }
-
-    //         const passphrase = await cloudkitRecover(cloudkit, info.passphraseId);
-    //         return { passphraseId: info.passphraseId, passphrase };
-    //       }
-    //       default:
-    //         throw new Error(`Unsupported backup location ${location}`);
-    //     }
-    //   }
-    // }
+    for (const info of Object.values(passphrases)) {
+      if (info.location === 'GoogleDrive') {
+        // recover from google drive
+        const token = await authManager.getGoogleDriveCredentials();
+        const passphrase = gdriveRecover(token, info.passphraseId);
+        return { passphraseId: info.passphraseId, passphrase };
+      }
+    }
 
     setLoading(false)
   }
