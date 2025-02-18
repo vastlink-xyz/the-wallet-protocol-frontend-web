@@ -48,3 +48,7 @@ export default tseslint.config({
   },
 })
 ```
+
+## Auth0 login page template
+
+If you want to config auth0 login page, you can go to Auth0 dashboard `Branding -> Universal Login -> Advanced Options -> Login`, enable `Customize Login Page` option, and replace the html file with `auth0-login-form.html` in root dir.
