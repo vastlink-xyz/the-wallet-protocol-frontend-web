@@ -34,13 +34,15 @@
       width: 360px;
       position: absolute;
       top: 50%;
+      left: 0;
+      right: 0;
       transform: translateY(-50%);
       padding: 15px;
       background-color: #000;
       border-radius: 5px;
       border: 1px solid #333;
       color: #fff;
-
+      margin: auto;
       /* screen selector  */
       @media (max-width: 768px) {
         width: 100%;
@@ -125,6 +127,10 @@
         color: #6c6c6c !important;
         background: #4f4f4f !important;
       }
+    }
+
+    .btn-loading {
+      opacity: 0.5;
     }
 
     .link {
@@ -233,7 +239,7 @@
       left: 40px;
       margin: auto;
       max-width: 300px;
-      width:auto;
+      width: auto;
       z-index: 1000;
     }
 
@@ -268,7 +274,7 @@
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <div class="login-container">
-      <div class="col-xs-12 col-sm-4 col-sm-offset-4 login-box">
+      <div class="login-box">
         <div class="login-header">
           <img
             src="https://imagedelivery.net/aoSLzf_oBNenfcsZSZuMrQ/3a00bdc5-ab56-4ef2-9ade-f7c261da1700/public"
@@ -524,6 +530,8 @@
 
         function sendEmailCode(e) {
           e.preventDefault();
+          // $("#exampleModal").modal("show");
+          // return;
 
           const emailInput = document.getElementById("email").value;
           if (!isValidEmail(emailInput)) {
@@ -531,6 +539,8 @@
           }
 
           var email = document.getElementById("email").value;
+          var button = this;
+          button.classList.add("btn-loading");
           webAuth.passwordlessStart(
             {
               connection: "email",
@@ -538,6 +548,7 @@
               email: email,
             },
             function (err, res) {
+              button.classList.remove("btn-loading");
               // handle errors or continue
               console.log(err, res);
               if (!err) {
@@ -678,12 +689,8 @@
         // When user inputs all 6 digits, enable the verify button
         const otpForm = document.getElementById("otp-form");
         const btnVerifyCode = document.getElementById("btn-verify-code");
-        btnVerifyCode.addEventListener("click", (e) => {
-          e.preventDefault();
-          if (!isAllInputFilled()) {
-            return;
-          }
 
+        const startVerifyCode = () => {
           // Get the OTP input values
           const otpInput = otpForm.querySelectorAll("input[type=text]");
           const otpInputValues = Array.from(otpInput)
@@ -691,12 +698,13 @@
             .filter((value) => value !== "");
           const otp = otpInputValues.join("");
 
-          var button = this;
+          var verifyBtn = document.getElementById("btn-verify-code");
           var email = document.getElementById("email").value;
-          button.disabled = true;
+          verifyBtn.disabled = true;
 
           // Verify the OTP
           var request = () => {
+            verifyBtn.classList.add("btn-loading");
             webAuth.passwordlessLogin(
               {
                 connection: "email",
@@ -705,7 +713,8 @@
               },
               function (err, res) {
                 if (err) displayError(err);
-                button.disabled = false;
+                verifyBtn.disabled = false;
+                verifyBtn.classList.remove("btn-loading");
               }
             );
           };
@@ -715,6 +724,15 @@
           } else {
             request();
           }
+        };
+
+        btnVerifyCode.addEventListener("click", (e) => {
+          e.preventDefault();
+          if (!isAllInputFilled()) {
+            return;
+          }
+
+          startVerifyCode();
         });
 
         const form = document.getElementById("otp-form");
@@ -752,6 +770,7 @@
         const toggleVerifyCodeBtn = () => {
           if (isAllInputFilled()) {
             btnVerifyCode.classList.remove("btn-disabled");
+            startVerifyCode();
           } else {
             btnVerifyCode.classList.add("btn-disabled");
           }
