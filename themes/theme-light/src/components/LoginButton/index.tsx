@@ -12,6 +12,8 @@ export const LoginButton = () => {
       authorizationParams: {
         // screen_hint: "signup",
         // connection: 'email',
+        audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+        scope: "openid profile email", // Add offline_access scope
       },
     });
   };
@@ -37,7 +39,7 @@ export const LoginButton = () => {
       <div
         className={cn(
           "w-[254px] h-10 px-4 py-3 bg-white rounded-[60px] justify-center items-center gap-2 mx-auto",
-          'mb-4',
+          "mb-4",
           "inline-flex laptop:hidden",
           "mt-[40px] tablet:mt-[56px]",
           "w-[254px] tablet:w-[232px]"
