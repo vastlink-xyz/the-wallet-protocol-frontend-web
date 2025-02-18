@@ -4,11 +4,12 @@ import { marketplaceLoader } from '@/pages/marketplace/route';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { RootLayout } from '@/pages/root-layout';
 import { Auth0NavigateProvider } from '@/providers/Auth0Provider';
+import { Auth0AuthenticationGuard } from '@/providers/Auth0AuthenticationGuard';
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Auth0NavigateProvider><RootLayout /></Auth0NavigateProvider>,
+    element: <Auth0NavigateProvider><Auth0AuthenticationGuard><RootLayout /></Auth0AuthenticationGuard></Auth0NavigateProvider>,
     errorElement: <ErrorPage />,
     children: [
       {
