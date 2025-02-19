@@ -143,4 +143,9 @@ export class Web3authWithMPCKeyManagement extends KeyManagementService {
   async generateMPCKeys(): Promise<void> {
     throw new Error("Method not implemented.");
   }
+
+  async initFireblocksNCWInstance(): Promise<void> {
+    // Since this is Web3Auth implementation, we don't need Fireblocks
+    return Promise.resolve();
+  }
 }

@@ -4,6 +4,7 @@ export interface IBackupInfo {
   passphraseId: string;
   location: TPassphraseLocation;
   createdAt: number;
+  deviceId: string;
 }
 
 export interface IPassphraseInfo {

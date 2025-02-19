@@ -26,11 +26,15 @@ export class FirebaseAuthManager implements IAuthManager {
   }
 
   public async getGoogleDriveCredentials() {
+    console.log('getting google drive credentials')
     const provider = getUserGoogleDriveProvider(this._auth.currentUser!.email!);
+    console.log('signing in with popup')
     const result = await signInWithPopup(this._auth, provider);
+    console.log('sign in with popup result', result)
     // TODO: persist credential from original firebase login
     const credential = GoogleAuthProvider.credentialFromResult(result);
     const token = credential?.accessToken;
+    console.log('token from credential', token)
     if (!token) {
       throw new Error("Failed to retrieve token");
     }
