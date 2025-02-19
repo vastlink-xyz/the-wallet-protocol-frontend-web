@@ -301,7 +301,8 @@ export default function FireblocksDemoPage() {
 
   const handleGetPassphrases = async () => {
     setLoading(true)
-    
+    const data = await apiService.getPassphraseInfos()
+    console.log('passphrases', data)
     setLoading(false)
   }
   
