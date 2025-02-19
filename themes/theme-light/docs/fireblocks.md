@@ -86,3 +86,7 @@ On the old device, decode the base64-encoded data and call fireblocksNCWInstance
 
 ### 3.6 TODO: Key Storage
 When performing MPC computation-related operations (such as signing, generating MPC keys, backing up/recovering wallets), the Fireblocks SDK triggers a browser popup requiring users to enter a password to unlock the keys. Keys are automatically locked after each operation. We will implement biometric authentication or Passkey methods to replace password input in future updates.
+
+## 4. Reference
+- [Fireblocks Documentation](https://ncw-developers.fireblocks.com/docs/getting-started)
+- For implementation details, you can refer to `/themes/theme-light/pages/fireblocks_demo` in the current project
