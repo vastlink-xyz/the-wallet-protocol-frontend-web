@@ -15,6 +15,8 @@ import { TransactionType } from '@/types/transaction';
 import { authManager } from './auth/FirebaseAuthManager';
 import { gdriveRecover } from './auth/GoogleDrive';
 import { passphrasePersist, recoverGoogleDrive, recoverPassphraseId } from './backupAndRecover';
+import { signTypedMessage } from './helper';
+import { passwordManager } from './passwordManager';
 
 export default function FireblocksDemoPage() {
   const { data: userInfo, isFetched: userInfoFetched } = useUserInfo()
@@ -26,7 +28,7 @@ export default function FireblocksDemoPage() {
   const [amount, setAmount] = useState<string>('')
   const [destinationAddress, setDestinationAddress] = useState<string>('')
 
-  const [password, setPassword] = useState<string>('')
+  // const [password, setPassword] = useState<string>('')
 
   // After successful OTP registration/login and JWT generation,
   // this function assigns deviceId to user's wallet and initializes Fireblocks
@@ -313,11 +315,31 @@ export default function FireblocksDemoPage() {
     if (!authManager.loggedUser) {
       alert('Please sign in first')
     }
+    // if (!password) {
+      //   alert('Please enter a password')
+      //   setLoading(false)
+      //   return
+      // }
+      if (!userInfoFetched || !userInfo) {
+        return
+      }
+      const deviceId = loadDeviceId(userInfo.sub)
+      if (!deviceId) {
+        return
+      }
+
+    await keyManagementService.initFireblocksNCWInstanceWithPasswordManager(deviceId)
+    console.log('initFireblocksNCWInstanceWithPasswordManager called')
+    await signTypedMessage({
+      userInfoFetched: userInfoFetched,
+      userInfo: userInfo,
+    })
+    const password = passwordManager.getPassword()
     if (!password) {
-      alert('Please enter a password')
-      setLoading(false)
+      alert('No password found')
       return
     }
+
     const { passphrase, passphraseId } = await passphrasePersist('GoogleDrive', password);
     console.log('fireblocks ncw backupKeys called with', passphrase, passphraseId)
     await keyManagementService.config.fireblocksNCWInstance?.backupKeys(passphrase, passphraseId);
@@ -438,7 +460,7 @@ export default function FireblocksDemoPage() {
     <br />
     <Button disabled={loading} onClick={handleGetPassphrases}>Get Passphrases</Button>
     <br />
-    <Input placeholder='password' value={password} onChange={(e) => setPassword(e.target.value)} />
+    {/* <Input placeholder='password' value={password} onChange={(e) => setPassword(e.target.value)} /> */}
     <Button disabled={loading} onClick={handleGetLatestBackup}>Get latest backup</Button>
     <Button disabled={loading} onClick={handleLoginWithGoogle}>Login with Google</Button>
     <Button disabled={loading} onClick={handleBackupWithGoogleDrive}>Backup wallet with Google Drive</Button>

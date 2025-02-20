@@ -12,7 +12,7 @@ export type GetUserPasswordCallback = () => Promise<string>;
 
 /// This secure storage implementations creates an encryption key on-demand based on a user password
 
-export class PasswordEncryptedLocalStorage extends BrowserLocalStorageProvider implements ISecureStorageProvider {
+export class NewPasswordEncryptedLocalStorage extends BrowserLocalStorageProvider implements ISecureStorageProvider {
   private encKey: string | null = null;
 
   constructor(

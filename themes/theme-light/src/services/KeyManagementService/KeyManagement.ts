@@ -53,6 +53,8 @@ abstract class KeyManagementService {
   abstract generateMPCKeys(): Promise<void>;
 
   abstract initFireblocksNCWInstance(deviceId: string): Promise<void>;
+
+  abstract initFireblocksNCWInstanceWithPasswordManager(deviceId: string): Promise<void>;
 }
 
 export {

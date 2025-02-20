@@ -19,7 +19,6 @@ api.interceptors.request.use(
   async (config) => {
     try {
       const token = await auth0TokenManager.getToken();
-      console.log("token is", token);
       config.headers.Authorization = `Bearer ${token}`;
     } catch (error) {
       console.error('Error getting access token:', error);

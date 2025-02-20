@@ -8,7 +8,7 @@ import api from '@/lib/api';
 import { TransactionType } from '@/types/transaction';
 import { theTokenListingService } from '@/services/TokenListingService';
 import { getOrCreateDeviceId } from './deviceId';
-import { initFireblocksNCW } from './fireblocksInstance';
+import { initFireblocksNCW, initFireblocksNCWInstanceWithPasswordManager } from './fireblocksInstance';
 import { IFireblocksNCW, IKeyDescriptor, TMPCAlgorithm } from '@fireblocks/ncw-js-sdk';
 
 export class FireblocksKeyManagement extends KeyManagementService {
@@ -25,6 +25,12 @@ export class FireblocksKeyManagement extends KeyManagementService {
 
   async initFireblocksNCWInstance(deviceId: string) {
     const fireblocksNCW = await initFireblocksNCW(deviceId)
+    this.fireblocksNCWInstance = fireblocksNCW
+    this.config.fireblocksNCWInstance = fireblocksNCW
+  }
+
+  async initFireblocksNCWInstanceWithPasswordManager(deviceId: string) {
+    const fireblocksNCW = await initFireblocksNCWInstanceWithPasswordManager(deviceId)
     this.fireblocksNCWInstance = fireblocksNCW
     this.config.fireblocksNCWInstance = fireblocksNCW
   }
