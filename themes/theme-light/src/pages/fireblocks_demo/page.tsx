@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { useUserInfo } from '@/hooks/user/useUserInfo';
-import { OneHourMs } from '@/lib/utils';
+import { encryptWithPublicKey, hashEncryptedData, OneHourMs } from '@/lib/utils';
 import keyManagementService from '@/services/KeyManagementService';
 import { loadDeviceId, storeDeviceId } from '@/services/KeyManagementService/FireblocksKeyManagementService/deviceId';
 import { INewTransactionData, TPassphrases, TRequestDecodedData } from '@/services/KeyManagementService/FireblocksKeyManagementService/types';
@@ -14,7 +14,7 @@ import { TokenType } from '@/types/tokens';
 import { TransactionType } from '@/types/transaction';
 import { authManager } from './auth/FirebaseAuthManager';
 import { gdriveRecover } from './auth/GoogleDrive';
-import { passphrasePersist, recoverPassphraseId } from './backupAndRecover';
+import { passphrasePersist, recoverGoogleDrive, recoverPassphraseId } from './backupAndRecover';
 
 export default function FireblocksDemoPage() {
   const { data: userInfo, isFetched: userInfoFetched } = useUserInfo()
@@ -25,6 +25,8 @@ export default function FireblocksDemoPage() {
 
   const [amount, setAmount] = useState<string>('')
   const [destinationAddress, setDestinationAddress] = useState<string>('')
+
+  const [password, setPassword] = useState<string>('')
 
   // After successful OTP registration/login and JWT generation,
   // this function assigns deviceId to user's wallet and initializes Fireblocks
@@ -311,7 +313,12 @@ export default function FireblocksDemoPage() {
     if (!authManager.loggedUser) {
       alert('Please sign in first')
     }
-    const { passphrase, passphraseId } = await passphrasePersist('GoogleDrive');
+    if (!password) {
+      alert('Please enter a password')
+      setLoading(false)
+      return
+    }
+    const { passphrase, passphraseId } = await passphrasePersist('GoogleDrive', password);
     console.log('fireblocks ncw backupKeys called with', passphrase, passphraseId)
     await keyManagementService.config.fireblocksNCWInstance?.backupKeys(passphrase, passphraseId);
     console.log('backed up with google drive successfully')
@@ -362,6 +369,34 @@ export default function FireblocksDemoPage() {
     }
   }
 
+  const handleTest = async () => {
+    const publicKey = import.meta.env.VITE_PUBLIC_KEY_FOR_FIREBLOCKS_MPC;
+    const encryptedKey = await encryptWithPublicKey(publicKey, '1234');
+    console.log('encryptedKey', encryptedKey)
+
+    const res = await api.post('/decrypt', {
+      encrypted: encryptedKey
+    })
+    console.log('res', res)
+  }
+
+  const handleRecoverPasswordWithGoogleDrive = async () => {
+    setLoading(true)
+    const backupData = await handleGetLatestBackup()
+    const deviceId = backupData?.deviceId
+    if (!deviceId) {
+      alert('No device id found')
+      return
+    }
+    const passphrase = await recoverGoogleDrive(backupData.passphraseId)
+    console.log('passphrase', passphrase)
+    const res = await api.post('/decrypt', {
+      encrypted: passphrase
+    })
+    console.log('res', res)
+    setLoading(false)
+  }
+
   return <div>
     <Button disabled={loading} onClick={handleVerifyRegisterByUserSub}>Sign up by user id and init fireblocks</Button>
     <Button disabled={loading} onClick={handleSignInByUserSub}>Sign in by user id and init fireblocks</Button>
@@ -403,10 +438,13 @@ export default function FireblocksDemoPage() {
     <br />
     <Button disabled={loading} onClick={handleGetPassphrases}>Get Passphrases</Button>
     <br />
+    <Input placeholder='password' value={password} onChange={(e) => setPassword(e.target.value)} />
     <Button disabled={loading} onClick={handleGetLatestBackup}>Get latest backup</Button>
     <Button disabled={loading} onClick={handleLoginWithGoogle}>Login with Google</Button>
     <Button disabled={loading} onClick={handleBackupWithGoogleDrive}>Backup wallet with Google Drive</Button>
     <Button disabled={loading} onClick={handleRecoverWithGoogleDrive}>Recover wallet with Google Drive</Button>
+    <Button disabled={loading} onClick={handleRecoverPasswordWithGoogleDrive}>Recover password with Google Drive</Button>
     <br />
+    <Button disabled={loading} onClick={handleTest}>Test</Button>
   </div>;
 }

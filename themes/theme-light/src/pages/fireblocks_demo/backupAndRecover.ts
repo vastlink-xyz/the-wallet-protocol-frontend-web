@@ -3,8 +3,9 @@ import { TPassphraseLocation } from "@/services/KeyManagementService/FireblocksK
 import { gdriveBackup, gdriveRecover } from "./auth/GoogleDrive";
 import { authManager } from "./auth/FirebaseAuthManager";
 import { randomPassPhrase } from "@/services/KeyManagementService/FireblocksKeyManagementService/randomPassPhrase";
+import { encryptWithPublicKey } from "@/lib/utils";
 
-const recoverGoogleDrive = async (passphraseId: string) => {
+export const recoverGoogleDrive = async (passphraseId: string) => {
   const token = await authManager.getGoogleDriveCredentials();
   return gdriveRecover(token, passphraseId);
 };
@@ -51,7 +52,8 @@ const backupGoogleDrive = async (passphrase: string, passphraseId: string) => {
 
 const passphrasePersist: (
   location: TPassphraseLocation,
-) => Promise<{ passphrase: string; passphraseId: string }> = async (location) => {
+  password: string
+) => Promise<{ passphrase: string; passphraseId: string }> = async (location, password) => {
   console.log('persisting passphrase', location)
   const { passphrases } = await apiService.getPassphraseInfos()
 
@@ -71,7 +73,10 @@ const passphrasePersist: (
   }
 
   // creating new
-  const passphrase = randomPassPhrase();
+  // const passphrase = randomPassPhrase();
+  const publicKey = import.meta.env.VITE_PUBLIC_KEY_FOR_FIREBLOCKS_MPC;
+  const passphrase = await encryptWithPublicKey(publicKey, password)
+  console.log('encrypted passphrase', passphrase)
   const passphraseId = crypto.randomUUID();
 
   switch (location) {
