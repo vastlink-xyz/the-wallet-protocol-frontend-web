@@ -33,6 +33,13 @@ const router = createBrowserRouter([
             },
           },
           {
+            path: "/mfa",
+            async lazy() {
+              const { default: MfaPage } = await import('@/pages/mfa/page');
+              return { Component: MfaPage };
+            },
+          },
+          {
             path: "/auth",
             async lazy() {
               const { default: AuthPage } = await import('@/pages/auth/page');

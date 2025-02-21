@@ -41,8 +41,13 @@ export function RootLayout() {
       
       try {
         // Get initial token to ensure auth is ready
-        await getAccessTokenSilently();
-        
+        await getAccessTokenSilently({
+          authorizationParams: {
+            audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+            scope: import.meta.env.VITE_AUTH0_SCOPE,
+          },
+        });
+
         // Initialize socket after we have the token
         await apiService.initSocket();
         

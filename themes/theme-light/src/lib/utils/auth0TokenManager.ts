@@ -1,4 +1,9 @@
-type TokenGetter = () => Promise<string>;
+type TokenGetter = (options?: {
+  authorizationParams?: {
+    audience?: string;
+    scope?: string;
+  };
+}) => Promise<string>;
 
 class Auth0TokenManager {
   private static instance: Auth0TokenManager;
@@ -21,7 +26,12 @@ class Auth0TokenManager {
     if (!this.tokenGetter) {
       throw new Error('Token getter not set. Please call setTokenGetter first.');
     }
-    return this.tokenGetter();
+    return this.tokenGetter({
+      authorizationParams: {
+        audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+        scope: import.meta.env.VITE_AUTH0_SCOPE,
+      },
+    });
   }
 }
 

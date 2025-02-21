@@ -1,19 +1,17 @@
 import { cn } from "@/lib/utils";
 import { useAuth0 } from "@auth0/auth0-react";
 
-export const LoginButton = () => {
+export const MfaLoginButton = () => {
   const { loginWithRedirect } = useAuth0();
 
   const handleLogin = async () => {
     await loginWithRedirect({
       appState: {
-        returnTo: "/fireblocks_demo",
+        returnTo: "/mfa",
       },
       authorizationParams: {
-        // screen_hint: "signup",
-        // connection: 'email',
-        audience: import.meta.env.VITE_AUTH0_AUDIENCE,
-        scope: import.meta.env.VITE_AUTH0_SCOPE, // Add offline_access scope
+        audience: import.meta.env.VITE_AUTH0_AUDIENCE_MFA,
+        scope: import.meta.env.VITE_AUTH0_SCOPE,
       },
     });
   };
@@ -23,22 +21,22 @@ export const LoginButton = () => {
       {/* Desktop */}
       <div
         className={cn(
-          "h-12 px-6 py-3.5 bg-white rounded-[60px] justify-center items-center gap-2 cursor-pointer",
+          "h-12 px-6 py-3.5 bg-black rounded-[60px] justify-center items-center gap-2 cursor-pointer",
           "hidden laptop:inline-flex"
         )}
       >
         <div
-          className="text-center text-black text-base font-medium leading-tight"
+          className="text-center text-white text-base font-medium leading-tight"
           onClick={handleLogin}
         >
-          Get started for free
+          Trigger Mfa Verify
         </div>
       </div>
 
       {/* Mobile */}
       <div
         className={cn(
-          "w-[254px] h-10 px-4 py-3 bg-white rounded-[60px] justify-center items-center gap-2 mx-auto",
+          "w-[254px] h-10 px-4 py-3 bg-black rounded-[60px] justify-center items-center gap-2 mx-auto",
           "mb-4",
           "inline-flex laptop:hidden",
           "mt-[40px] tablet:mt-[56px]",
@@ -46,10 +44,10 @@ export const LoginButton = () => {
         )}
       >
         <div
-          className="text-center text-black text-sm font-medium leading-none cursor-pointer"
+          className="text-center text-white text-sm font-medium leading-none cursor-pointer"
           onClick={handleLogin}
         >
-          Get started for free
+         Trigger Mfa Verify
         </div>
       </div>
     </>
