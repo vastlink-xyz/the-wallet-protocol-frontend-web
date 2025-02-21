@@ -530,6 +530,7 @@
 
         function sendEmailCode(e) {
           e.preventDefault();
+          // Test code
           // $("#exampleModal").modal("show");
           // return;
 
@@ -752,10 +753,26 @@
 
           if (e.key === "Delete" || e.key === "Backspace") {
             const index = inputs.indexOf(e.target);
+            console.log("index", index);
+            console.log("key", e.key);
             if (index > 0) {
-              inputs[index - 1].value = "";
-              inputs[index - 1].focus();
+              inputs[index].value = "";
+              setTimeout(() => {
+                inputs[index - 1].focus();
+              }, 100);
+            } else {
+              inputs[0].value = "";
+              inputs[0].focus();
             }
+            // if (index === inputs.length - 1) {
+            //   inputs[index].value = "";
+            //   setTimeout(() => {
+            //     inputs[index - 1].focus();
+            //   }, 500);
+            // } else if (index > 0) {
+            //   inputs[index - 1].value = "";
+            //   inputs[index - 1].focus();
+            // }
           }
         };
 
@@ -779,6 +796,7 @@
         const handleInput = (e) => {
           const { target } = e;
           const index = inputs.indexOf(target);
+          console.log("input index", index, target.value);
           if (target.value) {
             if (index < inputs.length - 1) {
               inputs[index + 1].focus();
@@ -791,7 +809,7 @@
         };
 
         const handleFocus = (e) => {
-          e.target.select();
+          // e.target.select();
         };
 
         const handlePaste = (e) => {
