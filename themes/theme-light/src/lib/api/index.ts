@@ -44,7 +44,7 @@ api.interceptors.response.use(
         toast.error(errorMessage);
         // Redirect to login page using router
         console.warn('Router not set, falling back to window.location');
-        window.location.href = '/auth';
+        // window.location.href = '/auth';
       }
     }
     // Return the original error to preserve the error message

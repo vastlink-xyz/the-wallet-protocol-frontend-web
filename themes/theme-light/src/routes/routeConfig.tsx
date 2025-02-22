@@ -212,6 +212,13 @@ const router = createBrowserRouter([
               const { default: FireblocksDemoPage } = await import('@/pages/fireblocks_demo/page');
               return { Component: FireblocksDemoPage };
             },
+          },
+          {
+            path: '/mfa',
+            async lazy() {
+              const { default: MfaPage } = await import('@/pages/mfa/page');
+              return { Component: MfaPage };
+            },
           }
         ]
       }

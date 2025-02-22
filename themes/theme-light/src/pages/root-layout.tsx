@@ -71,7 +71,7 @@ export function RootLayout() {
   }, [pathname])
 
   // Show loading screen until both token and socket are initialized
-  if ((!isTokenInitialized || !isInitialized) && pathname !== '/') {
+  if ((!isTokenInitialized || !isInitialized) && pathname !== '/' && pathname !== '/auth') {
     return <Loading />;
   }
 
