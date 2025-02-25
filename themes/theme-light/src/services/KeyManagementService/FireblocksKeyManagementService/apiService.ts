@@ -198,6 +198,10 @@ export class ApiService {
       autoConnect: true,
       withCredentials: true,
       // path: "/fireblocks",
+      extraHeaders: {
+        "x-api-key": import.meta.env.VITE_VASTLINK_CLIENT_API_KEY,
+        "x-api-secret": import.meta.env.VITE_VASTLINK_CLIENT_API_SECRET,
+      },
     });
     this.socket = this.manager.socket("/", {
       auth: async (cb) => cb({ token: await auth0TokenManager.getToken() }),
