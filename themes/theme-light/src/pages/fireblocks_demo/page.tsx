@@ -181,7 +181,7 @@ export default function FireblocksDemoPage() {
         fromAddress: userInfo.chainAddresses?.BITCOIN ?? '',
         toAddress: destinationAddress,
         amount: amount,
-        token: TokenType.BTC,
+        token: TokenType.BTC_TEST,
         transactionType: TransactionType.TRANSFER,
       })
       setTxId(data.id)
