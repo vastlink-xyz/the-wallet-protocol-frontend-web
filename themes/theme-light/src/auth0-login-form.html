@@ -130,7 +130,28 @@
     }
 
     .btn-loading {
+      position: relative;
       opacity: 0.5;
+    }
+
+    .btn-loading:after {
+      content: "";
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      top: 50%;
+      left: 50%;
+      margin: -8px 0 0 -8px;
+      border: 2px solid #423939;
+      border-right-color: transparent;
+      border-radius: 50%;
+      animation: btn-loading-spinner 0.75s linear infinite;
+    }
+
+    @keyframes btn-loading-spinner {
+      to {
+        transform: rotate(360deg);
+      }
     }
 
     .link {
@@ -216,7 +237,7 @@
       gap: 12px;
 
       .otp-input-item {
-        width: 26px;
+        width: 32px;
         height: 36px;
         font-size: 16px;
         font-weight: 700;
@@ -532,6 +553,10 @@
           e.preventDefault();
           // Test code
           // $("#exampleModal").modal("show");
+          // var verifyButton = document.getElementById("btn-verify-code");
+          // verifyButton.classList.add("btn-loading");
+          // var button = this;
+          // button.classList.add("btn-loading");
           // return;
 
           const emailInput = document.getElementById("email").value;
