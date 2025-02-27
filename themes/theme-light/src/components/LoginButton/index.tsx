@@ -13,7 +13,7 @@ export const LoginButton = () => {
         // screen_hint: "signup",
         // connection: 'email',
         audience: import.meta.env.VITE_AUTH0_AUDIENCE,
-        scope: "openid profile email", // Add offline_access scope
+        scope: "openid profile email offline_access", // Add offline_access scope
       },
     });
   };

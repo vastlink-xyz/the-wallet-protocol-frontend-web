@@ -26,7 +26,7 @@ export const Auth0NavigateProvider = ({ children }: { children: React.ReactNode 
       authorizationParams={{
         audience: audience,
         redirect_uri: redirectUri,
-        scope: "openid profile email",
+        scope: "openid profile email offline_access",
         // connection: 'email',
       }}
       onRedirectCallback={onRedirectCallback}

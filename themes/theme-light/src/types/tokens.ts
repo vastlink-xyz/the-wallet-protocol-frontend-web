@@ -7,6 +7,7 @@ export enum TokenType {
   TVWT = 'TVWT',
   VAST = 'VAST',
   BTC = 'BTC',
+  BTC_TEST = 'BTC_TEST',
 }
 
 export enum GasFeeSymbol {
