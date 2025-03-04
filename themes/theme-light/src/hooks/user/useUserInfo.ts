@@ -14,6 +14,7 @@ export interface IPurchasedProduct {
 
 export enum ChainType {
   BITCOIN = 'BITCOIN',
+  BITCOIN_TEST = 'BITCOIN_TEST',
   ETHEREUM = 'ETHEREUM',
 }
 

@@ -5,7 +5,7 @@ import keyManagementService from '@/services/KeyManagementService';
 import { loadDeviceId, storeDeviceId } from '@/services/KeyManagementService/FireblocksKeyManagementService/deviceId';
 import { INewTransactionData, TPassphrases, TRequestDecodedData } from '@/services/KeyManagementService/FireblocksKeyManagementService/types';
 import { SigningInProgressError } from '@fireblocks/ncw-js-sdk';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { decode, encode } from "js-base64";
 import { apiService, initFireblocksNCW } from '@/services/KeyManagementService/FireblocksKeyManagementService/fireblocksInstance';
 import { Input } from '@/components/ui/input';
@@ -17,8 +17,12 @@ import { gdriveRecover } from './auth/GoogleDrive';
 import { passphrasePersist, recoverGoogleDrive, recoverPassphraseId } from './backupAndRecover';
 import { signTypedMessage } from './helper';
 import { passwordManager } from './passwordManager';
+import { useAuth0 } from '@auth0/auth0-react';
+import { auth0TokenManager } from '@/lib/utils/auth0TokenManager';
 
 export default function FireblocksDemoPage() {
+  const { user, getAccessTokenSilently, loginWithRedirect } = useAuth0();
+
   const { data: userInfo, isFetched: userInfoFetched } = useUserInfo()
   const [txFee, setTXFee] = useState<"LOW" | "MEDIUM" | "HIGH">('LOW');
   const [txId, setTxId] = useState<string>('')
@@ -29,6 +33,14 @@ export default function FireblocksDemoPage() {
   const [destinationAddress, setDestinationAddress] = useState<string>('')
 
   // const [password, setPassword] = useState<string>('')
+
+  useEffect(() => {
+    // get query params from url
+    const searchParams = new URLSearchParams(window.location.search);
+    if (userInfoFetched && userInfo) {
+      handleCreateTransactionFromSearchParams(searchParams)
+    }
+  }, [userInfoFetched, userInfo]);
 
   // After successful OTP registration/login and JWT generation,
   // this function assigns deviceId to user's wallet and initializes Fireblocks
@@ -153,6 +165,54 @@ export default function FireblocksDemoPage() {
     setLoading(false)
   }
 
+  const handleCreateTransactionFromSearchParams = async (searchParams: URLSearchParams) => {
+    
+    const amount = searchParams.get('amount');
+    const toAddress = searchParams.get('toAddress');
+    const fromAddress = searchParams.get('fromAddress');
+    const token = searchParams.get('token');
+    const transactionType = searchParams.get('transactionType');
+    
+    if (!amount || !toAddress) {
+      console.log('No amount or toAddress provided')
+      return
+    }
+    
+    setLoading(true)
+    console.log('Redirected from Auth0 with transaction parameters:', {
+      amount,
+      toAddress,
+      fromAddress,
+      token,
+      transactionType
+    });
+
+    auth0TokenManager.setTokenGetter(() => getAccessTokenSilently({
+      authorizationParams: {
+        audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+        response_type: 'id_token token',
+        client_id: import.meta.env.VITE_AUTH0_CLIENT_ID,
+        redirect_uri: 'http://localhost:3000/fireblocks_demo',
+        scope: 'openid transfer:daily_withdrawal_limit offline_access',
+      }
+    }));
+
+    try {
+      const res = await api.post('/transaction/verify-to-sign', {
+        amount: amount,
+        toAddress: toAddress,
+        fromAddress: fromAddress,
+        token: token,
+        transactionType: transactionType,
+      })
+      console.log('res', res)
+    } catch(err) {
+      console.log('error', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handleCreateTransaction = async () => {
     setLoading(true)
     if (!userInfoFetched || !userInfo) {
@@ -178,14 +238,38 @@ export default function FireblocksDemoPage() {
     // const data = await apiService.createTransaction(deviceId, dataToSend)
     try {
       const data: any = await keyManagementService.signTransaction({
-        fromAddress: userInfo.chainAddresses?.BITCOIN ?? '',
+        fromAddress: userInfo.chainAddresses?.BITCOIN_TEST ?? '',
         toAddress: destinationAddress,
         amount: amount,
         token: TokenType.BTC_TEST,
         transactionType: TransactionType.TRANSFER,
       })
-      setTxId(data.id)
-      console.log('transaction', data)
+      if (data.needOtp) {
+        const queryParams = {
+          fromAddress: userInfo.chainAddresses?.BITCOIN_TEST ?? '',
+          toAddress: destinationAddress,
+          amount: amount,
+          token: TokenType.BTC_TEST,
+          transactionType: TransactionType.TRANSFER,
+        }
+        const queryString = new URLSearchParams(queryParams).toString();
+        const redirect_uri = `${window.location.origin}/fireblocks_demo?${queryString}`
+
+        loginWithRedirect({
+          authorizationParams: {
+            audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+            response_type: 'id_token token',
+            client_id: import.meta.env.VITE_AUTH0_CLIENT_ID,
+            redirect_uri: redirect_uri,
+            scope: 'openid transfer:daily_withdrawal_limit offline_access',
+          }
+        })
+        return
+      } else if (data.success) {
+        setTxId(data.id)
+      } else {
+        console.log('transaction failed', data)
+      }
     } catch(err) {
       console.log('error', err)
     } finally {

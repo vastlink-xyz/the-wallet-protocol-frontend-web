@@ -16,7 +16,7 @@ export const LogoutButton = () => {
     <div
     className={cn(
       "h-12 px-6 py-3.5 bg-white rounded-[60px] justify-center items-center gap-2 cursor-pointer",
-      "hidden laptop:inline-flex"
+      // "hidden laptop:inline-flex"
     )}
   >
     <div
