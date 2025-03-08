@@ -27,5 +27,6 @@ dist-ssr
 *.tsbuildinfo
 
 # env
+.env
 
 vite.config.ts.*
