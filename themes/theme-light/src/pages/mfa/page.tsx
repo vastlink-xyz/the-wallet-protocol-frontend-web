@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import api from "@/lib/api";
 import { auth0TokenManager } from "@/lib/utils/auth0TokenManager";
 import { useAuth0 } from "@auth0/auth0-react";
+import MFASettings from "./MFASetting";
 
 export default function MfaPage() {
   const { user, getAccessTokenSilently, loginWithRedirect } = useAuth0();
@@ -63,19 +64,40 @@ export default function MfaPage() {
     const response = await api.get('/user/info');
     console.log(response);
   }
-  
+
+  const handleGetMfa = async () => {
+    const response = await api.get('/mfa-management/get-enrollments');
+    console.log(response);
+  }
+
+  const handleRemoveMfa = async () => {
+    const response = await api.post('/mfa-management/remove-enrollment', {
+      authentication_method_id: 'sms|dev_3dNQiWAKZbB1HrvC',
+      // authentication_method_id: 'sms|dev_SaTQIFiKS86oxO4T',
+    });
+    console.log(response);
+  }
 
   if (!user) {
     return <div>Loading...</div>;
   }
 
   return <div>
-    <div>
+    {/* <div>
       <Button onClick={handleLoginBalance}>Login Balance</Button>
       <Button onClick={handleBalance}>Balance</Button>
       <Button onClick={handleLoginTransfer}>Login Transfer</Button>
       <Button onClick={handleTransfer}>Transfer</Button>
       <Button onClick={handleUserInfo}>User Info</Button>
+      <br />
+      <Button onClick={handleGetMfa}>get mfa</Button>
+      <Button onClick={handleRemoveMfa}>remove mfa</Button>
+    </div> */}
+
+    <hr />
+
+    <div>
+      <MFASettings />
     </div>
   </div>;
 }
