@@ -191,7 +191,7 @@ export default function ChatBotComponent() {
     userBubbleStyle: {
       backgroundColor: '#f6f6f6',
       color: '#000',
-      wordBreak: 'break-all',
+      textAlign: 'left',
     },
     headerStyle: {
       // backgroundImage: 'linear-gradient(to right, #333, rgb(66, 176, 197))',

@@ -16,12 +16,16 @@ export default function DashboardPage() {
 
   return (
     <div className="mt-[40px] tablet:mt-[100px]">
-      {
+      {/* {
         (totalAsset && totalAsset.isUSDZero) && <Guide />
       }
 
       {
         (totalAsset && !totalAsset.isUSDZero) && <Overview />
+      } */}
+
+      {
+        (totalAsset) && <Overview />
       }
 
       {
