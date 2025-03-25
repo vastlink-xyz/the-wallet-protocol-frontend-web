@@ -1,4 +1,4 @@
-import { auth, formatDecimal, log } from "@/lib/utils";
+import { auth, formatDecimal, handleError, log } from "@/lib/utils";
 import { createContext, Dispatch, lazy, SetStateAction, Suspense, useEffect, useState } from "react";
 import { Params, Flow, Settings, getDefaultSettings, Styles } from "react-chatbotify"
 import ChatBot from 'react-chatbotify'
@@ -9,6 +9,7 @@ import '@/styles/react-chatbotify.css'
 import api from "@/lib/api";
 import { SendButton } from "@/pages/dashboard/token/components/SendButton";
 import { SendModal } from "@/pages/dashboard/token/components/SendModal";
+import { toast } from "react-toastify";
 
 // Mock async API function
 const mockAsyncApi = (delay: number = 1000): Promise<string> => {
@@ -102,41 +103,48 @@ export default function ChatBotComponent() {
 
   const handleQuestion = async (params: Params) => {
     log('handleQuestion params', params)
-    const response = await api.post('/ai/chat', {
-      question: params.userInput,
-    });
-
-    const {
-      action,
-      coin,
-      amount,
-      to,
-    } = response.data
-
-    if (!action) {
-      setTransactionInfo({
-        action: 'other',
-        answer: response.data,
-      })
-    } else {
-      let tokenType = coin
-      if (typeof coin === 'string') {
-        const gasFeeSymbol = Object.values(GasFeeSymbol).find(
-          symbol => symbol.toUpperCase() === coin
-        );
-
-        if (gasFeeSymbol) {
-          tokenType = theTokenListingService.getNativeTokenTypeByGasSymbol(gasFeeSymbol);
-        }
-      }
-      setTransactionInfo({
+    try {
+      const response = await api.post('/ai/chat', {
+        question: params.userInput,
+      });
+      log('handleQuestion response', response)
+  
+      const {
         action,
-        toEmail: to,
-        token: tokenType,
+        coin,
         amount,
-      })
-      await initSendProps(tokenType)
-      setDisplaySendButton(true)
+        to,
+      } = response.data
+  
+      if (!action) {
+        setTransactionInfo({
+          action: 'other',
+          answer: response.data,
+        })
+      } else {
+        let tokenType = coin
+        if (typeof coin === 'string') {
+          const gasFeeSymbol = Object.values(GasFeeSymbol).find(
+            symbol => symbol.toUpperCase() === coin
+          );
+  
+          if (gasFeeSymbol) {
+            tokenType = theTokenListingService.getNativeTokenTypeByGasSymbol(gasFeeSymbol);
+          }
+        }
+        setTransactionInfo({
+          action,
+          toEmail: to,
+          token: tokenType,
+          amount,
+        })
+        await initSendProps(tokenType)
+        setDisplaySendButton(true)
+      }
+    } catch (error) {
+      log('handleQuestion error', error)
+      const errorInfo = handleError(error)
+      toast.error(errorInfo.message)
     }
   }
 
@@ -183,6 +191,7 @@ export default function ChatBotComponent() {
     userBubbleStyle: {
       backgroundColor: '#f6f6f6',
       color: '#000',
+      wordBreak: 'break-all',
     },
     headerStyle: {
       // backgroundImage: 'linear-gradient(to right, #333, rgb(66, 176, 197))',

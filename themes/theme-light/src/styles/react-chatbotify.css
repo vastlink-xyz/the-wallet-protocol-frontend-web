@@ -32,11 +32,10 @@
 }
 
 .rcb-chat-input .rcb-chat-input-textarea {
-    height: 44px;
-    box-sizing: border-box !important;
-    padding: 16px;
+    /* box-sizing: border-box !important; */
+    /* padding: 16px; */
     font-size: 12px;
-    line-height: 12px;
+    line-height: 14px;
 }
 .rcb-chat-input .rcb-chat-input-textarea:focus {
     border: 1px solid #000;
