@@ -6,7 +6,6 @@ export enum TokenType {
   MATIC = 'MATIC',
   TVWT = 'TVWT',
   VAST = 'VAST',
-  BTC = 'BTC',
   BTC_TEST = 'BTC_TEST',
 }
 
@@ -14,6 +13,7 @@ export enum GasFeeSymbol {
   POL = 'POL',
   SepoliaETH = 'SepoliaETH',
   BaseSepoliaETH = 'BaseSepoliaETH',
+  BTC = 'BTC',
 }
 
 export type TokenRecord<T> = Record<TokenType, T>;

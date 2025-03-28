@@ -5,6 +5,7 @@ import { TVWT } from "./tokens/TVWT";
 import { Token } from "./tokens/Token";
 import { VAST } from "./tokens/VAST";
 import { BASE_ETH } from "./tokens/BASE_ETH";
+import { BTC_TEST } from "./tokens/BTC_TEST";
 
 export class TokenService {
   private static instance: TokenService;
@@ -17,6 +18,7 @@ export class TokenService {
       [TokenType.MATIC, new MATIC()],
       [TokenType.TVWT, new TVWT()],
       [TokenType.VAST, new VAST()],
+      [TokenType.BTC_TEST, new BTC_TEST()],
     ]);
   }
 

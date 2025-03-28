@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Outlet, useNavigation, useLocation } from "react-router-dom";
+import { Outlet, useNavigation, useLocation, useNavigate } from "react-router-dom";
 import NProgress from 'nprogress';
 import 'nprogress/nprogress.css';
 import '@/styles/nprogress.css';
@@ -7,6 +7,7 @@ import { useAuth0 } from "@auth0/auth0-react";
 import { apiService } from "@/services/KeyManagementService/FireblocksKeyManagementService/fireblocksInstance";
 import { auth0TokenManager } from "@/lib/utils/auth0TokenManager";
 import { Loading } from "@/components/Loading";
+import { log } from "@/lib/utils";
 
 NProgress.configure({
   showSpinner: false,
@@ -18,7 +19,8 @@ NProgress.configure({
 export function RootLayout() {
   const navigation = useNavigation()
   const { pathname } = useLocation()
-  const { getAccessTokenSilently, isAuthenticated } = useAuth0();
+  const navigate = useNavigate()
+  const { getAccessTokenSilently, isAuthenticated, isLoading } = useAuth0();
   const [isInitialized, setIsInitialized] = useState(false);
   const [isTokenInitialized, setIsTokenInitialized] = useState(false);
 
@@ -37,24 +39,35 @@ export function RootLayout() {
   // connection requires an authentication token for the handshake
   useEffect(() => {
     const initializeSocket = async () => {
-      if (!isTokenInitialized) return;
-      
       try {
         // Get initial token to ensure auth is ready
         await getAccessTokenSilently();
-        
+
         // Initialize socket after we have the token
         await apiService.initSocket();
-        
+
         setIsInitialized(true);
       } catch (error) {
-        console.error('Failed to initialize socket:', error);
-        setIsInitialized(true); // Still set initialized to prevent loading screen
+        console.error('Failed to initialize socket:', (error as any).message);
+        const errorMessage = (error as any).message || '';
+        if (errorMessage.startsWith('Missing Refresh Token')) {
+          log('Missing Refresh Token, logout', isLoading)
+          navigate('/')
+        }
+        setIsInitialized(false); // Still set initialized to prevent loading screen
       }
     };
 
+    if (isLoading) {
+      return
+    }
+
+    if (isAuthenticated) {
+      auth0TokenManager.setTokenGetter(getAccessTokenSilently);
+    }
+
     initializeSocket();
-  }, [isTokenInitialized, getAccessTokenSilently]);
+  }, [getAccessTokenSilently, isLoading, isAuthenticated]);
 
   useEffect(() => {
     // console.log('navigation', navigation)
@@ -71,7 +84,7 @@ export function RootLayout() {
   }, [pathname])
 
   // Show loading screen until both token and socket are initialized
-  if ((!isTokenInitialized || !isInitialized) && pathname !== '/' && pathname !== '/auth') {
+  if (!isInitialized && pathname !== '/' && pathname !== '/auth') {
     return <Loading />;
   }
 
