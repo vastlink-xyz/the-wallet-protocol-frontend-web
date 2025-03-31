@@ -16,25 +16,26 @@ export default function DashboardPage() {
 
   return (
     <div className="mt-[40px] tablet:mt-[100px]">
-      {
+      {/* kkktodo: display Guide and Overview */}
+      {/* {
         (totalAsset && totalAsset.isUSDZero) && <Guide />
       }
 
       {
         (totalAsset && !totalAsset.isUSDZero) && <Overview />
-      }
+      } */}
 
-      {
+      {/* {
         (userInfo?.purchasedProducts ?? []).length > 0 ? (
           <UserProducts />
         ) : (
           <RecommendedProducts className="mt-[48px] tablet:mt-[100px]" />
         )
-      }
+      } */}
 
-      <div className="mt-[60px] tablet:mt-[100px]">
+      {/* <div className="mt-[60px] tablet:mt-[100px]">
         <TransactionHistory />
-      </div>
+      </div> */}
     </div>
   )
 }

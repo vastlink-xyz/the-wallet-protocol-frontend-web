@@ -46,7 +46,7 @@ export function SendModal({
   open: boolean;
   setOpen: (open: boolean) => void;
   balance?: string; // kkktodo to be removed
-  address: Address;
+  address: string;
   tokenType: TokenType;
   defaultTo?: string;
   defaultAmount?: string;
@@ -225,7 +225,8 @@ export function SendModal({
     const token = theTokenListingService.getToken(newTokenType)
     tokenRef.current = token
     // setSymbol(token.symbol)
-    let b = await token.getBalance(address)
+    let b = await token.getBalance(address as Address)
+    log('address is', address)
     b = formatDecimal(b)
     setCurrentBalance(b)
   }
@@ -430,10 +431,10 @@ export function SendModal({
         const fee = await getEstimatedGasFeeByToken({
           tokenType: currentTokenType,
           transferParams: {
-            to: address,
+            to: address as Address,
             amount: parseEther(amount),
           },
-          fromAddress: address
+          fromAddress: address as Address
         })
         if (fee) {
           setEstimatedFee(fee.feeInTokens.toString())

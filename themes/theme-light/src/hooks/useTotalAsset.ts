@@ -17,6 +17,14 @@ const TOTAL_ASSET_KEY = ['totalAsset'] as const
 const MIN_USD_THRESHOLD = 0.01; // 0.01 USD
 
 const fetchTotalAsset = async (address: string): Promise<TotalAssetData> => {
+  // kkktodo: remove mockdata
+  const raw = 0
+  return {
+    raw,
+    formatted: formatNumberWithCommas(raw, 2),
+    isZero: false,
+    isUSDZero: false,
+  }
   try {
     const res = await api.get<TotalAssetResponse>('/user-assets/total-assets', {
       params: { address }

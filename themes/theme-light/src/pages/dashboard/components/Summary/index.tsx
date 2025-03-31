@@ -9,12 +9,11 @@ import { useUserInfo } from "@/hooks/user/useUserInfo";
 import { theTokenListingService } from "@/services/TokenListingService";
 
 export function Summary() {
-  const { address } = auth.all();
 
-  const { data: totalAsset, refetch } = useTotalAsset({
-    enabled: !!address,
-  })
   const { data: userInfo } = useUserInfo()
+  const { data: totalAsset, refetch } = useTotalAsset({
+    enabled: !!userInfo?.chainAddresses?.ETHEREUM,
+  })
   const [avatarUrl, setAvatarUrl] = useState<string>('')
 
   const [sendOpen, setSendOpen] = useState(false)
@@ -188,7 +187,7 @@ export function Summary() {
 
           <div className="flex items-start gap-2">
             <CopyClipboardAddress
-              address={address}
+              address={userInfo?.chainAddresses?.ETHEREUM || ''}
               className="text-white text-xs"
               iconClassName="text-white"
               iconSize={14}
@@ -207,14 +206,14 @@ export function Summary() {
       <SendModal
         open={sendOpen}
         setOpen={setSendOpen}
-        address={address}
+        address={userInfo?.chainAddresses?.ETHEREUM || ''}
         tokenType={tokenType}
         onClose={() => setSendOpen(false)}
-      />
+        />
 
       {/* receive modal */}
       <ReceiveModal
-        address={address}
+        address={userInfo?.chainAddresses?.ETHEREUM || ''}
         open={receiveOpen}
         setOpen={setReceiveOpen}
         onClose={() => setReceiveOpen(false)}

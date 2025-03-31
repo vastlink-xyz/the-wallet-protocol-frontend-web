@@ -6,7 +6,7 @@ import { Address } from "viem"
 
 interface CopyboardAddressProps {
   iconSize?: number;
-  address: Address;
+  address: string;
   className?: string;
   iconClassName?: string;
   [key: string]: any;

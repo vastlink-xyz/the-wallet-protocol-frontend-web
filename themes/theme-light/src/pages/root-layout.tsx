@@ -22,18 +22,16 @@ export function RootLayout() {
   const navigate = useNavigate()
   const { getAccessTokenSilently, isAuthenticated, isLoading } = useAuth0();
   const [isInitialized, setIsInitialized] = useState(false);
-  const [isTokenInitialized, setIsTokenInitialized] = useState(false);
 
   // Step 1: Initialize token getter
   // This needs to be done first because all API requests require the token
   // We split this into a separate effect to prevent race conditions with API calls
-  useEffect(() => {
-    if (isAuthenticated) {
-      auth0TokenManager.setTokenGetter(getAccessTokenSilently);
-      setIsTokenInitialized(true);
-    }
-  }, [getAccessTokenSilently, isAuthenticated]);
-
+  // Step 2: Initialize socket
+  // This needs to happen after token initialization because the socket
+  // connection requires an authentication token for the handshake
+  // Step 1: Initialize token getter
+  // This needs to be done first because all API requests require the token
+  // We split this into a separate effect to prevent race conditions with API calls
   // Step 2: Initialize socket
   // This needs to happen after token initialization because the socket
   // connection requires an authentication token for the handshake

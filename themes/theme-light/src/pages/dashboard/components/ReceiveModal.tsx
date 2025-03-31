@@ -18,7 +18,7 @@ export function ReceiveModal({
   setOpen,
   onClose,
 }: {
-  address: Address;
+  address: string;
   open: boolean;
   setOpen: (open: boolean) => void;
   onClose: (open: boolean) => void;
@@ -171,7 +171,7 @@ export function ReceiveModal({
 
               <TabsContent value="crypto">
                 <div className="flex items-center justify-center mx-auto mt-6 mb-2">
-                  <CopyClipboardAddress address={address} iconSize={14} />
+                  <CopyClipboardAddress address={address as Address} iconSize={14} />
                 </div>
 
                 <div className="w-[216px] mx-auto p-[10px]">
