@@ -1,9 +1,10 @@
-import { GasFeeSymbol, TokenType } from "@/types/tokens";
+import { ChainType, GasFeeSymbol, TokenType } from "@/types/tokens";
 import { PublicClient, Chain } from "viem";
 import { Address } from "viem";
 
 export abstract class Token {
   tokenType: TokenType;
+  chainType: ChainType;
   name: string;
   symbol: string;
   decimals: number;
@@ -19,6 +20,7 @@ export abstract class Token {
 
   constructor({
     tokenType,
+    chainType,
     name,
     symbol,
     decimals,
@@ -33,6 +35,7 @@ export abstract class Token {
     gasless = false,
   }: {
     tokenType: TokenType;
+    chainType: ChainType;
     name: string;
     symbol: string;
     decimals: number;
@@ -47,6 +50,7 @@ export abstract class Token {
     gasless?: boolean;
   }) {
     this.tokenType = tokenType;
+    this.chainType = chainType;
     this.name = name;
     this.symbol = symbol;
     this.decimals = decimals;

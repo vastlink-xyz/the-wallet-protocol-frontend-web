@@ -2,12 +2,13 @@ import { formatEther, Address, http, createPublicClient } from "viem";
 import { Token } from "./Token";
 import axios from "axios";
 import { polygonAmoy } from "viem/chains";
-import { GasFeeSymbol, TokenType } from "@/types/tokens";
+import { ChainType, GasFeeSymbol, TokenType } from "@/types/tokens";
 
 export class MATIC extends Token {
   constructor() {
     super({
       tokenType: TokenType.MATIC,
+      chainType: ChainType.ETHEREUM,
       name: 'Polygon Amoy',
       symbol: 'POL',
       decimals: 18,

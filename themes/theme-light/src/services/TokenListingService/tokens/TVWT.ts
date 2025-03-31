@@ -3,13 +3,14 @@ import { Token } from "./Token";
 import axios from "axios";
 import { polygonAmoy } from "viem/chains";
 import { ERC20_TVWT_ABI } from "@/abis/TheVastWalletToken";
-import { GasFeeSymbol, TokenType } from "@/types/tokens";
+import { ChainType, GasFeeSymbol, TokenType } from "@/types/tokens";
 
 export class TVWT extends Token {
 
   constructor() {
     super({
       tokenType: TokenType.TVWT,
+      chainType: ChainType.ETHEREUM,
       name: 'TheVastlinkToken',
       symbol: 'TVWT',
       decimals: 18,

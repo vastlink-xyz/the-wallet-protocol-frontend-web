@@ -2,13 +2,14 @@ import { formatEther, Address, http, createPublicClient, erc20Abi, PublicClient 
 import { Token } from "./Token";
 import axios from "axios";
 import { baseSepolia } from "viem/chains";
-import { GasFeeSymbol, TokenType } from "@/types/tokens";
+import { ChainType, GasFeeSymbol, TokenType } from "@/types/tokens";
 
 export class VAST extends Token {
 
   constructor() {
     super({
       tokenType: TokenType.VAST,
+      chainType: ChainType.ETHEREUM,
       name: 'TheVastlinkToken',
       symbol: 'VAST',
       decimals: 18,

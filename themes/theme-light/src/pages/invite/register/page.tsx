@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { auth, handleError, log } from "@/lib/utils";
+import { auth, getAddressByTokenType, handleError, log } from "@/lib/utils";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
@@ -11,10 +11,16 @@ import api from "@/lib/api";
 import keyManagementService from "@/services/KeyManagementService";
 import { Loading } from "@/components/Loading";
 import { otpService } from "@/services/OTPService";
+import { useAuth0 } from "@auth0/auth0-react";
+import { useUserInfo } from "@/hooks/user/useUserInfo";
 
 export default function Page() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+
+  const { loginWithRedirect } = useAuth0()
+  const { data: userInfo } = useUserInfo()
+
   const [authenticating, setAuthenticating] = useState(false);
   const [registering, setRegistering] = useState(false);
   const [sending, setSending] = useState(false)
@@ -64,6 +70,13 @@ export default function Page() {
         })
 
         if (response.data.success) {
+          if (!userInfo?.chainAddresses) {
+            throw new Error('Chain addresses not found');
+          }
+          const address = getAddressByTokenType(info.token, userInfo.chainAddresses)
+          if (!address) {
+            throw new Error(`No address found for token type: ${info.token}`);
+          }
           // update current inviteInfo
           await updateInviteInfo(info.id, {
             status: 'REGISTERED',
@@ -84,6 +97,7 @@ export default function Page() {
     if (response.data.success) {
       const info = response.data.inviteInfo
       setInviteInfo(info)
+      log('inviteinfo', info)
       return info
     }
   }

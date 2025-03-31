@@ -2,12 +2,13 @@ import { formatEther, Address, http, createPublicClient } from "viem";
 import { Token } from "./Token";
 import axios from "axios";
 import { sepolia } from "viem/chains";
-import { GasFeeSymbol, TokenType } from "@/types/tokens";
+import { ChainType, GasFeeSymbol, TokenType } from "@/types/tokens";
 
 export class ETH extends Token {
   constructor() {
     super({
       tokenType: TokenType.ETH,
+      chainType: ChainType.ETHEREUM,
       name: 'Ethereum Sepolia',
       symbol: 'SepoliaETH',
       decimals: 18,

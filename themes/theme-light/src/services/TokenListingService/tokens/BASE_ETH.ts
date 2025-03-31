@@ -2,12 +2,13 @@ import { formatEther, Address, http, createPublicClient, PublicClient } from "vi
 import { Token } from "./Token";
 import axios from "axios";
 import { baseSepolia } from "viem/chains";
-import { GasFeeSymbol, TokenType } from "@/types/tokens";
+import { ChainType, GasFeeSymbol, TokenType } from "@/types/tokens";
 
 export class BASE_ETH extends Token {
   constructor() {
     super({
       tokenType: TokenType.BASE_ETH,
+      chainType: ChainType.ETHEREUM,
       name: 'Base Sepolia',
       symbol: 'BaseSepoliaETH',
       decimals: 18,

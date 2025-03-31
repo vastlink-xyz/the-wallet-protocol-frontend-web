@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/api';
-import { TokenRecord } from '@/types/tokens';
+import { ChainType, TokenRecord } from '@/types/tokens';
 
 export interface IPurchasedProduct {
   productId: string;
@@ -9,13 +9,6 @@ export interface IPurchasedProduct {
   status: 'active' | 'deleted';
   unread?: boolean;
   lastUsedAt?: string;  // iso string
-}
-
-
-export enum ChainType {
-  BITCOIN = 'BITCOIN',
-  BITCOIN_TEST = 'BITCOIN_TEST',
-  ETHEREUM = 'ETHEREUM',
 }
 
 export type ChainAddresses = {

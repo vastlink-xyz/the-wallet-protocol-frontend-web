@@ -2,12 +2,13 @@ import { formatEther, Address, http, createPublicClient } from "viem";
 import { Token } from "./Token";
 import axios from "axios";
 import { sepolia } from "viem/chains";
-import { GasFeeSymbol, TokenType } from "@/types/tokens";
+import { ChainType, GasFeeSymbol, TokenType } from "@/types/tokens";
 
 export class BTC_TEST extends Token {
   constructor() {
     super({
       tokenType: TokenType.BTC_TEST,
+      chainType: ChainType.BITCOIN_TEST,
       name: 'Bitcoin Testnet',
       symbol: 'BTC_TEST',
       decimals: 8,
