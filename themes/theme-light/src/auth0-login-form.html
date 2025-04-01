@@ -36,16 +36,17 @@
 
   .login-box {
     width: 100%;
+    max-width: 480px;
     background-color: #0e0e0e;
-    border-radius: 5px;
-    border: 1px solid #333;
     color: #fff;
     margin: auto;
+    padding: 24px;
 
     /* screen selector  */
     @media (max-width: 768px) {
       width: 100%;
-      border: none;
+      max-width: 100%;
+      padding: 0;
     }
   }
 
@@ -363,7 +364,7 @@ height: 28px;
     </div>
     <div class="login-box">
       <div class="login-header">
-        <h3 id="login-header-title">Let’s sign up your account</h3>
+        <h3 id="login-header-title">Let's sign up your account</h3>
         <h5 id="login-header-description">
           A sign up OTP will be sent to your email. Please check your inbox
           and click the link to sign up.
@@ -480,6 +481,17 @@ height: 28px;
       var config = JSON.parse(
         decodeURIComponent(escape(window.atob("@@config@@")))
       );
+
+      // fetch login_hint from url
+      const urlParams = new URLSearchParams(window.location.search);
+      const loginHint = urlParams.get('login_hint');
+      if (loginHint) {
+        document.getElementById("email").value = loginHint;
+        // if email is valid, enable send button
+        if (isValidEmail(loginHint)) {
+          document.getElementById("btn-send-email-code").classList.remove("btn-disabled");
+        }
+      }
 
       var leeway = config.internalOptions.leeway;
       if (leeway) {
@@ -642,7 +654,7 @@ height: 28px;
         } else {
           screen = "signup";
           loginSignupLink.innerHTML = "Already have an account? Sign In here";
-          loginHeaderTitle.innerHTML = "Let’s sign up your account";
+          loginHeaderTitle.innerHTML = "Let's sign up your account";
           loginHeaderDescription.innerHTML =
             "A sign up OTP will be sent to your email. Please check your inbox and click the link to sign up.";
         }

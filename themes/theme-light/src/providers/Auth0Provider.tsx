@@ -11,8 +11,13 @@ export const Auth0NavigateProvider = ({ children }: { children: React.ReactNode 
   const audience = import.meta.env.VITE_AUTH0_AUDIENCE;
 
   const onRedirectCallback = (appState: any) => {
-    navigate(appState?.returnTo || window.location.pathname);
     console.log('appState', appState, window.location.pathname)
+    const inviteParams = appState?.inviteParams;
+    if (inviteParams) {
+      navigate(appState?.returnTo || window.location.pathname, { state: { inviteParams } });
+    } else {
+      navigate(appState?.returnTo || window.location.pathname);
+    }
   };
 
   if (!(domain && clientId && redirectUri)) {

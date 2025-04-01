@@ -1,29 +1,23 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { auth, getAddressByTokenType, handleError, log } from "@/lib/utils";
+import { handleError, log } from "@/lib/utils";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
 import { LogoLoading } from "@/components/LogoLoading";
-import { formatEther } from "viem";
 import { InviteInfoData, InviteStatus } from "../util";
 import api from "@/lib/api";
-import keyManagementService from "@/services/KeyManagementService";
 import { Loading } from "@/components/Loading";
-import { otpService } from "@/services/OTPService";
 import { useAuth0 } from "@auth0/auth0-react";
-import { useUserInfo } from "@/hooks/user/useUserInfo";
 
 export default function Page() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
   const { loginWithRedirect } = useAuth0()
-  const { data: userInfo } = useUserInfo()
 
   const [authenticating, setAuthenticating] = useState(false);
   const [registering, setRegistering] = useState(false);
-  const [sending, setSending] = useState(false)
   const [loading, setLoading] = useState(false)
 
   const [inviteInfo, setInviteInfo] = useState<InviteInfoData>();
@@ -56,35 +50,7 @@ export default function Page() {
   const initInviteStatus = async (inviteInfoId: string) => {
     try {
       setLoading(true)
-      const info = await initInviteInfo(inviteInfoId)
-  
-      // check if the user has registered
-      const res = await api.get(`/address/check`, {
-        params: { email: info.toEmail }
-      });
-  
-      if (res.data.exists && info.status === 'PENDING' && !info.to) {
-        // get user address
-        const response = await api.get(`/address/`, {
-          params: { email: info.toEmail }
-        })
-
-        if (response.data.success) {
-          if (!userInfo?.chainAddresses) {
-            throw new Error('Chain addresses not found');
-          }
-          const address = getAddressByTokenType(info.token, userInfo.chainAddresses)
-          if (!address) {
-            throw new Error(`No address found for token type: ${info.token}`);
-          }
-          // update current inviteInfo
-          await updateInviteInfo(info.id, {
-            status: 'REGISTERED',
-            to: response.data.address,
-          })
-          initInviteInfo(inviteInfoId)
-        }
-      }
+      await initInviteInfo(inviteInfoId)
     } catch(error) {
       log('error', error)
     } finally {
@@ -113,22 +79,20 @@ export default function Page() {
     return 'Click To Sign Up'
   }
 
-  async function verifyRegistrationOtp(username: string, otp: string) {
-    const fromInvitation = otpService.getVerifyMethod() === 'email-by-sendgrid'
-    const response = await axios.post(`${import.meta.env.VITE_VASTLINK_PROTOCAL_API_BASEURL}/auth/verify-registration-otp`, 
+  async function verifyInviteOtp(email: string, otp: string) {
+    const response = await api.post(`/invite/verify-invite-otp`, 
       {
-        email: username,
-        OTP: otp,
-        fromInvitation,
+        email,
+        otp: otp,
       }
     );
-    return response;
+    return response.data.success;
   }
 
   async function register() {
-    const registerUsername = inviteInfo?.toEmail
-    if (!registerUsername) {
-      toast.error('username is not exited.')
+    const email = inviteInfo?.toEmail
+    if (!email) {
+      toast.error('username is not existed.')
       return
     }
 
@@ -136,22 +100,38 @@ export default function Page() {
       setRegistering(true);
 
       // verify otp and get jwt
-      const response = await verifyRegistrationOtp(registerUsername, otp)
+      // kkktodo: verify otp
+      // const otpVerified = await verifyInviteOtp(email, otp)
+      const otpVerified = true
+      log('otpVerified', otpVerified)
 
-      if (response.data && response.data.sub) {
-        // await keyManagementService.signUp({
-        //   username: registerUsername,
-        //   sub: response.data.sub,
-        // });
-        navigate('/fireblocks_demo');
+      if (otpVerified) {
+        loginWithRedirect({
+          appState: {
+            returnTo: "/invite/register-claim",
+            inviteParams: {
+              inviteInfoId: inviteInfo?.id,
+              token: inviteInfo?.token,
+              amount: inviteInfo?.amount,
+              fromEmail: inviteInfo?.fromEmail,
+              toEmail: email,
+            }
+          },
+          authorizationParams: {
+            screen_hint: "signup",
+            login_hint: email,
+            audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+            scope: "openid profile email offline_access",
+          },
+        })
 
         // update inviteInfo data, includes status and to address
-        const { address } = auth.all()
-        await updateInviteInfo(inviteInfo.id, {
-          status: 'REGISTERED',
-          to: address,
-        })
-        initInviteInfo(inviteInfo.id)
+        // const { address } = auth.all()
+        // await updateInviteInfo(inviteInfo.id, {
+        //   status: 'REGISTERED',
+        //   to: address,
+        // })
+        // initInviteInfo(inviteInfo.id)
       }
     } catch (error) {
       const errorInfo = handleError(error)
@@ -168,36 +148,6 @@ export default function Page() {
       ...updateData,
     })
     return res
-  }
-
-  const handleSendEmail = async () => {
-    try {
-      setSending(true)
-  
-      // const { address, username } = auth.all()
-      // if (address !== inviteInfo?.to || username !== inviteInfo?.toEmail) {
-      //   // auth status is wrong, need to authenticate again
-      //   const success = await authenticate(inviteInfo?.toEmail!)
-      //   if (!success) {
-      //     return
-      //   }
-      // }
-
-      // notify the inviter to finish the transaction
-      const response = await api.post(`/invite/send-inviter-transfer-email`, {
-        inviteInfoId: inviteInfo?.id,
-      })
-  
-      if (response.data.success) {
-        toast.success('Transfer email sent successfully')
-        initInviteInfo(inviteInfo!.id)
-      }
-    } catch(error) {
-      const errorInfo = handleError(error)
-      toast.error(errorInfo.message)
-    } finally {
-      setSending(false)
-    }
   }
 
   return (
@@ -229,43 +179,6 @@ export default function Page() {
                             disabled={registering || authenticating}
                           >
                             { registerBtnText() }
-                          </Button>
-                        </>
-                      )
-                    }
-
-                    {
-                      inviteStatus === 'REGISTERED' && (
-                        <>
-                          <div className="mb-8 text-center">
-                            <h2 className="text-2xl font-bold mb-4">You have received a crypto transfer!</h2>
-                            <p className="mb-2">{inviteInfo.fromEmail} sent you</p>
-                            <p className="text-3xl font-bold mb-2">{formatEther(BigInt(inviteInfo.amount))} {inviteInfo.token}</p>
-                          </div>
-                          <div className="text-center">
-                            <p className="mb-4">To accept this transfer, please confirm below.</p>
-                            <Button
-                              className="w-full mb-4"
-                              onClick={() => handleSendEmail()}
-                              disabled={sending}
-                            >
-                              {sending ? <LogoLoading /> : 'Accept Transfer'}
-                            </Button>
-                          </div>
-                        </>
-                      )
-                    }
-
-                    {
-                      inviteStatus === 'WAITING' && (
-                        <>
-                          <p className="mb-4">Email sent successfully! Please wait for the inviter to complete the transfer.</p>
-                          <p className="mb-4">You will receive an email notification once the transfer is complete.</p>
-                          <Button
-                            className="w-full"
-                            onClick={() => navigate('/dashboard')}
-                          >
-                            Go To Dashboard
                           </Button>
                         </>
                       )

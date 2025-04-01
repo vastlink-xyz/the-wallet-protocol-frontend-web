@@ -69,9 +69,6 @@ export class FireblocksKeyManagement extends KeyManagementService {
     })
     const { address, displayName } = data
 
-    // initialize fireblocks
-    await this.initFireblocksNCWInstance(deviceId)
-
     // save auth storage
     auth.saveAuthDataByKey('address', address)
     auth.saveAuthDataByKey('username', username)
@@ -92,9 +89,6 @@ export class FireblocksKeyManagement extends KeyManagementService {
       deviceId,
     })
     const { address, displayName } = data
-
-    // initialize fireblocks
-    await this.initFireblocksNCWInstance(deviceId)
 
     // save auth storage
     auth.saveAuthDataByKey('address', address)

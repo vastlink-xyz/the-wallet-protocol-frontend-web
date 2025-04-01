@@ -182,7 +182,14 @@ const router = createBrowserRouter([
                   const { default: InviteRegisterPage } = await import('@/pages/invite/register/page');
                   return { Component: InviteRegisterPage };
                 },
-              }
+              },
+              {
+                path: 'register-claim',
+                async lazy() {
+                  const { default: InviteRegisterClaimPage } = await import('@/pages/invite/register-claim/page');
+                  return { Component: InviteRegisterClaimPage };
+                },
+              },
             ]
           },
           {

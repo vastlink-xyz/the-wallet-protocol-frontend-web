@@ -27,6 +27,7 @@ export interface UserInfo {
   dailyWithdrawalLimits?: Partial<TokenRecord<string>>;
   sub: string;
   chainAddresses?: ChainAddresses;
+  walletId?: string;
 }
 
 const fetchUserInfo = async (): Promise<UserInfo> => {

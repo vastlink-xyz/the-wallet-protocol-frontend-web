@@ -50,7 +50,9 @@ export function RootLayout() {
         const errorMessage = (error as any).message || '';
         if (errorMessage.startsWith('Missing Refresh Token')) {
           log('Missing Refresh Token, logout', isLoading)
-          navigate('/')
+          if (pathname !== '/invite/register') {
+            navigate('/')
+          }
         }
         setIsInitialized(false); // Still set initialized to prevent loading screen
       }
@@ -82,7 +84,7 @@ export function RootLayout() {
   }, [pathname])
 
   // Show loading screen until both token and socket are initialized
-  if (!isInitialized && pathname !== '/' && pathname !== '/auth') {
+  if (!isInitialized && pathname !== '/' && pathname !== '/auth' && pathname !== '/invite/register') {
     return <Loading />;
   }
 
