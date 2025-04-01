@@ -9,7 +9,7 @@ export class VAST extends Token {
   constructor() {
     super({
       tokenType: TokenType.VAST,
-      chainType: ChainType.ETHEREUM,
+      chainType: ChainType.BASE_SEPOLIA,
       name: 'TheVastlinkToken',
       symbol: 'VAST',
       decimals: 18,

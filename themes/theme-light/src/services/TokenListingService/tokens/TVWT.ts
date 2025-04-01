@@ -10,7 +10,7 @@ export class TVWT extends Token {
   constructor() {
     super({
       tokenType: TokenType.TVWT,
-      chainType: ChainType.ETHEREUM,
+      chainType: ChainType.POLYGON_AMOY,
       name: 'TheVastlinkToken',
       symbol: 'TVWT',
       decimals: 18,

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react"
 import { Address, parseEther, isAddress, formatEther } from 'viem'
 
-import { cn, emailRegex, formatDecimal, getEstimatedGasFeeByToken, handleError, log, trimTrailingZeros } from "@/lib/utils"
+import { cn, emailRegex, formatDecimal, getAddressByTokenType, getEstimatedGasFeeByToken, handleError, log, trimTrailingZeros } from "@/lib/utils"
 
 import { Loader, CircleCheck, AlertCircle, X, LoaderCircle } from "lucide-react"
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,7 @@ import { DailyTransactionLimitModal } from "@/pages/profile/components/DailyTran
 import { useDailyWithdrawalLimits } from "@/hooks/useDailyWithdrawalLimits"
 import { otpService } from "@/services/OTPService";
 import { VerificationModal } from "@/components/VerificationModal";
+import { useUserInfo } from "@/hooks/user/useUserInfo";
 
 const tokenTypes = theTokenListingService.getAllTokens()
 
@@ -53,6 +54,7 @@ export function SendModal({
   defaultNote?: string;
   onClose?: () => void;
 }) {
+  const { data: userInfo } = useUserInfo()
   const [to, setTo] = useState('')
   const [amount, setAmount] = useState('')
   const [note, setNote] = useState('')
@@ -295,6 +297,7 @@ export function SendModal({
       log('amt', amt)
 
       setSending(true)
+      const fromAddress = getAddressByTokenType(currentTokenType, userInfo?.chainAddresses || {})
 
       const {
         needOtp,
@@ -302,6 +305,7 @@ export function SendModal({
         message,
         transactionId
       } = await keyManagementService.signTransaction({
+        fromAddress,
         toAddress,
         amount: amt,
         token: currentTokenType,

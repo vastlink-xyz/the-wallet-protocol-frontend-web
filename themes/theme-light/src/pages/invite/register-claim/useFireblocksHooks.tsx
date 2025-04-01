@@ -78,8 +78,8 @@ export const useFireblocksHooks = ({ onAddressGenerated, onError }: FireblocksHo
       
       // Account ID default is 0
       const accountId = 0;
-      // Using Sepolia testnet
-      const assetId = 'ETH_TEST5';
+      // Using Base Sepolia testnet
+      const assetId = 'BASECHAIN_ETH_TEST5';
       
       // Add asset
       await apiService.addAsset(deviceId, accountId, assetId);

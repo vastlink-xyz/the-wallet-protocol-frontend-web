@@ -8,7 +8,7 @@ export class BASE_ETH extends Token {
   constructor() {
     super({
       tokenType: TokenType.BASE_ETH,
-      chainType: ChainType.ETHEREUM,
+      chainType: ChainType.BASE_SEPOLIA,
       name: 'Base Sepolia',
       symbol: 'BaseSepoliaETH',
       decimals: 18,

@@ -8,7 +8,7 @@ export class MATIC extends Token {
   constructor() {
     super({
       tokenType: TokenType.MATIC,
-      chainType: ChainType.ETHEREUM,
+      chainType: ChainType.POLYGON,
       name: 'Polygon Amoy',
       symbol: 'POL',
       decimals: 18,

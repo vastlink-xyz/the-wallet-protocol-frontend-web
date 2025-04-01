@@ -1,9 +1,14 @@
 // export type TokenType = 'ETH' | 'MATIC' | 'TVWT'
 
 export enum ChainType {
-  BITCOIN = 'BITCOIN',
-  BITCOIN_TEST = 'BITCOIN_TEST',
-  ETHEREUM = 'ETHEREUM',
+  BITCOIN = "BITCOIN",
+  BITCOIN_TEST = "BITCOIN_TEST",
+  ETHEREUM = "ETHEREUM",
+  ETHEREUM_SEPOLIA = "ETHEREUM_SEPOLIA",
+  POLYGON = "POLYGON",
+  POLYGON_AMOY = "POLYGON_AMOY",
+  BASE = "BASE",
+  BASE_SEPOLIA = "BASE_SEPOLIA",
 }
 
 export enum TokenType {
