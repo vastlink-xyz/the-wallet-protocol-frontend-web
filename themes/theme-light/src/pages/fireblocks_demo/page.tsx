@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { useUserInfo } from '@/hooks/user/useUserInfo';
-import { encryptWithPublicKey, hashEncryptedData, OneHourMs } from '@/lib/utils';
+import { encryptWithPublicKey, hashEncryptedData, log, OneHourMs } from '@/lib/utils';
 import keyManagementService from '@/services/KeyManagementService';
 import { loadDeviceId, storeDeviceId } from '@/services/KeyManagementService/FireblocksKeyManagementService/deviceId';
 import { INewTransactionData, TPassphrases, TRequestDecodedData } from '@/services/KeyManagementService/FireblocksKeyManagementService/types';
@@ -61,6 +61,24 @@ export default function FireblocksDemoPage() {
     })
     setLoading(false)
   }
+  
+  const handleInitFireblocks = async () => {
+    setLoading(true)
+    if (!userInfoFetched || !userInfo) {
+      return
+    }
+    const deviceId = loadDeviceId(userInfo.sub)
+    log('deviceid', deviceId)
+    if (!deviceId) {
+      return
+    }
+    await keyManagementService.initFireblocksNCWInstance(deviceId)
+    setLoading(false)
+  }
+
+  const handleClearAllStorage = async () => {
+    await keyManagementService.config.fireblocksNCWInstance?.clearAllStorage()
+  }
 
   const handleGetWallets = async () => {
     setLoading(true)
@@ -115,7 +133,7 @@ export default function FireblocksDemoPage() {
     setLoading(false)
   }
   
-  const handleAddAsset = async () => {
+  const handleAddAssetBTC = async () => {
     setLoading(true)
     if (!userInfoFetched || !userInfo) {
       return
@@ -133,7 +151,42 @@ export default function FireblocksDemoPage() {
     setLoading(false)
   }
   
-  const handleGetAddress = async () => {
+  const handleAddAssetETH = async () => {
+    setLoading(true)
+    if (!userInfoFetched || !userInfo) {
+      return
+    }
+    const deviceId = loadDeviceId(userInfo.sub)
+    if (!deviceId) {
+      return
+    }
+    const accountId = 0
+    // const assetId = 'BASECHAIN_ETH_TEST5'
+    const assetId = 'ETH_TEST5'
+    await apiService.addAsset(deviceId, accountId, assetId);
+    const asset = await apiService.getAsset(deviceId, accountId, assetId);
+    console.log('asset', asset)
+    setLoading(false)
+  }
+  
+  const handleAddAssetVAST = async () => {
+    setLoading(true)
+    if (!userInfoFetched || !userInfo) {
+      return
+    }
+    const deviceId = loadDeviceId(userInfo.sub)
+    if (!deviceId) {
+      return
+    }
+    const accountId = 0
+    const assetId = 'VAST_B724A1Y3_6CZC'
+    await apiService.addAsset(deviceId, accountId, assetId);
+    const asset = await apiService.getAsset(deviceId, accountId, assetId);
+    console.log('asset', asset)
+    setLoading(false)
+  }
+  
+  const handleGetAddressBTC = async () => {
     setLoading(true)
     if (!userInfoFetched || !userInfo) {
       return
@@ -144,6 +197,23 @@ export default function FireblocksDemoPage() {
     }
     const accountId = 0
     const assetId = 'BTC_TEST'
+    const address = await apiService.getAddress(deviceId, accountId, assetId);
+    console.log('address', address)
+    setLoading(false)
+  }
+  
+  const handleGetAddressETH = async () => {
+    setLoading(true)
+    if (!userInfoFetched || !userInfo) {
+      return
+    }
+    const deviceId = loadDeviceId(userInfo.sub)
+    if (!deviceId) {
+      return
+    }
+    const accountId = 0
+    const assetId = 'ETH_TEST5'
+    // const assetId = 'BASECHAIN_ETH_TEST5'
     const address = await apiService.getAddress(deviceId, accountId, assetId);
     console.log('address', address)
     setLoading(false)
@@ -275,6 +345,33 @@ export default function FireblocksDemoPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleCreateTestTransaction = async () => {
+    setLoading(true)
+    if (!userInfoFetched || !userInfo) {
+      return
+    }
+    const deviceId = loadDeviceId(userInfo.sub)
+    if (!deviceId) {
+      return
+    }
+    const accountId = '0'
+    const assetId = 'VAST_B724A1Y3_6CZC'
+    const amount = '1'
+    const destinationAddress = '0x58AF9AdeE4B5b913Be1ab18f6647b03c89A35e8e'
+    const dataToSend: INewTransactionData = {
+      note: `API Transaction by ${deviceId}`,
+      accountId: accountId,
+      assetId: assetId,
+      amount: amount,
+      destAddress: destinationAddress,
+      feeLevel: 'LOW',
+      estimateFee: false,
+    };
+    const data = await apiService.createTransaction(deviceId, dataToSend)
+    log('data', data)
+    setLoading(false)
   }
 
   const handleCreateTypedMessageTransaction = async () => {
@@ -504,8 +601,9 @@ export default function FireblocksDemoPage() {
   }
 
   return <div>
-    <Button disabled={loading} onClick={handleVerifyRegisterByUserSub}>Sign up by user id and init fireblocks</Button>
-    <Button disabled={loading} onClick={handleSignInByUserSub}>Sign in by user id and init fireblocks</Button>
+    <Button disabled={loading} onClick={handleVerifyRegisterByUserSub}>Sign up by user id</Button>
+    <Button disabled={loading} onClick={handleSignInByUserSub}>Sign in by user id</Button>
+    <Button disabled={loading} onClick={handleInitFireblocks}>Init fireblocks</Button>
     <br />
     <Button disabled={loading} onClick={handleGetKeysStatus}>Get keys status</Button>
     <Button disabled={loading} onClick={handleGetWallets}>Get wallets</Button>
@@ -518,9 +616,12 @@ export default function FireblocksDemoPage() {
     <hr />
     <Button disabled={loading} onClick={handleAssetList}>Asset List</Button>
     <hr />
-    <Button disabled={loading} onClick={handleAddAsset}>Add Asset(BTC_TEST)</Button>
+    <Button disabled={loading} onClick={handleAddAssetBTC}>Add Asset(BTC_TEST)</Button>
+    <Button disabled={loading} onClick={handleAddAssetETH}>Add Asset(ETH_TEST5)</Button>
+    <Button disabled={loading} onClick={handleAddAssetVAST}>Add Asset(VAST)</Button>
     <hr />
-    <Button disabled={loading} onClick={handleGetAddress}>Get Address</Button>
+    <Button disabled={loading} onClick={handleGetAddressBTC}>Get Address BTC</Button>
+    <Button disabled={loading} onClick={handleGetAddressETH}>Get Address ETH</Button>
     <hr />
     <Button disabled={loading} onClick={handleGetBalance}>Get balance</Button>
     <hr />
@@ -530,6 +631,7 @@ export default function FireblocksDemoPage() {
       <Input placeholder='destination address' value={destinationAddress} onChange={(e) => setDestinationAddress(e.target.value)} />
       <Input placeholder='transaction id' value={txId} onChange={(e) => setTxId(e.target.value)} />
     </div>
+    <Button disabled={loading} onClick={handleCreateTestTransaction}>test Create a transaction</Button>
     <Button disabled={loading} onClick={handleCreateTransaction}>Create a transfer transaction</Button>
     <Button disabled={loading} onClick={handleCreateTypedMessageTransaction}>Create a typed message transaction</Button>
     {txId && <Button disabled={loading} onClick={handleGetTransaction}>Get transaction</Button>}
@@ -552,5 +654,6 @@ export default function FireblocksDemoPage() {
     <Button disabled={loading} onClick={handleRecoverPasswordWithGoogleDrive}>Recover password with Google Drive</Button>
     <br />
     <Button disabled={loading} onClick={handleTest}>Test</Button>
+    <Button disabled={loading} onClick={handleClearAllStorage}>Clear all storage</Button>
   </div>;
 }
