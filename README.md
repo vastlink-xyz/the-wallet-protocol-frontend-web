@@ -1,130 +1,36 @@
-# The Wallet Protocol Frontend Web
-
-A micro-frontend based implementation for The Wallet Protocol, using Next.js as the main application and Vite for sub-applications.
-
-## Architecture
-
-This project implements a micro-frontend architecture:
-
-- **Main Application**: Built with Next.js, serving as the container application
-- **Theme Sub-applications**: Built with Vite, running as independent sub-applications
-  - `themes/theme-light`: Light theme implementation
-  - `themes/theme-dark`: Dark theme implementation
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
 
-### Prerequisites
+First, run the development server:
 
-- Node.js (v20 or higher)
-- npm or yarn (for main application)
-- pnpm (for theme sub-applications)
-
-### Installation
-
-1. Clone the repository:
 ```bash
-git clone https://github.com/vastlink-xyz/the-wallet-protocol-frontend-web.git
-cd the-wallet-protocol-frontend-web
-```
-
-2. Install dependencies for main application:
-```bash
-npm install
-# or
-yarn install
-```
-
-3. Install dependencies for theme sub-applications:
-```bash
-cd themes/theme-light
-pnpm install
-cd ../theme-dark
-pnpm install
-```
-
-4. Start the development server:
-
-Main application:
-```bash
-# In root directory
 npm run dev
 # or
 yarn dev
-```
-
-Theme sub-applications:
-```bash
-# In respective theme directories
-npm run dev
 # or
-yarn dev
+pnpm dev
+# or
+bun dev
 ```
 
-The main application will be available at `http://localhost:3000` and the theme sub-applications will be available at `http://localhost:5173` and `http://localhost:5174`.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## Development Guide
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-### Project Structure
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-```
-├── src/                  # Main Next.js application source
-├── themes/              # Theme sub-applications
-│   ├── theme-light/    # Light theme Vite application
-│   └── theme-dark/     # Dark theme Vite application
-```
+## Learn More
 
-## Theme System
+To learn more about Next.js, take a look at the following resources:
 
-### Development Mode
-In development mode, the theme system works as follows:
-- Light theme runs on port 5173
-- Dark theme runs on port 5174
-- Theme selection is managed through URL parameters (`?theme=theme_light`) or cookies
-- The middleware automatically redirects requests to the appropriate theme's dev server
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-### Production Mode
-In production mode:
-- Compiled theme assets are served from `/public/dist/{theme_name}`
-- HTTPS is enforced for all requests
-- Theme assets are loaded dynamically based on user preference
-- Theme preference is persisted in cookies
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-### Theme Switching
-Themes can be switched in two ways:
-1. URL Parameter: Add `?theme=theme_light` or `?theme=theme_dark` to the URL
-2. Cookie: The system maintains a `current-theme` cookie that persists the user's theme preference
+## Deploy on Vercel
 
-## Deployment
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-### Prerequisites
-- Heroku CLI installed
-- Access to Heroku project
-- Git configured
-
-### Build and Deploy Process
-
-1. Build Sub-applications:
-   ```bash
-   # Navigate to the sub-application directory (e.g., themes/theme-light)
-   cd themes/theme-light
-   
-   # Build the sub-application
-   npm run build
-   ```
-   The compiled files will be generated in the main application's `public/dist` directory.
-
-2. Commit the Built Files:
-   ```bash
-   # From the root directory
-   git add .
-   git commit -m "🔧 build: sub-application"
-   git push
-   ```
-
-3. Deploy to Heroku:
-   ```bash
-   # From the root directory
-   node deploy.js
-   ```
-
-This will deploy the application to Heroku. Monitor the deployment process in the Heroku dashboard for any potential issues.
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

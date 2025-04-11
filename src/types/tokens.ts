@@ -1,1 +1,0 @@
-export type TokenType = 'ETH' | 'MATIC' | 'TVWT'
