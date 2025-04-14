@@ -14,6 +14,7 @@
     "@lit-protocol/lit-auth-client": "^7.1.0",
     "@lit-protocol/pkp-ethers": "^7.1.0",
     "@lit-protocol/types": "^7.1.0",
+    "@radix-ui/react-select": "^2.1.7",
     "@radix-ui/react-slot": "^1.2.0",
     "@simplewebauthn/browser": "^13.1.0",
     "@walletconnect/modal": "^2.7.0",

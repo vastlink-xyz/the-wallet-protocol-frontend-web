@@ -1,10 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
-import {
-  isSignInRedirect,
-  getProviderFromUrl,
-} from '@lit-protocol/lit-auth-client';
 import { AuthMethod } from '@lit-protocol/types';
-import { authenticateWithGoogle } from '@/lib/lit/lit';
+import { authenticateWithGoogle, DEFAULT_SIGNIN_REDIRECT, DEFAULT_SIGNUP_REDIRECT } from '@/lib/lit';
+import { log } from '@/lib/utils';
 
 export default function useAuthenticate(redirectUri?: string) {
   const [authMethod, setAuthMethod] = useState<AuthMethod>();
@@ -12,7 +9,7 @@ export default function useAuthenticate(redirectUri?: string) {
   const [error, setError] = useState<Error | undefined>();
 
   /**
-   * Handle Google OAuth redirect
+   * Handle Google OAuth authentication
    */
   const authWithGoogle = useCallback(async (): Promise<void> => {
     setLoading(true);
@@ -20,7 +17,9 @@ export default function useAuthenticate(redirectUri?: string) {
     setAuthMethod(undefined);
 
     try {
+      log('start authenticateWithGoogle', redirectUri);
       const result = await authenticateWithGoogle(redirectUri as string);
+      log('authenticateWithGoogle result', result);
       setAuthMethod(result);
     } catch (err) {
       setError(err instanceof Error ? err : new Error(String(err)));
@@ -28,17 +27,6 @@ export default function useAuthenticate(redirectUri?: string) {
       setLoading(false);
     }
   }, [redirectUri]);
-
-  useEffect(() => {
-    // Check if user is redirected back from social login
-    if (redirectUri && isSignInRedirect(redirectUri)) {
-      // If redirected, authenticate with social provider
-      const providerName = getProviderFromUrl();
-      if (providerName === 'google') {
-        authWithGoogle();
-      }
-    }
-  }, [redirectUri, authWithGoogle]);
 
   return {
     authWithGoogle,

@@ -1,74 +1,78 @@
 import {
-  GoogleProvider,
-  LitRelay,
-} from '@lit-protocol/lit-auth-client';
-import { LitNodeClient } from '@lit-protocol/lit-node-client';
-import {
   AUTH_METHOD_SCOPE,
   AUTH_METHOD_TYPE,
-  LIT_ABILITY,
-  LIT_NETWORK,
-  LIT_RPC,
 } from '@lit-protocol/constants';
 import {
   AuthMethod,
-  GetSessionSigsProps,
   IRelayPKP,
   SessionSigs,
 } from '@lit-protocol/types';
-import { LitPKPResource } from '@lit-protocol/auth-helpers';
-import { ORIGIN, litNodeClient, getGoogleProvider } from './lit';
+import { ORIGIN, litNodeClient, getGoogleProvider } from '.';
+import { Buffer } from 'buffer';
+import { utils } from 'ethers';
 
 /**
- * 铸造一个与特定Lit Action永久绑定的PKP
- * 该PKP将只能执行指定的Lit Action，无法被修改
+ * Mint a PKP permanently bound to a specific Lit Action
+ * This PKP will only be able to execute the specified Lit Action and cannot be modified
  */
-export async function mintPKPWithPermanentLitAction(
+export async function mintPKPWithPermanentLitAction({
+  authMethod,
+  litActionIpfsId,
+  redirectUri,
+}: {
   authMethod: AuthMethod,
-  litActionIpfsId: string
+  litActionIpfsId: string,
+  redirectUri: string,
+}
 ): Promise<IRelayPKP> {
   const provider = authMethod.authMethodType === AUTH_METHOD_TYPE.GoogleJwt 
-    ? getGoogleProvider(ORIGIN + '/login')
+    ? getGoogleProvider(redirectUri)
     : null;
     
   if (!provider) {
     throw new Error('Provider not available for this auth method');
   }
 
-  // 2. 设置权限 - 关键：只允许特定的Lit Action
+  // Convert IPFS CID to bytes32 format
+  const bytes = Buffer.from(utils.base58.decode(litActionIpfsId));
+  const authMethodId = `0x${bytes.toString('hex')}`;
+
+  // 2. Set permissions - Key: only allow specific Lit Action
   const options = {
+    permittedAuthMethodTypes: [AUTH_METHOD_TYPE.LitAction],
+    permittedAuthMethodIds: [authMethodId],
+    permittedAuthMethodPubkeys: ['0x'],
     permittedAuthMethodScopes: [[AUTH_METHOD_SCOPE.SignAnything]],
-    // 这是关键部分 - 只允许这个特定的Lit Action
-    permittedActions: [litActionIpfsId],
-    // 关键：将PKP发送给自己，这样它可以自我管理
-    sendPkpToItself: true
+    addPkpEthAddressAsPermittedAddress: true,
+    sendPkpToItself: true,
+    keyType: 2 // Standard PKP type
   };
 
-  // 3. 通过中继服务器铸造PKP
-  console.log(`开始铸造绑定到IPFS ID ${litActionIpfsId}的PKP...`);
+  // 3. Mint PKP through relay server
+  console.log(`Starting to mint PKP bound to IPFS ID ${litActionIpfsId}...`);
   const txHash = await provider.mintPKPThroughRelayer(authMethod, options);
 
   let attempts = 3;
   let response = null;
 
-  // 4. 轮询直到获得结果
+  // 4. Poll until result is received
   while (attempts > 0) {
     try {
       response = await provider.relay.pollRequestUntilTerminalState(txHash);
       break;
     } catch (err) {
-      console.warn('铸造失败，重试中...', err);
+      console.warn('Minting failed, retrying...', err);
       await new Promise(resolve => setTimeout(resolve, 1000));
       attempts--;
     }
   }
 
   if (!response || response.status !== 'Succeeded') {
-    throw new Error('PKP铸造失败');
+    throw new Error('PKP minting failed');
   }
 
   if (!response.pkpEthAddress || !response.pkpTokenId || !response.pkpPublicKey) {
-    throw new Error('返回属性未定义');
+    throw new Error('Response properties are undefined');
   }
 
   const newPKP: IRelayPKP = {
@@ -77,15 +81,15 @@ export async function mintPKPWithPermanentLitAction(
     ethAddress: response.pkpEthAddress,
   };
 
-  console.log(`PKP已铸造并永久绑定到Lit Action: ${litActionIpfsId}`);
-  console.log(`将PKP发送给自己选项已启用，无需额外烧毁步骤`);
+  console.log(`PKP has been minted and permanently bound to Lit Action: ${litActionIpfsId}`);
+  console.log(`Send PKP to itself option enabled, no additional burn step needed`);
 
   return newPKP;
 }
 
 /**
- * 执行永久绑定的Lit Action
- * 该函数确保只能使用指定的IPFS ID执行操作
+ * Execute permanently bound Lit Action
+ * This function ensures operations can only be executed with the specified IPFS ID
  */
 export async function executeSecuredLitAction({
   pkpPublicKey,
@@ -100,15 +104,15 @@ export async function executeSecuredLitAction({
   sessionSigs: SessionSigs;
   jsParams: any;
 }): Promise<any> {
-  // 连接到Lit网络（如果尚未连接）
+  // Connect to Lit network (if not already connected)
   await litNodeClient.connect();
   
-  console.log(`执行安全的Lit Action: ${litActionIpfsId}`);
+  console.log(`Executing secured Lit Action: ${litActionIpfsId}`);
   
-  // 执行Lit Action，仅使用其IPFS ID
-  // 注意：不提供代码字符串选项，只使用IPFS ID
+  // Execute Lit Action using only its IPFS ID
+  // Note: No code string option provided, only using IPFS ID
   const response = await litNodeClient.executeJs({
-    ipfsId: litActionIpfsId, // 使用IPFS ID确保不可变性
+    ipfsId: litActionIpfsId, // Use IPFS ID to ensure immutability
     sessionSigs,
     authMethods: [authMethod],
     jsParams: {
@@ -121,8 +125,8 @@ export async function executeSecuredLitAction({
 }
 
 /**
- * 创建一个用于执行永久绑定Lit Action的钩子
- * 可以在React组件中使用
+ * Create a hook for executing permanently bound Lit Action
+ * Can be used in React components
  */
 export function createPermanentLitActionExecutor({
   pkp,

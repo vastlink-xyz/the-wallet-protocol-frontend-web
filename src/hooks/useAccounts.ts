@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { AuthMethod, IRelayPKP } from '@lit-protocol/types';
-import { getPKPs, mintPKP } from '@/lib/lit/lit';
+import { getPKPs, mintPKP } from '@/lib/lit';
 
 export default function useAccounts() {
   const [accounts, setAccounts] = useState<IRelayPKP[]>([]);
@@ -8,12 +8,21 @@ export default function useAccounts() {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | undefined>();
 
-  const fetchAccounts = useCallback(async (authMethod: AuthMethod) => {
+  const fetchAccounts = useCallback(async ({
+    authMethod,
+    redirectUri,
+  }: {
+    authMethod: AuthMethod,
+    redirectUri: string,
+  }) => {
     setLoading(true);
     setError(undefined);
 
     try {
-      const pkps = await getPKPs(authMethod);
+      const pkps = await getPKPs({
+        authMethod,
+        redirectUri,
+      });
       setAccounts(pkps);
       
       if (pkps.length > 0) {
