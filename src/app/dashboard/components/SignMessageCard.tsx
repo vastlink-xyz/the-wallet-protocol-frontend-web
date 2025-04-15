@@ -2,9 +2,11 @@ import { Button } from "@/components/ui/button";
 import { ethers } from "ethers";
 import { useState, useEffect } from "react";
 import { PKPEthersWallet } from "@lit-protocol/pkp-ethers";
-import { litNodeClient } from "@/lib/lit";
+import { litNodeClient, SIGN_EIP_191_LIT_ACTION_IPFS_ID_2 } from "@/lib/lit";
 import { log } from "@/lib/utils";
 import { IRelayPKP, SessionSigs } from "@lit-protocol/types";
+import { LitContracts } from "@lit-protocol/contracts-sdk";
+import { AUTH_METHOD_SCOPE } from "@lit-protocol/constants";
 
 interface SignMessageCardProps {
   currentPkp: IRelayPKP;

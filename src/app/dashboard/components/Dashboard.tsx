@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { SignMessageCard } from "./SignMessageCard";
 import { AccountList } from "./AccountList";
 import { ExecuteLitActionCard } from "./ExecuteLitActionCard";
+import { PermissionManageCard } from "./PermissionManageCard";
 
 export default function Dashboard({ authMethod, redirectUri }: { authMethod: AuthMethod, redirectUri: string }) {
   const router = useRouter();
@@ -94,6 +95,10 @@ export default function Dashboard({ authMethod, redirectUri }: { authMethod: Aut
               currentPkp={currentPkp}
               sessionSigs={sessionSigs}
               authMethod={authMethod}
+            />
+            <PermissionManageCard
+              currentPkp={currentPkp}
+              sessionSigs={sessionSigs}
             />
           </>
         ) : null

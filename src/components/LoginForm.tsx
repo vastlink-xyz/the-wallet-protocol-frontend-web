@@ -1,12 +1,12 @@
 'use client'
 
 import { Button } from '@/components/ui/button';
-import { DEFAULT_SIGNIN_REDIRECT, signInWithGoogle } from '@/lib/lit';
+import { googleProvider } from '@/lib/lit';
 
 export default function LoginForm() {
 
   async function handleGoogleLogin() {
-    signInWithGoogle(DEFAULT_SIGNIN_REDIRECT);
+    await googleProvider.signIn();
   }
 
   return (

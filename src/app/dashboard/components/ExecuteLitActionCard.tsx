@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { AuthMethod, IRelayPKP, SessionSigs } from "@lit-protocol/types";
-import { executeSecuredLitAction } from "@/lib/lit/litPermanentBinding";
+import { executeSecuredLitAction } from "@/lib/lit/executeLitAction";
 import { log } from "@/lib/utils";
 import { MAGIC_NUMBER_LIT_ACTION_IPFS_ID, SIGN_AND_COMBINE_ECDSA_LIT_ACTION_IPFS_ID, SIGN_EIP_191_LIT_ACTION_IPFS_ID, SIGN_EIP_191_LIT_ACTION_IPFS_ID_2, SIGN_MESSAGE_LIT_ACTION_IPFS_ID } from "@/lib/lit";
 import { LIT_CHAINS } from "@lit-protocol/constants";
