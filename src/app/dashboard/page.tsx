@@ -1,18 +1,20 @@
 'use client'
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import Dashboard from '@/components/Dashboard';
-import useAuthenticate from '@/hooks/useAuthenticate';
-import { DEFAULT_SIGNIN_REDIRECT, DEFAULT_SIGNUP_REDIRECT } from '@/lib/lit';
+import Dashboard from '@/app/dashboard/components/Dashboard';
+import { DEFAULT_SIGNIN_REDIRECT, googleProvider } from '@/lib/lit';
 import { log } from '@/lib/utils';
 import { isSignInRedirect, getProviderFromUrl } from '@lit-protocol/lit-auth-client';
+import { AuthMethod } from '@lit-protocol/types';
+import { Button } from '@/components/ui/button';
 
 export default function DashboardPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null);
   const redirectUri = searchParams.get('redirectUri') || DEFAULT_SIGNIN_REDIRECT;
-  const { authMethod, loading, error, authWithGoogle } = useAuthenticate(redirectUri);
+  const [loading, setLoading] = useState(true)
 
   // Handle authentication redirect from Google
   useEffect(() => {
@@ -22,48 +24,35 @@ export default function DashboardPage() {
       const providerName = getProviderFromUrl();
       if (providerName === 'google') {
         // Continue Google authentication flow
-        authWithGoogle();
+        handleGoogleAuth();
+        setLoading(false)
       }
     }
-  }, [authWithGoogle]);
+  }, []);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center space-y-4">
-          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto"></div>
-          <p className="text-muted-foreground">Loading your account...</p>
-        </div>
-      </div>
-    );
+  const handleGoogleAuth = async () => {
+    const authMethod = await googleProvider.authenticate();
+    setAuthMethod(authMethod);
   }
 
-  if (error) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center space-y-4">
-          <div className="text-destructive text-2xl">⚠️</div>
-          <p className="text-destructive">Error: {error.message}</p>
-          <button 
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-md"
-            onClick={() => router.push('/')}
-          >
-            Back to Home
-          </button>
-        </div>
-      </div>
-    );
+  if (authMethod) {
+    return <Dashboard authMethod={authMethod} redirectUri={redirectUri} />;
   }
 
-  if (!authMethod) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center space-y-4">
-          <p className="text-muted-foreground">Waiting for authentication...</p>
-        </div>
+  return (
+    <div className="max-w-4xl mx-auto p-4">
+      <div className="bg-card p-6 rounded-lg border text-center space-y-4">
+        <h2 className="text-lg font-semibold">Welcome to Lit Protocol Dashboard</h2>
+        <p className="text-muted-foreground">
+          Please sign in with Google to access your PKP accounts and manage your digital assets.
+        </p>
+        <Button 
+          onClick={() => window.location.href = '/'} 
+          variant="outline"
+        >
+          Sign In
+        </Button>
       </div>
-    );
-  }
-
-  return <Dashboard authMethod={authMethod} redirectUri={redirectUri} />;
+    </div>
+  );
 }

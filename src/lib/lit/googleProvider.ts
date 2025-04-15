@@ -8,6 +8,7 @@ import {
 import { LitNodeClient } from '@lit-protocol/lit-node-client';
 import {
   SELECTED_LIT_NETWORK,
+  DEFAULT_SIGNIN_REDIRECT,
 } from './config';
 
 // Initialize Lit Node Client
@@ -23,30 +24,17 @@ const litRelay = new LitRelay({
   relayApiKey: 'test-api-key',
 });
 
-// Manage Google provider instances
-const providers = new Map<string, GoogleProvider>();
-
-/**
- * Get Google Provider instance
- * @param redirectUri Redirect URI
- */
-export function getGoogleProvider(redirectUri: string) {
-  if (!providers.has(redirectUri)) {
-    providers.set(redirectUri, new GoogleProvider({
-      relay: litRelay,
-      litNodeClient,
-      redirectUri,
-    }));
-  }
-  return providers.get(redirectUri)!;
-}
+export const googleProvider = new GoogleProvider({
+  relay: litRelay,
+  litNodeClient,
+  redirectUri: DEFAULT_SIGNIN_REDIRECT,
+});
 
 /**
  * Sign in with Google
  * @param redirectUri Redirect URI
  */
 export async function signInWithGoogle(redirectUri: string): Promise<void> {
-  const googleProvider = getGoogleProvider(redirectUri);
   await googleProvider.signIn();
 }
 
@@ -57,7 +45,6 @@ export async function signInWithGoogle(redirectUri: string): Promise<void> {
 export async function authenticateWithGoogle(
   redirectUri: string
 ): Promise<AuthMethod> {
-  const googleProvider = getGoogleProvider(redirectUri);
   const authMethod = await googleProvider.authenticate();
   return authMethod;
 } 
