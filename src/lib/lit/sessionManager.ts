@@ -8,10 +8,10 @@ import { LIT_ABILITY } from '@lit-protocol/constants';
 import { litNodeClient } from './googleProvider';
 
 /**
- * 生成会话签名
- * @param pkpPublicKey PKP 公钥
- * @param authMethod 认证方法
- * @param sessionSigsParams 会话签名参数
+ * Generate session signatures
+ * @param pkpPublicKey PKP public key
+ * @param authMethod Authentication method
+ * @param sessionSigsParams Session signature parameters
  */
 export async function getSessionSigs({
   pkpPublicKey,
