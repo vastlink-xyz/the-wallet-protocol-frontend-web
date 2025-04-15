@@ -7,6 +7,7 @@ import { log } from "@/lib/utils";
 import { IRelayPKP, SessionSigs } from "@lit-protocol/types";
 import { LitContracts } from "@lit-protocol/contracts-sdk";
 import { AUTH_METHOD_SCOPE } from "@lit-protocol/constants";
+import { Loader2 } from "lucide-react";
 
 interface SignMessageCardProps {
   currentPkp: IRelayPKP;
@@ -20,6 +21,7 @@ export function SignMessageCard({
   const [signature, setSignature] = useState<string>("");
   const [recoveredAddress, setRecoveredAddress] = useState<string>("");
   const [verified, setVerified] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Reset signature state when PKP changes
   useEffect(() => {
@@ -29,6 +31,7 @@ export function SignMessageCard({
   }, [currentPkp]);
 
   async function signMessageWithPKP() {
+    setIsLoading(true);
     try {
       await litNodeClient.connect();
 
@@ -62,13 +65,20 @@ export function SignMessageCard({
       setVerified(verified);
     } catch (err) {
       console.error(err);
+    } finally {
+      setIsLoading(false);
     }
   }
 
   return (
     <div className="bg-card p-4 rounded-lg border mb-6">
       <h2 className="text-lg font-semibold mb-2">Sign Message</h2>
-      <Button onClick={signMessageWithPKP} className="mb-4">
+      <Button 
+        onClick={signMessageWithPKP} 
+        className="mb-4"
+        disabled={isLoading}
+      >
+        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         Sign Message
       </Button>
       {signature && (

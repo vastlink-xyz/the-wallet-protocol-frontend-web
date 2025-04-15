@@ -1,17 +1,17 @@
 import { Button } from "@/components/ui/button";
 import { IRelayPKP } from "@lit-protocol/types";
 
-interface AccountListProps {
+interface PkpListProps {
   currentPkp: IRelayPKP;
   pkps: IRelayPKP[];
   onSelectPkp: (pkp: IRelayPKP) => void;
 }
 
-export function AccountList({ currentPkp, pkps, onSelectPkp }: AccountListProps) {
+export function PkpList({ currentPkp, pkps, onSelectPkp }: PkpListProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
       <div className="bg-card p-4 rounded-lg border">
-        <h2 className="text-lg font-semibold mb-2">Current Account</h2>
+        <h2 className="text-lg font-semibold mb-2">Current Pkp</h2>
         <div className="space-y-1 text-sm">
           <p><span className="font-medium">Public Key:</span> <span className="break-all">{currentPkp.publicKey}</span></p>
           <p><span className="font-medium">ETH Address:</span> <span className="break-all">{currentPkp.ethAddress}</span></p>
@@ -19,7 +19,7 @@ export function AccountList({ currentPkp, pkps, onSelectPkp }: AccountListProps)
       </div>
 
       <div className="bg-card p-4 rounded-lg border">
-        <h2 className="text-lg font-semibold mb-4">All Accounts</h2>
+        <h2 className="text-lg font-semibold mb-4">All Pkps</h2>
         <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
           {pkps.map((pkp, index) => (
             <div 
@@ -32,7 +32,7 @@ export function AccountList({ currentPkp, pkps, onSelectPkp }: AccountListProps)
             >
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-muted-foreground">Account #{index + 1}</span>
+                  <span className="text-sm font-medium text-muted-foreground">Pkp #{index + 1}</span>
                   {currentPkp.publicKey === pkp.publicKey && (
                     <span className="text-xs font-medium px-2 py-1 rounded-full bg-primary/10 text-primary">
                       Current

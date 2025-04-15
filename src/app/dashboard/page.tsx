@@ -44,7 +44,7 @@ export default function DashboardPage() {
       <div className="bg-card p-6 rounded-lg border text-center space-y-4">
         <h2 className="text-lg font-semibold">Welcome to Lit Protocol Dashboard</h2>
         <p className="text-muted-foreground">
-          Please sign in with Google to access your PKP accounts and manage your digital assets.
+          Please sign in with Google to access your PKP and manage your digital assets.
         </p>
         <Button 
           onClick={() => window.location.href = '/'} 
