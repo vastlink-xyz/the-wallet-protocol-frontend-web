@@ -9,34 +9,82 @@ import { isSignInRedirect, getProviderFromUrl } from '@lit-protocol/lit-auth-cli
 import { AuthMethod } from '@lit-protocol/types';
 import { Button } from '@/components/ui/button';
 
+const AUTH_METHOD_STORAGE_KEY = 'lit-auth-method';
+
 export default function DashboardPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null);
   const redirectUri = searchParams.get('redirectUri') || DEFAULT_SIGNIN_REDIRECT;
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(true);
+  const [googleAuthMethodId, setGoogleAuthMethodId] = useState<string | null>(null)
+
+  // Initialize by reading authMethod from localStorage
+  useEffect(() => {
+    const storedAuthMethod = localStorage.getItem(AUTH_METHOD_STORAGE_KEY);
+    if (storedAuthMethod) {
+      try {
+        setAuthMethod(JSON.parse(storedAuthMethod));
+      } catch (error) {
+        console.error('Failed to parse stored auth method:', error);
+        localStorage.removeItem(AUTH_METHOD_STORAGE_KEY);
+      }
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    async function getGoogleAuthMethodId() {
+      if (authMethod) {
+        const id = await googleProvider.getAuthMethodId(authMethod)
+        setGoogleAuthMethodId(id)
+      }
+    }
+    getGoogleAuthMethodId()
+  }, [authMethod])
 
   // Handle authentication redirect from Google
   useEffect(() => {
-    // Check if redirected from Google login
     if (isSignInRedirect(DEFAULT_SIGNIN_REDIRECT)) {
       log('Detected redirect from Google OAuth in dashboard page');
       const providerName = getProviderFromUrl();
       if (providerName === 'google') {
-        // Continue Google authentication flow
         handleGoogleAuth();
-        setLoading(false)
       }
     }
   }, []);
 
   const handleGoogleAuth = async () => {
-    const authMethod = await googleProvider.authenticate();
-    setAuthMethod(authMethod);
+    try {
+      const authMethod = await googleProvider.authenticate();
+      // Store authMethod in localStorage
+      localStorage.setItem(AUTH_METHOD_STORAGE_KEY, JSON.stringify(authMethod));
+      setAuthMethod(authMethod);
+    } catch (error) {
+      console.error('Google authentication failed:', error);
+      localStorage.removeItem(AUTH_METHOD_STORAGE_KEY);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem(AUTH_METHOD_STORAGE_KEY);
+    setAuthMethod(null);
+    router.push('/');
+  };
+
+  if (loading) {
+    return <div>Loading...</div>;
   }
 
   if (authMethod) {
-    return <Dashboard authMethod={authMethod} redirectUri={redirectUri} />;
+    return (
+      <Dashboard 
+        authMethod={authMethod} 
+        redirectUri={redirectUri} 
+        onLogout={handleLogout}
+        googleAuthMethodId={googleAuthMethodId}
+      />
+    );
   }
 
   return (

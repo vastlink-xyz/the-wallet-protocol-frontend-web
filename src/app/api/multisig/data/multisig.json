@@ -1,0 +1,29 @@
+{
+  "wallets": [
+    {
+      "id": "3e41e688-e295-4ae1-bd32-e23befe3b1b5",
+      "pkp": {
+        "tokenId": {
+          "type": "BigNumber",
+          "hex": "0x7dc4bfbb394f954156aedcf6d0630cf46f3a64dc0381190cde650b7fafd1673b"
+        },
+        "publicKey": "0x04634d8994bf1bd27bc5d848f2687c0d674694263e3d19ab79dd1a8608af513baddce2feb41964e4e76e6daffa67f002d5b544c17e08051ba7ad6b49a1e63c56fa",
+        "ethAddress": "0x59d122d48B354bCBdA9a07d3520367DCDa8271eD"
+      },
+      "createdAt": "2025-04-17T07:29:30.663Z",
+      "signers": [
+        {
+          "ethAddress": "0x59d122d48B354bCBdA9a07d3520367DCDa8271eD",
+          "publicKey": "0x04634d8994bf1bd27bc5d848f2687c0d674694263e3d19ab79dd1a8608af513baddce2feb41964e4e76e6daffa67f002d5b544c17e08051ba7ad6b49a1e63c56fa"
+        },
+        {
+          "ethAddress": "0x2995f3514c3f4Ebe32FbC484A107033b98f20390",
+          "publicKey": "0x04314fc6aac36c845b42d6cd972a52cbcb22d1eef28503165b4ed96676f3bdcff93eddddee8b074cf0a52c2a20952d8b7156b8d082e9931a302b7b2d607211c3f2"
+        }
+      ],
+      "threshold": 2,
+      "totalSigners": 2
+    }
+  ],
+  "transactions": []
+}

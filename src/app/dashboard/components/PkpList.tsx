@@ -1,13 +1,23 @@
 import { Button } from "@/components/ui/button";
-import { IRelayPKP } from "@lit-protocol/types";
+import { googleProvider } from "@/lib/lit";
+import { AuthMethod, IRelayPKP } from "@lit-protocol/types";
+import { useState } from "react";
 
 interface PkpListProps {
   currentPkp: IRelayPKP;
   pkps: IRelayPKP[];
   onSelectPkp: (pkp: IRelayPKP) => void;
+  authMethod: AuthMethod;
 }
 
-export function PkpList({ currentPkp, pkps, onSelectPkp }: PkpListProps) {
+export function PkpList({ currentPkp, pkps, onSelectPkp, authMethod }: PkpListProps) {
+  const [googleAuthMethodId, setGoogleAuthMethodId] = useState<string | null>(null)
+
+  const handleGetGoogleAuthMethodId = async () => {
+    const id = await googleProvider.getAuthMethodId(authMethod)
+    setGoogleAuthMethodId(id)
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
       <div className="bg-card p-4 rounded-lg border">
@@ -15,6 +25,8 @@ export function PkpList({ currentPkp, pkps, onSelectPkp }: PkpListProps) {
         <div className="space-y-1 text-sm">
           <p><span className="font-medium">Public Key:</span> <span className="break-all">{currentPkp.publicKey}</span></p>
           <p><span className="font-medium">ETH Address:</span> <span className="break-all">{currentPkp.ethAddress}</span></p>
+          <Button onClick={handleGetGoogleAuthMethodId}>Google AuthMethodId</Button>
+          <p><span className="font-medium">Google AuthMethodId:</span> <span className="break-all">{googleAuthMethodId}</span></p>
         </div>
       </div>
 

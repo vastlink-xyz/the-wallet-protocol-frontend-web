@@ -9,8 +9,16 @@ import { PkpList } from "./PkpList";
 import { ExecuteLitActionCard } from "./ExecuteLitActionCard";
 import { PermissionManageCard } from "./PermissionManageCard";
 import { Loader2 } from "lucide-react";
+import { Multisig } from './Multisig';
 
-export default function Dashboard({ authMethod, redirectUri }: { authMethod: AuthMethod, redirectUri: string }) {
+interface DashboardProps {
+  authMethod: AuthMethod;
+  redirectUri: string;
+  onLogout: () => void;
+  googleAuthMethodId: string | null;  
+}
+
+export default function Dashboard({ authMethod, redirectUri, onLogout, googleAuthMethodId }: DashboardProps) {
   const router = useRouter();
   const [pkps, setPkps] = useState<IRelayPKP[]>([]);
   const [currentPkp, setCurrentPkp] = useState<IRelayPKP | null>(null)
@@ -81,9 +89,8 @@ export default function Dashboard({ authMethod, redirectUri }: { authMethod: Aut
   }
 
   async function handleLogout() {
-    // localStorage.removeItem('lit-wallet-sig');
-    litNodeClient.disconnect()
-    router.push('/');
+    litNodeClient.disconnect();
+    onLogout();
   }
 
   async function handleSelectPkp(pkp: IRelayPKP) {
@@ -146,12 +153,17 @@ export default function Dashboard({ authMethod, redirectUri }: { authMethod: Aut
         </Button>
       </div>
 
+      <div>
+        <p>Google AuthMethodId: {googleAuthMethodId}</p>
+      </div>
+
       {
         currentPkp ? (
           <PkpList
             currentPkp={currentPkp}
             pkps={pkps}
             onSelectPkp={handleSelectPkp}
+            authMethod={authMethod}
           />
         ) : null
       }
@@ -173,6 +185,15 @@ export default function Dashboard({ authMethod, redirectUri }: { authMethod: Aut
               sessionSigs={sessionSigs}
             />
           </>
+        ) : null
+      }
+
+      {
+        (currentPkp && sessionSigs) ? (
+          <Multisig
+            currentPkp={currentPkp}
+            sessionSigs={sessionSigs}
+          />
         ) : null
       }
     </div>
