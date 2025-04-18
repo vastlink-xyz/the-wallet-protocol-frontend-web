@@ -189,10 +189,12 @@ export default function Dashboard({ authMethod, redirectUri, onLogout, googleAut
       }
 
       {
-        (currentPkp && sessionSigs) ? (
+        (currentPkp && sessionSigs && googleAuthMethodId) ? (
           <Multisig
             currentPkp={currentPkp}
             sessionSigs={sessionSigs}
+            authMethod={authMethod}
+            googleAuthMethodId={googleAuthMethodId}
           />
         ) : null
       }

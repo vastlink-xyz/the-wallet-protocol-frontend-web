@@ -38,7 +38,6 @@ export async function POST(request: NextRequest) {
     const wallet = {
       id: randomUUID(),
       pkp: body.multisigPkp,
-      createdAt: new Date().toISOString(),
       signers: [
         {
           ethAddress: body.currentPkp.ethAddress,

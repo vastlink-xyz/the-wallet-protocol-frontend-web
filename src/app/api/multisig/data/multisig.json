@@ -1,16 +1,12 @@
 {
   "wallets": [
     {
-      "id": "3e41e688-e295-4ae1-bd32-e23befe3b1b5",
+      "id": "93e5f83e-651d-4349-83d1-4f93b77d6933",
       "pkp": {
-        "tokenId": {
-          "type": "BigNumber",
-          "hex": "0x7dc4bfbb394f954156aedcf6d0630cf46f3a64dc0381190cde650b7fafd1673b"
-        },
-        "publicKey": "0x04634d8994bf1bd27bc5d848f2687c0d674694263e3d19ab79dd1a8608af513baddce2feb41964e4e76e6daffa67f002d5b544c17e08051ba7ad6b49a1e63c56fa",
-        "ethAddress": "0x59d122d48B354bCBdA9a07d3520367DCDa8271eD"
+        "tokenId": "0x557d6ac2ef55db840d502d3aa7ed80ae0447bf13947ec9e8a99d70f8dc761784",
+        "publicKey": "0x049ee341a3a8c6106ac875093ee6e34ad9ff3927b06a4f7b25c2733b8a3cff6918b19ddc65726e091fceba32677ebc923e0ea462526f7a79ce74f52eff63425396",
+        "ethAddress": "0xEf371822b59a15145FD6278348c54Af6f8d0167f"
       },
-      "createdAt": "2025-04-17T07:29:30.663Z",
       "signers": [
         {
           "ethAddress": "0x59d122d48B354bCBdA9a07d3520367DCDa8271eD",
@@ -25,5 +21,24 @@
       "totalSigners": 2
     }
   ],
-  "transactions": []
+  "transactions": [],
+  "messageProposals": [
+    {
+      "id": "82ac7d82-cd22-45ec-a2cd-55ebfd37deab",
+      "walletId": "93e5f83e-651d-4349-83d1-4f93b77d6933",
+      "status": "completed",
+      "createdBy": "0x59d122d48B354bCBdA9a07d3520367DCDa8271eD",
+      "message": "hi",
+      "signatures": [
+        {
+          "signer": "0x59d122d48B354bCBdA9a07d3520367DCDa8271eD",
+          "signature": "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        },
+        {
+          "signer": "0x2995f3514c3f4Ebe32FbC484A107033b98f20390",
+          "signature": "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        }
+      ]
+    }
+  ]
 }

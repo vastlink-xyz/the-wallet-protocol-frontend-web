@@ -3,10 +3,11 @@ import { useState } from "react";
 import { AuthMethod, IRelayPKP, SessionSigs } from "@lit-protocol/types";
 import { executeSecuredLitAction } from "@/lib/lit/executeLitAction";
 import { log } from "@/lib/utils";
-import { MAGIC_NUMBER_LIT_ACTION_IPFS_ID, SIGN_AND_COMBINE_ECDSA_LIT_ACTION_IPFS_ID, SIGN_EIP_191_LIT_ACTION_IPFS_ID, SIGN_EIP_191_LIT_ACTION_IPFS_ID_2, SIGN_MESSAGE_LIT_ACTION_IPFS_ID } from "@/lib/lit";
+import { litNodeClient, MAGIC_NUMBER_LIT_ACTION_IPFS_ID, SIGN_AND_COMBINE_ECDSA_LIT_ACTION_IPFS_ID, SIGN_EIP_191_LIT_ACTION_IPFS_ID, SIGN_EIP_191_LIT_ACTION_IPFS_ID_2, SIGN_MESSAGE_LIT_ACTION_IPFS_ID } from "@/lib/lit";
 import { LIT_CHAINS } from "@lit-protocol/constants";
 import { ethers } from "ethers";
-
+import litActionCode1 from "@/lib/lit-action-code/sign-proposal.lit";
+import litActionCode2 from "@/lib/lit-action-code/verify-multisig.lit";
 // eth sepolia
 const chainInfo = {
   rpcUrl: LIT_CHAINS['sepolia'].rpcUrls[0],
@@ -110,6 +111,43 @@ export function ExecuteLitActionCard({
     }
   };
 
+  const handleSignLitAction = async () => {
+    await litNodeClient.connect();
+    const response = await litNodeClient.executeJs({
+      code: litActionCode1,
+      sessionSigs,
+      jsParams: {
+        message: 'Hello, world!',
+        publicKey: currentPkp.publicKey,
+        sigName: 'sig',
+      }
+    });
+    setResult(response);
+    const signature = response.signatures.sig.signature;
+    log('signature', signature);
+    const messageHash = ethers.utils.hashMessage('Hello, world!');
+    const recoveredAddress = ethers.utils.recoverAddress(messageHash, signature);
+    log('recoveredAddress', recoveredAddress);
+    log('currentPkp.ethAddress', currentPkp.ethAddress);
+  }
+
+  const handleVerifyLitAction = async () => {
+    await litNodeClient.connect();
+    const response = await litNodeClient.executeJs({
+      code: litActionCode2,
+      sessionSigs,
+      jsParams: {
+        message: 'Hello, world!',
+        signature: '0x329d4f496d93ee0b7030aa86124d374261754f9b00dbf7139afa2d79e164c054620c5e80c32813e497810fc4e2c01e1fe5e80594621ad326a4ca33f3380a041f1c',
+        publicKey: currentPkp.publicKey,
+      }
+    });
+    setResult(response);
+    // const signature = response.signatures.sigs.signature;
+    // log('signature', signature);
+  }
+  
+
   return (
     <div className="bg-card p-4 rounded-lg border mb-6">
       <h2 className="text-lg font-semibold mb-2">Execute Lit Action</h2>
@@ -126,6 +164,18 @@ export function ExecuteLitActionCard({
         disabled={loading}
       >
         {loading ? 'Executing...' : 'Execute Other Lit Action'}
+      </Button>
+      <Button 
+        onClick={handleSignLitAction} 
+        className="mb-4"
+      >
+        Execute Code Lit Action
+      </Button>
+      <Button 
+        onClick={handleVerifyLitAction} 
+        className="mb-4"
+      >
+        Verify Code Lit Action
       </Button>
       {result && (
         <div className="space-y-2">
