@@ -3,7 +3,7 @@ import { useState } from "react";
 import { AuthMethod, IRelayPKP, SessionSigs } from "@lit-protocol/types";
 import { executeSecuredLitAction } from "@/lib/lit/executeLitAction";
 import { log } from "@/lib/utils";
-import { litNodeClient, MAGIC_NUMBER_LIT_ACTION_IPFS_ID, SIGN_AND_COMBINE_ECDSA_LIT_ACTION_IPFS_ID, SIGN_EIP_191_LIT_ACTION_IPFS_ID, SIGN_EIP_191_LIT_ACTION_IPFS_ID_2, SIGN_MESSAGE_LIT_ACTION_IPFS_ID } from "@/lib/lit";
+import { litNodeClient, MAGIC_NUMBER_LIT_ACTION_IPFS_ID, MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID, SIGN_AND_COMBINE_ECDSA_LIT_ACTION_IPFS_ID, SIGN_EIP_191_LIT_ACTION_IPFS_ID, SIGN_EIP_191_LIT_ACTION_IPFS_ID_2, SIGN_MESSAGE_LIT_ACTION_IPFS_ID } from "@/lib/lit";
 import { LIT_CHAINS } from "@lit-protocol/constants";
 import { ethers } from "ethers";
 import litActionCode1 from "@/lib/lit-action-code/sign-proposal.lit";

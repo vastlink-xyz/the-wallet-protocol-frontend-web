@@ -17,4 +17,10 @@ export const SIGN_EIP_191_LIT_ACTION_IPFS_ID_3 = 'QmNxfM9MkN4UQbLhrxz5G3N8jd1L4V
 
 // used for multisig
 export const SIGN_ECDSA_LIT_ACTION_IPFS_ID = 'QmZYDyWetrpEb6a2gLJvHBdMMuRDqygueo8Zx1J5wzm7eB'
-export const MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID = 'QmUWHFT3Tpyp6RxbLN63Esx3z94VMdDc1hxFZUpfdR6aRP'
+export const MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID = 'QmYW2fWJJs4LGtB4x5pKfXj6nMAGSz2eFJ5YXuVYykVVmi'
+
+
+export const signer1PKPIndex = 29
+export const signer2PKPIndex = 2
+export const user1GoogleAuthMethodId = '0xe948f294fa97170e5abf6b7f001d5c130e2950baed4384994f78e860d40dccab'
+export const user2GoogleAuthMethodId = '0x92ae1dbc4ec9fe1eb01549bbaa858e58b8e6ccb69a59ceeca67971ddacaec925'

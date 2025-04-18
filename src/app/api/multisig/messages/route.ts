@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json()
-    const { proposalId, signer, signature, walletId } = body
+    const { proposalId, signer, signature, walletId, publicKey, status } = body
     
     const proposals = await getMessageProposals(walletId)
     const proposal = proposals.find(p => p.id === proposalId)
@@ -68,15 +68,18 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    // Add new signature
-    proposal.signatures.push({
-      signer,
-      signature
-    })
+    // Add new signature if provided
+    if (signature && signer) {
+      proposal.signatures.push({
+        signer,
+        publicKey,
+        signature,
+      })
+    }
 
-    // If we have all required signatures, mark as completed
-    if (proposal.signatures.length >= 2) { // Assuming we need 2 signatures
-      proposal.status = 'completed'
+    // Update status if explicitly provided
+    if (status) {
+      proposal.status = status;
     }
 
     await saveMessageProposal(proposal)

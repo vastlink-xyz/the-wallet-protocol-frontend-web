@@ -52,7 +52,8 @@ export interface MessageProposal {
   message: string       // The message to be signed
   signatures: {
     signer: string      // Address of the signer
-    signature: string   // EIP-191 signature
+    signature: string   // signature
+    publicKey: string
   }[]
 }
 

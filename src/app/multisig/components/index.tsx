@@ -6,10 +6,12 @@ import type { MultisigWallet, MessageProposal } from '@/app/api/multisig/storage
 import axios from 'axios'
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { mintMultisigPKP } from "../helper"
+import { executeSignLitAction, mintMultisigPKP } from "../helper"
 import { log } from "@/lib/utils"
-import { SIGN_EIP_191_LIT_ACTION_IPFS_ID_3 } from "@/lib/lit"
+import { getSessionSigsByPkp, MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID, SIGN_ECDSA_LIT_ACTION_IPFS_ID, SIGN_EIP_191_LIT_ACTION_IPFS_ID_3 } from "@/lib/lit"
 import { executeSecuredLitAction } from "@/lib/lit/executeLitAction"
+import { litNodeClient } from "@/lib/lit"
+import litActionCode from "@/lib/lit-action-code/verify-multisig.lit"
 
 export function Multisig({
   currentPkp,
@@ -24,10 +26,13 @@ export function Multisig({
   const [wallets, setWallets] = useState<MultisigWallet[]>([])
   const [proposals, setProposals] = useState<MessageProposal[]>([])
   const [selectedWalletId, setSelectedWalletId] = useState<string>('')
+  const [selectedWallet, setSelectedWallet] = useState<MultisigWallet | null>(null)
+  const [selectedMultisigPkp, setSelectedMultisigPkp] = useState<IRelayPKP | null>(null)
   const [message, setMessage] = useState('')
-  const [signer2Address, setSigner2Address] = useState('0x2995f3514c3f4Ebe32FbC484A107033b98f20390')
-  const [signer2PublicKey, setSigner2PublicKey] = useState('0x04314fc6aac36c845b42d6cd972a52cbcb22d1eef28503165b4ed96676f3bdcff93eddddee8b074cf0a52c2a20952d8b7156b8d082e9931a302b7b2d607211c3f2')
+  const [signer2Address, setSigner2Address] = useState('0x0685366FDCcEdDef205938F84C1EBc5F7c051a35')
+  const [signer2PublicKey, setSigner2PublicKey] = useState('0x04718684b5e3741d6eb2c8cd65d8ae14d669a5d021f934b3ffd9f4657eb2a4d63a73d3c807a7ac9831e7d6de1beb819ef13371120fcac691773a81745ee7e220d7')
   const [signer2GoogleAuthMethodId, setSigner2GoogleAuthMethodId] = useState('0x92ae1dbc4ec9fe1eb01549bbaa858e58b8e6ccb69a59ceeca67971ddacaec925')
+  const [executeResult, setExecuteResult] = useState<any>(null)
 
   useEffect(() => {
     fetchWallets()
@@ -61,7 +66,7 @@ export function Multisig({
 
       const multisigPkp = await mintMultisigPKP({
         authMethod,
-        litActionIpfsId: SIGN_EIP_191_LIT_ACTION_IPFS_ID_3,
+        litActionIpfsId: MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID,
         googleAuthMethodIds: [googleAuthMethodId, signer2GoogleAuthMethodId]
       })
       log('multisig pkp', multisigPkp)
@@ -86,18 +91,29 @@ export function Multisig({
     }
   }
 
-  // Fetch proposals when wallet is selected
+  // Update selected wallet and PKP when wallet ID changes
   useEffect(() => {
     if (selectedWalletId) {
       fetchProposals()
+      
+      // Set the selected wallet and multisig PKP
+      const wallet = wallets.find(w => w.id === selectedWalletId)
+      if (wallet) {
+        setSelectedWallet(wallet)
+        setSelectedMultisigPkp(wallet.pkp)
+      }
+    } else {
+      setSelectedWallet(null)
+      setSelectedMultisigPkp(null)
     }
-  }, [selectedWalletId])
+  }, [selectedWalletId, wallets])
 
   const fetchProposals = async () => {
     try {
       const { data } = await axios.get(`/api/multisig/messages?walletId=${selectedWalletId}`)
       if (data.success) {
         setProposals(data.data)
+        return data.data
       }
     } catch (error) {
       console.error('Failed to fetch proposals:', error)
@@ -135,24 +151,47 @@ export function Multisig({
     try {
       setIsLoading(true)
 
-      // TODO: Replace this with actual Lit Action signature
-      // This is a mock implementation
-      const mockSignature = {
-        signer: currentPkp.ethAddress,
-        signature: "0x" + "0".repeat(130), // Mock signature
-        signedAt: new Date().toISOString()
-      }
+      log('current pkp', currentPkp)
+      const sessionSigs = await getSessionSigsByPkp(authMethod, currentPkp)
+      log('session sigs', sessionSigs)
+
+      const signature = await executeSignLitAction({
+        ipfsId: SIGN_ECDSA_LIT_ACTION_IPFS_ID,
+        sessionSigs,
+        publicKey: currentPkp.publicKey,
+        message: proposal.message,
+      })
+      log('signature', signature)
 
       // Submit signature to API
       const response = await axios.put(`/api/multisig/messages`, {
         proposalId: proposal.id,
         walletId: proposal.walletId,
         signer: currentPkp.ethAddress,
-        signature: mockSignature.signature
+        signature,
+        publicKey: currentPkp.publicKey,
       })
 
       if (response.data.success) {
-        await fetchProposals() // Refresh proposals list
+        const newProposals = await fetchProposals() // Refresh proposals list
+        
+        // Find the updated proposal
+        const updatedProposal = newProposals.find((p: MessageProposal) => p.id === proposal.id)
+        
+        // Check if signatures have reached the threshold
+        if (updatedProposal && selectedWallet && updatedProposal.signatures.length >= selectedWallet.threshold) {
+          console.log('All required signatures collected for proposal:', proposal.id)
+          log('Multisig proposal complete:', {
+            proposalId: proposal.id,
+            message: proposal.message,
+            signatures: updatedProposal.signatures.length,
+            requiredSignatures: selectedWallet.threshold,
+            status: 'Complete'
+          })
+          
+          // Automatically execute the multisig action once threshold is reached
+          await executeMultisigLitAction(updatedProposal)
+        }
       }
     } catch (error) {
       console.error('Failed to sign proposal:', error)
@@ -163,6 +202,79 @@ export function Multisig({
 
   const hasUserSigned = (proposal: MessageProposal) => {
     return proposal.signatures.some(sig => sig.signer === currentPkp.ethAddress)
+  }
+  
+  // Function to execute a Lit Action using the multisig PKP
+  const executeMultisigLitAction = async (proposal: MessageProposal) => {
+    if (!selectedMultisigPkp || !selectedWallet || !authMethod) {
+      console.error('Missing multisig wallet information or auth method')
+      return
+    }
+    
+    try {
+      setIsLoading(true)
+      setExecuteResult(null)
+      
+      // Connect to Lit Network
+      await litNodeClient.connect()
+
+      log('selected mulsig pkp', selectedMultisigPkp)
+      
+      // Get session signatures for the current user
+      const sessionSigs = await getSessionSigsByPkp(authMethod, selectedMultisigPkp)
+      
+      log('Executing Lit Action with multisig PKP', {
+        proposalId: proposal.id,
+        multisigPkpAddress: selectedMultisigPkp.ethAddress,
+        signatures: proposal.signatures.length,
+        message: proposal.message
+      })
+
+      log('multisig wallet', selectedWallet)
+
+      const jsParams = {
+        message: proposal.message,
+        publicKeys: selectedWallet.signers.map(signer => signer.publicKey),
+        signatures: proposal.signatures.map(sig => sig.signature),
+        requiredSignatures: selectedWallet.threshold,
+        messageToSign: `Execution approved by multisig`,
+        publicKey: selectedMultisigPkp.publicKey
+      }
+      log('js params', jsParams)
+      
+      // Execute the Lit Action using the multisig verification
+      const response = await litNodeClient.executeJs({
+        ipfsId: MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID,
+        sessionSigs,
+        jsParams,
+      })
+      
+      log('Multisig Lit Action execution result:', response)
+      setExecuteResult(response)
+      
+      // Update the proposal status to completed if verification was successful
+      const responseObj = typeof response.response === 'string' 
+        ? JSON.parse(response.response) 
+        : response.response;
+        
+      if (responseObj.isValid) {
+        await axios.put(`/api/multisig/messages/status`, {
+          proposalId: proposal.id,
+          walletId: proposal.walletId,
+          status: 'completed'
+        })
+        
+        // Refresh proposals
+        await fetchProposals()
+      }
+      
+      return response
+    } catch (error: any) {
+      console.error('Failed to execute multisig Lit Action:', error)
+      setExecuteResult({ error: error.message || 'Unknown error' })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -246,6 +358,33 @@ export function Multisig({
 
       {selectedWalletId && (
         <div className="bg-card p-4 rounded-lg border">
+          
+          {/* Display selected wallet's PKP info */}
+          <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+            <h3 className="font-medium mb-2">Selected Multisig Wallet PKP Details</h3>
+            {wallets.filter(w => w.id === selectedWalletId).map(wallet => (
+              <div key={wallet.id} className="space-y-1">
+                <div className="text-sm">
+                  <span className="font-medium">PKP Address:</span> {wallet.pkp.ethAddress}
+                </div>
+                <div className="text-sm break-all">
+                  <span className="font-medium">PKP Public Key:</span> {wallet.pkp.publicKey}
+                </div>
+                <div className="text-sm">
+                  <span className="font-medium">Threshold:</span> {wallet.threshold} of {wallet.totalSigners} signers
+                </div>
+                <div className="text-sm">
+                  <span className="font-medium">Signers:</span>
+                </div>
+                {wallet.signers.map((signer, index) => (
+                  <div key={index} className="text-sm ml-4">
+                    <span className="font-medium">Signer {index + 1}:</span> {signer.ethAddress}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+
           <h2 className="text-lg font-semibold mb-4">Message Proposals</h2>
           
           {/* Create new proposal */}
@@ -275,19 +414,43 @@ export function Multisig({
                 <div className="text-sm text-gray-500">
                   Signatures: {proposal.signatures.length}
                 </div>
-                {proposal.status === 'pending' && !hasUserSigned(proposal) && (
-                  <Button
-                    onClick={() => handleSignProposal(proposal)}
-                    disabled={isLoading}
-                    className="mt-2"
-                  >
-                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Sign Proposal
-                  </Button>
-                )}
-                {hasUserSigned(proposal) && (
-                  <div className="text-sm text-green-600 mt-2">
-                    You have signed this proposal
+                
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {proposal.status === 'pending' && !hasUserSigned(proposal) && (
+                    <Button
+                      onClick={() => handleSignProposal(proposal)}
+                      disabled={isLoading}
+                    >
+                      {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Sign Proposal
+                    </Button>
+                  )}
+                  
+                  {hasUserSigned(proposal) && (
+                    <div className="text-sm text-green-600 flex items-center">
+                      You have signed this proposal
+                    </div>
+                  )}
+                  
+                  {proposal.status === 'pending' && selectedWallet &&
+                   proposal.signatures.length >= selectedWallet.threshold && (
+                    <Button
+                      onClick={() => executeMultisigLitAction(proposal)}
+                      disabled={isLoading}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Execute with Multisig PKP
+                    </Button>
+                  )}
+                </div>
+                
+                {executeResult && proposal.id === executeResult.proposalId && (
+                  <div className="mt-4 p-3 bg-gray-100 rounded text-sm">
+                    <div className="font-medium mb-1">Execution Result:</div>
+                    <pre className="whitespace-pre-wrap break-all">
+                      {JSON.stringify(executeResult, null, 2)}
+                    </pre>
                   </div>
                 )}
               </div>

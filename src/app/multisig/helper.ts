@@ -1,7 +1,7 @@
-import { googleProvider } from "@/lib/lit";
+import { googleProvider, litNodeClient } from "@/lib/lit";
 import { log } from "@/lib/utils";
 import { AUTH_METHOD_SCOPE, AUTH_METHOD_TYPE } from "@lit-protocol/constants";
-import { AuthMethod, IRelayPKP, MintRequestBody } from "@lit-protocol/types";
+import { AuthMethod, IRelayPKP, MintRequestBody, SessionSigs } from "@lit-protocol/types";
 import { utils } from "ethers";
 
 export async function mintMultisigPKP({
@@ -73,4 +73,30 @@ export async function mintMultisigPKP({
   console.log(`Send PKP to itself option enabled, no additional burn step needed`);
 
   return newPKP;
+}
+
+export async function executeSignLitAction({
+  ipfsId,
+  sessionSigs,
+  publicKey,
+  message,
+}: {
+  ipfsId: string
+  sessionSigs: SessionSigs
+  publicKey: string
+  message: string
+}) {
+  await litNodeClient.connect();
+  const response = await litNodeClient.executeJs({
+    ipfsId,
+    sessionSigs,
+    jsParams: {
+      message,
+      publicKey,
+      sigName: 'sig',
+    }
+  });
+
+  const signature = response.signatures.sig.signature;
+  return signature
 }

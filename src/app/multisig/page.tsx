@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Dashboard from '@/app/dashboard/components/Dashboard';
-import { DEFAULT_SIGNIN_REDIRECT, getPKPs, googleProvider } from '@/lib/lit';
+import { DEFAULT_SIGNIN_REDIRECT, getPKPs, googleProvider, signer1PKPIndex, signer2PKPIndex, user1GoogleAuthMethodId, user2GoogleAuthMethodId } from '@/lib/lit';
 import { log } from '@/lib/utils';
 import { isSignInRedirect, getProviderFromUrl } from '@lit-protocol/lit-auth-client';
 import { AuthMethod, IRelayPKP } from '@lit-protocol/types';
@@ -12,9 +12,6 @@ import { Multisig } from './components';
 import { Loader2 } from 'lucide-react';
 
 const AUTH_METHOD_STORAGE_KEY = 'lit-auth-method';
-
-const signer1PKPIndex = 24
-const signer2PKPIndex = 1
 
 export default function MultisigPage() {
   const router = useRouter();
@@ -30,7 +27,6 @@ export default function MultisigPage() {
   // Initialize by reading authMethod from localStorage
   useEffect(() => {
     const storedAuthMethod = localStorage.getItem(AUTH_METHOD_STORAGE_KEY);
-    log('storedAuthMethod', storedAuthMethod)
     if (storedAuthMethod) {
       try {
         setAuthMethod(JSON.parse(storedAuthMethod));
@@ -54,9 +50,9 @@ export default function MultisigPage() {
 
           // Set PKP index based on ID
           let selectedIndex = 0;
-          if (id === '0xe948f294fa97170e5abf6b7f001d5c130e2950baed4384994f78e860d40dccab') {
+          if (id === user1GoogleAuthMethodId) {
             selectedIndex = signer1PKPIndex;
-          } else if (id === '0x92ae1dbc4ec9fe1eb01549bbaa858e58b8e6ccb69a59ceeca67971ddacaec925') {
+          } else if (id === user2GoogleAuthMethodId) {
             selectedIndex = signer2PKPIndex;
           }
           setPkpIndex(selectedIndex);
