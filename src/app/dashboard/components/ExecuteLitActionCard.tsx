@@ -138,13 +138,20 @@ export function ExecuteLitActionCard({
       sessionSigs,
       jsParams: {
         message: 'Hello, world!',
-        signature: '0x329d4f496d93ee0b7030aa86124d374261754f9b00dbf7139afa2d79e164c054620c5e80c32813e497810fc4e2c01e1fe5e80594621ad326a4ca33f3380a041f1c',
-        publicKey: currentPkp.publicKey,
+        signatures: [
+          '0x329d4f496d93ee0b7030aa86124d374261754f9b00dbf7139afa2d79e164c054620c5e80c32813e497810fc4e2c01e1fe5e80594621ad326a4ca33f3380a041f1c',
+          '0x8ee8880677f757d68a979b9c9d9192dfd687c57e3ad5dc0f5405ea2a5b430fc540c56a11377e85314a38bf49c0fcc458caac92301318fb9b0d2a743d8884b8361b'
+        ],
+        publicKeys: [
+          currentPkp.publicKey,
+          '0x04669D215450DC2C7B1FD464F62C8322F034CEAC8C29BB4CE7CE20E1A3732CA8E53A3889657208F1483FBEE88AFC563050D4121CB547B5AE7B0CAE36BC40BB500C'
+        ],
+        requiredSignatures: 2,
+        messageToSign: 'This is a new message to be signed by the multisig PKP',
+        publicKey: currentPkp.publicKey
       }
     });
     setResult(response);
-    // const signature = response.signatures.sigs.signature;
-    // log('signature', signature);
   }
   
 

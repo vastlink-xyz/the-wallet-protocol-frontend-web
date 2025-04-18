@@ -14,3 +14,7 @@ export const SIGN_AND_COMBINE_ECDSA_LIT_ACTION_IPFS_ID = 'QmRHgdJa6BmkUfRD6mFpS4
 export const SIGN_EIP_191_LIT_ACTION_IPFS_ID = 'QmcBdSBjRCX9rtZwEJuiSh7W4oujGueuU95czgoShb4zwz'
 export const SIGN_EIP_191_LIT_ACTION_IPFS_ID_2 = 'QmNbv45FsFi5Acxb4CoVXukpchBX7XVn3oqXhrSyesygdQ'
 export const SIGN_EIP_191_LIT_ACTION_IPFS_ID_3 = 'QmNxfM9MkN4UQbLhrxz5G3N8jd1L4VzLMevVmxLqFGrauY'
+
+// used for multisig
+export const SIGN_ECDSA_LIT_ACTION_IPFS_ID = 'QmZYDyWetrpEb6a2gLJvHBdMMuRDqygueo8Zx1J5wzm7eB'
+export const MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID = 'QmUWHFT3Tpyp6RxbLN63Esx3z94VMdDc1hxFZUpfdR6aRP'

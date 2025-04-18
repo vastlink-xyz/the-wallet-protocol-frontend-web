@@ -1,24 +1,22 @@
 import { Button } from "@/components/ui/button"
-import { AuthMethod, IRelayPKP, SessionSigs } from "@lit-protocol/types"
+import { AuthMethod, IRelayPKP } from "@lit-protocol/types"
 import { Loader2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import type { MultisigWallet, MessageProposal } from '@/app/api/multisig/storage'
 import axios from 'axios'
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { mintMultisigPKP } from "./helper"
+import { mintMultisigPKP } from "../helper"
 import { log } from "@/lib/utils"
 import { SIGN_EIP_191_LIT_ACTION_IPFS_ID_3 } from "@/lib/lit"
 import { executeSecuredLitAction } from "@/lib/lit/executeLitAction"
 
 export function Multisig({
   currentPkp,
-  sessionSigs,
   authMethod,
   googleAuthMethodId,
 }: {
   currentPkp: IRelayPKP,
-  sessionSigs: SessionSigs,
   authMethod: AuthMethod,
   googleAuthMethodId: string,
 }) {
@@ -48,7 +46,7 @@ export function Multisig({
   }
 
   const handleCreateMultisigPKP = async () => {
-    if (!currentPkp || !sessionSigs || !signer2Address || !signer2PublicKey) {
+    if (!currentPkp || !signer2Address || !signer2PublicKey) {
       console.error('Missing required information')
       return
     }
@@ -129,7 +127,7 @@ export function Multisig({
   }
 
   const handleSignProposal = async (proposal: MessageProposal) => {
-    if (!currentPkp || !sessionSigs || !authMethod) {
+    if (!currentPkp || !authMethod) {
       console.error('Missing required information for signing')
       return
     }

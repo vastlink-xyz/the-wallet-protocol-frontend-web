@@ -9,7 +9,6 @@ import { PkpList } from "./PkpList";
 import { ExecuteLitActionCard } from "./ExecuteLitActionCard";
 import { PermissionManageCard } from "./PermissionManageCard";
 import { Loader2 } from "lucide-react";
-import { Multisig } from './Multisig';
 
 interface DashboardProps {
   authMethod: AuthMethod;
@@ -119,7 +118,10 @@ export default function Dashboard({ authMethod, redirectUri, onLogout, googleAut
     <div className="max-w-4xl mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Dashboard</h1>
-        <Button onClick={handleLogout} variant="outline">Logout</Button>
+        <div className="flex gap-2">
+          <Button onClick={() => router.push('/multisig')} variant="outline">Multisig</Button>
+          <Button onClick={handleLogout} variant="outline">Logout</Button>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-2 mb-4">
@@ -185,17 +187,6 @@ export default function Dashboard({ authMethod, redirectUri, onLogout, googleAut
               sessionSigs={sessionSigs}
             />
           </>
-        ) : null
-      }
-
-      {
-        (currentPkp && sessionSigs && googleAuthMethodId) ? (
-          <Multisig
-            currentPkp={currentPkp}
-            sessionSigs={sessionSigs}
-            authMethod={authMethod}
-            googleAuthMethodId={googleAuthMethodId}
-          />
         ) : null
       }
     </div>
