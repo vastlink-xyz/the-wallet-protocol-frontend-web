@@ -8,6 +8,7 @@ import { SignMessageCard } from "./SignMessageCard";
 import { PkpList } from "./PkpList";
 import { ExecuteLitActionCard } from "./ExecuteLitActionCard";
 import { PermissionManageCard } from "./PermissionManageCard";
+import { MFA } from "./MFA";
 import { Loader2 } from "lucide-react";
 
 interface DashboardProps {
@@ -192,6 +193,11 @@ export default function Dashboard({ authMethod, redirectUri, onLogout, googleAut
             <PermissionManageCard
               currentPkp={currentPkp}
               sessionSigs={sessionSigs}
+            />
+            <MFA
+              currentPkp={currentPkp}
+              sessionSigs={sessionSigs}
+              authMethod={authMethod}
             />
           </>
         ) : null

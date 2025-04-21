@@ -10,7 +10,6 @@ import litActionCode1 from "@/lib/lit-action-code/sign-proposal.lit";
 import litActionCode2 from "@/lib/lit-action-code/verify-multisig.lit";
 
 import litAuthCode from "@/app/dashboard/lit-action-code/lit-auth";
-import mfaLitActionCode from "@/app/dashboard/lit-action-code/mfa";
 import signTransactionLitActionCode from "@/app/dashboard/lit-action-code/sign-transaction";
 
 // eth sepolia
@@ -168,21 +167,6 @@ export function ExecuteLitActionCard({
     log('Lit Auth response:', response);
   }
 
-  const handleMFALitAction = async () => {
-    await litNodeClient.connect();
-    const response = await litNodeClient.executeJs({
-      code: mfaLitActionCode,
-      // code: litAuthCode,
-      sessionSigs,
-      jsParams: {
-        otp: '1234567',
-        publicKey: currentPkp.publicKey,
-        sigName: 'sig',
-      }
-    });
-    log('Lit Auth response:', response);
-  }
-
   const handleSignTransactionLitAction = async () => {
     const gasPrice = (await ethersProvider.getGasPrice()).toHexString()
     const nonce = await ethersProvider.getTransactionCount(currentPkp.ethAddress)
@@ -256,13 +240,6 @@ export function ExecuteLitActionCard({
         className="mb-4"
       >
         LitAuth Lit Action
-      </Button>
-
-      <Button 
-        onClick={handleMFALitAction} 
-        className="mb-4"
-      >
-        MFA Lit Action
       </Button>
 
       <Button 
