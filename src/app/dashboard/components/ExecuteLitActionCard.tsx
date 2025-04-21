@@ -8,6 +8,10 @@ import { LIT_CHAINS } from "@lit-protocol/constants";
 import { ethers } from "ethers";
 import litActionCode1 from "@/lib/lit-action-code/sign-proposal.lit";
 import litActionCode2 from "@/lib/lit-action-code/verify-multisig.lit";
+
+import litAuthCode from "@/app/dashboard/lit-action-code/lit-auth";
+import mfaLitActionCode from "@/app/dashboard/lit-action-code/mfa";
+
 // eth sepolia
 const chainInfo = {
   rpcUrl: LIT_CHAINS['sepolia'].rpcUrls[0],
@@ -153,7 +157,30 @@ export function ExecuteLitActionCard({
     });
     setResult(response);
   }
-  
+
+  const handleLitAuthLitAction = async () => {
+    await litNodeClient.connect();
+    const response = await litNodeClient.executeJs({
+      code: litAuthCode,
+      sessionSigs,
+    });
+    log('Lit Auth response:', response);
+  }
+
+  const handleMFALitAction = async () => {
+    await litNodeClient.connect();
+    const response = await litNodeClient.executeJs({
+      code: mfaLitActionCode,
+      // code: litAuthCode,
+      sessionSigs,
+      jsParams: {
+        otp: '123456',
+        publicKey: currentPkp.publicKey,
+        sigName: 'sig',
+      }
+    });
+    log('Lit Auth response:', response);
+  }
 
   return (
     <div className="bg-card p-4 rounded-lg border mb-6">
@@ -184,6 +211,21 @@ export function ExecuteLitActionCard({
       >
         Verify Code Lit Action
       </Button>
+
+      <Button 
+        onClick={handleLitAuthLitAction} 
+        className="mb-4"
+      >
+        LitAuth Lit Action
+      </Button>
+
+      <Button 
+        onClick={handleMFALitAction} 
+        className="mb-4"
+      >
+        MFA Lit Action
+      </Button>
+
       {result && (
         <div className="space-y-2">
           <div>

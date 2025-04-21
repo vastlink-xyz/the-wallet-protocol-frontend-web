@@ -112,7 +112,13 @@ export default function Dashboard({ authMethod, redirectUri, onLogout, googleAut
       }
     };
 
-    refreshSession();
+    // add 1 second delay before getting sessionSigs
+    const timer = setTimeout(() => {
+      refreshSession();
+    }, 1000);
+    
+    // clean up the timer
+    return () => clearTimeout(timer);
   }, [currentPkp, authMethod]);
 
   return (
