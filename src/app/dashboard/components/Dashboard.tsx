@@ -43,17 +43,17 @@ export default function Dashboard({ authMethod, redirectUri, onLogout, googleAut
     }
   }
 
-  const handleMintPkpTest = async () => {
+  const handleMintPkp = async () => {
     setIsLoading(true);
     try {
-      const newPKP = await mintPKPTest({
+      const newPKP = await mintPKPWithPermanentLitAction({
         authMethod,
-        litActionIpfsId: ''
+        litActionIpfsId: SIGN_ECDSA_LIT_ACTION_IPFS_ID,
       });
       setPkps(prev => [...prev, newPKP]);
       setCurrentPkp(newPKP);
     } catch (error) {
-      console.error("Error minting test PKP:", error);
+      console.error("Error minting PKP:", error);
     } finally {
       setIsLoading(false);
     }
@@ -155,11 +155,11 @@ export default function Dashboard({ authMethod, redirectUri, onLogout, googleAut
           mintPKPWithPermanentLitAction
         </Button>
         <Button 
-          onClick={handleMintPkpTest} 
+          onClick={handleMintPkp} 
           disabled={isLoading}
         >
           {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Mint pkp test
+          Mint PKP
         </Button>
       </div>
 

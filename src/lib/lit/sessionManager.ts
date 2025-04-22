@@ -48,7 +48,7 @@ export const getSessionSigsByPkp = async (authMethod: AuthMethod, pkp: IRelayPKP
   await litNodeClient.connect();
   const sessionSigs = await litNodeClient.getPkpSessionSigs({
     pkpPublicKey: pkp.publicKey,
-    expiration: new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString(), // 24 hours
+    // expiration: new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString(), // 24 hours
     authMethods: [authMethod],
     resourceAbilityRequests: [
       {

@@ -1,8 +1,5 @@
 import { IRelayPKP } from '@lit-protocol/types'
-import { promises as fs } from 'fs'
-import path from 'path'
-
-const DB_PATH = path.join(process.cwd(), 'src/app/api/multisig/data/multisig.json')
+import { connectToDatabase, MultisigWalletModel, MessageProposalModel } from './models'
 
 export interface MultisigWallet {
   id: string
@@ -13,35 +10,6 @@ export interface MultisigWallet {
   }[]
   threshold: number      // Number of signatures required to execute a transaction
   totalSigners: number   // Total number of signers in the wallet
-}
-
-interface DB {
-  wallets: MultisigWallet[]
-  messageProposals: MessageProposal[]
-}
-
-export async function getWallets(): Promise<MultisigWallet[]> {
-  try {
-    const data = await fs.readFile(DB_PATH, 'utf-8')
-    return JSON.parse(data).wallets
-  } catch {
-    return []
-  }
-}
-
-export async function saveWallet(wallet: MultisigWallet): Promise<void> {
-  try {
-    const data = await fs.readFile(DB_PATH, 'utf-8')
-    const db: DB = JSON.parse(data)
-    db.wallets.push(wallet)
-    await fs.writeFile(DB_PATH, JSON.stringify(db, null, 2))
-  } catch {
-    const db: DB = {
-      wallets: [wallet],
-      messageProposals: []
-    }
-    await fs.writeFile(DB_PATH, JSON.stringify(db, null, 2))
-  }
 }
 
 export interface MessageProposal {
@@ -57,39 +25,65 @@ export interface MessageProposal {
   }[]
 }
 
+export async function getWallets(): Promise<MultisigWallet[]> {
+  try {
+    await connectToDatabase();
+    const wallets = await MultisigWalletModel.find({}).lean();
+    return wallets.map(wallet => ({
+      id: wallet.id,
+      pkp: wallet.pkp as IRelayPKP,
+      signers: wallet.signers,
+      threshold: wallet.threshold,
+      totalSigners: wallet.totalSigners
+    }));
+  } catch (error) {
+    console.error('Failed to get wallets:', error);
+    return [];
+  }
+}
+
+export async function saveWallet(wallet: MultisigWallet): Promise<void> {
+  try {
+    await connectToDatabase();
+    await MultisigWalletModel.findOneAndUpdate(
+      { id: wallet.id }, 
+      wallet, 
+      { upsert: true, new: true }
+    );
+  } catch (error) {
+    console.error('Failed to save wallet:', error);
+    throw error;
+  }
+}
+
 export async function getMessageProposals(walletId: string): Promise<MessageProposal[]> {
   try {
-    const data = await fs.readFile(DB_PATH, 'utf-8')
-    const db: DB = JSON.parse(data)
-    return db.messageProposals?.filter(msg => msg.walletId === walletId) || []
-  } catch {
-    return []
+    await connectToDatabase();
+    const proposals = await MessageProposalModel.find({ walletId }).lean();
+    return proposals.map(proposal => ({
+      id: proposal.id,
+      walletId: proposal.walletId,
+      status: proposal.status as 'pending' | 'completed' | 'failed',
+      createdBy: proposal.createdBy,
+      message: proposal.message,
+      signatures: proposal.signatures
+    }));
+  } catch (error) {
+    console.error('Failed to get message proposals:', error);
+    return [];
   }
 }
 
 export async function saveMessageProposal(proposal: MessageProposal): Promise<void> {
   try {
-    const data = await fs.readFile(DB_PATH, 'utf-8')
-    const db: DB = JSON.parse(data)
-    db.messageProposals = db.messageProposals || []
-    
-    // Find the index of the existing proposal
-    const index = db.messageProposals.findIndex(p => p.id === proposal.id)
-    
-    if (index !== -1) {
-      // Update existing proposal
-      db.messageProposals[index] = proposal
-    } else {
-      // Add new proposal
-      db.messageProposals.push(proposal)
-    }
-    
-    await fs.writeFile(DB_PATH, JSON.stringify(db, null, 2))
-  } catch {
-    const db: DB = {
-      wallets: [],
-      messageProposals: [proposal]
-    }
-    await fs.writeFile(DB_PATH, JSON.stringify(db, null, 2))
+    await connectToDatabase();
+    await MessageProposalModel.findOneAndUpdate(
+      { id: proposal.id }, 
+      proposal, 
+      { upsert: true, new: true }
+    );
+  } catch (error) {
+    console.error('Failed to save message proposal:', error);
+    throw error;
   }
 }
