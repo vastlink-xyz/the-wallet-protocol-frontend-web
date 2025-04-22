@@ -30,7 +30,7 @@ export async function mintMultisigPKP({
     permittedAuthMethodIds: [litActioinAuthMethodId, ...googleAuthMethodIds],
     permittedAuthMethodPubkeys: ['0x', '0x', '0x'],
     permittedAuthMethodScopes: [[AUTH_METHOD_SCOPE.SignAnything], [AUTH_METHOD_SCOPE.NoPermissions], [AUTH_METHOD_SCOPE.NoPermissions]],
-    addPkpEthAddressAsPermittedAddress: true,
+    addPkpEthAddressAsPermittedAddress: false,
     sendPkpToItself: true,
     keyType: 2 // Standard PKP type
   };
