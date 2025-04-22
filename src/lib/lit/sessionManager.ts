@@ -21,13 +21,13 @@ export async function getSessionSigs({
 }: {
   pkpPublicKey: string;
   authMethod: AuthMethod;
-  sessionSigsParams: GetSessionSigsProps;
+  sessionSigsParams?: GetSessionSigsProps;
 }): Promise<SessionSigs> {
   await litNodeClient.connect();
   const sessionSigs = await litNodeClient.getPkpSessionSigs({
     ...sessionSigsParams,
     pkpPublicKey,
-    expiration: new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString(), // 24 hours
+    // expiration: new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString(), // 24 hours
     authMethods: [authMethod],
     resourceAbilityRequests: [
       {

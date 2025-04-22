@@ -33,7 +33,8 @@ export default function Dashboard({ authMethod, redirectUri, onLogout, googleAut
         redirectUri,
       });
       if (pkps.length) {
-        setCurrentPkp(pkps[pkps.length - 1])
+        // setCurrentPkp(pkps[pkps.length - 1])
+        setCurrentPkp(pkps[0])
       }
       setPkps(pkps);
     } catch (error) {
@@ -112,14 +113,7 @@ export default function Dashboard({ authMethod, redirectUri, onLogout, googleAut
         console.error("Failed to refresh session:", err);
       }
     };
-
-    // add 1 second delay before getting sessionSigs
-    const timer = setTimeout(() => {
-      refreshSession();
-    }, 1000);
-    
-    // clean up the timer
-    return () => clearTimeout(timer);
+    refreshSession()
   }, [currentPkp, authMethod]);
 
   return (

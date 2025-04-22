@@ -1,15 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import Dashboard from '@/app/dashboard/components/Dashboard';
 import { DEFAULT_SIGNIN_REDIRECT, getPKPs, googleProvider, signer1PKPIndex, signer2PKPIndex, user1GoogleAuthMethodId, user2GoogleAuthMethodId } from '@/lib/lit';
-import { log } from '@/lib/utils';
-import { isSignInRedirect, getProviderFromUrl } from '@lit-protocol/lit-auth-client';
 import { AuthMethod, IRelayPKP } from '@lit-protocol/types';
 import { Button } from '@/components/ui/button';
 import { Multisig } from './components';
 import { Loader2 } from 'lucide-react';
+import { Mint } from './components/Mint';
 
 const AUTH_METHOD_STORAGE_KEY = 'lit-auth-method';
 
@@ -22,7 +20,8 @@ export default function MultisigPage() {
   const [fetchingData, setFetchingData] = useState(false);
   const [googleAuthMethodId, setGoogleAuthMethodId] = useState<string | null>(null)
   const [currentPkp, setCurrentPkp] = useState<IRelayPKP | null>(null);
-  const [pkpIndex, setPkpIndex] = useState(0)
+  const [sessionPkp, setSessionPkp] = useState<IRelayPKP | null>(null);
+  const [litActionPkp, setLitActionPkp] = useState<IRelayPKP | null>(null);
 
   // Initialize by reading authMethod from localStorage
   useEffect(() => {
@@ -38,43 +37,47 @@ export default function MultisigPage() {
     setLoading(false);
   }, []);
 
-  useEffect(() => {
-    async function initAndFetchData() {
-      if (authMethod) {
-        setFetchingData(true);
-        try {
-          // Step 1: Get Google Auth Method ID
-          const id = await googleProvider.getAuthMethodId(authMethod)
-          setGoogleAuthMethodId(id)
-          log('id', id)
-
-          // Set PKP index based on ID
-          let selectedIndex = 0;
-          if (id === user1GoogleAuthMethodId) {
-            selectedIndex = signer1PKPIndex;
-          } else if (id === user2GoogleAuthMethodId) {
-            selectedIndex = signer2PKPIndex;
-          }
-          setPkpIndex(selectedIndex);
-
-          // Step 2: Get PKPs
-          const pkps = await getPKPs({
-            authMethod,
-            redirectUri,
-          });
-          if (pkps.length) {
-            setCurrentPkp(pkps[selectedIndex])
-          }
-        } catch (error) {
-          console.error("Error in initialization process:", error);
-        } finally {
-          setFetchingData(false);
+  // Fetch user PKPs from API
+  const fetchUserPkps = useCallback(async () => {
+    if (!authMethod) return;
+    
+    try {
+      setFetchingData(true);
+      const authMethodId = await googleProvider.getAuthMethodId(authMethod);
+      setGoogleAuthMethodId(authMethodId);
+      
+      const response = await fetch(`/api/user/pkp?authMethodId=${authMethodId}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.sessionPkp) {
+          setSessionPkp(data.sessionPkp);
+        }
+        if (data.litActionPkp) {
+          setLitActionPkp(data.litActionPkp);
+          setCurrentPkp(data.litActionPkp);
         }
       }
+    } catch (error) {
+      console.error("Error fetching user PKPs:", error);
+    } finally {
+      setFetchingData(false);
     }
-    
-    initAndFetchData();
-  }, [authMethod, redirectUri])
+  }, [authMethod]);
+
+  // Initial data fetch when authMethod is available
+  useEffect(() => {
+    if (authMethod) {
+      fetchUserPkps();
+    }
+  }, [authMethod, fetchUserPkps]);
+  
+  // Callback function for when Mint component completes PKP minting
+  const handleMintComplete = useCallback((newSessionPkp: IRelayPKP, newLitActionPkp: IRelayPKP) => {
+    setSessionPkp(newSessionPkp);
+    setLitActionPkp(newLitActionPkp);
+    setCurrentPkp(newLitActionPkp);
+  }, []);
 
   if (loading) {
     return (
@@ -98,48 +101,29 @@ export default function MultisigPage() {
     );
   }
 
-  if (authMethod && googleAuthMethodId && currentPkp) {
+  if (authMethod && googleAuthMethodId) {
     return (
-      <div className="max-w-4xl mx-auto p-4 space-y-6">
-        <div className="bg-card p-4 rounded-lg border">
-          <h2 className="text-lg font-semibold mb-2">Current PKP Information</h2>
-          <div className="space-y-2">
-            <div>
-              <span className="font-medium">Address:</span> 
-              <div className="text-sm bg-muted p-2 rounded break-all mt-1">
-                {currentPkp.ethAddress}
-              </div>
-            </div>
-            <div>
-              <span className="font-medium">Public Key:</span>
-              <div className="text-sm bg-muted p-2 rounded break-all mt-1">
-                {currentPkp.publicKey}
-              </div>
-            </div>
-            <div>
-              <span className="font-medium">PKP ID:</span>
-              <div className="text-sm bg-muted p-2 rounded break-all mt-1">
-                {currentPkp.tokenId ? 
-                  (typeof currentPkp.tokenId === 'object' ? 
-                    JSON.stringify(currentPkp.tokenId) : 
-                    String(currentPkp.tokenId)
-                  ) : 'N/A'}
-              </div>
-            </div>
-            <div>
-              <span className="font-medium">PKP Number:</span>
-              <div className="text-sm bg-muted p-2 rounded break-all mt-1">
-                # {pkpIndex + 1}
-              </div>
-            </div>
-          </div>
-        </div>
-        <Multisig
-          currentPkp={currentPkp}
-          authMethod={authMethod}
-          googleAuthMethodId={googleAuthMethodId}
+      <>
+        <Mint 
+          authMethod={authMethod} 
+          sessionPkp={sessionPkp}
+          litActionPkp={litActionPkp}
+          isLoading={fetchingData}
+          onMintComplete={handleMintComplete}
         />
-      </div>
+
+        {
+          litActionPkp ? (
+            <div className="max-w-4xl mx-auto p-4 space-y-6">
+              <Multisig
+                currentPkp={litActionPkp}
+                authMethod={authMethod}
+                googleAuthMethodId={googleAuthMethodId}
+              />
+            </div>
+          ) : null
+        }
+      </>
     );
   }
 

@@ -12,6 +12,7 @@ import { getSessionSigsByPkp, MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID, SIGN_
 import { executeSecuredLitAction } from "@/lib/lit/executeLitAction"
 import { litNodeClient } from "@/lib/lit"
 import litActionCode from "@/lib/lit-action-code/verify-multisig.lit"
+import { AlertCircle } from "lucide-react"
 
 export function Multisig({
   currentPkp,
@@ -29,10 +30,12 @@ export function Multisig({
   const [selectedWallet, setSelectedWallet] = useState<MultisigWallet | null>(null)
   const [selectedMultisigPkp, setSelectedMultisigPkp] = useState<IRelayPKP | null>(null)
   const [message, setMessage] = useState('')
-  const [signer2Address, setSigner2Address] = useState('0x0685366FDCcEdDef205938F84C1EBc5F7c051a35')
-  const [signer2PublicKey, setSigner2PublicKey] = useState('0x04718684b5e3741d6eb2c8cd65d8ae14d669a5d021f934b3ffd9f4657eb2a4d63a73d3c807a7ac9831e7d6de1beb819ef13371120fcac691773a81745ee7e220d7')
-  const [signer2GoogleAuthMethodId, setSigner2GoogleAuthMethodId] = useState('0x92ae1dbc4ec9fe1eb01549bbaa858e58b8e6ccb69a59ceeca67971ddacaec925')
+  const [signer2Address, setSigner2Address] = useState('')
+  const [signer2PublicKey, setSigner2PublicKey] = useState('')
+  const [signer2GoogleAuthMethodId, setSigner2GoogleAuthMethodId] = useState('')
   const [executeResult, setExecuteResult] = useState<any>(null)
+  const [fetchingUser2Info, setFetchingUser2Info] = useState(false)
+  const [userLookupError, setUserLookupError] = useState('')
 
   useEffect(() => {
     fetchWallets()
@@ -49,6 +52,47 @@ export function Multisig({
       console.error('Failed to fetch wallets:', error)
     }
   }
+
+  // Auto-fetch user information when ETH address changes
+  useEffect(() => {
+    if (signer2Address && signer2Address.startsWith('0x') && signer2Address.length === 42) {
+      fetchUserByAddress(signer2Address);
+    } else {
+      // Clear other fields if address is invalid
+      if (signer2PublicKey || signer2GoogleAuthMethodId) {
+        setSigner2PublicKey('');
+        setSigner2GoogleAuthMethodId('');
+        setUserLookupError('');
+      }
+    }
+  }, [signer2Address]);
+
+  const fetchUserByAddress = async (address: string) => {
+    setFetchingUser2Info(true);
+    setUserLookupError('');
+    
+    try {
+      const response = await axios.get(`/api/user/address?address=${address}`);
+      
+      if (response.data.success) {
+        const { authMethodId, pkp } = response.data.data;
+        setSigner2PublicKey(pkp.publicKey);
+        setSigner2GoogleAuthMethodId(authMethodId);
+        log('Found user for address', address, pkp, authMethodId);
+      } else {
+        setUserLookupError('User not found with this address');
+        setSigner2PublicKey('');
+        setSigner2GoogleAuthMethodId('');
+      }
+    } catch (error) {
+      console.error('Failed to fetch user by address:', error);
+      setUserLookupError('Failed to find user with this address');
+      setSigner2PublicKey('');
+      setSigner2GoogleAuthMethodId('');
+    } finally {
+      setFetchingUser2Info(false);
+    }
+  };
 
   const handleCreateMultisigPKP = async () => {
     if (!currentPkp || !signer2Address || !signer2PublicKey) {
@@ -295,38 +339,51 @@ export function Multisig({
 
           <div className="space-y-2">
             <Label htmlFor="signer2Address">Signer 2 Address</Label>
-            <Input
-              id="signer2Address"
-              value={signer2Address}
-              onChange={(e) => setSigner2Address(e.target.value)}
-              placeholder="Enter signer 2 ETH address"
-            />
+            <div className="relative">
+              <Input
+                id="signer2Address"
+                value={signer2Address}
+                onChange={(e) => setSigner2Address(e.target.value)}
+                placeholder="Enter signer 2 ETH address"
+                className={userLookupError ? "border-red-300" : ""}
+                disabled={fetchingUser2Info}
+              />
+              {fetchingUser2Info && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                </div>
+              )}
+            </div>
+            {userLookupError && (
+              <div className="text-sm text-red-500 flex items-center gap-1 mt-1">
+                <AlertCircle className="h-4 w-4" />
+                {userLookupError}
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="signer2PublicKey">Signer 2 Public Key</Label>
-            <Input
-              id="signer2PublicKey"
-              value={signer2PublicKey}
-              onChange={(e) => setSigner2PublicKey(e.target.value)}
-              placeholder="Enter signer 2 public key"
-            />
+            {signer2PublicKey ? (
+              <div className="p-2 text-sm break-all bg-gray-50 border rounded-md">
+                {signer2PublicKey}
+              </div>
+            ) : null}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="signer2GoogleAuthMethodId">Signer 2 Google Auth Method Id</Label>
-            <Input
-              id="signer2GoogleAuthMethodId"
-              value={signer2GoogleAuthMethodId}
-              onChange={(e) => setSigner2GoogleAuthMethodId(e.target.value)}
-              placeholder="Enter signer 2 google auth method id"
-            />
+            {signer2GoogleAuthMethodId ? (
+              <div className="p-2 text-sm break-all bg-gray-50 border rounded-md">
+                {signer2GoogleAuthMethodId}
+              </div>
+            ) : null}
           </div>
         </div>
 
         <Button 
           onClick={handleCreateMultisigPKP}
-          disabled={isLoading}
+          disabled={isLoading || fetchingUser2Info || !signer2Address || !signer2PublicKey || !signer2GoogleAuthMethodId}
         >
           {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Create Multisig Wallet
