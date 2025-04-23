@@ -8,10 +8,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { executeSignLitAction, mintMultisigPKP } from "../helper"
 import { log } from "@/lib/utils"
-import { getLitActionIpfsCid, getSessionSigsByPkp } from "@/lib/lit"
+import { getSessionSigsByPkp, MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID, SIGN_PROPOSAL_LIT_ACTION_IPFS_ID } from "@/lib/lit"
 import { litNodeClient } from "@/lib/lit"
-import signProposalLitActionCode from '@/lib/lit-action-code/sign-proposal.lit'
-import multisigLitActionCode from "@/lib/lit-action-code/verify-multisig.lit"
 import { AlertCircle } from "lucide-react"
 
 export function Multisig({
@@ -110,12 +108,7 @@ export function Multisig({
         publicKey: signer2PublicKey
       }
 
-      log('code', multisigLitActionCode)
-
-      const litActionIpfsId = await getLitActionIpfsCid({
-        input: multisigLitActionCode,
-        outputFormat: 'base58',
-      })
+      const litActionIpfsId = MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID
       log('lit actions ipfs id', litActionIpfsId)
 
       const multisigPkp = await mintMultisigPKP({
@@ -205,10 +198,7 @@ export function Multisig({
     try {
       setIsLoading(true)
 
-      const litActionIpfsId = await getLitActionIpfsCid({
-        input: signProposalLitActionCode,
-        outputFormat: 'base58',
-      })
+      const litActionIpfsId = SIGN_PROPOSAL_LIT_ACTION_IPFS_ID
       log('ipfsid', litActionIpfsId)
 
       log('current pkp', currentPkp)
@@ -304,10 +294,7 @@ export function Multisig({
       }
       log('js params', jsParams)
 
-      const litActionIpfsId = await getLitActionIpfsCid({
-        input: multisigLitActionCode,
-        outputFormat: 'base58',
-      })
+      const litActionIpfsId = await MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID
       log('ipfsid', litActionIpfsId)
 
       // Execute the Lit Action using the multisig verification

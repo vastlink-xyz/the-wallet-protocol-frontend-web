@@ -1,10 +1,9 @@
 import { Button } from "@/components/ui/button"
-import { mintPKPNormally, mintPKPWithPermanentLitAction, googleProvider, getLitActionIpfsCid } from "@/lib/lit";
+import { mintPKPNormally, mintPKPWithPermanentLitAction, googleProvider, SIGN_PROPOSAL_LIT_ACTION_IPFS_ID } from "@/lib/lit";
 import { AuthMethod, IRelayPKP } from "@lit-protocol/types";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import { PKPInfo } from "./PKPInfo";
-import signProposalLitActionCode from '@/lib/lit-action-code/sign-proposal.lit'
 import { log } from "@/lib/utils";
 
 interface MintProps {
@@ -51,10 +50,7 @@ export function Mint({
     setLoading(true);
     setResult(null);
     try {
-      const litActionIpfsId = await getLitActionIpfsCid({
-        input: signProposalLitActionCode,
-        outputFormat: 'base58',
-      })
+      const litActionIpfsId = SIGN_PROPOSAL_LIT_ACTION_IPFS_ID
       log('ipfsid', litActionIpfsId)
 
       // Step 1: Get auth method ID

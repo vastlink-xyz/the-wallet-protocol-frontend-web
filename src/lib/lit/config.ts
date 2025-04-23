@@ -17,8 +17,8 @@ export const SIGN_EIP_191_LIT_ACTION_IPFS_ID_2 = 'QmNbv45FsFi5Acxb4CoVXukpchBX7X
 export const SIGN_EIP_191_LIT_ACTION_IPFS_ID_3 = 'QmNxfM9MkN4UQbLhrxz5G3N8jd1L4VzLMevVmxLqFGrauY'
 
 // used for multisig
-export const SIGN_ECDSA_LIT_ACTION_IPFS_ID = 'QmZYDyWetrpEb6a2gLJvHBdMMuRDqygueo8Zx1J5wzm7eB'
-export const MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID = 'QmYW2fWJJs4LGtB4x5pKfXj6nMAGSz2eFJ5YXuVYykVVmi'
+export const SIGN_PROPOSAL_LIT_ACTION_IPFS_ID = 'QmUUR1QK2DVS9CfD6b5ggBtvH9UTJuirmCBcMAXkrj2P8p'
+export const MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID = 'QmauBMD1cogofyoSaBoCNxDXDAnvqth8jMvYLRvDvtAVLc'
 
 
 export const signer1PKPIndex = 29

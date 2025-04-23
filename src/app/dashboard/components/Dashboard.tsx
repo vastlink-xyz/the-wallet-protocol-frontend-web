@@ -11,6 +11,7 @@ import { PermissionManageCard } from "./PermissionManageCard";
 import { MFA } from "./MFA";
 import { Loader2 } from "lucide-react";
 import multisigLitActionCode from "@/lib/lit-action-code/verify-multisig.lit"
+// import signProposalLitActionCode from "@/lib/lit-action-code/sign-proposal.lit"
 
 interface DashboardProps {
   authMethod: AuthMethod;
@@ -116,9 +117,10 @@ export default function Dashboard({ authMethod, onLogout, googleAuthMethodId }: 
   }, [currentPkp, authMethod]);
 
   const handleLogLitActionCode = async () => {
-    log('code', multisigLitActionCode)
+    const code = multisigLitActionCode
+    log('code', code)
     const ipfsId = await getLitActionIpfsCid({
-      input: multisigLitActionCode,
+      input: code,
       outputFormat: 'base58',
     })
     log('ipfsId', ipfsId)
