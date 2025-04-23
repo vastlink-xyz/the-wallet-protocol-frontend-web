@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import { IRelayPKP } from '@lit-protocol/types';
 
 // MongoDB connection string
 const MONGODB_URI = process.env.NEXT_PUBLIC_DB_CONNECTION_STRING || '';

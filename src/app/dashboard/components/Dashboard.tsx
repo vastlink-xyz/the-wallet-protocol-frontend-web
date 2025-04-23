@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getPKPs, litNodeClient, getSessionSigsByPkp, mintPKPWithPermanentLitAction, MAGIC_NUMBER_LIT_ACTION_IPFS_ID, SIGN_MESSAGE_LIT_ACTION_IPFS_ID, SIGN_AND_COMBINE_ECDSA_LIT_ACTION_IPFS_ID, SIGN_EIP_191_LIT_ACTION_IPFS_ID, mintPKPNormally, mintPKPTest, SIGN_ECDSA_LIT_ACTION_IPFS_ID, getLitActionIpfsCid } from '@/lib/lit';
+import { getPKPs, litNodeClient, getSessionSigsByPkp, mintPKPWithPermanentLitAction, mintPKPNormally, SIGN_ECDSA_LIT_ACTION_IPFS_ID, getLitActionIpfsCid } from '@/lib/lit';
 import { log } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { AuthMethod, IRelayPKP, SessionSigs } from '@lit-protocol/types';
@@ -14,12 +14,11 @@ import multisigLitActionCode from "@/lib/lit-action-code/verify-multisig.lit"
 
 interface DashboardProps {
   authMethod: AuthMethod;
-  redirectUri: string;
   onLogout: () => void;
   googleAuthMethodId: string | null;  
 }
 
-export default function Dashboard({ authMethod, redirectUri, onLogout, googleAuthMethodId }: DashboardProps) {
+export default function Dashboard({ authMethod, onLogout, googleAuthMethodId }: DashboardProps) {
   const router = useRouter();
   const [pkps, setPkps] = useState<IRelayPKP[]>([]);
   const [currentPkp, setCurrentPkp] = useState<IRelayPKP | null>(null)
@@ -31,7 +30,6 @@ export default function Dashboard({ authMethod, redirectUri, onLogout, googleAut
     try {
       const pkps = await getPKPs({
         authMethod,
-        redirectUri,
       });
       if (pkps.length) {
         // setCurrentPkp(pkps[pkps.length - 1])

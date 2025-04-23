@@ -17,10 +17,8 @@ import { utils } from 'ethers';
  */
 export async function getPKPs({
   authMethod,
-  redirectUri,
 }: {
   authMethod: AuthMethod,
-  redirectUri: string,
 }): Promise<IRelayPKP[]> {
   const provider = authMethod.authMethodType === AUTH_METHOD_TYPE.GoogleJwt 
     ? googleProvider
@@ -209,12 +207,6 @@ export async function mintPKPTest({
   if (!provider) {
     throw new Error('Provider not available for this auth method');
   }
-
-  // Convert IPFS CID to bytes32 format
-  const bytes = Buffer.from(utils.base58.decode(litActionIpfsId));
-  const litActioinAuthMethodId = `0x${bytes.toString('hex')}`;
-
-  const googleAuthMethodId = await provider.getAuthMethodId(authMethod);
 
   // const options: MintRequestBody = {
   //   permittedAuthMethodTypes: [AUTH_METHOD_TYPE.LitAction, AUTH_METHOD_TYPE.GoogleJwt],

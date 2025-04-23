@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ethers } from "ethers";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { PKPEthersWallet } from "@lit-protocol/pkp-ethers";
 import { litNodeClient, SIGN_EIP_191_LIT_ACTION_IPFS_ID_2 } from "@/lib/lit";
 import { log } from "@/lib/utils";

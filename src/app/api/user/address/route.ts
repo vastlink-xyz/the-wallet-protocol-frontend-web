@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { User, getUserByPkpAddress } from '../storage';
+import { getUserByPkpAddress } from '../storage';
 
 // GET /api/user/address?address=0x...
 export async function GET(request: NextRequest) {

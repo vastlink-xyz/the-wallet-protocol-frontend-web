@@ -1,6 +1,5 @@
 import {
   AuthMethod,
-  IRelayPKP,
   SessionSigs,
 } from '@lit-protocol/types';
 import { litNodeClient } from './googleProvider';
@@ -26,6 +25,7 @@ export async function executeSecuredLitAction({
   await litNodeClient.connect();
   
   console.log(`Executing secured Lit Action: ${litActionIpfsId}`);
+  console.log(pkpPublicKey, authMethod)
   
   // Execute Lit Action using only its IPFS ID
   // Note: No code string option provided, only using IPFS ID

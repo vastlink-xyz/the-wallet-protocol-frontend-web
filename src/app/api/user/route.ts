@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUser, createUser, addPkpToUser, getUserPkps } from './storage';
-import { IRelayPKP } from '@lit-protocol/types';
+import { getUser, createUser } from './storage';
 
 // GET /api/user?authMethodId=xxx
 export async function GET(request: NextRequest) {

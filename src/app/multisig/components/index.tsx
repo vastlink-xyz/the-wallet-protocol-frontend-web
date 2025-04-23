@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { executeSignLitAction, mintMultisigPKP } from "../helper"
 import { log } from "@/lib/utils"
-import { getLitActionIpfsCid, getSessionSigsByPkp, MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID, SIGN_ECDSA_LIT_ACTION_IPFS_ID, SIGN_EIP_191_LIT_ACTION_IPFS_ID_3 } from "@/lib/lit"
+import { getLitActionIpfsCid, getSessionSigsByPkp } from "@/lib/lit"
 import { litNodeClient } from "@/lib/lit"
 import signProposalLitActionCode from '@/lib/lit-action-code/sign-proposal.lit'
 import multisigLitActionCode from "@/lib/lit-action-code/verify-multisig.lit"

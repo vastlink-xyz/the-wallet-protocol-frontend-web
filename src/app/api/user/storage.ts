@@ -1,7 +1,6 @@
 import { IRelayPKP } from '@lit-protocol/types'
 import { connectToDatabase, UserModel } from './models'
 import crypto from 'crypto'
-import { Document } from 'mongoose'
 
 export interface User {
   id: string

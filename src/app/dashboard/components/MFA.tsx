@@ -36,22 +36,6 @@ export function MFA({
     return res.data
   };
 
-  // Mock API call to verify OTP
-  const verifyOtp = async (otp: string) => {
-    const response = await fetch(`${baseUrl}/lit/verify-otp`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email,
-        otp
-      })
-    });
-    const data = await response.json();
-    return data.success;
-  };
-
   const handleGenerateOtp = async () => {
     try {
       setLoading(true);

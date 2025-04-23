@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     )
 
     return Response.json({ success: true, data: filteredWallets })
-  } catch (error) {
+  } catch {
     return Response.json(
       { success: false, error: "Failed to fetch wallets" },
       { status: 500 }
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
 
     await saveWallet(wallet)
     return Response.json({ success: true, data: wallet })
-  } catch (error) {
+  } catch {
     return Response.json(
       { success: false, error: "Failed to create wallet" },
       { status: 500 }

@@ -1,8 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { DEFAULT_SIGNIN_REDIRECT, getPKPs, googleProvider, litNodeClient, signer1PKPIndex, signer2PKPIndex, user1GoogleAuthMethodId, user2GoogleAuthMethodId } from '@/lib/lit';
+import { googleProvider } from '@/lib/lit';
 import { AuthMethod, IRelayPKP } from '@lit-protocol/types';
 import { Button } from '@/components/ui/button';
 import { Multisig } from './components';
@@ -12,14 +11,10 @@ import { Mint } from './components/Mint';
 const AUTH_METHOD_STORAGE_KEY = 'lit-auth-method';
 
 export default function MultisigPage() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
   const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null);
-  const redirectUri = searchParams.get('redirectUri') || DEFAULT_SIGNIN_REDIRECT;
   const [loading, setLoading] = useState(true);
   const [fetchingData, setFetchingData] = useState(false);
   const [googleAuthMethodId, setGoogleAuthMethodId] = useState<string | null>(null)
-  const [currentPkp, setCurrentPkp] = useState<IRelayPKP | null>(null);
   const [sessionPkp, setSessionPkp] = useState<IRelayPKP | null>(null);
   const [litActionPkp, setLitActionPkp] = useState<IRelayPKP | null>(null);
 
@@ -55,7 +50,6 @@ export default function MultisigPage() {
         }
         if (data.litActionPkp) {
           setLitActionPkp(data.litActionPkp);
-          setCurrentPkp(data.litActionPkp);
         }
       }
     } catch (error) {
@@ -76,7 +70,6 @@ export default function MultisigPage() {
   const handleMintComplete = useCallback((newSessionPkp: IRelayPKP, newLitActionPkp: IRelayPKP) => {
     setSessionPkp(newSessionPkp);
     setLitActionPkp(newLitActionPkp);
-    setCurrentPkp(newLitActionPkp);
   }, []);
 
   if (loading) {
@@ -106,7 +99,6 @@ export default function MultisigPage() {
       <>
         <Mint 
           authMethod={authMethod} 
-          sessionPkp={sessionPkp}
           litActionPkp={litActionPkp}
           isLoading={fetchingData}
           onMintComplete={handleMintComplete}

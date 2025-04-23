@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
 
     const proposals = await getMessageProposals(walletId)
     return Response.json({ success: true, data: proposals })
-  } catch (error) {
+  } catch {
     return Response.json(
       { success: false, error: "Failed to fetch message proposals" },
       { status: 500 }
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
 
     await saveMessageProposal({...proposal, status: 'pending' as const})
     return Response.json({ success: true, data: proposal })
-  } catch (error) {
+  } catch {
     return Response.json(
       { success: false, error: "Failed to create message proposal" },
       { status: 500 }
@@ -84,7 +84,7 @@ export async function PUT(request: NextRequest) {
 
     await saveMessageProposal(proposal)
     return Response.json({ success: true, data: proposal })
-  } catch (error) {
+  } catch {
     return Response.json(
       { success: false, error: "Failed to update message proposal" },
       { status: 500 }

@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button"
-import { mintPKPNormally, mintPKPWithPermanentLitAction, SIGN_ECDSA_LIT_ACTION_IPFS_ID, googleProvider, getLitActionIpfsCid } from "@/lib/lit";
+import { mintPKPNormally, mintPKPWithPermanentLitAction, googleProvider, getLitActionIpfsCid } from "@/lib/lit";
 import { AuthMethod, IRelayPKP } from "@lit-protocol/types";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
@@ -9,7 +9,6 @@ import { log } from "@/lib/utils";
 
 interface MintProps {
   authMethod: AuthMethod;
-  sessionPkp: IRelayPKP | null;
   litActionPkp: IRelayPKP | null;
   isLoading: boolean;
   onMintComplete: (sessionPkp: IRelayPKP, litActionPkp: IRelayPKP) => void;
@@ -17,7 +16,6 @@ interface MintProps {
 
 export function Mint({
   authMethod,
-  sessionPkp,
   litActionPkp,
   isLoading,
   onMintComplete

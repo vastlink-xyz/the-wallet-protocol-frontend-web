@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Dashboard from '@/app/dashboard/components/Dashboard';
 import { DEFAULT_SIGNIN_REDIRECT, googleProvider } from '@/lib/lit';
 import { log } from '@/lib/utils';
@@ -13,9 +13,7 @@ const AUTH_METHOD_STORAGE_KEY = 'lit-auth-method';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null);
-  const redirectUri = searchParams.get('redirectUri') || DEFAULT_SIGNIN_REDIRECT;
   const [loading, setLoading] = useState(true);
   const [googleAuthMethodId, setGoogleAuthMethodId] = useState<string | null>(null)
 
@@ -81,7 +79,6 @@ export default function DashboardPage() {
     return (
       <Dashboard 
         authMethod={authMethod} 
-        redirectUri={redirectUri} 
         onLogout={handleLogout}
         googleAuthMethodId={googleAuthMethodId}
       />
