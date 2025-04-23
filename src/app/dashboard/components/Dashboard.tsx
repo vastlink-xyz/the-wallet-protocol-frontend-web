@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getPKPs, litNodeClient, getSessionSigsByPkp, mintPKPWithPermanentLitAction, MAGIC_NUMBER_LIT_ACTION_IPFS_ID, SIGN_MESSAGE_LIT_ACTION_IPFS_ID, SIGN_AND_COMBINE_ECDSA_LIT_ACTION_IPFS_ID, SIGN_EIP_191_LIT_ACTION_IPFS_ID, mintPKPNormally, mintPKPTest, SIGN_ECDSA_LIT_ACTION_IPFS_ID } from '@/lib/lit';
+import { getPKPs, litNodeClient, getSessionSigsByPkp, mintPKPWithPermanentLitAction, MAGIC_NUMBER_LIT_ACTION_IPFS_ID, SIGN_MESSAGE_LIT_ACTION_IPFS_ID, SIGN_AND_COMBINE_ECDSA_LIT_ACTION_IPFS_ID, SIGN_EIP_191_LIT_ACTION_IPFS_ID, mintPKPNormally, mintPKPTest, SIGN_ECDSA_LIT_ACTION_IPFS_ID, getLitActionIpfsCid } from '@/lib/lit';
 import { log } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { AuthMethod, IRelayPKP, SessionSigs } from '@lit-protocol/types';
@@ -10,6 +10,7 @@ import { ExecuteLitActionCard } from "./ExecuteLitActionCard";
 import { PermissionManageCard } from "./PermissionManageCard";
 import { MFA } from "./MFA";
 import { Loader2 } from "lucide-react";
+import multisigLitActionCode from "@/lib/lit-action-code/verify-multisig.lit"
 
 interface DashboardProps {
   authMethod: AuthMethod;
@@ -116,6 +117,15 @@ export default function Dashboard({ authMethod, redirectUri, onLogout, googleAut
     refreshSession()
   }, [currentPkp, authMethod]);
 
+  const handleLogLitActionCode = async () => {
+    log('code', multisigLitActionCode)
+    const ipfsId = await getLitActionIpfsCid({
+      input: multisigLitActionCode,
+      outputFormat: 'base58',
+    })
+    log('ipfsId', ipfsId)
+  }
+
   return (
     <div className="max-w-4xl mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
@@ -127,6 +137,9 @@ export default function Dashboard({ authMethod, redirectUri, onLogout, googleAut
       </div>
 
       <div className="flex flex-wrap gap-2 mb-4">
+        <Button onClick={handleLogLitActionCode}>
+          Log Lit Action Code
+        </Button>
         <Button 
           onClick={handleFetchPkps} 
           disabled={isLoading}

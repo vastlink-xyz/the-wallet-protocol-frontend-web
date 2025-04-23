@@ -17,7 +17,7 @@ const go = async () => {
     const messageHash = ethers.utils.hashMessage(message);
     console.log('Message hash for verification:', messageHash);
 
-    const apiUrl = `https://71e6-58-152-13-49.ngrok-free.app/api/multisig/messages/signatures?proposalId=${proposalId}&walletId=${walletId}`;
+    const apiUrl = `https://dev-app-vastbase-eb1a4b4e8e63.herokuapp.com/api/multisig/messages/signatures?proposalId=${proposalId}&walletId=${walletId}`;
     const response = await fetch(apiUrl).then((response) => response.json());
     const signatures = response.data
 
