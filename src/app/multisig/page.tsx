@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { DEFAULT_SIGNIN_REDIRECT, getPKPs, googleProvider, signer1PKPIndex, signer2PKPIndex, user1GoogleAuthMethodId, user2GoogleAuthMethodId } from '@/lib/lit';
+import { DEFAULT_SIGNIN_REDIRECT, getPKPs, googleProvider, litNodeClient, signer1PKPIndex, signer2PKPIndex, user1GoogleAuthMethodId, user2GoogleAuthMethodId } from '@/lib/lit';
 import { AuthMethod, IRelayPKP } from '@lit-protocol/types';
 import { Button } from '@/components/ui/button';
 import { Multisig } from './components';
@@ -113,10 +113,11 @@ export default function MultisigPage() {
         />
 
         {
-          litActionPkp ? (
+          (litActionPkp && sessionPkp) ? (
             <div className="max-w-4xl mx-auto p-4 space-y-6">
               <Multisig
                 currentPkp={litActionPkp}
+                sessionPkp={sessionPkp}
                 authMethod={authMethod}
                 googleAuthMethodId={googleAuthMethodId}
               />

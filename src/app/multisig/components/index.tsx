@@ -8,18 +8,20 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { executeSignLitAction, mintMultisigPKP } from "../helper"
 import { log } from "@/lib/utils"
-import { getSessionSigsByPkp, MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID, SIGN_ECDSA_LIT_ACTION_IPFS_ID, SIGN_EIP_191_LIT_ACTION_IPFS_ID_3 } from "@/lib/lit"
-import { executeSecuredLitAction } from "@/lib/lit/executeLitAction"
+import { getLitActionIpfsCid, getSessionSigsByPkp, MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID, SIGN_ECDSA_LIT_ACTION_IPFS_ID, SIGN_EIP_191_LIT_ACTION_IPFS_ID_3 } from "@/lib/lit"
 import { litNodeClient } from "@/lib/lit"
-import litActionCode from "@/lib/lit-action-code/verify-multisig.lit"
+import signProposalLitActionCode from '@/lib/lit-action-code/sign-proposal.lit'
+import multisigLitActionCode from "@/lib/lit-action-code/verify-multisig.lit"
 import { AlertCircle } from "lucide-react"
 
 export function Multisig({
   currentPkp,
+  sessionPkp,
   authMethod,
   googleAuthMethodId,
 }: {
   currentPkp: IRelayPKP,
+  sessionPkp: IRelayPKP,
   authMethod: AuthMethod,
   googleAuthMethodId: string,
 }) {
@@ -108,9 +110,17 @@ export function Multisig({
         publicKey: signer2PublicKey
       }
 
+      log('code', multisigLitActionCode)
+
+      const litActionIpfsId = await getLitActionIpfsCid({
+        input: multisigLitActionCode,
+        outputFormat: 'base58',
+      })
+      log('lit actions ipfs id', litActionIpfsId)
+
       const multisigPkp = await mintMultisigPKP({
         authMethod,
-        litActionIpfsId: MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID,
+        litActionIpfsId,
         googleAuthMethodIds: [googleAuthMethodId, signer2GoogleAuthMethodId]
       })
       log('multisig pkp', multisigPkp)
@@ -195,12 +205,18 @@ export function Multisig({
     try {
       setIsLoading(true)
 
+      const litActionIpfsId = await getLitActionIpfsCid({
+        input: signProposalLitActionCode,
+        outputFormat: 'base58',
+      })
+      log('ipfsid', litActionIpfsId)
+
       log('current pkp', currentPkp)
-      const sessionSigs = await getSessionSigsByPkp(authMethod, currentPkp)
+      const sessionSigs = await getSessionSigsByPkp(authMethod, sessionPkp)
       log('session sigs', sessionSigs)
 
       const signature = await executeSignLitAction({
-        ipfsId: SIGN_ECDSA_LIT_ACTION_IPFS_ID,
+        ipfsId: litActionIpfsId,
         sessionSigs,
         publicKey: currentPkp.publicKey,
         message: proposal.message,
@@ -265,7 +281,7 @@ export function Multisig({
       log('selected mulsig pkp', selectedMultisigPkp)
       
       // Get session signatures for the current user
-      const sessionSigs = await getSessionSigsByPkp(authMethod, selectedMultisigPkp)
+      const sessionSigs = await getSessionSigsByPkp(authMethod, sessionPkp)
       
       log('Executing Lit Action with multisig PKP', {
         proposalId: proposal.id,
@@ -278,17 +294,25 @@ export function Multisig({
 
       const jsParams = {
         message: proposal.message,
-        publicKeys: selectedWallet.signers.map(signer => signer.publicKey),
-        signatures: proposal.signatures.map(sig => sig.signature),
+        publicKeys: proposal.signatures.map(signer => signer.publicKey),
+        // signatures: proposal.signatures.map(sig => sig.signature),
+        proposalId: proposal.id,
+        walletId: selectedWalletId,
         requiredSignatures: selectedWallet.threshold,
         messageToSign: `Execution approved by multisig`,
         publicKey: selectedMultisigPkp.publicKey
       }
       log('js params', jsParams)
-      
+
+      const litActionIpfsId = await getLitActionIpfsCid({
+        input: multisigLitActionCode,
+        outputFormat: 'base58',
+      })
+      log('ipfsid', litActionIpfsId)
+
       // Execute the Lit Action using the multisig verification
       const response = await litNodeClient.executeJs({
-        ipfsId: MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID,
+        ipfsId: litActionIpfsId,
         sessionSigs,
         jsParams,
       })

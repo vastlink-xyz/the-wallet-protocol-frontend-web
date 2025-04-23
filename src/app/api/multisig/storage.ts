@@ -74,6 +74,27 @@ export async function getMessageProposals(walletId: string): Promise<MessageProp
   }
 }
 
+export async function getProposalById(proposalId: string, walletId: string): Promise<MessageProposal | null> {
+  try {
+    await connectToDatabase();
+    const proposal = await MessageProposalModel.findOne({ id: proposalId, walletId }).exec();
+    
+    if (!proposal) return null;
+    
+    return {
+      id: proposal.id,
+      walletId: proposal.walletId,
+      status: proposal.status as 'pending' | 'completed' | 'failed',
+      createdBy: proposal.createdBy,
+      message: proposal.message,
+      signatures: proposal.signatures
+    };
+  } catch (error) {
+    console.error('Failed to get proposal by ID:', error);
+    return null;
+  }
+}
+
 export async function saveMessageProposal(proposal: MessageProposal): Promise<void> {
   try {
     await connectToDatabase();

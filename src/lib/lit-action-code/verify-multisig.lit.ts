@@ -6,7 +6,8 @@ const go = async () => {
   try {
     console.log('Input parameters:', {
       message: message,
-      signatures: signatures,
+      proposalId: proposalId,
+      walletId: walletId,
       publicKeysCount: publicKeys.length,
       requiredSignatures: requiredSignatures,
       hasMessageToSign: !!messageToSign,
@@ -15,6 +16,12 @@ const go = async () => {
     
     const messageHash = ethers.utils.hashMessage(message);
     console.log('Message hash for verification:', messageHash);
+
+    const apiUrl = `https://71e6-58-152-13-49.ngrok-free.app/api/multisig/messages/signatures?proposalId=${proposalId}&walletId=${walletId}`;
+    const response = await fetch(apiUrl).then((response) => response.json());
+    const signatures = response.data
+
+    console.log('signatures is', signatures)
     
     // Ensure signatures and public keys arrays have the same length
     if (signatures.length !== publicKeys.length) {
