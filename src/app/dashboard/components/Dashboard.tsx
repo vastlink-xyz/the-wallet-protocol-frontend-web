@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getPKPs, litNodeClient, getSessionSigsByPkp, mintPKPWithPermanentLitAction, mintPKPNormally, SIGN_ECDSA_LIT_ACTION_IPFS_ID, getLitActionIpfsCid } from '@/lib/lit';
+import { getPKPs, litNodeClient, getSessionSigsByPkp, mintPKPWithPermanentLitAction, mintPKPNormally, getLitActionIpfsCid, SIGN_PROPOSAL_LIT_ACTION_IPFS_ID } from '@/lib/lit';
 import { log } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { AuthMethod, IRelayPKP, SessionSigs } from '@lit-protocol/types';
@@ -49,7 +49,7 @@ export default function Dashboard({ authMethod, onLogout, googleAuthMethodId }: 
     try {
       const newPKP = await mintPKPWithPermanentLitAction({
         authMethod,
-        litActionIpfsId: SIGN_ECDSA_LIT_ACTION_IPFS_ID,
+        litActionIpfsId: SIGN_PROPOSAL_LIT_ACTION_IPFS_ID,
       });
       setPkps(prev => [...prev, newPKP]);
       setCurrentPkp(newPKP);
@@ -79,7 +79,7 @@ export default function Dashboard({ authMethod, onLogout, googleAuthMethodId }: 
       const newPKP = await mintPKPWithPermanentLitAction({
         authMethod,
         // litActionIpfsId: SIGN_EIP_191_LIT_ACTION_IPFS_ID,
-        litActionIpfsId: SIGN_ECDSA_LIT_ACTION_IPFS_ID,
+        litActionIpfsId: SIGN_PROPOSAL_LIT_ACTION_IPFS_ID,
       });
       setPkps(prev => [...prev, newPKP]);
       setCurrentPkp(newPKP);
