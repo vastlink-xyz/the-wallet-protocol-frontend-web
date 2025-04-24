@@ -3,13 +3,14 @@
 import { Button } from "@/components/ui/button"
 import { getPKPs, getSessionSigsByPkp, litNodeClient, mintPKP, SIGN_PROPOSAL_LIT_ACTION_IPFS_ID } from "@/lib/lit"
 import { log } from "@/lib/utils";
-import { AuthMethod, IRelay, IRelayPKP } from "@lit-protocol/types";
+import { AuthMethod, IRelayPKP } from "@lit-protocol/types";
 import { useEffect, useState } from "react";
 import { PKPEthersWallet } from "@lit-protocol/pkp-ethers";
 import { LitContracts } from "@lit-protocol/contracts-sdk";
-import { ethers, utils } from "ethers";
+import { ethers } from "ethers";
 import { AUTH_METHOD_SCOPE, LIT_CHAINS } from "@lit-protocol/constants";
-import signTransactionLitActionCode from './sign-transaction-lit-action-code'
+// import signTransactionLitActionCode from './sign-transaction-lit-action-code'
+import verifyMultisigLitActionCdoe from '@/lib/lit-action-code/verify-multisig.lit'
 
 // eth sepolia
 const chainInfo = {
@@ -21,7 +22,7 @@ const ethersProvider = new ethers.providers.JsonRpcProvider(
   chainInfo.rpcUrl
 );
 
-const litActionIpfsId = 'QmQ5apgCRZA2dp8d8gvngXTooDKB7TC35NJfwh3ehwt4Uk'
+const litActionIpfsId = 'QmYUmDxzM3d2jwKnoLrwdy2iwhnRMpudQXnpgQE4eTk16a'
 
 const AUTH_METHOD_STORAGE_KEY = 'lit-auth-method';
 
@@ -107,36 +108,12 @@ export default function DebugPage() {
       jsParams: {
         publicKeyForLit,
         unsignedTransaction,
+        chain: 'sepolia',
+        sendTransaction: true,
       }
     });
 
-    // Parse signature data from response
-    const responseObj = typeof response.response === 'string' 
-      ? JSON.parse(response.response) 
-      : response.response;
-    const sig = typeof responseObj.signature === 'string'
-      ? JSON.parse(responseObj.signature)
-      : responseObj.signature;
-
-    const joinedSignature = ethers.utils.joinSignature({
-        r: '0x' + sig.r.substring(2),
-        s: '0x' + sig.s,
-        v: sig.v,
-    })
-
-    // Combine signature with unsigned transaction
-    const signedTransaction = ethers.utils.serializeTransaction(
-      unsignedTransaction,
-      joinedSignature
-    );
-
-    // Ready for broadcasting
-    log("ready for broadcasting:", signedTransaction);
-
-    // If you want to broadcast the transaction:
-    const txResponse = await ethersProvider.sendTransaction(signedTransaction);
-    await txResponse.wait();
-    log('txResponse', txResponse)
+    log('Lit Action Response', response)
   }
 
   const handleGetAllPKPs = async () => {
@@ -184,7 +161,8 @@ export default function DebugPage() {
   }
 
   const handleLogLitActionCode = async () => {
-    console.log(signTransactionLitActionCode)
+    // console.log(signTransactionLitActionCode)
+    console.log(verifyMultisigLitActionCdoe)
   }
 
   return <div>

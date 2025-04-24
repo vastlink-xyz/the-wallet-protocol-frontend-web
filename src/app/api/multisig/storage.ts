@@ -23,6 +23,12 @@ export interface MessageProposal {
     signature: string   // signature
     publicKey: string
   }[]
+  transactionData?: {   // Transaction data for blockchain transactions
+    to: string
+    value: string
+    data: string
+  }
+  txHash?: string       // Transaction hash after execution
 }
 
 export async function getWallets(): Promise<MultisigWallet[]> {

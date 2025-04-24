@@ -1,8 +1,6 @@
 // @ts-nocheck
 
-const go = async () => {
-  // const { message, signatures, publicKeys, requiredSignatures, messageToSign, publicKey } = params;
-  
+const go = async () => {  
   try {
     console.log('Input parameters:', {
       message: message,
@@ -10,8 +8,11 @@ const go = async () => {
       walletId: walletId,
       publicKeysCount: publicKeys.length,
       requiredSignatures: requiredSignatures,
-      hasMessageToSign: !!messageToSign,
-      hasPkpPublicKey: !!publicKey
+      hasPkpPublicKey: !!publicKey,
+      // 
+      sendTransaction: sendTransaction,
+      unsignedTransaction: unsignedTransaction,
+      publicKeyForLit: publicKeyForLit,
     });
     
     const messageHash = ethers.utils.hashMessage(message);
@@ -82,50 +83,89 @@ const go = async () => {
     console.log(`- Overall validation result: ${isValid ? 'SUCCESSFUL ✓' : 'FAILED ✗'}`);
     
     let pkpSignature = null;
-    // If validation is successful and messageToSign is provided, perform signing
-    if (isValid && messageToSign && publicKey) {
-      console.log('\nValidation successful, attempting to sign with PKP');
-      console.log(`- Message to sign: "${messageToSign}"`);
-      console.log(`- PKP public key: ${publicKey}`);
-      
+    // If validation is successful, perform signing
+    if (isValid && publicKey) {
       try {
-        // Create signature using the PKP
-        const messageHashToSign = ethers.utils.hashMessage(messageToSign);
-        const messageBytes = ethers.utils.arrayify(messageHashToSign);
-        
-        console.log(`- Message hash for signing: ${messageHashToSign}`);
-        
-        const sigShare = await Lit.Actions.signEcdsa({
-          toSign: messageBytes,
-          publicKey,
-          sigName: "pkpSignature"
+        console.log(unsignedTransaction, publicKeyForLit, chain, sendTransaction)
+      
+        const toSign = ethers.utils.arrayify(
+          ethers.utils.keccak256(ethers.utils.serializeTransaction(unsignedTransaction))
+        )
+      
+        const sig = await Lit.Actions.signAndCombineEcdsa({
+          toSign,
+          publicKey: publicKeyForLit,
+          sigName: 'transfer-tx',
         });
-
-        pkpSignature = sigShare
-        console.log(`- PKP signing successed: ${pkpSignature}`)
-        
-      } catch (signingError) {
-        console.log(`- PKP signing failed: ${signingError.message}`);
-        throw signingError;
+      
+        console.log("sig is", sig);
+      
+        const signedAndSerializedTx = ethers.utils.serializeTransaction(
+          unsignedTransaction,
+          ethers.utils.joinSignature({
+              r: '0x' + JSON.parse(sig).r.substring(2),
+              s: '0x' + JSON.parse(sig).s,
+              v: JSON.parse(sig).v,
+          })
+        );
+      
+        if (sendTransaction) {
+          const rpcProvider = new ethers.providers.JsonRpcProvider(
+            await Lit.Actions.getRpcUrl({
+              chain,
+            })
+          );
+    
+          const sendTxResponse = await Lit.Actions.runOnce(
+            { waitForResponse: true, name: 'sendTxSender' },
+            async () => {
+              try {
+                const txReceipt = await rpcProvider.sendTransaction(signedAndSerializedTx);
+                return JSON.stringify({
+                  status: 'success',
+                  txReceipt
+                });
+              } catch (error: unknown) {
+                return JSON.stringify({
+                  status: 'error',
+                  details: [(error as Error).message || JSON.stringify(error)]
+                });
+              }
+            }
+          );
+      
+          Lit.Actions.setResponse({
+            response: JSON.stringify({
+              status: 'success',
+              isValid: true,
+              sendTxResponse,
+            }),
+          });
+        } else {
+          Lit.Actions.setResponse({
+            response: JSON.stringify({
+              status: 'success',
+              isValid: true,
+              signedAndSerializedTx
+            }),
+          });
+        }
+      } catch(error) {
+        Lit.Actions.setResponse({
+          response: JSON.stringify({
+            status: 'error',
+            isValid: true,
+            details: [(error as Error).message || JSON.stringify(error)]
+          }),
+        });
       }
     }
-   
-    Lit.Actions.setResponse({
-      response: JSON.stringify({
-        isValid,
-        validSignaturesCount,
-        totalSignatures: signatures.length,
-        requiredSignatures: requiredCount,
-        signatures: validationResults,
-        pkpSignature: pkpSignature,
-        messageToSign: messageToSign || null
-      })
-    })
   } catch (error) {
     console.log(`Fatal error: ${error.message}`);
     console.log(error.stack);
     Lit.Actions.setResponse({
       response: JSON.stringify({
+        status: 'error',
         isValid: false,
         error: error.message,
         stack: error.stack

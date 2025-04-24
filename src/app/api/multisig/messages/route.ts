@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { walletId, createdBy, message } = body
+    const { walletId, createdBy, message, transactionData } = body
 
     const proposal = {
       id: randomUUID(),
@@ -38,12 +38,14 @@ export async function POST(request: NextRequest) {
       status: 'pending',
       createdBy,
       message,
-      signatures: []
+      signatures: [],
+      transactionData
     }
 
     await saveMessageProposal({...proposal, status: 'pending' as const})
     return Response.json({ success: true, data: proposal })
-  } catch {
+  } catch (error) {
+    console.error('Failed to create message proposal:', error)
     return Response.json(
       { success: false, error: "Failed to create message proposal" },
       { status: 500 }

@@ -36,6 +36,7 @@ export default function DashboardPage() {
       if (authMethod) {
         const id = await googleProvider.getAuthMethodId(authMethod)
         setGoogleAuthMethodId(id)
+        // router.push('/debug')
         router.push('/multisig')
       }
     }

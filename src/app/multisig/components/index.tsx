@@ -11,6 +11,18 @@ import { log } from "@/lib/utils"
 import { getSessionSigsByPkp, MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID, SIGN_PROPOSAL_LIT_ACTION_IPFS_ID } from "@/lib/lit"
 import { litNodeClient } from "@/lib/lit"
 import { AlertCircle } from "lucide-react"
+import { LIT_CHAINS } from "@lit-protocol/constants"
+import { ethers } from "ethers"
+
+// eth sepolia
+const chainInfo = {
+  rpcUrl: LIT_CHAINS['sepolia'].rpcUrls[0],
+  chainId: LIT_CHAINS['sepolia'].chainId,
+}
+
+const ethersProvider = new ethers.providers.JsonRpcProvider(
+  chainInfo.rpcUrl
+);
 
 export function Multisig({
   currentPkp,
@@ -29,7 +41,9 @@ export function Multisig({
   const [selectedWalletId, setSelectedWalletId] = useState<string>('')
   const [selectedWallet, setSelectedWallet] = useState<MultisigWallet | null>(null)
   const [selectedMultisigPkp, setSelectedMultisigPkp] = useState<IRelayPKP | null>(null)
-  const [message, setMessage] = useState('')
+  const [toAddress, setToAddress] = useState('')
+  const [amount, setAmount] = useState('')
+  const [data, setData] = useState('')
   const [signer2Address, setSigner2Address] = useState('')
   const [signer2PublicKey, setSigner2PublicKey] = useState('')
   const [signer2GoogleAuthMethodId, setSigner2GoogleAuthMethodId] = useState('')
@@ -168,18 +182,27 @@ export function Multisig({
   }
 
   const handleCreateProposal = async () => {
-    if (!selectedWalletId || !message) return
+    if (!selectedWalletId || !toAddress || !amount) return
 
     try {
       setIsLoading(true)
+      const txData = {
+        to: toAddress,
+        value: amount,
+        data: data || '0x'
+      }
+      
       const response = await axios.post('/api/multisig/messages', {
         walletId: selectedWalletId,
         createdBy: currentPkp.ethAddress,
-        message
+        message: JSON.stringify(txData),
+        transactionData: txData
       })
 
       if (response.data.success) {
-        setMessage('')
+        setToAddress('')
+        setAmount('')
+        setData('')
         await fetchProposals()
       }
     } catch (error) {
@@ -254,6 +277,14 @@ export function Multisig({
     return proposal.signatures.some(sig => sig.signer === currentPkp.ethAddress)
   }
   
+  const getTransactionDetails = (proposal: MessageProposal) => {
+    try {
+      return JSON.parse(proposal.message)
+    } catch (e) {
+      return { to: 'Unknown', value: 'Unknown', data: 'Unknown' }
+    }
+  }
+  
   // Function to execute a Lit Action using the multisig PKP
   const executeMultisigLitAction = async (proposal: MessageProposal) => {
     if (!selectedMultisigPkp || !selectedWallet || !authMethod) {
@@ -281,6 +312,30 @@ export function Multisig({
       })
 
       log('multisig wallet', selectedWallet)
+      
+      // Get transaction details from proposal
+      const txDetails = getTransactionDetails(proposal)
+      log('Transaction details:', txDetails)
+
+
+      const gasPrice = (await ethersProvider.getGasPrice()).toHexString()
+      const nonce = await ethersProvider.getTransactionCount(selectedMultisigPkp.ethAddress)
+      log('gas price ', gasPrice, 'nounce', nonce)
+
+      const unsignedTransaction = {
+        to: txDetails.to,
+        value: ethers.utils.parseEther(txDetails.value).toHexString(),
+        gasLimit: 21000,
+        gasPrice,
+        nonce,
+        chainId: chainInfo.chainId,
+        data: '0x'
+      };
+      
+      log('Unsigned transaction:', unsignedTransaction)
+      
+      // Remove '0x' prefix, Lit.Actions.signAndCombineEcdsa requires public key without the '0x' prefix
+      const publicKeyForLit = selectedMultisigPkp.publicKey.replace(/^0x/, '');
 
       const jsParams = {
         message: proposal.message,
@@ -289,8 +344,12 @@ export function Multisig({
         proposalId: proposal.id,
         walletId: selectedWalletId,
         requiredSignatures: selectedWallet.threshold,
-        messageToSign: `Execution approved by multisig`,
-        publicKey: selectedMultisigPkp.publicKey
+        publicKey: selectedMultisigPkp.publicKey,
+        // 
+        sendTransaction: true,
+        publicKeyForLit,
+        chain: 'sepolia',
+        unsignedTransaction,
       }
       log('js params', jsParams)
 
@@ -311,12 +370,33 @@ export function Multisig({
       const responseObj = typeof response.response === 'string' 
         ? JSON.parse(response.response) 
         : response.response;
-        
+      
+      log('Parsed response object:', responseObj);
+      
       if (responseObj.isValid) {
+        let txHash = null;
+        
+        // Try to extract transaction hash from different response formats
+        if (responseObj.sendTxResponse) {
+          try {
+            const sendTxObj = typeof responseObj.sendTxResponse === 'string'
+              ? JSON.parse(responseObj.sendTxResponse)
+              : responseObj.sendTxResponse;
+              
+            if (sendTxObj.status === 'success' && sendTxObj.txReceipt && sendTxObj.txReceipt.hash) {
+              txHash = sendTxObj.txReceipt.hash;
+              log('Transaction hash from receipt:', txHash);
+            }
+          } catch (e) {
+            console.error('Error parsing sendTxResponse:', e);
+          }
+        }
+        
         await axios.put(`/api/multisig/messages/status`, {
           proposalId: proposal.id,
           walletId: proposal.walletId,
-          status: 'completed'
+          status: 'completed',
+          txHash: txHash
         })
         
         // Refresh proposals
@@ -373,23 +453,23 @@ export function Multisig({
             )}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="signer2PublicKey">Signer 2 Public Key</Label>
-            {signer2PublicKey ? (
+          {signer2PublicKey ? (
+            <div className="space-y-2">
+              <Label htmlFor="signer2PublicKey">Signer 2 Public Key</Label>
               <div className="p-2 text-sm break-all bg-gray-50 border rounded-md">
                 {signer2PublicKey}
               </div>
-            ) : null}
-          </div>
+            </div>
+          ) : null}
 
-          <div className="space-y-2">
-            <Label htmlFor="signer2GoogleAuthMethodId">Signer 2 Google Auth Method Id</Label>
-            {signer2GoogleAuthMethodId ? (
+          {signer2GoogleAuthMethodId ? (
+            <div className="space-y-2">
+              <Label htmlFor="signer2GoogleAuthMethodId">Signer 2 Google Auth Method Id</Label>
               <div className="p-2 text-sm break-all bg-gray-50 border rounded-md">
                 {signer2GoogleAuthMethodId}
               </div>
-            ) : null}
-          </div>
+            </div>
+          ) : null}
         </div>
 
         <Button 
@@ -453,76 +533,113 @@ export function Multisig({
             ))}
           </div>
 
-          <h2 className="text-lg font-semibold mb-4">Message Proposals</h2>
+          <h2 className="text-lg font-semibold mb-4">Transaction Proposals</h2>
           
-          {/* Create new proposal */}
+          {/* Create new transaction proposal */}
           <div className="mb-6 space-y-4">
-            <Input
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Enter message to sign"
-            />
+            <div className="space-y-2">
+              <Label htmlFor="toAddress">Recipient Address</Label>
+              <Input
+                id="toAddress"
+                value={toAddress}
+                onChange={(e) => setToAddress(e.target.value)}
+                placeholder="Enter recipient address"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="amount">Amount (ETH)</Label>
+              <Input
+                id="amount"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="Enter transaction amount"
+                type="number"
+                step="0.0001"
+              />
+            </div>
+            
+            {/* <div className="space-y-2">
+              <Label htmlFor="data">Data (Optional)</Label>
+              <Input
+                id="data"
+                value={data}
+                onChange={(e) => setData(e.target.value)}
+                placeholder="Enter transaction data (hex)"
+              />
+            </div> */}
+            
             <Button
               onClick={handleCreateProposal}
-              disabled={isLoading || !message}
+              disabled={isLoading || !toAddress || !amount}
             >
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Create Proposal
+              Create Transaction Proposal
             </Button>
           </div>
 
           {/* Proposal list */}
           <div className="space-y-4">
-            {proposals.map(proposal => (
-              <div key={proposal.id} className="p-4 bg-gray-50 rounded-lg">
-                <div>Message: {proposal.message}</div>
-                <div className="text-sm text-gray-500">
-                  Status: {proposal.status}
-                </div>
-                <div className="text-sm text-gray-500">
-                  Signatures: {proposal.signatures.length}
-                </div>
-                
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {proposal.status === 'pending' && !hasUserSigned(proposal) && (
-                    <Button
-                      onClick={() => handleSignProposal(proposal)}
-                      disabled={isLoading}
-                    >
-                      {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Sign Proposal
-                    </Button>
-                  )}
+            {proposals.map(proposal => {
+              const txDetails = getTransactionDetails(proposal);
+              return (
+                <div key={proposal.id} className="p-4 bg-gray-50 rounded-lg">
+                  <div className="mb-2">
+                    <div><span className="font-medium">Recipient:</span> {txDetails.to}</div>
+                    <div><span className="font-medium">Amount:</span> {txDetails.value} ETH</div>
+                    {txDetails.data && txDetails.data !== '0x' && (
+                      <div><span className="font-medium">Data:</span> {txDetails.data}</div>
+                    )}
+                  </div>
                   
-                  {hasUserSigned(proposal) && (
-                    <div className="text-sm text-green-600 flex items-center">
-                      You have signed this proposal
+                  <div className="text-sm text-gray-500">
+                    Status: {proposal.status}
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    Signatures: {proposal.signatures.length}
+                  </div>
+                  
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {proposal.status === 'pending' && !hasUserSigned(proposal) && (
+                      <Button
+                        onClick={() => handleSignProposal(proposal)}
+                        disabled={isLoading}
+                      >
+                        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Sign Transaction
+                      </Button>
+                    )}
+                    
+                    {hasUserSigned(proposal) && (
+                      <div className="text-sm text-green-600 flex items-center">
+                        You have signed this transaction
+                      </div>
+                    )}
+                    
+                    {proposal.status === 'pending' && selectedWallet &&
+                     proposal.signatures.length >= selectedWallet.threshold && (
+                      <Button
+                        onClick={() => executeMultisigLitAction(proposal)}
+                        disabled={isLoading}
+                        className="bg-blue-600 hover:bg-blue-700"
+                      >
+                        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Execute Transaction
+                      </Button>
+                    )}
+                  </div>
+                  
+                  {executeResult && proposal.id === executeResult.proposalId && (
+                    <div className="mt-4 p-3 bg-gray-100 rounded text-sm">
+                      <div className="font-medium mb-1">Execution Result:</div>
+                      <pre className="whitespace-pre-wrap break-all">
+                        {JSON.stringify(executeResult, null, 2)}
+                      </pre>
                     </div>
                   )}
-                  
-                  {proposal.status === 'pending' && selectedWallet &&
-                   proposal.signatures.length >= selectedWallet.threshold && (
-                    <Button
-                      onClick={() => executeMultisigLitAction(proposal)}
-                      disabled={isLoading}
-                      className="bg-blue-600 hover:bg-blue-700"
-                    >
-                      {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Execute with Multisig PKP
-                    </Button>
-                  )}
                 </div>
-                
-                {executeResult && proposal.id === executeResult.proposalId && (
-                  <div className="mt-4 p-3 bg-gray-100 rounded text-sm">
-                    <div className="font-medium mb-1">Execution Result:</div>
-                    <pre className="whitespace-pre-wrap break-all">
-                      {JSON.stringify(executeResult, null, 2)}
-                    </pre>
-                  </div>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}

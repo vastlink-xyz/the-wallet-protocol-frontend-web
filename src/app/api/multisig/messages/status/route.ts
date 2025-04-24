@@ -6,7 +6,7 @@ import { log } from '@/lib/utils'
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json()
-    const { proposalId, status, walletId } = body
+    const { proposalId, status, walletId, txHash } = body
     
     if (!proposalId || !status || !walletId) {
       return Response.json(
@@ -28,10 +28,16 @@ export async function PUT(request: NextRequest) {
     // Update status
     proposal.status = status
     
+    // Save transaction hash if provided
+    if (txHash) {
+      proposal.txHash = txHash
+    }
+    
     log('Updating proposal status', {
       proposalId,
       oldStatus: proposal.status,
-      newStatus: status
+      newStatus: status,
+      txHash: txHash || 'not provided'
     })
 
     await saveMessageProposal(proposal)

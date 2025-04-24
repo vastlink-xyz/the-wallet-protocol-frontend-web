@@ -82,7 +82,13 @@ const MessageProposalSchema = new mongoose.Schema({
   status: { type: String, enum: ['pending', 'completed', 'failed'], default: 'pending' },
   createdBy: String,
   message: String,
-  signatures: [SignatureSchema]
+  signatures: [SignatureSchema],
+  transactionData: {
+    to: String,
+    value: String,
+    data: String
+  },
+  txHash: String
 }, { timestamps: true });
 
 // Export models

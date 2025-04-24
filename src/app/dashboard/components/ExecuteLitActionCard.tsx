@@ -10,7 +10,6 @@ import litActionCode1 from "@/lib/lit-action-code/sign-proposal.lit";
 import litActionCode2 from "@/lib/lit-action-code/verify-multisig.lit";
 
 import litAuthCode from "@/app/dashboard/lit-action-code/lit-auth";
-import signTransactionLitActionCode from "@/app/dashboard/lit-action-code/sign-transaction";
 
 // eth sepolia
 const chainInfo = {
@@ -166,44 +165,6 @@ export function ExecuteLitActionCard({
     });
     log('Lit Auth response:', response);
   }
-
-  const handleSignTransactionLitAction = async () => {
-    const gasPrice = (await ethersProvider.getGasPrice()).toHexString()
-    const nonce = await ethersProvider.getTransactionCount(currentPkp.ethAddress)
-    log('gas price ', gasPrice, 'nounce', nonce)
-    log('public key', currentPkp.publicKey)
-
-    const unsignedTransaction = {
-      to: '0x56ed57816E32138668ebFf838c9859a583a04c43',
-      value: 1,
-      gasLimit: 21_000,
-      gasPrice,
-      nonce,
-      chainId: chainInfo.chainId,
-    };
-
-    const unsignedTransactionHash = ethers.utils.keccak256(
-      ethers.utils.serializeTransaction(unsignedTransaction)
-    );
-    console.log("✅ Transaction created and serialized", unsignedTransaction);
-    const toSign = ethers.utils.arrayify(unsignedTransactionHash)
-    log('to sign', toSign)
-
-    await litNodeClient.connect();
-
-    const response = await litNodeClient.executeJs({
-      code: signTransactionLitActionCode,
-      sessionSigs,
-      jsParams: {
-        // toSign: ethers.utils.arrayify(unsignedTransactionHash),
-        publicKey: currentPkp.publicKey,
-        sigName: 'sig',
-        unsignedTransaction: unsignedTransactionHash,
-        chain: 'sepolia'
-      }
-    });
-    log('Lit Auth response:', response);
-  }
   
   const handleViewRequestId = async () => {
     const requestId = ""
@@ -246,13 +207,6 @@ export function ExecuteLitActionCard({
         className="mb-4"
       >
         LitAuth Lit Action
-      </Button>
-
-      <Button 
-        onClick={handleSignTransactionLitAction} 
-        className="mb-4"
-      >
-        Sign transaction Lit Action
       </Button>
 
       <Button 

@@ -60,38 +60,35 @@ export function PKPInfo({ litActionPkp, isLoading = false }: PKPInfoProps) {
     <div className="bg-card p-6 rounded-lg border">
       <h2 className="text-xl font-semibold mb-4">Your PKP Information</h2>
       <div className="space-y-4">
-        <div>
-          <h3 className="text-md font-medium mb-2">Lit Action PKP</h3>
-          <div className="space-y-2">
-            <div>
-              <span className="font-medium">Address:</span> 
-              <div className="text-sm bg-muted p-2 rounded break-all mt-1">
-                {litActionPkp.ethAddress}
-              </div>
+        <div className="space-y-2">
+          <div>
+            <span className="font-medium">Address:</span> 
+            <div className="text-sm bg-muted p-2 rounded break-all mt-1">
+              {litActionPkp.ethAddress}
             </div>
-            <div>
-              <span className="font-medium">Sepolia ETH Balance:</span>
-              <div className="text-sm bg-muted p-2 rounded break-all mt-1">
-                {isBalanceLoading ? 
-                  <Loader2 className="h-4 w-4 animate-spin inline mr-2" /> : 
-                  balance ? `${balance} ETH` : "0 ETH"}
-              </div>
+          </div>
+          <div>
+            <span className="font-medium">Sepolia ETH Balance:</span>
+            <div className="text-sm bg-muted p-2 rounded break-all mt-1">
+              {isBalanceLoading ? 
+                <Loader2 className="h-4 w-4 animate-spin inline mr-2" /> : 
+                balance ? `${balance} ETH` : "0 ETH"}
             </div>
-            <div>
-              <span className="font-medium">Public Key:</span>
-              <div className="text-sm bg-muted p-2 rounded break-all mt-1">
-                {litActionPkp.publicKey}
-              </div>
+          </div>
+          <div>
+            <span className="font-medium">Public Key:</span>
+            <div className="text-sm bg-muted p-2 rounded break-all mt-1">
+              {litActionPkp.publicKey}
             </div>
-            <div>
-              <span className="font-medium">PKP ID:</span>
-              <div className="text-sm bg-muted p-2 rounded break-all mt-1">
-                {litActionPkp.tokenId ? 
-                  (typeof litActionPkp.tokenId === 'object' ? 
-                    JSON.stringify(litActionPkp.tokenId) : 
-                    String(litActionPkp.tokenId)
-                  ) : 'N/A'}
-              </div>
+          </div>
+          <div>
+            <span className="font-medium">PKP ID:</span>
+            <div className="text-sm bg-muted p-2 rounded break-all mt-1">
+              {litActionPkp.tokenId ? 
+                (typeof litActionPkp.tokenId === 'object' ? 
+                  JSON.stringify(litActionPkp.tokenId) : 
+                  String(litActionPkp.tokenId)
+                ) : 'N/A'}
             </div>
           </div>
         </div>
