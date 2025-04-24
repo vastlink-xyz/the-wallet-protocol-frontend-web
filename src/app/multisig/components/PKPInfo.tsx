@@ -1,5 +1,8 @@
 import { IRelayPKP } from "@lit-protocol/types";
 import { Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ethers } from "ethers";
+import { LIT_CHAINS } from "@lit-protocol/constants";
 
 interface PKPInfoProps {
   litActionPkp: IRelayPKP | null;
@@ -7,6 +10,32 @@ interface PKPInfoProps {
 }
 
 export function PKPInfo({ litActionPkp, isLoading = false }: PKPInfoProps) {
+  const [balance, setBalance] = useState<string | null>(null);
+  const [isBalanceLoading, setIsBalanceLoading] = useState(false);
+
+  useEffect(() => {
+    const getSepoliaBalance = async () => {
+      if (!litActionPkp?.ethAddress) return;
+      
+      try {
+        setIsBalanceLoading(true);
+        const provider = new ethers.providers.JsonRpcProvider(LIT_CHAINS['sepolia'].rpcUrls[0]);
+        const balanceWei = await provider.getBalance(litActionPkp.ethAddress);
+        const balanceEth = ethers.utils.formatEther(balanceWei);
+        setBalance(balanceEth);
+      } catch (error) {
+        console.error("Error fetching Sepolia balance:", error);
+        setBalance("Error");
+      } finally {
+        setIsBalanceLoading(false);
+      }
+    };
+
+    if (litActionPkp?.ethAddress) {
+      getSepoliaBalance();
+    }
+  }, [litActionPkp?.ethAddress]);
+
   // Show loading state
   if (isLoading) {
     return (
@@ -38,6 +67,14 @@ export function PKPInfo({ litActionPkp, isLoading = false }: PKPInfoProps) {
               <span className="font-medium">Address:</span> 
               <div className="text-sm bg-muted p-2 rounded break-all mt-1">
                 {litActionPkp.ethAddress}
+              </div>
+            </div>
+            <div>
+              <span className="font-medium">Sepolia ETH Balance:</span>
+              <div className="text-sm bg-muted p-2 rounded break-all mt-1">
+                {isBalanceLoading ? 
+                  <Loader2 className="h-4 w-4 animate-spin inline mr-2" /> : 
+                  balance ? `${balance} ETH` : "0 ETH"}
               </div>
             </div>
             <div>

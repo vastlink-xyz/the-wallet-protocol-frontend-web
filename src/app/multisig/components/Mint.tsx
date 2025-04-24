@@ -130,9 +130,6 @@ export function Mint({
   return (
     <div className="bg-card p-6 rounded-lg border">
       <h2 className="text-xl font-semibold mb-4">Mint PKPs</h2>
-      <p className="text-muted-foreground mb-4">
-        Click the button below to mint two PKPs and save them to your account
-      </p>
       {litActionPkp && (
         <div className="flex justify-end mb-4">
           <Button 

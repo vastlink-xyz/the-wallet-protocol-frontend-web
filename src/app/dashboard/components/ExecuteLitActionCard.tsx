@@ -204,6 +204,12 @@ export function ExecuteLitActionCard({
     });
     log('Lit Auth response:', response);
   }
+  
+  const handleViewRequestId = async () => {
+    const requestId = ""
+    const res = await litNodeClient.getLogsForRequestId(requestId)
+    log('request id logs', res)
+  }
 
   return (
     <div className="bg-card p-4 rounded-lg border mb-6">
@@ -247,6 +253,13 @@ export function ExecuteLitActionCard({
         className="mb-4"
       >
         Sign transaction Lit Action
+      </Button>
+
+      <Button 
+        onClick={handleViewRequestId} 
+        className="mb-4"
+      >
+        View RequestId
       </Button>
 
       {result && (
