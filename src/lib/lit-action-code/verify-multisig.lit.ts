@@ -1,4 +1,5 @@
 // @ts-nocheck
+/* eslint prefer-const: "warn" */
 
 const go = async () => {  
   try {
