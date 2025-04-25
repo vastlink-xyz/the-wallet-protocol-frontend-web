@@ -3,7 +3,7 @@ import { useState } from "react";
 import { AuthMethod, IRelayPKP, SessionSigs } from "@lit-protocol/types";
 import { log, getEmailFromGoogleToken } from "@/lib/utils";
 import { litNodeClient } from "@/lib/lit";
-import mfaLitActionCode from "@/app/dashboard/lit-action-code/mfa";
+import mfaLitActionCode from "@/lib/lit-action-code/mfa";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import axios from "axios";
