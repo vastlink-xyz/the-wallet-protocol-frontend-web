@@ -50,6 +50,7 @@ export async function connectToDatabase(): Promise<mongoose.Connection> {
 const UserSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true },
   authMethodId: { type: String, required: true },
+  email: { type: String, required: true },
   // Instead of an array of PKPs, we define specific PKP fields for different types
   sessionPkp: {
     ethAddress: String,

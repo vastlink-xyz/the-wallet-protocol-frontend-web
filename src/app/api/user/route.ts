@@ -36,11 +36,18 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { authMethodId } = body;
+    const { authMethodId, email } = body;
 
     if (!authMethodId) {
       return NextResponse.json(
         { error: 'Missing authMethodId in request body' },
+        { status: 400 }
+      );
+    }
+
+    if (!email) {
+      return NextResponse.json(
+        { error: 'Missing email in request body' },
         { status: 400 }
       );
     }
@@ -52,7 +59,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create new user
-    const newUser = await createUser(authMethodId);
+    const newUser = await createUser(authMethodId, email);
     return NextResponse.json(newUser, { status: 201 });
   } catch (error) {
     console.error('Error in POST /api/user:', error);

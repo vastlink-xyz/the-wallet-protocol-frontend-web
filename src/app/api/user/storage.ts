@@ -5,6 +5,7 @@ import crypto from 'crypto'
 export interface User {
   id: string
   authMethodId: string
+  email: string
   sessionPkp?: {
     ethAddress: string
     publicKey: string
@@ -25,6 +26,7 @@ function extractUserData(doc: any): User | null {
   return {
     id: doc.id || doc._id?.toString(),
     authMethodId: doc.authMethodId,
+    email: doc.email,
     sessionPkp: doc.sessionPkp || undefined,
     litActionPkp: doc.litActionPkp || undefined
   };
@@ -96,7 +98,7 @@ export async function getUserByPkpAddress(ethAddress: string): Promise<{authMeth
   }
 }
 
-export async function createUser(authMethodId: string): Promise<User> {
+export async function createUser(authMethodId: string, email: string): Promise<User> {
   try {
     await connectToDatabase();
     
@@ -105,7 +107,8 @@ export async function createUser(authMethodId: string): Promise<User> {
     
     const userData = {
       id,
-      authMethodId
+      authMethodId,
+      email
     };
     
     const newUser = await UserModel.create(userData);
@@ -124,7 +127,8 @@ export enum PKPType {
 export async function addPkpToUser(
   authMethodId: string, 
   pkp: IRelayPKP, 
-  pkpType: PKPType
+  pkpType: PKPType,
+  email?: string
 ): Promise<User | null> {
   try {
     await connectToDatabase();
@@ -134,7 +138,10 @@ export async function addPkpToUser(
     
     // If user doesn't exist, create one
     if (!existingUser) {
-      const newUser = await createUser(authMethodId);
+      if (!email) {
+        throw new Error('Email is required to create a new user');
+      }
+      const newUser = await createUser(authMethodId, email);
       
       // Prepare update based on PKP type
       const updateField = pkpType === PKPType.Session ? 'sessionPkp' : 'litActionPkp';
