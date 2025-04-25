@@ -2,12 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Dashboard from '@/app/dashboard/components/Dashboard';
 import { DEFAULT_SIGNIN_REDIRECT, googleProvider } from '@/lib/lit';
 import { log } from '@/lib/utils';
 import { isSignInRedirect, getProviderFromUrl } from '@lit-protocol/lit-auth-client';
 import { AuthMethod } from '@lit-protocol/types';
-import { Button } from '@/components/ui/button';
 
 const AUTH_METHOD_STORAGE_KEY = 'lit-auth-method';
 
@@ -36,8 +34,8 @@ export default function DashboardPage() {
       if (authMethod) {
         const id = await googleProvider.getAuthMethodId(authMethod)
         setGoogleAuthMethodId(id)
-        // router.push('/debug')
-        router.push('/multisig')
+        // Redirect to assets page
+        router.push('/assets/personal')
       }
     }
     getGoogleAuthMethodId()
@@ -71,35 +69,15 @@ export default function DashboardPage() {
     setAuthMethod(null);
     router.push('/');
   };
-
+  
+  // Show loading state
   if (loading) {
-    return <div>Loading...</div>;
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
-
-  if (authMethod) {
-    return (
-      <Dashboard 
-        authMethod={authMethod} 
-        onLogout={handleLogout}
-        googleAuthMethodId={googleAuthMethodId}
-      />
-    );
+  
+  if (!authMethod) {
+    return <div className="flex items-center justify-center min-h-screen">Please login first</div>;
   }
-
-  return (
-    <div className="max-w-4xl mx-auto p-4">
-      <div className="bg-card p-6 rounded-lg border text-center space-y-4">
-        <h2 className="text-lg font-semibold">Welcome to Lit Protocol Dashboard</h2>
-        <p className="text-muted-foreground">
-          Please sign in with Google to access your PKP and manage your digital assets.
-        </p>
-        <Button 
-          onClick={() => window.location.href = '/'} 
-          variant="outline"
-        >
-          Sign In
-        </Button>
-      </div>
-    </div>
-  );
+  
+  return null;
 }
