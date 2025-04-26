@@ -1,6 +1,8 @@
 import { NextRequest } from 'next/server'
-import { getWallets, saveWallet } from './storage'
+import { getWallets, saveWallet, MultisigWallet } from './storage'
 import { randomUUID } from 'crypto'
+import { getUserByPkpAddress, getUser } from '../user/storage'
+import { log } from '@/lib/utils'
 
 export async function GET(request: NextRequest) {
   try {
@@ -23,7 +25,8 @@ export async function GET(request: NextRequest) {
     )
 
     return Response.json({ success: true, data: filteredWallets })
-  } catch {
+  } catch (error) {
+    console.error('Error fetching multisig wallets:', error)
     return Response.json(
       { success: false, error: "Failed to fetch wallets" },
       { status: 500 }
@@ -34,6 +37,15 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+    log('body', body)
+    
+    // Email for both signers is required
+    if (!body.signer1Email || !body.signer2Email) {
+      return Response.json(
+        { success: false, error: "Email addresses for both signers are required" },
+        { status: 400 }
+      )
+    }
     
     const wallet = {
       id: randomUUID(),
@@ -41,9 +53,14 @@ export async function POST(request: NextRequest) {
       signers: [
         {
           ethAddress: body.currentPkp.ethAddress,
-          publicKey: body.currentPkp.publicKey
+          publicKey: body.currentPkp.publicKey,
+          email: body.signer1Email
         },
-        body.signer2
+        {
+          ethAddress: body.signer2.ethAddress,
+          publicKey: body.signer2.publicKey,
+          email: body.signer2Email
+        }
       ],
       threshold: 2,           // Currently fixed to 2
       totalSigners: 2         // Currently fixed to 2
@@ -51,7 +68,8 @@ export async function POST(request: NextRequest) {
 
     await saveWallet(wallet)
     return Response.json({ success: true, data: wallet })
-  } catch {
+  } catch (error) {
+    console.error('Error creating multisig wallet:', error)
     return Response.json(
       { success: false, error: "Failed to create wallet" },
       { status: 500 }

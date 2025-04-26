@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { AuthMethod } from '@lit-protocol/types'
-import TeamAssets from '@/components/assets/TeamAssets'
+import TeamAssets from './components/TeamAssets'
 
 const AUTH_METHOD_STORAGE_KEY = 'lit-auth-method'
 

@@ -7,6 +7,7 @@ export interface MultisigWallet {
   signers: {
     ethAddress: string
     publicKey: string
+    email: string
   }[]
   threshold: number      // Number of signatures required to execute a transaction
   totalSigners: number   // Total number of signers in the wallet

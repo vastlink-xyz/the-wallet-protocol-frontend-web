@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { AuthMethod } from '@lit-protocol/types'
-import PersonalAssets from '@/components/assets/PersonalAssets'
+import PersonalAssets from './components/PersonalAssets'
 
 const AUTH_METHOD_STORAGE_KEY = 'lit-auth-method'
 

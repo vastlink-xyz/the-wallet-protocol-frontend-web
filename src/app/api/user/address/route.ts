@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserByPkpAddress } from '../storage';
+import { getUser } from '../storage';
 
 // GET /api/user/address?address=0x...
 export async function GET(request: NextRequest) {
@@ -26,11 +27,16 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Get user's email information
+    const user = await getUser(userInfo.authMethodId);
+    const email = user?.email || null;
+
     // Return specific PKP and user information without exposing all user data
     return NextResponse.json({
       success: true,
       data: {
         authMethodId: userInfo.authMethodId,
+        email: email,
         pkp: userInfo.pkp
       }
     });
@@ -43,5 +49,17 @@ export async function GET(request: NextRequest) {
       },
       { status: 500 }
     );
+  }
+}
+
+// Helper function to get user from authMethodId
+async function getUserFromAuthMethodId(authMethodId: string) {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/user?authMethodId=${authMethodId}`);
+    if (!response.ok) return null;
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching user by authMethodId:', error);
+    return null;
   }
 } 

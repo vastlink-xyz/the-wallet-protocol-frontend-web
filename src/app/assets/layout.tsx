@@ -17,7 +17,7 @@ export default function AssetsLayout({
           href="/assets/personal"
           className={`w-full text-center rounded-lg py-2.5 text-sm font-medium leading-5 ${
             pathname === '/assets/personal'
-              ? 'bg-white shadow text-blue-600'
+              ? 'bg-white shadow text-black'
               : 'text-gray-600 hover:bg-white/[0.12] hover:text-gray-700'
           }`}
         >
@@ -27,7 +27,7 @@ export default function AssetsLayout({
           href="/assets/team"
           className={`w-full text-center rounded-lg py-2.5 text-sm font-medium leading-5 ${
             pathname === '/assets/team'
-              ? 'bg-white shadow text-blue-600'
+              ? 'bg-white shadow text-black'
               : 'text-gray-600 hover:bg-white/[0.12] hover:text-gray-700'
           }`}
         >
