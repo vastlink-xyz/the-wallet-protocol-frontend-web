@@ -119,6 +119,7 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
                     <WalletCard
                       id={wallet.id}
                       signers={wallet.signers}
+                      pkp={wallet.pkp}
                     />
                   </div>
                 ))}

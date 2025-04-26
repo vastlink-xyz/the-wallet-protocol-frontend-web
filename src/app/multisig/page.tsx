@@ -7,10 +7,14 @@ import { Button } from '@/components/ui/button';
 import { Multisig } from './components';
 import { Loader2 } from 'lucide-react';
 import { Mint } from './components/Mint';
+import { useSearchParams } from 'next/navigation';
 
 const AUTH_METHOD_STORAGE_KEY = 'lit-auth-method';
 
 export default function MultisigPage() {
+  const searchParams = useSearchParams();
+  const walletId = searchParams.get('walletId');
+  
   const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null);
   const [loading, setLoading] = useState(true);
   const [fetchingData, setFetchingData] = useState(false);
@@ -97,12 +101,12 @@ export default function MultisigPage() {
   if (authMethod && googleAuthMethodId) {
     return (
       <>
-        <Mint 
+        {/* <Mint 
           authMethod={authMethod} 
           litActionPkp={litActionPkp}
           isLoading={fetchingData}
           onMintComplete={handleMintComplete}
-        />
+        /> */}
 
         {
           (litActionPkp && sessionPkp) ? (
@@ -112,6 +116,7 @@ export default function MultisigPage() {
                 sessionPkp={sessionPkp}
                 authMethod={authMethod}
                 googleAuthMethodId={googleAuthMethodId}
+                initialWalletId={walletId || ''}
               />
             </div>
           ) : null

@@ -1,4 +1,8 @@
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { ethers } from 'ethers'
+import { LIT_CHAINS } from '@lit-protocol/constants'
+import { Loader2 } from 'lucide-react'
 
 interface WalletCardProps {
   id: string
@@ -7,9 +11,45 @@ interface WalletCardProps {
     publicKey: string
     email: string
   }[]
+  pkp: {
+    ethAddress: string
+    publicKey: string
+  }
 }
 
-export function WalletCard({ id, signers }: WalletCardProps) {
+export function WalletCard({ id, signers, pkp }: WalletCardProps) {
+  const router = useRouter()
+  const [balance, setBalance] = useState<string>('')
+  const [isLoadingBalance, setIsLoadingBalance] = useState(false)
+
+  // Fetch wallet balance from Sepolia network
+  useEffect(() => {
+    async function getWalletBalance() {
+      if (!pkp?.ethAddress) return
+      
+      try {
+        setIsLoadingBalance(true)
+        // Use Sepolia testnet
+        const provider = new ethers.providers.JsonRpcProvider(
+          LIT_CHAINS['sepolia'].rpcUrls[0]
+        )
+        
+        const balanceWei = await provider.getBalance(pkp.ethAddress)
+        const balanceEth = ethers.utils.formatEther(balanceWei)
+        
+        // Format to 4 decimal places max
+        setBalance(parseFloat(balanceEth).toFixed(4))
+      } catch (error) {
+        console.error('Failed to fetch wallet balance:', error)
+        setBalance('Error')
+      } finally {
+        setIsLoadingBalance(false)
+      }
+    }
+    
+    getWalletBalance()
+  }, [pkp?.ethAddress])
+
   // Get initials from email
   const getInitials = (email: string) => {
     return email?.charAt(0).toUpperCase() || '?'
@@ -35,8 +75,17 @@ export function WalletCard({ id, signers }: WalletCardProps) {
     return id
   }
 
+  // Handle click on the wallet card
+  const handleCardClick = () => {
+    // Navigate to multisig page with wallet ID as query parameter
+    router.push(`/multisig?walletId=${id}`)
+  }
+
   return (
-    <div className="bg-white rounded-lg border p-6 shadow-sm relative hover:shadow-md transition-shadow">
+    <div 
+      className="bg-white rounded-lg border p-6 shadow-sm relative hover:shadow-md transition-shadow cursor-pointer"
+      onClick={handleCardClick}
+    >
       {/* Wallet ID in top left */}
       <div className="absolute top-4 left-4 text-sm font-mono text-gray-500">
         {truncateId(id)}
@@ -59,7 +108,24 @@ export function WalletCard({ id, signers }: WalletCardProps) {
       {/* Main content */}
       <div className="pt-14 pb-4">
         <h3 className="font-medium text-xl">2-of-2 Multisig Wallet</h3>
-        <p className="text-gray-500 mt-3">
+        
+        {/* Wallet address */}
+        <p className="text-gray-600 mt-3 font-mono text-sm">
+          {pkp?.ethAddress}
+        </p>
+        
+        {/* Balance */}
+        <div className="mt-3 flex items-center">
+          <span className="text-lg font-medium">
+            {isLoadingBalance ? (
+              <Loader2 className="h-5 w-5 inline animate-spin mr-1" />
+            ) : (
+              balance ? `${balance} ETH` : '0 ETH'
+            )}
+          </span>
+        </div>
+        
+        <p className="text-gray-500 mt-4">
           {signers.length} signers required for transactions
         </p>
       </div>

@@ -13,6 +13,8 @@ import { litNodeClient } from "@/lib/lit"
 import { AlertCircle } from "lucide-react"
 import { LIT_CHAINS } from "@lit-protocol/constants"
 import { ethers } from "ethers"
+import { toast, ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 // eth sepolia
 const chainInfo = {
@@ -29,16 +31,18 @@ export function Multisig({
   sessionPkp,
   authMethod,
   googleAuthMethodId,
+  initialWalletId = '',
 }: {
   currentPkp: IRelayPKP,
   sessionPkp: IRelayPKP,
   authMethod: AuthMethod,
   googleAuthMethodId: string,
+  initialWalletId?: string,
 }) {
   const [isLoading, setIsLoading] = useState(false)
   const [wallets, setWallets] = useState<MultisigWallet[]>([])
   const [proposals, setProposals] = useState<MessageProposal[]>([])
-  const [selectedWalletId, setSelectedWalletId] = useState<string>('')
+  const [selectedWalletId, setSelectedWalletId] = useState<string>(initialWalletId)
   const [selectedWallet, setSelectedWallet] = useState<MultisigWallet | null>(null)
   const [selectedMultisigPkp, setSelectedMultisigPkp] = useState<IRelayPKP | null>(null)
   const [toAddress, setToAddress] = useState('')
@@ -107,50 +111,6 @@ export function Multisig({
       setFetchingUser2Info(false);
     }
   };
-
-  const handleCreateMultisigPKP = async () => {
-    if (!currentPkp || !signer2Address || !signer2PublicKey) {
-      console.error('Missing required information')
-      return
-    }
-    
-    try {
-      setIsLoading(true)
-
-      const signer2 = {
-        ethAddress: signer2Address,
-        publicKey: signer2PublicKey
-      }
-
-      const litActionIpfsId = MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID
-      log('lit actions ipfs id', litActionIpfsId)
-
-      const multisigPkp = await mintMultisigPKP({
-        authMethod,
-        litActionIpfsId,
-        googleAuthMethodIds: [googleAuthMethodId, signer2GoogleAuthMethodId]
-      })
-      log('multisig pkp', multisigPkp)
-
-      const response = await axios.post('/api/multisig', {
-        multisigPkp: multisigPkp,
-        currentPkp,
-        signer2
-      })
-
-      if (response.data.success) {
-        await fetchWallets()
-        // Clear form
-        setSigner2Address('')
-        setSigner2PublicKey('')
-        setSigner2GoogleAuthMethodId('')
-      }
-    } catch (error) {
-      console.error('Failed to create multisig PKP:', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   // Update selected wallet and PKP when wallet ID changes
   useEffect(() => {
@@ -266,8 +226,31 @@ export function Multisig({
           await executeMultisigLitAction(updatedProposal)
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to sign proposal:', error)
+      
+      // Check for Google JWT expired error
+      const errorMessage = error?.message || '';
+      if (errorMessage.includes('Google JWT expired') || 
+          (error?.shortMessage && error.shortMessage.includes('Google JWT expired'))) {
+        toast.error('Your Google login has expired. Please log in again.', {
+          position: "top-center",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true
+        });
+      } else {
+        toast.error(`Error signing proposal: ${errorMessage}`, {
+          position: "top-center",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true
+        });
+      }
     } finally {
       setIsLoading(false)
     }
@@ -407,6 +390,29 @@ export function Multisig({
     } catch (error: any) {
       console.error('Failed to execute multisig Lit Action:', error)
       setExecuteResult({ error: error.message || 'Unknown error' })
+      
+      // Check for Google JWT expired error
+      const errorMessage = error?.message || '';
+      if (errorMessage.includes('Google JWT expired') || 
+          (error?.shortMessage && error.shortMessage.includes('Google JWT expired'))) {
+        toast.error('Your Google login has expired. Please log in again.', {
+          position: "top-center",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true
+        });
+      } else {
+        toast.error(`Error executing transaction: ${errorMessage}`, {
+          position: "top-center",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true
+        });
+      }
     } finally {
       setIsLoading(false)
     }
@@ -414,95 +420,17 @@ export function Multisig({
 
   return (
     <div className="space-y-6">
-      <div className="bg-card p-4 rounded-lg border">
-        <h2 className="text-lg font-semibold mb-4">Create 2-of-2 Multisig PKP</h2>
-        
-        <div className="space-y-4 mb-4">
-          <div>
-            <Label>Signer 1 (You)</Label>
-            <div className="text-sm text-gray-500">
-              Address: {currentPkp.ethAddress}
-            </div>
-            <div className="text-sm text-gray-500">
-              Public Key: {currentPkp.publicKey}
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="signer2Address">Signer 2 Address</Label>
-            <div className="relative">
-              <Input
-                id="signer2Address"
-                value={signer2Address}
-                onChange={(e) => setSigner2Address(e.target.value)}
-                placeholder="Enter signer 2 ETH address"
-                className={userLookupError ? "border-red-300" : ""}
-                disabled={fetchingUser2Info}
-              />
-              {fetchingUser2Info && (
-                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                </div>
-              )}
-            </div>
-            {userLookupError && (
-              <div className="text-sm text-red-500 flex items-center gap-1 mt-1">
-                <AlertCircle className="h-4 w-4" />
-                {userLookupError}
-              </div>
-            )}
-          </div>
-
-          {signer2PublicKey ? (
-            <div className="space-y-2">
-              <Label htmlFor="signer2PublicKey">Signer 2 Public Key</Label>
-              <div className="p-2 text-sm break-all bg-gray-50 border rounded-md">
-                {signer2PublicKey}
-              </div>
-            </div>
-          ) : null}
-
-          {signer2GoogleAuthMethodId ? (
-            <div className="space-y-2">
-              <Label htmlFor="signer2GoogleAuthMethodId">Signer 2 Google Auth Method Id</Label>
-              <div className="p-2 text-sm break-all bg-gray-50 border rounded-md">
-                {signer2GoogleAuthMethodId}
-              </div>
-            </div>
-          ) : null}
-        </div>
-
-        <Button 
-          onClick={handleCreateMultisigPKP}
-          disabled={isLoading || fetchingUser2Info || !signer2Address || !signer2PublicKey || !signer2GoogleAuthMethodId}
-        >
-          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Create Multisig Wallet
-        </Button>
-      </div>
-
-      {wallets.length > 0 && (
-        <div className="bg-card p-4 rounded-lg border">
-          <h2 className="text-lg font-semibold mb-4">Your Multisig Wallets</h2>
-          <div className="space-y-4">
-            {wallets.map(wallet => (
-              <div key={wallet.id} className="p-4 bg-gray-50 rounded-lg">
-                <div className="font-medium">Wallet ID: {wallet.id}</div>
-                <div className="text-sm text-gray-500">
-                  PKP Address: {wallet.pkp.ethAddress}
-                </div>
-                <Button
-                  onClick={() => setSelectedWalletId(wallet.id)}
-                  className="mt-2"
-                  variant={selectedWalletId === wallet.id ? "default" : "outline"}
-                >
-                  {selectedWalletId === wallet.id ? "Selected" : "Select"}
-                </Button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      <ToastContainer
+        position="top-center"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
 
       {selectedWalletId && (
         <div className="bg-card p-4 rounded-lg border">
@@ -558,16 +486,6 @@ export function Multisig({
                 step="0.0001"
               />
             </div>
-            
-            {/* <div className="space-y-2">
-              <Label htmlFor="data">Data (Optional)</Label>
-              <Input
-                id="data"
-                value={data}
-                onChange={(e) => setData(e.target.value)}
-                placeholder="Enter transaction data (hex)"
-              />
-            </div> */}
             
             <Button
               onClick={handleCreateProposal}

@@ -21,27 +21,7 @@ export default function DashboardPage() {
   
   // Initialize and handle Google auth redirect
   const init = async () => {
-    log('init')
-    // Check for stored auth method
-    const storedAuthMethod = localStorage.getItem(AUTH_METHOD_STORAGE_KEY);
-    if (storedAuthMethod) {
-      log('storedauthmethod')
-      try {
-        const parsedAuthMethod = JSON.parse(storedAuthMethod);
-        setAuthMethod(parsedAuthMethod);
-        // get user email
-        const userEmail = getEmailFromGoogleToken(parsedAuthMethod.accessToken);
-        setEmail(userEmail);
-
-        redirectAfterAuthentication(parsedAuthMethod)
-        return
-      } catch (error) {
-        console.error('Failed to parse stored auth method:', error);
-        localStorage.removeItem(AUTH_METHOD_STORAGE_KEY);
-      }
-    }
-    setLoading(false);
-    
+    log('init')    
     // Handle authentication redirect from Google
     if (isSignInRedirect(DEFAULT_SIGNIN_REDIRECT)) {
       log('Detected redirect from Google OAuth in dashboard page');
@@ -59,6 +39,26 @@ export default function DashboardPage() {
           localStorage.removeItem(AUTH_METHOD_STORAGE_KEY);
         }
       }
+    } else {
+      const storedAuthMethod = localStorage.getItem(AUTH_METHOD_STORAGE_KEY);
+      if (storedAuthMethod) {
+        // Check for stored auth method
+        log('storedauthmethod')
+        try {
+          const parsedAuthMethod = JSON.parse(storedAuthMethod);
+          setAuthMethod(parsedAuthMethod);
+          // get user email
+          const userEmail = getEmailFromGoogleToken(parsedAuthMethod.accessToken);
+          setEmail(userEmail);
+
+          redirectAfterAuthentication(parsedAuthMethod)
+          return
+        } catch (error) {
+          console.error('Failed to parse stored auth method:', error);
+          localStorage.removeItem(AUTH_METHOD_STORAGE_KEY);
+        }
+      }
+      setLoading(false);
     }
   }
 
