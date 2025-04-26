@@ -15,6 +15,7 @@ import { LIT_CHAINS } from "@lit-protocol/constants"
 import { ethers } from "ethers"
 import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
+import { SignerEmailField } from "@/components/SignerEmailField"
 
 // eth sepolia
 const chainInfo = {
@@ -45,7 +46,8 @@ export function Multisig({
   const [selectedWalletId, setSelectedWalletId] = useState<string>(initialWalletId)
   const [selectedWallet, setSelectedWallet] = useState<MultisigWallet | null>(null)
   const [selectedMultisigPkp, setSelectedMultisigPkp] = useState<IRelayPKP | null>(null)
-  const [toAddress, setToAddress] = useState('')
+  const [recipientEmail, setRecipientEmail] = useState('')
+  const [recipientAddress, setRecipientAddress] = useState('')
   const [amount, setAmount] = useState('')
   const [data, setData] = useState('')
   const [signer2Address, setSigner2Address] = useState('')
@@ -142,12 +144,12 @@ export function Multisig({
   }
 
   const handleCreateProposal = async () => {
-    if (!selectedWalletId || !toAddress || !amount) return
+    if (!selectedWalletId || !recipientAddress || !amount) return
 
     try {
       setIsLoading(true)
       const txData = {
-        to: toAddress,
+        to: recipientAddress,
         value: amount,
         data: data || '0x'
       }
@@ -160,7 +162,8 @@ export function Multisig({
       })
 
       if (response.data.success) {
-        setToAddress('')
+        setRecipientEmail('')
+        setRecipientAddress('')
         setAmount('')
         setData('')
         await fetchProposals()
@@ -465,15 +468,22 @@ export function Multisig({
           
           {/* Create new transaction proposal */}
           <div className="mb-6 space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="toAddress">Recipient Address</Label>
-              <Input
-                id="toAddress"
-                value={toAddress}
-                onChange={(e) => setToAddress(e.target.value)}
-                placeholder="Enter recipient address"
-              />
-            </div>
+            <SignerEmailField 
+              label="Recipient"
+              input={{
+                value: recipientEmail,
+                onChange: (value) => setRecipientEmail(value),
+                placeholder: "Enter recipient's email address",
+                id: "recipientEmail"
+              }}
+              onAddressFound={(addressData) => {
+                if (addressData) {
+                  setRecipientAddress(addressData.ethAddress);
+                } else {
+                  setRecipientAddress('');
+                }
+              }}
+            />
             
             <div className="space-y-2">
               <Label htmlFor="amount">Amount (ETH)</Label>
@@ -489,7 +499,7 @@ export function Multisig({
             
             <Button
               onClick={handleCreateProposal}
-              disabled={isLoading || !toAddress || !amount}
+              disabled={isLoading || !recipientAddress || !amount}
             >
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Create Transaction Proposal
