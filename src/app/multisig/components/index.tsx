@@ -156,7 +156,9 @@ export function Multisig({
         walletId: selectedWalletId,
         createdBy: currentPkp.ethAddress,
         message: JSON.stringify(txData),
-        transactionData: txData
+        transactionData: txData,
+        sendEmail: true,
+        signers: selectedWallet?.signers
       })
 
       if (response.data.success) {

@@ -1,7 +1,8 @@
 import { NextRequest } from 'next/server'
-import { getMessageProposals, saveMessageProposal } from '../storage'
+import { getMessageProposals, saveMessageProposal, getWalletById } from '../storage'
 import { randomUUID } from 'crypto'
 import { log } from '@/lib/utils'
+import axios from 'axios'
 
 // Get message proposals for a wallet
 export async function GET(request: NextRequest) {
@@ -30,10 +31,12 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { walletId, createdBy, message, transactionData } = body
+    const { walletId, createdBy, message, transactionData, signers, sendEmail } = body
 
+    const proposalId = randomUUID()
+    
     const proposal = {
-      id: randomUUID(),
+      id: proposalId,
       walletId,
       status: 'pending',
       createdBy,
@@ -43,6 +46,31 @@ export async function POST(request: NextRequest) {
     }
 
     await saveMessageProposal({...proposal, status: 'pending' as const})
+    
+    // Send email notifications if requested
+    if (sendEmail === true && signers && signers.length > 0) {
+      try {
+        // Get wallet details to create wallet link
+        const wallet = await getWalletById(walletId)
+        
+        // Send notifications to all signers
+        for (const signer of signers) {
+          if (signer.email) {
+            await sendMultisigNotification({
+              to: signer.email,
+              proposalId: proposalId,
+              recipientAddress: transactionData?.to || 'N/A',
+              amount: transactionData?.value || '0',
+              walletLink: `${process.env.NEXT_PUBLIC_APP_URL}/multisig?walletId=${walletId}`
+            })
+          }
+        }
+      } catch (emailError) {
+        console.error('Failed to send email notifications:', emailError)
+        // Continue with the response even if email sending fails
+      }
+    }
+    
     return Response.json({ success: true, data: proposal })
   } catch (error) {
     console.error('Failed to create message proposal:', error)
@@ -91,5 +119,35 @@ export async function PUT(request: NextRequest) {
       { success: false, error: "Failed to update message proposal" },
       { status: 500 }
     )
+  }
+}
+
+// Helper function to send multisig notification emails
+async function sendMultisigNotification({
+  to,
+  proposalId,
+  recipientAddress,
+  amount,
+  walletLink
+}: {
+  to: string
+  proposalId: string
+  recipientAddress: string
+  amount: string
+  walletLink: string
+}) {
+  try {
+    const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/messaging/send-multisig-notification`, {
+      to,
+      proposalId,
+      recipientAddress,
+      amount,
+      walletLink
+    })
+    
+    return response.data
+  } catch (error) {
+    console.error('Error sending multisig notification:', error)
+    throw error
   }
 }

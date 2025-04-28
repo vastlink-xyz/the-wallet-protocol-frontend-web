@@ -115,3 +115,25 @@ export async function saveMessageProposal(proposal: MessageProposal): Promise<vo
     throw error;
   }
 }
+
+export async function getWalletById(walletId: string): Promise<MultisigWallet | null> {
+  try {
+    await connectToDatabase();
+    const wallet = await MultisigWalletModel.findOne({ id: walletId }).lean();
+    
+    if (!wallet) return null;
+    
+    const typedWallet = wallet as any;
+    
+    return {
+      id: typedWallet.id,
+      pkp: typedWallet.pkp as IRelayPKP,
+      signers: typedWallet.signers,
+      threshold: typedWallet.threshold,
+      totalSigners: typedWallet.totalSigners
+    };
+  } catch (error) {
+    console.error('Failed to get wallet by ID:', error);
+    return null;
+  }
+}
