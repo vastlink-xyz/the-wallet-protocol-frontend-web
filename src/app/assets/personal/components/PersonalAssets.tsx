@@ -2,11 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { AuthMethod, IRelayPKP } from '@lit-protocol/types'
-import { ethers } from 'ethers'
-import { LIT_CHAINS } from '@lit-protocol/constants'
 import { Loader2 } from 'lucide-react'
 import { googleProvider } from '@/lib/lit/googleProvider'
-import { formatEthAmount } from '@/lib/utils'
+import { formatEthAmount, fetchEthBalance } from '@/lib/utils'
 
 interface PersonalAssetsProps {
   authMethod: AuthMethod
@@ -55,14 +53,12 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
 
   // Fetch balance separately
   useEffect(() => {
-    const fetchBalance = async () => {
+    const fetchBalanceData = async () => {
       if (!pkp) return
 
       try {
         setIsBalanceLoading(true)
-        const provider = new ethers.providers.JsonRpcProvider(LIT_CHAINS['sepolia'].rpcUrls[0])
-        const balanceWei = await provider.getBalance(pkp.ethAddress)
-        const balanceEth = ethers.utils.formatEther(balanceWei)
+        const balanceEth = await fetchEthBalance(pkp.ethAddress)
         setBalance(balanceEth)
       } catch (error) {
         console.error("Error fetching Sepolia balance:", error)
@@ -72,7 +68,7 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
       }
     }
 
-    fetchBalance()
+    fetchBalanceData()
   }, [pkp])
 
   if (isLoading) {

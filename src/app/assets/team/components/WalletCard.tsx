@@ -1,10 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { ethers } from 'ethers'
-import { LIT_CHAINS } from '@lit-protocol/constants'
 import { IRelayPKP } from '@lit-protocol/types'
-import { Loader2 } from 'lucide-react'
-import { formatEthAmount } from '@/lib/utils'
+import { Loader2, Copy, Check } from 'lucide-react'
+import { formatEthAmount, fetchEthBalance } from '@/lib/utils'
 
 interface WalletCardProps {
   id: string
@@ -23,6 +21,7 @@ export function WalletCard({ id, signers, pkp }: WalletCardProps) {
   const router = useRouter()
   const [balance, setBalance] = useState<string>('')
   const [isLoadingBalance, setIsLoadingBalance] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   // Fetch wallet balance from Sepolia network
   useEffect(() => {
@@ -31,14 +30,7 @@ export function WalletCard({ id, signers, pkp }: WalletCardProps) {
       
       try {
         setIsLoadingBalance(true)
-        // Use Sepolia testnet
-        const provider = new ethers.providers.JsonRpcProvider(
-          LIT_CHAINS['sepolia'].rpcUrls[0]
-        )
-        
-        const balanceWei = await provider.getBalance(pkp.ethAddress)
-        const balanceEth = ethers.utils.formatEther(balanceWei)
-        
+        const balanceEth = await fetchEthBalance(pkp.ethAddress)
         setBalance(balanceEth)
       } catch (error) {
         console.error('Failed to fetch wallet balance:', error)
@@ -50,6 +42,24 @@ export function WalletCard({ id, signers, pkp }: WalletCardProps) {
     
     getWalletBalance()
   }, [pkp?.ethAddress])
+
+  // Function to copy address to clipboard
+  const copyToClipboard = async (e: React.MouseEvent, text: string) => {
+    // Stop event propagation to prevent opening wallet page
+    e.stopPropagation()
+    
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopied(true)
+      
+      // Reset copied state after 2 seconds
+      setTimeout(() => {
+        setCopied(false)
+      }, 2000)
+    } catch (err) {
+      console.error('Failed to copy text:', err)
+    }
+  }
 
   // Get initials from email
   const getInitials = (email: string) => {
@@ -110,10 +120,21 @@ export function WalletCard({ id, signers, pkp }: WalletCardProps) {
       <div className="pt-14 pb-4">
         <h3 className="font-medium text-xl">2-of-2 Multisig Wallet</h3>
         
-        {/* Wallet address */}
-        <p className="text-gray-600 mt-3 font-mono text-sm">
-          {pkp?.ethAddress}
-        </p>
+        {/* Wallet address with copy button */}
+        <div className="text-gray-600 mt-3 font-mono text-sm flex items-center">
+          <span className="truncate">{pkp?.ethAddress}</span>
+          <div 
+            onClick={(e) => copyToClipboard(e, pkp?.ethAddress || '')}
+            className="ml-1 p-1 cursor-pointer"
+            aria-label="Copy address"
+          >
+            {copied ? (
+              <Check className="h-3 w-3 text-green-500" />
+            ) : (
+              <Copy className="h-3 w-3" />
+            )}
+          </div>
+        </div>
         
         {/* Balance */}
         <div className="mt-3 flex items-center">

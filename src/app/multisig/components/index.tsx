@@ -7,7 +7,7 @@ import axios from 'axios'
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { executeSignLitAction, mintMultisigPKP } from "../helper"
-import { log, formatEthAmount } from "@/lib/utils"
+import { log, formatEthAmount, fetchEthBalance } from "@/lib/utils"
 import { getSessionSigsByPkp, MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID, SIGN_PROPOSAL_LIT_ACTION_IPFS_ID } from "@/lib/lit"
 import { litNodeClient } from "@/lib/lit"
 import { AlertCircle } from "lucide-react"
@@ -48,6 +48,7 @@ export function Multisig({
   const [selectedWalletId, setSelectedWalletId] = useState<string>(initialWalletId)
   const [selectedWallet, setSelectedWallet] = useState<MultisigWallet | null>(null)
   const [selectedMultisigPkp, setSelectedMultisigPkp] = useState<IRelayPKP | null>(null)
+  const [walletBalance, setWalletBalance] = useState<string>('0')
   const [recipientEmail, setRecipientEmail] = useState('')
   const [recipientAddress, setRecipientAddress] = useState('')
   const [amount, setAmount] = useState('')
@@ -117,10 +118,14 @@ export function Multisig({
       if (wallet) {
         setSelectedWallet(wallet)
         setSelectedMultisigPkp(wallet.pkp)
+        
+        // Fetch wallet balance using the global utility
+        updateWalletBalance(wallet.pkp.ethAddress)
       }
     } else {
       setSelectedWallet(null)
       setSelectedMultisigPkp(null)
+      setWalletBalance('0')
     }
   }, [selectedWalletId, wallets])
 
@@ -414,6 +419,17 @@ export function Multisig({
     }
   }
 
+  // Helper to update wallet balance
+  const updateWalletBalance = async (address: string) => {
+    try {
+      const balance = await fetchEthBalance(address)
+      setWalletBalance(balance)
+    } catch (error) {
+      console.error('Failed to update wallet balance:', error)
+      setWalletBalance('0')
+    }
+  }
+
   return (
     <div className="space-y-6">
       <ToastContainer
@@ -435,23 +451,39 @@ export function Multisig({
           <div className="mb-6 p-4 bg-gray-50 rounded-lg">
             <h3 className="font-medium mb-2">Selected Multisig Wallet PKP Details</h3>
             {wallets.filter(w => w.id === selectedWalletId).map(wallet => (
-              <div key={wallet.id} className="space-y-1">
-                <div className="text-sm">
-                  <span className="font-medium">PKP Address:</span> {wallet.pkp.ethAddress}
+              <div key={wallet.id} className="space-y-2">
+                <div>
+                  <div className="text-sm font-medium">PKP Address:</div>
+                  <div className="text-sm ml-2">{wallet.pkp.ethAddress}</div>
                 </div>
-                <div className="text-sm break-all">
-                  <span className="font-medium">PKP Public Key:</span> {wallet.pkp.publicKey}
+                <div>
+                  <div className="text-sm font-medium">Balance:</div>
+                  <div className="text-sm ml-2">{walletBalance} ETH</div>
                 </div>
-                <div className="text-sm">
-                  <span className="font-medium">Threshold:</span> {wallet.threshold} of {wallet.totalSigners} signers
+                <div>
+                  <div className="text-sm font-medium">PKP Public Key:</div>
+                  <div className="text-sm ml-2 break-all">{wallet.pkp.publicKey}</div>
                 </div>
-                <div className="text-sm">
-                  <span className="font-medium">Signers:</span>
+                <div>
+                  <div className="text-sm font-medium">Threshold:</div>
+                  <div className="text-sm ml-2">{wallet.threshold} of {wallet.totalSigners} signers</div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium">Signers:</div>
                 </div>
                 {wallet.signers.map((signer, index) => (
-                  <div key={index} className="text-sm ml-4">
-                    <span className="font-medium">Signer {index + 1}:</span> {signer.ethAddress}
-                  </div>
+                  <SignerEmailField
+                    key={index}
+                    label={`Signer ${index + 1}`}
+                    input={{
+                      value: signer.email,
+                      onChange: () => {},
+                    }}
+                    inputType="email"
+                    address={signer.ethAddress}
+                    disabled={true}
+                    className="ml-4 mb-4"
+                  />
                 ))}
               </div>
             ))}

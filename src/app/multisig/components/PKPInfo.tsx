@@ -1,9 +1,7 @@
 import { IRelayPKP } from "@lit-protocol/types";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { ethers } from "ethers";
-import { LIT_CHAINS } from "@lit-protocol/constants";
-import { formatEthAmount } from '@/lib/utils'
+import { formatEthAmount, fetchEthBalance } from '@/lib/utils'
 
 interface PKPInfoProps {
   litActionPkp: IRelayPKP | null;
@@ -20,9 +18,7 @@ export function PKPInfo({ litActionPkp, isLoading = false }: PKPInfoProps) {
       
       try {
         setIsBalanceLoading(true);
-        const provider = new ethers.providers.JsonRpcProvider(LIT_CHAINS['sepolia'].rpcUrls[0]);
-        const balanceWei = await provider.getBalance(litActionPkp.ethAddress);
-        const balanceEth = ethers.utils.formatEther(balanceWei);
+        const balanceEth = await fetchEthBalance(litActionPkp.ethAddress);
         setBalance(balanceEth);
       } catch (error) {
         console.error("Error fetching Sepolia balance:", error);

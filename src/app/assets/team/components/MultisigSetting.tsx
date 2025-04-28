@@ -121,6 +121,7 @@ export function MultisigSetting({
               id: "currentUserEmail"
             }}
             disabled={true}
+            inputType="email"
             address={userPkp?.ethAddress}
           />
           
@@ -130,9 +131,10 @@ export function MultisigSetting({
             input={{
               value: signer2Email,
               onChange: setSigner2Email,
-              placeholder: "Enter signer's email address",
+              placeholder: "Enter signer's email",
               id: "signer2Email"
             }}
+            inputType="email"
             onAddressFound={(addressData) => {
               if (addressData && addressData.authMethodId && addressData.publicKey) {
                 setSigner2Address(addressData.ethAddress);

@@ -42,6 +42,9 @@ interface SignerEmailFieldProps {
     authMethodId?: string
   } | null) => void
 
+  // Explicit input type (email or address)
+  inputType?: 'email' | 'address' | null
+
   // Custom className for the root element
   className?: string
 }
@@ -53,6 +56,7 @@ export function SignerEmailField({
   lookupOnChange = true,
   address,
   onAddressFound,
+  inputType,
   className
 }: SignerEmailFieldProps) {
   // State management
@@ -63,7 +67,7 @@ export function SignerEmailField({
     publicKey: string
     authMethodId?: string
   } | null>(address ? { ethAddress: address, publicKey: '' } : null)
-  const [inputType, setInputType] = useState<'email' | 'address' | null>(null)
+  const [internalInputType, setInternalInputType] = useState<'email' | 'address' | null>(inputType || null)
   const [copied, setCopied] = useState(false)
 
   // If address prop changes, update the state
@@ -75,6 +79,11 @@ export function SignerEmailField({
     }
   }, [address, onAddressFound])
 
+  // If props.inputType changes, update internal state
+  useEffect(() => {
+    setInternalInputType(inputType || null);
+  }, [inputType])
+
   // Query address when input changes and auto-lookup is enabled
   useEffect(() => {
     // Skip lookup if address is explicitly provided
@@ -84,11 +93,11 @@ export function SignerEmailField({
       const debounceTimer = setTimeout(() => {
         // Check if input is a valid email or ETH address
         if (isValidEmail(input.value)) {
-          setInputType('email');
+          setInternalInputType('email');
           fetchAddressByEmail(input.value);
         } else if (ethers.utils.isAddress(input.value)) {
           // If it's a valid ETH address, use it directly
-          setInputType('address');
+          setInternalInputType('address');
           const newAddressInfo = {
             ethAddress: input.value,
             publicKey: '',
@@ -98,7 +107,7 @@ export function SignerEmailField({
           setError(null);
         } else if (input.value.length > 5) {
           // Clear data if input is not valid but has substantial content
-          setInputType(null);
+          setInternalInputType(null);
           setAddressInfo(null);
           setError('Enter a valid email or Ethereum address');
           if (onAddressFound) onAddressFound(null);
@@ -108,7 +117,7 @@ export function SignerEmailField({
       return () => clearTimeout(debounceTimer)
     } else if (!input.value) {
       // Clear everything if input is empty
-      setInputType(null);
+      setInternalInputType(null);
       setAddressInfo(null);
       setError(null);
       if (onAddressFound) onAddressFound(null);
@@ -165,11 +174,11 @@ export function SignerEmailField({
     
     if (!lookupOnChange && input.value) {
       if (isValidEmail(input.value)) {
-        setInputType('email');
+        setInternalInputType('email');
         fetchAddressByEmail(input.value);
       } else if (ethers.utils.isAddress(input.value)) {
         // If it's a valid ETH address, use it directly
-        setInputType('address');
+        setInternalInputType('address');
         const newAddressInfo = {
           ethAddress: input.value,
           publicKey: '',
@@ -229,8 +238,8 @@ export function SignerEmailField({
         </div>
       )}
       
-      {/* Only show address display for email inputs */}
-      {addressInfo && inputType === 'email' && (
+      {/* Display address information */}
+      {internalInputType === 'email' && addressInfo && (
         <div className="mt-1.5">
           <div className="text-xs text-gray-500 break-all font-mono flex items-center">
             <span>{addressInfo.ethAddress}</span>
