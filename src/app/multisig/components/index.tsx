@@ -7,7 +7,7 @@ import axios from 'axios'
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { executeSignLitAction, mintMultisigPKP } from "../helper"
-import { log } from "@/lib/utils"
+import { log, formatEthAmount } from "@/lib/utils"
 import { getSessionSigsByPkp, MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID, SIGN_PROPOSAL_LIT_ACTION_IPFS_ID } from "@/lib/lit"
 import { litNodeClient } from "@/lib/lit"
 import { AlertCircle } from "lucide-react"
@@ -40,6 +40,8 @@ export function Multisig({
   googleAuthMethodId: string,
   initialWalletId?: string,
 }) {
+  const [isCreatingProposal, setIsCreatingProposal] = useState(false)
+  const [isSigningProposal, setIsSigningProposal] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [wallets, setWallets] = useState<MultisigWallet[]>([])
   const [proposals, setProposals] = useState<MessageProposal[]>([])
@@ -54,8 +56,6 @@ export function Multisig({
   const [signer2PublicKey, setSigner2PublicKey] = useState('')
   const [signer2GoogleAuthMethodId, setSigner2GoogleAuthMethodId] = useState('')
   const [executeResult, setExecuteResult] = useState<any>(null)
-  const [fetchingUser2Info, setFetchingUser2Info] = useState(false)
-  const [userLookupError, setUserLookupError] = useState('')
 
   useEffect(() => {
     fetchWallets()
@@ -82,14 +82,11 @@ export function Multisig({
       if (signer2PublicKey || signer2GoogleAuthMethodId) {
         setSigner2PublicKey('');
         setSigner2GoogleAuthMethodId('');
-        setUserLookupError('');
       }
     }
   }, [signer2Address]);
 
   const fetchUserByAddress = async (address: string) => {
-    setFetchingUser2Info(true);
-    setUserLookupError('');
     
     try {
       const response = await axios.get(`/api/user/address?address=${address}`);
@@ -100,17 +97,13 @@ export function Multisig({
         setSigner2GoogleAuthMethodId(authMethodId);
         log('Found user for address', address, pkp, authMethodId);
       } else {
-        setUserLookupError('User not found with this address');
         setSigner2PublicKey('');
         setSigner2GoogleAuthMethodId('');
       }
     } catch (error) {
       console.error('Failed to fetch user by address:', error);
-      setUserLookupError('Failed to find user with this address');
       setSigner2PublicKey('');
       setSigner2GoogleAuthMethodId('');
-    } finally {
-      setFetchingUser2Info(false);
     }
   };
 
@@ -147,7 +140,7 @@ export function Multisig({
     if (!selectedWalletId || !recipientAddress || !amount) return
 
     try {
-      setIsLoading(true)
+      setIsCreatingProposal(true)
       const txData = {
         to: recipientAddress,
         value: amount,
@@ -171,7 +164,7 @@ export function Multisig({
     } catch (error) {
       console.error('Failed to create proposal:', error)
     } finally {
-      setIsLoading(false)
+      setIsCreatingProposal(false)
     }
   }
 
@@ -182,7 +175,7 @@ export function Multisig({
     }
 
     try {
-      setIsLoading(true)
+      setIsSigningProposal(true)
 
       const litActionIpfsId = SIGN_PROPOSAL_LIT_ACTION_IPFS_ID
       log('ipfsid', litActionIpfsId)
@@ -255,7 +248,7 @@ export function Multisig({
         });
       }
     } finally {
-      setIsLoading(false)
+      setIsSigningProposal(false)
     }
   }
 
@@ -499,9 +492,9 @@ export function Multisig({
             
             <Button
               onClick={handleCreateProposal}
-              disabled={isLoading || !recipientAddress || !amount}
+              disabled={isCreatingProposal || !recipientAddress || !amount}
             >
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isCreatingProposal && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Create Transaction Proposal
             </Button>
           </div>
@@ -514,7 +507,7 @@ export function Multisig({
                 <div key={proposal.id} className="p-4 bg-gray-50 rounded-lg">
                   <div className="mb-2">
                     <div><span className="font-medium">Recipient:</span> {txDetails.to}</div>
-                    <div><span className="font-medium">Amount:</span> {txDetails.value} ETH</div>
+                    <div><span className="font-medium">Amount:</span> {formatEthAmount(txDetails.value)} ETH</div>
                     {txDetails.data && txDetails.data !== '0x' && (
                       <div><span className="font-medium">Data:</span> {txDetails.data}</div>
                     )}
@@ -531,9 +524,9 @@ export function Multisig({
                     {proposal.status === 'pending' && !hasUserSigned(proposal) && (
                       <Button
                         onClick={() => handleSignProposal(proposal)}
-                        disabled={isLoading}
+                        disabled={isSigningProposal}
                       >
-                        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {isSigningProposal && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         Sign Transaction
                       </Button>
                     )}

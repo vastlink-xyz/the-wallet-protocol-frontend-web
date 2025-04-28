@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { ethers } from 'ethers'
 import { LIT_CHAINS } from '@lit-protocol/constants'
+import { IRelayPKP } from '@lit-protocol/types'
 import { Loader2 } from 'lucide-react'
+import { formatEthAmount } from '@/lib/utils'
 
 interface WalletCardProps {
   id: string
@@ -37,8 +39,7 @@ export function WalletCard({ id, signers, pkp }: WalletCardProps) {
         const balanceWei = await provider.getBalance(pkp.ethAddress)
         const balanceEth = ethers.utils.formatEther(balanceWei)
         
-        // Format to 4 decimal places max
-        setBalance(parseFloat(balanceEth).toFixed(4))
+        setBalance(balanceEth)
       } catch (error) {
         console.error('Failed to fetch wallet balance:', error)
         setBalance('Error')
@@ -120,7 +121,7 @@ export function WalletCard({ id, signers, pkp }: WalletCardProps) {
             {isLoadingBalance ? (
               <Loader2 className="h-5 w-5 inline animate-spin mr-1" />
             ) : (
-              balance ? `${balance} ETH` : '0 ETH'
+              balance ? `${formatEthAmount(balance)} ETH` : '0 ETH'
             )}
           </span>
         </div>

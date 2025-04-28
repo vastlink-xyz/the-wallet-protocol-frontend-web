@@ -3,6 +3,7 @@ import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import { LIT_CHAINS } from "@lit-protocol/constants";
+import { formatEthAmount } from '@/lib/utils'
 
 interface PKPInfoProps {
   litActionPkp: IRelayPKP | null;
@@ -72,7 +73,7 @@ export function PKPInfo({ litActionPkp, isLoading = false }: PKPInfoProps) {
             <div className="text-sm bg-muted p-2 rounded break-all mt-1">
               {isBalanceLoading ? 
                 <Loader2 className="h-4 w-4 animate-spin inline mr-2" /> : 
-                balance ? `${balance} ETH` : "0 ETH"}
+                balance ? `${formatEthAmount(balance)} ETH` : "0 ETH"}
             </div>
           </div>
           <div>
