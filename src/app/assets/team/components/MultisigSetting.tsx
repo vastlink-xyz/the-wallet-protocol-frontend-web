@@ -134,7 +134,7 @@ export function MultisigSetting({
               id: "signer2Email"
             }}
             onAddressFound={(addressData) => {
-              if (addressData) {
+              if (addressData && addressData.authMethodId && addressData.publicKey) {
                 setSigner2Address(addressData.ethAddress);
                 setSigner2PublicKey(addressData.publicKey);
                 setSigner2GoogleAuthMethodId(addressData.authMethodId || '');

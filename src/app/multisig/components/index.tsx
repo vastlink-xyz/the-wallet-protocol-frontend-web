@@ -466,8 +466,8 @@ export function Multisig({
               input={{
                 value: recipientEmail,
                 onChange: (value) => setRecipientEmail(value),
-                placeholder: "Enter recipient's email address",
-                id: "recipientEmail"
+                placeholder: "Enter recipient's email or ETH address",
+                id: "recipient"
               }}
               onAddressFound={(addressData) => {
                 if (addressData) {

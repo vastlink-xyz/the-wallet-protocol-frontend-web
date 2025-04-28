@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
-import { Loader2, AlertCircle } from 'lucide-react'
+import { Loader2, AlertCircle, Copy, Check } from 'lucide-react'
 import axios from 'axios'
+import { ethers } from 'ethers'
 
-// Helper function to validate email format
+// Helper functions to validate input formats
 const isValidEmail = (email: string): boolean => {
   const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/
   return emailRegex.test(email)
@@ -62,6 +63,8 @@ export function SignerEmailField({
     publicKey: string
     authMethodId?: string
   } | null>(address ? { ethAddress: address, publicKey: '' } : null)
+  const [inputType, setInputType] = useState<'email' | 'address' | null>(null)
+  const [copied, setCopied] = useState(false)
 
   // If address prop changes, update the state
   useEffect(() => {
@@ -72,19 +75,45 @@ export function SignerEmailField({
     }
   }, [address, onAddressFound])
 
-  // Query address when email changes and auto-lookup is enabled
+  // Query address when input changes and auto-lookup is enabled
   useEffect(() => {
     // Skip lookup if address is explicitly provided
     if (address) return
     
-    if (lookupOnChange && input.value && isValidEmail(input.value)) {
+    if (lookupOnChange && input.value) {
       const debounceTimer = setTimeout(() => {
-        fetchAddressByEmail(input.value)
+        // Check if input is a valid email or ETH address
+        if (isValidEmail(input.value)) {
+          setInputType('email');
+          fetchAddressByEmail(input.value);
+        } else if (ethers.utils.isAddress(input.value)) {
+          // If it's a valid ETH address, use it directly
+          setInputType('address');
+          const newAddressInfo = {
+            ethAddress: input.value,
+            publicKey: '',
+          };
+          setAddressInfo(newAddressInfo);
+          if (onAddressFound) onAddressFound(newAddressInfo);
+          setError(null);
+        } else if (input.value.length > 5) {
+          // Clear data if input is not valid but has substantial content
+          setInputType(null);
+          setAddressInfo(null);
+          setError('Enter a valid email or Ethereum address');
+          if (onAddressFound) onAddressFound(null);
+        }
       }, 500) // 500ms debounce
       
       return () => clearTimeout(debounceTimer)
+    } else if (!input.value) {
+      // Clear everything if input is empty
+      setInputType(null);
+      setAddressInfo(null);
+      setError(null);
+      if (onAddressFound) onAddressFound(null);
     }
-  }, [input.value, lookupOnChange, address])
+  }, [input.value, lookupOnChange, address, onAddressFound])
 
   // Query address information corresponding to email
   const fetchAddressByEmail = async (email: string) => {
@@ -134,29 +163,56 @@ export function SignerEmailField({
     // Skip lookup if address is explicitly provided
     if (address) return
     
-    if (!lookupOnChange && input.value && isValidEmail(input.value)) {
-      fetchAddressByEmail(input.value)
+    if (!lookupOnChange && input.value) {
+      if (isValidEmail(input.value)) {
+        setInputType('email');
+        fetchAddressByEmail(input.value);
+      } else if (ethers.utils.isAddress(input.value)) {
+        // If it's a valid ETH address, use it directly
+        setInputType('address');
+        const newAddressInfo = {
+          ethAddress: input.value,
+          publicKey: '',
+        };
+        setAddressInfo(newAddressInfo);
+        if (onAddressFound) onAddressFound(newAddressInfo);
+        setError(null);
+      }
     }
   }
 
+  // Function to copy address to clipboard
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      
+      // Reset copied state after 2 seconds
+      setTimeout(() => {
+        setCopied(false);
+      }, 2000);
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+    }
+  };
+
   return (
     <div className={`space-y-2 ${className || ''}`}>
-      <Label htmlFor={input.id || 'email-field'} className="text-base font-semibold">
+      <Label htmlFor={input.id || 'recipient-field'} className="text-base font-semibold">
         {label}
       </Label>
       
       <div className="relative">
         <Input
-          id={input.id || 'email-field'}
+          id={input.id || 'recipient-field'}
           value={input.value}
           onChange={(e) => input.onChange(e.target.value)}
           onBlur={handleBlur}
-          placeholder={input.placeholder || "Enter email address"}
+          placeholder={input.placeholder || "Enter email address or ETH address (0x...)"}
           disabled={disabled || isLoading}
           className={`${disabled ? "bg-gray-50 text-black font-semibold" : ""} ${error ? "border-red-300" : ""} ${input.className || ""}`}
           autoComplete={input.autoComplete}
           name={input.name}
-          type="email"
         />
         
         {isLoading && (
@@ -173,10 +229,22 @@ export function SignerEmailField({
         </div>
       )}
       
-      {addressInfo && (
+      {/* Only show address display for email inputs */}
+      {addressInfo && inputType === 'email' && (
         <div className="mt-1.5">
-          <div className="text-xs text-gray-500 break-all font-mono">
-            {addressInfo.ethAddress}
+          <div className="text-xs text-gray-500 break-all font-mono flex items-center">
+            <span>{addressInfo.ethAddress}</span>
+            <div 
+              onClick={() => copyToClipboard(addressInfo.ethAddress)}
+              className="ml-1 p-1 cursor-pointer"
+              aria-label="Copy address"
+            >
+              {copied ? (
+                <Check className="h-3 w-3 text-green-500" />
+              ) : (
+                <Copy className="h-3 w-3" />
+              )}
+            </div>
           </div>
         </div>
       )}
