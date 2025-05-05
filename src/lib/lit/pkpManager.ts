@@ -218,7 +218,7 @@ export async function mintPKP({
     permittedAuthMethodTypes: [AUTH_METHOD_TYPE.LitAction, AUTH_METHOD_TYPE.GoogleJwt],
     permittedAuthMethodIds: [litActioinAuthMethodId, googleAuthMethodId],
     permittedAuthMethodPubkeys: ['0x', '0x'],
-    permittedAuthMethodScopes: [[AUTH_METHOD_SCOPE.SignAnything], [AUTH_METHOD_SCOPE.SignAnything]],
+    permittedAuthMethodScopes: [[AUTH_METHOD_SCOPE.SignAnything], [AUTH_METHOD_SCOPE.NoPermissions]],
     addPkpEthAddressAsPermittedAddress: false,
     sendPkpToItself: true,
     keyType: 2 // Standard PKP type

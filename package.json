@@ -12,6 +12,7 @@
     "@lit-protocol/auth-helpers": "^7.1.0",
     "@lit-protocol/constants": "^7.1.0",
     "@lit-protocol/contracts-sdk": "^7.1.0",
+    "@lit-protocol/encryption": "^7.1.1",
     "@lit-protocol/lit-auth-client": "^7.1.0",
     "@lit-protocol/pkp-ethers": "^7.1.0",
     "@lit-protocol/types": "^7.1.0",

@@ -7,10 +7,12 @@ import { AuthMethod, IRelayPKP } from "@lit-protocol/types";
 import { useEffect, useState } from "react";
 import { PKPEthersWallet } from "@lit-protocol/pkp-ethers";
 import { LitContracts } from "@lit-protocol/contracts-sdk";
-import { ethers } from "ethers";
+import { ethers, utils } from "ethers";
 import { AUTH_METHOD_SCOPE, LIT_CHAINS } from "@lit-protocol/constants";
 // import signTransactionLitActionCode from './sign-transaction-lit-action-code'
 import verifyMultisigLitActionCdoe from '@/lib/lit-action-code/verify-multisig.lit'
+import { Encryption } from './components/Encryption';
+import { Example } from "./components/Example";
 
 // eth sepolia
 const chainInfo = {
@@ -165,11 +167,101 @@ export default function DebugPage() {
     console.log(verifyMultisigLitActionCdoe)
   }
 
-  return <div>
-    <Button onClick={handleGetAllPKPs}>All PKPs</Button>
-    <Button onClick={handleMintPKP}>Mint PKP</Button>
-    <Button onClick={handleExecuteLitAction}>Execute Lit Action</Button>
-    <Button onClick={handleAddLitActionPermission}>Add Lit Action</Button>
-    <Button onClick={handleLogLitActionCode}>Log Lit Action Code</Button>
-  </div>
+  const handleLogPermittedActions = async () => {
+    try {
+      // await litNodeClient.connect();
+
+      if (!currentPkp || !authMethod) {
+        return
+      }
+
+      log('current pkp', currentPkp)
+
+      const sessionSigs = await getSessionSigsByPkp(authMethod, currentPkp)
+      const pkpWallet = new PKPEthersWallet({
+        controllerSessionSigs: sessionSigs,
+        pkpPubKey: currentPkp.publicKey,
+        litNodeClient: litNodeClient,
+      });
+      
+      await pkpWallet.init();
+      log('pkpWallet init')
+
+      const litContracts = new LitContracts({
+        signer: pkpWallet,
+      });
+      await litContracts.connect();
+      log('litcontract conneected')
+
+      const permittedActions = await litContracts.pkpPermissionsContractUtils.read.getPermittedActions(currentPkp.tokenId)
+      log('permitted actions', permittedActions)
+
+      const permittedAuthMethods = await litContracts.pkpPermissionsContract.read.getPermittedAuthMethods(currentPkp.tokenId)
+      log('permitted authmethods', permittedAuthMethods)
+
+      const res = await litContracts.pkpPermissionsContractUtils.read.isPermittedAction(currentPkp.tokenId, SIGN_PROPOSAL_LIT_ACTION_IPFS_ID)
+      log('res is permitted action', res)
+    } catch (err) {
+      console.error(err);
+    } finally {
+    }
+  }
+
+  const handleSignMessageWithPKP = async () => {
+    try {
+      // await litNodeClient.connect();
+
+      if (!currentPkp || !authMethod) {
+        return
+      }
+
+      log('current pkp', currentPkp)
+
+      const sessionSigs = await getSessionSigsByPkp(authMethod, currentPkp)
+      const pkpWallet = new PKPEthersWallet({
+        controllerSessionSigs: sessionSigs,
+        pkpPubKey: currentPkp.publicKey,
+        litNodeClient: litNodeClient,
+      });
+
+      await pkpWallet.init();
+      log('pkpWallet init')
+
+      const message = 'hi'
+      
+      const signature = await pkpWallet.signMessage(message);
+
+      // Get the address associated with the signature created by signing the message
+      const recoveredAddr = ethers.utils.verifyMessage(message, signature);
+
+      // Check if the address associated with the signature is the same as the current PKP
+      const verified = currentPkp.ethAddress.toLowerCase() === recoveredAddr.toLowerCase();
+      log('verified', verified)
+    } catch (err) {
+      console.error(err);
+    } finally {
+    }
+  }
+
+  return (
+    <div className="space-y-8 p-4">
+      <div className="flex flex-wrap gap-2">
+        <Button onClick={handleGetAllPKPs}>All PKPs</Button>
+        <Button onClick={handleMintPKP}>Mint PKP</Button>
+        <Button onClick={handleExecuteLitAction}>Execute Lit Action</Button>
+        <Button onClick={handleAddLitActionPermission}>Add Lit Action</Button>
+        <Button onClick={handleLogLitActionCode}>Log Lit Action Code</Button>
+      </div>
+      
+      <div className="border rounded-lg p-6 bg-white">
+        {authMethod && <Encryption authMethod={authMethod} />}
+      </div>
+      
+      <div className="border rounded-lg p-6 bg-white">
+        {
+          authMethod && <Example authMethod={authMethod} />
+        }
+      </div>
+    </div>
+  );
 }
