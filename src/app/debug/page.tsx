@@ -13,6 +13,7 @@ import { AUTH_METHOD_SCOPE, LIT_CHAINS } from "@lit-protocol/constants";
 import verifyMultisigLitActionCdoe from '@/lib/lit-action-code/verify-multisig.lit'
 import { Encryption } from './components/Encryption';
 import { Example } from "./components/Example";
+import { customLitActionCode } from "./lit-actions/custom";
 
 // eth sepolia
 const chainInfo = {
@@ -40,6 +41,13 @@ const sessionPKP = {
   "tokenId" : "0xb7aaf498c4d450855f7a3cccc900b24b348f0e108d5d5a7ba9072e9403f6ff4e",
 }
 
+const pkp = {
+  "ethAddress": "0x1b1E49900c11d29f13b8f02385cb8408D9b81535",
+  "publicKey": "0x047d61e857d17bf4200304ffd6ff509c1c4cf4dfe42aea1a7601720778bd387b89ef4569ca3dd014fb1ca003f2f129c58a09b622630af2260cf0b76ada2f512748",
+  "tokenId": "0x6f53bfb409fdad55d9ee324c06a0eb941cf0e6499ab420327202efd7005a7edd",
+}
+
+
 export default function DebugPage() {
   const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null);
   const [currentPkp, setCurrentPkp] = useState<IRelayPKP>(defaultPkp)
@@ -62,7 +70,7 @@ export default function DebugPage() {
       return
     }
 
-    const litActionIpfsId = SIGN_PROPOSAL_LIT_ACTION_IPFS_ID
+    const litActionIpfsId = 'QmSnoo4GnbFSvJ4z8YoR35HSGTQsuxvUjd9JFDzKDC5Tus'
     const pkp = await mintPKP({
       authMethod,
       litActionIpfsId,
@@ -164,7 +172,7 @@ export default function DebugPage() {
 
   const handleLogLitActionCode = async () => {
     // console.log(signTransactionLitActionCode)
-    console.log(verifyMultisigLitActionCdoe)
+    console.log(customLitActionCode)
   }
 
   const handleLogPermittedActions = async () => {
@@ -252,11 +260,7 @@ export default function DebugPage() {
         <Button onClick={handleAddLitActionPermission}>Add Lit Action</Button>
         <Button onClick={handleLogLitActionCode}>Log Lit Action Code</Button>
       </div>
-      
-      <div className="border rounded-lg p-6 bg-white">
-        {authMethod && <Encryption authMethod={authMethod} />}
-      </div>
-      
+
       <div className="border rounded-lg p-6 bg-white">
         {
           authMethod && <Example authMethod={authMethod} />
