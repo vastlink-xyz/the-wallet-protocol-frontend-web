@@ -8,23 +8,37 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
     const signerAddress = searchParams.get('address')
+    const walletId = searchParams.get('id')
     
-    if (!signerAddress) {
-      return Response.json(
-        { success: false, error: "Signer address is required" },
-        { status: 400 }
-      )
-    }
-
     const wallets = await getWallets()
-    // Filter wallets where the provided address is one of the signers
-    const filteredWallets = wallets.filter(wallet => 
-      wallet.signers.some(signer => 
-        signer.ethAddress.toLowerCase() === signerAddress.toLowerCase()
+    
+    // If walletId is provided, return the specific wallet
+    if (walletId) {
+      const wallet = wallets.find(w => w.id === walletId)
+      if (!wallet) {
+        return Response.json(
+          { success: false, error: "Wallet not found" },
+          { status: 404 }
+        )
+      }
+      return Response.json({ success: true, data: wallet })
+    }
+    
+    // If no walletId but signerAddress is provided, filter by address
+    if (signerAddress) {
+      const filteredWallets = wallets.filter(wallet => 
+        wallet.signers.some(signer => 
+          signer.ethAddress.toLowerCase() === signerAddress.toLowerCase()
+        )
       )
+      return Response.json({ success: true, data: filteredWallets })
+    }
+    
+    // If neither is provided, return error
+    return Response.json(
+      { success: false, error: "Either wallet ID or signer address is required" },
+      { status: 400 }
     )
-
-    return Response.json({ success: true, data: filteredWallets })
   } catch (error) {
     console.error('Error fetching multisig wallets:', error)
     return Response.json(
