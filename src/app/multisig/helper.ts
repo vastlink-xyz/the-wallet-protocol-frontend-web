@@ -1,16 +1,16 @@
-import { googleProvider, litNodeClient } from "@/lib/lit";
+import { googleProvider, litNodeClient, MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID } from "@/lib/lit";
 import { log } from "@/lib/utils";
 import { AUTH_METHOD_SCOPE, AUTH_METHOD_TYPE } from "@lit-protocol/constants";
 import { AuthMethod, IRelayPKP, MintRequestBody, SessionSigs } from "@lit-protocol/types";
 import { utils } from "ethers";
+import { mintPKP } from "@/lib/lit/pkpManager";
+
 
 export async function mintMultisigPKP({
   authMethod,
-  litActionIpfsId,
   googleAuthMethodIds,
 }: {
   authMethod: AuthMethod,
-  litActionIpfsId: string,
   googleAuthMethodIds: string[],
 }
 ): Promise<IRelayPKP> {
@@ -20,6 +20,7 @@ export async function mintMultisigPKP({
     throw new Error('Provider not available for this auth method');
   }
 
+  const litActionIpfsId = MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID
   // Convert IPFS CID to bytes32 format
   const bytes = Buffer.from(utils.base58.decode(litActionIpfsId));
   const litActioinAuthMethodId = `0x${bytes.toString('hex')}`;
@@ -35,39 +36,14 @@ export async function mintMultisigPKP({
     keyType: 2 // Standard PKP type
   };
 
-  // 3. Mint PKP through relay server
+  // 3. Mint PKP using mintPKP function
   console.log(`Starting to mint PKP bound to IPFS ID ${litActionIpfsId}...`);
-  const txHash = await provider.mintPKPThroughRelayer(authMethod, options);
-
-  let attempts = 3;
-  let response = null;
-
-  // 4. Poll until result is received
-  while (attempts > 0) {
-    try {
-      log('attmpts', attempts)
-      response = await provider.relay.pollRequestUntilTerminalState(txHash);
-      break;
-    } catch (err) {
-      console.warn('Minting failed, retrying...', err);
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      attempts--;
-    }
-  }
-
-  if (!response || response.status !== 'Succeeded') {
-    throw new Error('PKP minting failed');
-  }
-
-  if (!response.pkpEthAddress || !response.pkpTokenId || !response.pkpPublicKey) {
-    throw new Error('Response properties are undefined');
-  }
-
-  const newPKP: IRelayPKP = {
-    tokenId: response.pkpTokenId,
-    publicKey: response.pkpPublicKey,
-    ethAddress: response.pkpEthAddress,
-  };
+  
+  const newPKP = await mintPKP({
+    authMethod,
+    options,
+    provider
+  });
 
   console.log(`PKP has been minted and permanently bound to Lit Action: ${litActionIpfsId}`);
   console.log(`Send PKP to itself option enabled, no additional burn step needed`);

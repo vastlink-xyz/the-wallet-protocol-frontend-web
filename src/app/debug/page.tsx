@@ -14,6 +14,8 @@ import verifyMultisigLitActionCdoe from '@/lib/lit-action-code/verify-multisig.l
 import { Encryption } from './components/Encryption';
 import { Example } from "./components/Example";
 import { customLitActionCode } from "./lit-actions/custom";
+import { verifyGoogleAuthLitActionCode } from "./lit-actions/verify-google-auth";
+import { mainLitActionCode } from "./lit-actions/main";
 
 // eth sepolia
 const chainInfo = {
@@ -172,7 +174,9 @@ export default function DebugPage() {
 
   const handleLogLitActionCode = async () => {
     // console.log(signTransactionLitActionCode)
-    console.log(customLitActionCode)
+    // console.log(customLitActionCode)
+    console.log(verifyGoogleAuthLitActionCode)
+    // console.log(mainLitActionCode)
   }
 
   const handleLogPermittedActions = async () => {

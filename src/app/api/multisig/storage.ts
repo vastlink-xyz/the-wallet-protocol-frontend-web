@@ -11,6 +11,10 @@ export interface MultisigWallet {
   }[]
   threshold: number      // Number of signatures required to execute a transaction
   totalSigners: number   // Total number of signers in the wallet
+  ciphertext: string     // Encrypted data
+  dataToEncryptHash: string // Hash of the data that was encrypted
+  dataToEncryptHashSignature: string // Signature of the dataToEncryptHash
+  metadata: Record<string, any> // Additional metadata as JSON
 }
 
 export interface MessageProposal {
@@ -41,7 +45,11 @@ export async function getWallets(): Promise<MultisigWallet[]> {
       pkp: wallet.pkp as IRelayPKP,
       signers: wallet.signers,
       threshold: wallet.threshold,
-      totalSigners: wallet.totalSigners
+      totalSigners: wallet.totalSigners,
+      ciphertext: wallet.ciphertext,
+      dataToEncryptHash: wallet.dataToEncryptHash,
+      dataToEncryptHashSignature: wallet.dataToEncryptHashSignature,
+      metadata: wallet.metadata
     }));
   } catch (error) {
     console.error('Failed to get wallets:', error);
@@ -130,7 +138,11 @@ export async function getWalletById(walletId: string): Promise<MultisigWallet | 
       pkp: typedWallet.pkp as IRelayPKP,
       signers: typedWallet.signers,
       threshold: typedWallet.threshold,
-      totalSigners: typedWallet.totalSigners
+      totalSigners: typedWallet.totalSigners,
+      ciphertext: typedWallet.ciphertext,
+      dataToEncryptHash: typedWallet.dataToEncryptHash,
+      dataToEncryptHashSignature: typedWallet.dataToEncryptHashSignature,
+      metadata: typedWallet.metadata
     };
   } catch (error) {
     console.error('Failed to get wallet by ID:', error);

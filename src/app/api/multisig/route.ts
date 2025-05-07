@@ -47,6 +47,14 @@ export async function POST(request: NextRequest) {
       )
     }
     
+    // Check for required encryption fields
+    if (!body.ciphertext || !body.dataToEncryptHash || !body.dataToEncryptHashSignature || !body.metadata) {
+      return Response.json(
+        { success: false, error: "Encryption data (ciphertext, dataToEncryptHash, dataToEncryptHashSignature, metadata) is required" },
+        { status: 400 }
+      )
+    }
+    
     const wallet = {
       id: randomUUID(),
       pkp: body.multisigPkp,
@@ -63,7 +71,11 @@ export async function POST(request: NextRequest) {
         }
       ],
       threshold: 2,           // Currently fixed to 2
-      totalSigners: 2         // Currently fixed to 2
+      totalSigners: 2,        // Currently fixed to 2
+      ciphertext: body.ciphertext,
+      dataToEncryptHash: body.dataToEncryptHash,
+      dataToEncryptHashSignature: body.dataToEncryptHashSignature,
+      metadata: body.metadata
     }
 
     await saveWallet(wallet)

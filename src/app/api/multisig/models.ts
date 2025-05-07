@@ -66,7 +66,11 @@ const MultisigWalletSchema = new mongoose.Schema({
   pkp: PKPSchema,
   signers: [SignerSchema],
   threshold: { type: Number, default: 2 },
-  totalSigners: { type: Number, default: 2 }
+  totalSigners: { type: Number, default: 2 },
+  ciphertext: { type: String, required: true },
+  dataToEncryptHash: { type: String, required: true },
+  dataToEncryptHashSignature: { type: String, required: true },
+  metadata: { type: mongoose.Schema.Types.Mixed, required: true }
 }, { timestamps: true });
 
 // Signature Schema
