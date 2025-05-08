@@ -175,8 +175,8 @@ export default function DebugPage() {
   const handleLogLitActionCode = async () => {
     // console.log(signTransactionLitActionCode)
     // console.log(customLitActionCode)
-    console.log(verifyGoogleAuthLitActionCode)
-    // console.log(mainLitActionCode)
+    // console.log(verifyGoogleAuthLitActionCode)
+    console.log(mainLitActionCode)
   }
 
   const handleLogPermittedActions = async () => {

@@ -25,3 +25,31 @@ export async function getLitActionIpfsCid({
         ).toString("hex")}`
     }
 }
+
+export async function uploadViaPinata(litActionCode: string) {
+    const formData = new FormData();
+
+    const file = new File([litActionCode], "Action.txt", {
+        type: "text/plain",
+    });
+    
+    formData.append("file", file);
+    formData.append("pinataMetadata", JSON.stringify({ name: "Lit-Action" }));
+    formData.append("pinataOptions", JSON.stringify({ cidVersion: 0 }));
+
+    const key = process.env.NEXT_PUBLIC_PINATA_API;
+
+    const request = await fetch(
+        "https://api.pinata.cloud/pinning/pinFileToIPFS",
+        {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${key}`,
+            },
+            body: formData,
+        }
+    );
+    
+    const response = await request.json();
+    return response.IpfsHash;
+}

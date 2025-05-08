@@ -1,7 +1,7 @@
 import { AuthMethod } from "@lit-protocol/types";
-import { Example1 } from "./Example1";
-import { ExampleMint } from "./ExampleMint";
 import { ExampleExecuteLitAction } from "./ExampleExecuteLitAction";
+import { EditAuthmethod } from "./EditAuthmethod";
+import { ExecuteLitActionCode } from "./ExecuteLitActionCode";
 
 const defaultPkp = {
   "tokenId": "0xc290c87ee94f5871054de74c73ca2f6d306684141162269f3271b6346b8c42ce",
@@ -18,5 +18,7 @@ export function Example({
     {/* <Example1 authMethod={authMethod} pkpPublicKey="0x0461eccec567d90b6061484f9cf520308a3fa872b74f241c3f99f556ba35a22018bbfb088be071771463da55c005d7ce7203e8bef3ad6455d850448a5def41b2cb" />
     <ExampleMint authMethod={authMethod} /> */}
     <ExampleExecuteLitAction authMethod={authMethod} />
+    <EditAuthmethod authMethod={authMethod} />
+    <ExecuteLitActionCode authMethod={authMethod} />
   </div>;
 }

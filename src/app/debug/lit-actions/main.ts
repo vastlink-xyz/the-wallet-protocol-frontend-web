@@ -14,7 +14,7 @@ const _litActionCode = async () => {
 
   // verify google auth
   const res = await Lit.Actions.call({
-    ipfsId: 'QmbSc5mrBRWctAAMEiHGxyfrb3BUJANCjXGJqaGraaAnLN',
+    ipfsId: 'QmfWqwhuRStHcfNf58otrN4FbQk3qQhHLMoE7xFgv8uDyo',
     params: authParams,
   })
   console.log('res', res)

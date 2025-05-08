@@ -22,8 +22,8 @@ const pkp = {
 
 // const litActionIpfsId = 'QmRTgmq6YrxQNtunMFTB9qkUpHgCiYQLbBV1Qctmf5XNpB'
 // const litActionIpfsId = 'QmUZ1u3roPVb2BGsqCbKxGVHk5E8LVHR7dD8ovEbUtKSTV' // custom
-// const litActionIpfsId = 'QmbSc5mrBRWctAAMEiHGxyfrb3BUJANCjXGJqaGraaAnLN' // verify google auth
-const litActionIpfsId = 'QmQ9KZtUedECyBSmnU7YQTHPKdvtdBVrXxLQdsFjberztD'  // main
+// const litActionIpfsId = 'QmfWqwhuRStHcfNf58otrN4FbQk3qQhHLMoE7xFgv8uDyo' // verify google auth
+const litActionIpfsId = 'QmfWc2h6BBAPD1oTn65Sm2k3SVp1798fjPZSA3srzrSUKf'  // main
 
 export function ExampleExecuteLitAction({
   authMethod,
@@ -73,14 +73,17 @@ export function ExampleExecuteLitAction({
         sigName: 'sign-proposal',
         executeAnotherAction: true,
         // subLitActionIpfsId: 'QmZJX4QCMd4YVR4CnGYdQMKPRaf1kWDRj7ZFtQaeSEPfdP',
-        subLitActionIpfsId: 'QmbSc5mrBRWctAAMEiHGxyfrb3BUJANCjXGJqaGraaAnLN',
-        subLitActionParams: {
+        subLitActionIpfsId: 'QmfWqwhuRStHcfNf58otrN4FbQk3qQhHLMoE7xFgv8uDyo',
+        authParams: {
           tokenId: pkp.tokenId,
           authMethodType: '0x6',
           // userId: ethers.utils.arrayify(authMethodId),
           authMethodId: authMethodId,
           accessToken: authMethod.accessToken,
-        }
+        },
+        createWalletParams: {},
+        updateWalletParams: {},
+        actionType: 'CreateWallet',
         // accessToken: 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjA3YjgwYTM2NTQyODUyNWY4YmY3Y2QwODQ2ZDc0YThlZTRlZjM2MjUiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI0OTA0MzM2ODY3MTctZDJqM2Izb2NwdTFxZGFxcWwzOGM1Z2U4NDFmdTc1cDcuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI0OTA0MzM2ODY3MTctZDJqM2Izb2NwdTFxZGFxcWwzOGM1Z2U4NDFmdTc1cDcuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMDYyOTE0ODk3NDI3NzEzODE0NzYiLCJlbWFpbCI6InpreWVzaHVvZXJAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImF0X2hhc2giOiJ0Q1pYTmk4LTJGdUlsSXEzUzdmMF93IiwiaWF0IjoxNzQ2NDM1MDYwLCJleHAiOjE3NDY0Mzg2NjB9.hi6Il6fLFoQQRhVVD0tIiYri_N5RwlYa52p1kY7rcrg8JM0V4vodJCRYNkZWrU-fuVBIsEQE_ybzxY6S7UJRikbzjfTO_qd-KabbyVJo7qELklUtVClAfbhlOpJUtvZJyZ3njPNur8ZPrXuBJe9aGAbXH8DipCLlxkf20okFkBqPnflDVWDiu9ZCbkPSKhFO332RfVkQLEu647A-1YVq5EDHYrv4fw2ft_H-jDGkIVZrwj1UL9k1LfWaGk3eDttdcE4U86VnLh5ZnfpmtedK-1vREzl9YmlIiCiSQENIHE60WjAS9vnq7UFTwbvAnBCS9brWFqcK9MMH8pCa0PpPFA',
       },
     });
