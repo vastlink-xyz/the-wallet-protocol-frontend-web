@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { AuthMethod, IRelayPKP } from "@lit-protocol/types"
-import { Loader2 } from "lucide-react"
+import { Loader2, Settings } from "lucide-react"
 import { useEffect, useState } from "react"
 import type { MultisigWallet, MessageProposal } from '@/app/api/multisig/storage'
 import axios from 'axios'
@@ -16,6 +16,7 @@ import { ethers } from "ethers"
 import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import { SignerEmailField } from "@/components/SignerEmailField"
+import { WalletSettings } from "./WalletSettings"
 
 // eth sepolia
 const chainInfo = {
@@ -57,6 +58,7 @@ export function Multisig({
   const [signer2PublicKey, setSigner2PublicKey] = useState('')
   const [signer2GoogleAuthMethodId, setSigner2GoogleAuthMethodId] = useState('')
   const [executeResult, setExecuteResult] = useState<any>(null)
+  const [showWalletSettings, setShowWalletSettings] = useState(false)
 
   useEffect(() => {
     fetchWallets()
@@ -236,23 +238,9 @@ export function Multisig({
       const errorMessage = error?.message || '';
       if (errorMessage.includes('Google JWT expired') || 
           (error?.shortMessage && error.shortMessage.includes('Google JWT expired'))) {
-        toast.error('Your Google login has expired. Please log in again.', {
-          position: "top-center",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true
-        });
+        toast.error('Your Google login has expired. Please log in again.');
       } else {
-        toast.error(`Error signing proposal: ${errorMessage}`, {
-          position: "top-center",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true
-        });
+        toast.error(`Error signing proposal: ${errorMessage}`);
       }
     } finally {
       setIsSigningProposal(false)
@@ -265,11 +253,67 @@ export function Multisig({
   
   const getTransactionDetails = (proposal: MessageProposal) => {
     try {
-      return JSON.parse(proposal.message)
+      // If this is a wallet settings modification proposal
+      if (proposal.type === 'walletSettings') {
+        const settingsData = proposal.settingsData || JSON.parse(proposal.message);
+        const descriptions = [];
+        
+        if (settingsData.threshold !== undefined) {
+          descriptions.push(`Change threshold to ${settingsData.threshold} of ${settingsData.totalSigners}`);
+        }
+        
+        if (settingsData.signers) {
+          const originalSigners = selectedWallet?.signers || [];
+          const newSigners = settingsData.signers.filter((s: any) => 
+            !originalSigners.some((os: any) => os.ethAddress === s.ethAddress)
+          );
+          
+          const removedSigners = originalSigners.filter((os: any) => 
+            !settingsData.signers.some((s: any) => s.ethAddress === os.ethAddress)
+          );
+          
+          if (newSigners.length > 0) {
+            descriptions.push(`Add ${newSigners.length} signer(s)`);
+          }
+          
+          if (removedSigners.length > 0) {
+            descriptions.push(`Remove ${removedSigners.length} signer(s)`);
+          }
+        }
+        
+        if (settingsData.mfaSettings) {
+          if (settingsData.mfaSettings.phoneNumber || settingsData.mfaSettings.dailyLimit) {
+            descriptions.push('Update MFA settings');
+          }
+        }
+        
+        // Default if no specific changes detected
+        if (descriptions.length === 0) {
+          descriptions.push('Wallet settings change');
+        }
+        
+        return {
+          to: 'Wallet Settings',
+          value: '0',
+          data: descriptions.join(', ')
+        };
+      }
+      
+      // For regular transaction type, use transactionData
+      if (proposal.transactionData) {
+        return proposal.transactionData;
+      }
+      
+      // Try to parse message field (backward compatibility)
+      return JSON.parse(proposal.message);
     } catch (e) {
-      return { to: 'Unknown', value: 'Unknown', data: 'Unknown' }
+      return {
+        to: 'Unable to parse transaction details',
+        value: '0',
+        data: proposal.message,
+      };
     }
-  }
+  };
   
   // Function to execute a Lit Action using the multisig PKP
   const executeMultisigLitAction = async (proposal: MessageProposal) => {
@@ -290,134 +334,187 @@ export function Multisig({
       // Get session signatures for the current user
       const sessionSigs = await getSessionSigsByPkp(authMethod, sessionPkp)
       
-      log('Executing Lit Action with multisig PKP', {
-        proposalId: proposal.id,
-        multisigPkpAddress: selectedMultisigPkp.ethAddress,
-        signatures: proposal.signatures.length,
-        message: proposal.message
-      })
-
-      log('multisig wallet', selectedWallet)
+      // Check if this is a wallet settings change proposal
+      const isWalletSettingsProposal = proposal.type === 'walletSettings';
+      let settingsData = proposal.settingsData;
       
-      // Get transaction details from proposal
-      const txDetails = getTransactionDetails(proposal)
-      log('Transaction details:', txDetails)
-
-
-      const gasPrice = (await ethersProvider.getGasPrice()).toHexString()
-      const nonce = await ethersProvider.getTransactionCount(selectedMultisigPkp.ethAddress)
-      log('gas price ', gasPrice, 'nounce', nonce)
-
-      const unsignedTransaction = {
-        to: txDetails.to,
-        value: ethers.utils.parseEther(txDetails.value).toHexString(),
-        gasLimit: 21000,
-        gasPrice,
-        nonce,
-        chainId: chainInfo.chainId,
-        data: '0x'
-      };
-      
-      log('Unsigned transaction:', unsignedTransaction)
-      
-      // Remove '0x' prefix, Lit.Actions.signAndCombineEcdsa requires public key without the '0x' prefix
-      const publicKeyForLit = selectedMultisigPkp.publicKey.replace(/^0x/, '');
-
-      const jsParams = {
-        message: proposal.message,
-        publicKeys: proposal.signatures.map(signer => signer.publicKey),
-        // signatures: proposal.signatures.map(sig => sig.signature),
-        proposalId: proposal.id,
-        walletId: selectedWalletId,
-        requiredSignatures: selectedWallet.threshold,
-        publicKey: selectedMultisigPkp.publicKey,
-        // 
-        sendTransaction: true,
-        publicKeyForLit,
-        chain: 'sepolia',
-        unsignedTransaction,
-      }
-      log('js params', jsParams)
-
-      const litActionIpfsId = await MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID
-      log('ipfsid', litActionIpfsId)
-
-      // Execute the Lit Action using the multisig verification
-      const response = await litNodeClient.executeJs({
-        ipfsId: litActionIpfsId,
-        sessionSigs,
-        jsParams,
-      })
-      
-      log('Multisig Lit Action execution result:', response)
-      setExecuteResult(response)
-      
-      // Update the proposal status to completed if verification was successful
-      const responseObj = typeof response.response === 'string' 
-        ? JSON.parse(response.response) 
-        : response.response;
-      
-      log('Parsed response object:', responseObj);
-      
-      if (responseObj.isValid) {
-        let txHash = null;
-        
-        // Try to extract transaction hash from different response formats
-        if (responseObj.sendTxResponse) {
-          try {
-            const sendTxObj = typeof responseObj.sendTxResponse === 'string'
-              ? JSON.parse(responseObj.sendTxResponse)
-              : responseObj.sendTxResponse;
-              
-            if (sendTxObj.status === 'success' && sendTxObj.txReceipt && sendTxObj.txReceipt.hash) {
-              txHash = sendTxObj.txReceipt.hash;
-              log('Transaction hash from receipt:', txHash);
-            }
-          } catch (e) {
-            console.error('Error parsing sendTxResponse:', e);
+      // Backward compatibility for older proposals
+      if (!isWalletSettingsProposal && !settingsData) {
+        try {
+          const proposalData = JSON.parse(proposal.message);
+          if (proposalData.type === 'walletSettings' && proposalData.changes) {
+            settingsData = proposalData.changes;
           }
+        } catch (e) {
+          // Ignore parsing errors
         }
-        
-        await axios.put(`/api/multisig/messages/status`, {
-          proposalId: proposal.id,
-          walletId: proposal.walletId,
-          status: 'completed',
-          txHash: txHash
-        })
-        
-        // Refresh proposals
-        await fetchProposals()
       }
       
-      return response
+      if (isWalletSettingsProposal && settingsData) {
+        // Handle wallet settings change
+        await executeWalletSettingsProposal(proposal, settingsData, sessionSigs);
+      } else {
+        // Regular transaction execution
+        await executeTransactionProposal(proposal, sessionSigs);
+      }
     } catch (error: any) {
-      console.error('Failed to execute multisig Lit Action:', error)
+      console.error('Failed to execute multisig operation:', error)
       setExecuteResult({ error: error.message || 'Unknown error' })
       
       // Check for Google JWT expired error
       const errorMessage = error?.message || '';
       if (errorMessage.includes('Google JWT expired') || 
           (error?.shortMessage && error.shortMessage.includes('Google JWT expired'))) {
-        toast.error('Your Google login has expired. Please log in again.', {
-          position: "top-center",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true
-        });
+        toast.error('Your Google login has expired. Please log in again.');
       } else {
-        toast.error(`Error executing transaction: ${errorMessage}`, {
-          position: "top-center",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true
-        });
+        toast.error(`Error executing operation: ${errorMessage}`);
       }
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  // Function to execute wallet settings change proposal
+  const executeWalletSettingsProposal = async (proposal: MessageProposal, settingsData: any, sessionSigs: any) => {
+    if (!selectedWallet) return;
+    
+    // Handle wallet settings change proposal
+    const updatedWallet = {
+      ...selectedWallet,
+      signers: settingsData.signers || selectedWallet.signers,
+      threshold: settingsData.threshold || selectedWallet.threshold,
+      totalSigners: settingsData.signers ? settingsData.signers.length : selectedWallet.totalSigners,
+      metadata: {
+        ...selectedWallet.metadata,
+        mfaSettings: settingsData.mfaSettings || selectedWallet.metadata?.mfaSettings
+      }
+    };
+    
+    // Save the updated wallet to the database
+    const response = await axios.put('/api/multisig', updatedWallet);
+    
+    if (response.data.success) {
+      // Update proposal status to completed
+      await axios.put('/api/multisig/messages', {
+        proposalId: proposal.id,
+        walletId: proposal.walletId,
+        status: 'completed',
+      });
+      
+      // Refresh data
+      await fetchWallets();
+      await fetchProposals();
+      
+      // Set result for UI
+      setExecuteResult({
+        proposalId: proposal.id,
+        success: true,
+        message: 'Wallet settings updated successfully',
+        walletId: selectedWallet.id
+      });
+    }
+  }
+
+  // Function to execute transaction proposal
+  const executeTransactionProposal = async (proposal: MessageProposal, sessionSigs: any) => {
+    if (!selectedMultisigPkp || !selectedWallet) return;
+
+    log('Executing Lit Action with multisig PKP', {
+      proposalId: proposal.id,
+      multisigPkpAddress: selectedMultisigPkp.ethAddress,
+      signatures: proposal.signatures.length,
+      message: proposal.message
+    })
+
+    log('multisig wallet', selectedWallet)
+    
+    // Get transaction details from proposal
+    const txDetails = getTransactionDetails(proposal)
+    log('Transaction details:', txDetails)
+
+    const gasPrice = (await ethersProvider.getGasPrice()).toHexString()
+    const nonce = await ethersProvider.getTransactionCount(selectedMultisigPkp.ethAddress)
+    log('gas price ', gasPrice, 'nounce', nonce)
+
+    const unsignedTransaction = {
+      to: txDetails.to,
+      value: ethers.utils.parseEther(txDetails.value).toHexString(),
+      gasLimit: 21000,
+      gasPrice,
+      nonce,
+      chainId: chainInfo.chainId,
+      data: '0x'
+    };
+    
+    log('Unsigned transaction:', unsignedTransaction)
+    
+    // Remove '0x' prefix, Lit.Actions.signAndCombineEcdsa requires public key without the '0x' prefix
+    const publicKeyForLit = selectedMultisigPkp.publicKey.replace(/^0x/, '');
+
+    const jsParams = {
+      message: proposal.message,
+      publicKeys: proposal.signatures.map(signer => signer.publicKey),
+      // signatures: proposal.signatures.map(sig => sig.signature),
+      proposalId: proposal.id,
+      walletId: selectedWalletId,
+      requiredSignatures: selectedWallet.threshold,
+      publicKey: selectedMultisigPkp.publicKey,
+      // 
+      sendTransaction: true,
+      publicKeyForLit,
+      chain: 'sepolia',
+      unsignedTransaction,
+    }
+    log('js params', jsParams)
+
+    const litActionIpfsId = await MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID
+    log('ipfsid', litActionIpfsId)
+
+    // Execute the Lit Action using the multisig verification
+    const response = await litNodeClient.executeJs({
+      ipfsId: litActionIpfsId,
+      sessionSigs,
+      jsParams,
+    })
+    
+    log('Multisig Lit Action execution result:', response)
+    setExecuteResult(response)
+    
+    // Update the proposal status to completed if verification was successful
+    const responseObj = typeof response.response === 'string' 
+      ? JSON.parse(response.response) 
+      : response.response;
+    
+    log('Parsed response object:', responseObj);
+    
+    if (responseObj.isValid) {
+      let txHash = null;
+      
+      // Try to extract transaction hash from different response formats
+      if (responseObj.sendTxResponse) {
+        try {
+          const sendTxObj = typeof responseObj.sendTxResponse === 'string'
+            ? JSON.parse(responseObj.sendTxResponse)
+            : responseObj.sendTxResponse;
+            
+          if (sendTxObj.status === 'success' && sendTxObj.txReceipt && sendTxObj.txReceipt.hash) {
+            txHash = sendTxObj.txReceipt.hash;
+            log('Transaction hash from receipt:', txHash);
+          }
+        } catch (e) {
+          console.error('Error parsing sendTxResponse:', e);
+        }
+      }
+      
+      await axios.put(`/api/multisig/messages`, {
+        proposalId: proposal.id,
+        walletId: proposal.walletId,
+        status: 'completed',
+        txHash: txHash
+      })
+      
+      // Refresh proposals
+      await fetchProposals()
     }
   }
 
@@ -448,6 +545,19 @@ export function Multisig({
 
       {selectedWalletId && (
         <div className="bg-card p-4 rounded-lg border">
+          {/* header */}
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="font-medium">Selected Multisig Wallet PKP Details</h3>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowWalletSettings(true)}
+              className="flex items-center gap-1"
+            >
+              <Settings className="h-4 w-4" />
+              Wallet Settings
+            </Button>
+          </div>
           
           {/* Display selected wallet's PKP info */}
           <div className="mb-6 p-4 bg-gray-50 rounded-lg">
@@ -597,6 +707,20 @@ export function Multisig({
             })}
           </div>
         </div>
+      )}
+      
+      {/* WalletSettings Modal */}
+      {showWalletSettings && selectedWallet && (
+        <WalletSettings
+          wallet={selectedWallet}
+          currentPkp={currentPkp}
+          authMethod={authMethod}
+          onClose={() => setShowWalletSettings(false)}
+          onSuccess={() => {
+            fetchWallets();
+            fetchProposals();
+          }}
+        />
       )}
     </div>
   )

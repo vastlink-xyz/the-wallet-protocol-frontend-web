@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { walletId, createdBy, message, transactionData, signers, sendEmail } = body
+    const { walletId, createdBy, message, transactionData, signers, sendEmail, type, settingsData } = body
 
     const proposalId = randomUUID()
     
@@ -42,7 +42,9 @@ export async function POST(request: NextRequest) {
       createdBy,
       message,
       signatures: [],
-      transactionData
+      type: type || 'transaction', // Default to transaction type
+      transactionData: type === 'walletSettings' ? undefined : transactionData,
+      settingsData: type === 'walletSettings' ? settingsData : undefined
     }
 
     await saveMessageProposal({...proposal, status: 'pending' as const})
@@ -53,15 +55,19 @@ export async function POST(request: NextRequest) {
         // Get wallet details to create wallet link
         const wallet = await getWalletById(walletId)
         
+        // Organize notification content based on type
+        const notificationType = type === 'walletSettings' ? 'wallet settings change' : 'transaction';
+        
         // Send notifications to all signers
         for (const signer of signers) {
           if (signer.email) {
             await sendMultisigNotification({
               to: signer.email,
               proposalId: proposalId,
-              recipientAddress: transactionData?.to || 'N/A',
-              amount: transactionData?.value || '0',
-              walletLink: `${process.env.NEXT_PUBLIC_APP_URL}/multisig?walletId=${walletId}`
+              recipientAddress: type === 'walletSettings' ? 'Wallet Settings' : (transactionData?.to || 'N/A'),
+              amount: type === 'walletSettings' ? '0' : (transactionData?.value || '0'),
+              walletLink: `${process.env.NEXT_PUBLIC_APP_URL}/multisig?walletId=${walletId}`,
+              notificationType
             })
           }
         }
@@ -128,13 +134,15 @@ async function sendMultisigNotification({
   proposalId,
   recipientAddress,
   amount,
-  walletLink
+  walletLink,
+  notificationType
 }: {
   to: string
   proposalId: string
   recipientAddress: string
   amount: string
   walletLink: string
+  notificationType: string
 }) {
   try {
     const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/messaging/send-multisig-notification`, {
@@ -142,7 +150,8 @@ async function sendMultisigNotification({
       proposalId,
       recipientAddress,
       amount,
-      walletLink
+      walletLink,
+      notificationType
     })
     
     return response.data

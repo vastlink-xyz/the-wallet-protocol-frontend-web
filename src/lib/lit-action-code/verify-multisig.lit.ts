@@ -175,6 +175,4 @@ const go = async () => {
   }
 };
 
-const litActionCode = `(${go.toString()})();`;
-
-export default litActionCode;
+export const verifyMultisigLitActionCode = `(${go.toString()})();`;

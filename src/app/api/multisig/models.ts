@@ -88,10 +88,19 @@ const MessageProposalSchema = new mongoose.Schema({
   createdBy: String,
   message: String,
   signatures: [SignatureSchema],
+  type: { 
+    type: String, 
+    required: true, 
+    enum: ['transaction', 'walletSettings'], 
+    default: 'transaction' 
+  },
   transactionData: {
     to: String,
     value: String,
     data: String
+  },
+  settingsData: {
+    type: mongoose.Schema.Types.Mixed,
   },
   txHash: String
 }, { timestamps: true });

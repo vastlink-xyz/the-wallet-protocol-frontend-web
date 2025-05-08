@@ -15,6 +15,7 @@ import { AUTH_METHOD_SCOPE, AUTH_METHOD_TYPE } from '@lit-protocol/constants'
 import { mainLitActionCode } from '@/app/debug/lit-actions/main'
 import { editAuthmethodLitActionCode } from '@/app/debug/lit-actions/edit-authmethod'
 import { createWalletLitActionCode } from '@/app/debug/lit-actions/create-wallet'
+import { ethers } from 'ethers'
 
 interface CreateMultisigFormProps {
   authMethod: AuthMethod
@@ -37,12 +38,6 @@ const accessControlConditions = [
     },
   },
 ];
-
-const mockMultisigPkp = {
-  "ethAddress" : "0xe13E4fBC7D0fb1E6F183C403F08795E4217C08A7",
-  "publicKey" : "0x0412bfd3820329fb3676c7249d9d98f7e8b1de543a5454ca51377c9e4a26ef0c894705df26b9ee95fced9e1807f0c2bf81aa5ea6575313cd96b280c8596f3be828",
-  "tokenId" : "0xedc1f91b8e7824209027d07d04fd14bfdb0a02cb00e931bd64b7fb82ad807816"
-}
 
 export function CreateMultisigForm({ 
   authMethod, 
@@ -108,8 +103,16 @@ export function CreateMultisigForm({
     try {
       setIsLoading(true)
 
-      const { multisigPkp, createWalletIpfsId} = await mintMultisigPKP()
-      console.log('multisig pkp', multisigPkp)
+      // const { multisigPkp, createWalletIpfsId} = await mintMultisigPKP()
+      // console.log('multisig pkp', multisigPkp)
+
+      // kkktodo: remove
+      const multisigPkp = {
+          "tokenId": "0x40cb3dc1270ba04074fafb3f836531a8a1e6531d698cfdd84df37521731d0c30",
+          "publicKey": "0x04feab19140a3f64fd7097343ad0b5e31131c585acbdce8420e104dd021b01370600a2219382d0a01dbf3643057bf5714ba1e38fde6b117dcc2c2c81fb98f78c38",
+          "ethAddress": "0xFC91d8Ed58C1e10506FB6fBe9A6c2aB2854b5317"
+      }
+      const createWalletIpfsId = 'QmcPzsj2L9GC7yR5vmDmH7T3C45gUFw5nPpEq5YaJb9tLT'
 
       const mfaSettings = {
         phoneNumber: phoneNumber,
@@ -152,13 +155,14 @@ export function CreateMultisigForm({
           authParams: {
             accessToken: authMethod.accessToken,
             authMethodId: googleAuthMethodId,
-            authMethodType: AUTH_METHOD_TYPE.GoogleJwt,
+            authMethodType: ethers.utils.hexValue(AUTH_METHOD_TYPE.GoogleJwt),
             tokenId: multisigPkp.tokenId,
           },
           dataToEncryptHash,
           publicKey: multisigPkp.publicKey,
         },
       })
+      log('litaction res', litActionRes)
 
       const signatureObj = litActionRes.signatures['create-wallet-signature']
       if (!signatureObj || !signatureObj.signature) {
@@ -174,7 +178,7 @@ export function CreateMultisigForm({
       }
 
       const response = await axios.post('/api/multisig', {
-        multisigPkp: mockMultisigPkp,
+        multisigPkp: multisigPkp,
         currentPkp: userPkp,
         signer1Email: currentUserEmail,
         ciphertext,

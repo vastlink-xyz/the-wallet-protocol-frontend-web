@@ -97,3 +97,55 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+
+export async function PUT(request: NextRequest) {
+  try {
+    const body = await request.json()
+    log('Update wallet request:', body)
+    
+    if (!body.id) {
+      return Response.json(
+        { success: false, error: "Wallet ID is required" },
+        { status: 400 }
+      )
+    }
+    
+    // Verify the wallet exists
+    const wallets = await getWallets()
+    const existingWallet = wallets.find(w => w.id === body.id)
+    
+    if (!existingWallet) {
+      return Response.json(
+        { success: false, error: "Wallet not found" },
+        { status: 404 }
+      )
+    }
+    
+    // Update wallet with new data
+    const updatedWallet = {
+      ...existingWallet,
+      ...body,
+    }
+    
+    log('Updated wallet settings:', {
+      threshold: updatedWallet.threshold,
+      totalSigners: updatedWallet.totalSigners,
+      signers: updatedWallet.signers.map((s: { email: string, ethAddress: string }) => ({ email: s.email, ethAddress: s.ethAddress })),
+      mfaSettings: updatedWallet.metadata?.mfaSettings
+    })
+    
+    await saveWallet(updatedWallet)
+    
+    return Response.json({ 
+      success: true, 
+      message: "Wallet updated successfully",
+      data: updatedWallet
+    })
+  } catch (error) {
+    console.error('Error updating multisig wallet:', error)
+    return Response.json(
+      { success: false, error: "Failed to update wallet" },
+      { status: 500 }
+    )
+  }
+}

@@ -9,6 +9,8 @@ import { createWalletLitActionCode } from "@/app/debug/lit-actions/create-wallet
 import { customLitActionCode } from "@/app/debug/lit-actions/custom";
 import { AUTH_METHOD_TYPE } from "@lit-protocol/constants";
 import { verifyGoogleAuthLitActionCode } from "@/app/debug/lit-actions/verify-google-auth";
+import { verifyMultisigLitActionCode } from "@/lib/lit-action-code/verify-multisig.lit";
+import { editAuthmethodLitActionCode } from "../EditAuthmethod/code";
 
 // session PKP
 const pkp = {
@@ -17,7 +19,7 @@ const pkp = {
   "tokenId" : "0x851a8fe056ef1edb067cfe1d9b6d85fc8b3b8141b2bed51343e1570d6a6b73d1",
 }
 
-const litActionCode = verifyGoogleAuthLitActionCode
+const litActionCode = editAuthmethodLitActionCode
 
 export function ExecuteLitActionCode({ authMethod }: { authMethod: AuthMethod }) {
 
@@ -60,6 +62,12 @@ export function ExecuteLitActionCode({ authMethod }: { authMethod: AuthMethod })
       outputFormat: 'base58',
     });
     log('cid', cid);
+
+    const ipfsIdHex = await getLitActionIpfsCid({
+      input: litActionCode,
+      outputFormat: 'hex',
+    })
+    log('ipfsIdHex', ipfsIdHex);
   }
 
   const handleUploadViaPinata = async () => {

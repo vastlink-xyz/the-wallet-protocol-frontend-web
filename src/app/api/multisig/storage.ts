@@ -28,10 +28,24 @@ export interface MessageProposal {
     signature: string   // signature
     publicKey: string
   }[]
+  type?: 'transaction' | 'walletSettings'  // Proposal type
   transactionData?: {   // Transaction data for blockchain transactions
     to: string
     value: string
     data: string
+  }
+  settingsData?: {     // Wallet settings change data
+    signers?: {
+      ethAddress: string
+      publicKey: string
+      email: string
+    }[]
+    threshold?: number
+    totalSigners?: number
+    mfaSettings?: {
+      phoneNumber?: string
+      dailyLimit?: string
+    }
   }
   txHash?: string       // Transaction hash after execution
 }
@@ -81,7 +95,11 @@ export async function getMessageProposals(walletId: string): Promise<MessageProp
       status: proposal.status as 'pending' | 'completed' | 'failed',
       createdBy: proposal.createdBy,
       message: proposal.message,
-      signatures: proposal.signatures
+      signatures: proposal.signatures,
+      type: proposal.type as 'transaction' | 'walletSettings',
+      transactionData: proposal.transactionData,
+      settingsData: proposal.settingsData,
+      txHash: proposal.txHash
     }));
   } catch (error) {
     console.error('Failed to get message proposals:', error);
@@ -102,7 +120,11 @@ export async function getProposalById(proposalId: string, walletId: string): Pro
       status: proposal.status as 'pending' | 'completed' | 'failed',
       createdBy: proposal.createdBy,
       message: proposal.message,
-      signatures: proposal.signatures
+      signatures: proposal.signatures,
+      type: proposal.type as 'transaction' | 'walletSettings',
+      transactionData: proposal.transactionData,
+      settingsData: proposal.settingsData,
+      txHash: proposal.txHash
     };
   } catch (error) {
     console.error('Failed to get proposal by ID:', error);
