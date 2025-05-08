@@ -17,6 +17,7 @@ import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import { SignerEmailField } from "@/components/SignerEmailField"
 import { WalletSettings } from "./WalletSettings"
+import { WalletSettingsProposal } from "./WalletSettingsProposal"
 
 // eth sepolia
 const chainInfo = {
@@ -650,10 +651,19 @@ export function Multisig({
               return (
                 <div key={proposal.id} className="p-4 bg-gray-50 rounded-lg">
                   <div className="mb-2">
-                    <div><span className="font-medium">Recipient:</span> {txDetails.to}</div>
-                    <div><span className="font-medium">Amount:</span> {formatEthAmount(txDetails.value)} ETH</div>
-                    {txDetails.data && txDetails.data !== '0x' && (
-                      <div><span className="font-medium">Data:</span> {txDetails.data}</div>
+                    {proposal.type === 'walletSettings' ? (
+                      <WalletSettingsProposal 
+                        proposal={proposal} 
+                        selectedWallet={selectedWallet} 
+                      />
+                    ) : (
+                      <>
+                        <div><span className="font-medium">Recipient:</span> {txDetails.to}</div>
+                        <div><span className="font-medium">Amount:</span> {formatEthAmount(txDetails.value)} ETH</div>
+                        {txDetails.data && txDetails.data !== '0x' && (
+                          <div><span className="font-medium">Data:</span> {txDetails.data}</div>
+                        )}
+                      </>
                     )}
                   </div>
                   
