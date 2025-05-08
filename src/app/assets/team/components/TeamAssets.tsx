@@ -30,6 +30,7 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
   const [hasMultisigWallets, setHasMultisigWallets] = useState(false)
   const [wallets, setWallets] = useState<MultisigWallet[]>([])
   const [userPkp, setUserPkp] = useState<IRelayPKP | null>(null)
+  const [sessionPkp, setSessionPKP] = useState<IRelayPKP | null>(null)
   const [showMultisigSetting, setShowMultisigSetting] = useState(false)
   const [googleAuthMethodId, setGoogleAuthMethodId] = useState<string>('')
 
@@ -55,8 +56,9 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
         // Use litActionPkp from user data
         if (userData.litActionPkp) {
           setUserPkp(userData.litActionPkp)
-        } else if (userData.sessionPkp) {
-          setUserPkp(userData.sessionPkp)
+        }
+        if (userData.sessionPkp) {
+          setSessionPKP(userData.sessionPkp)
         }
       } catch (error) {
         console.error("Error fetching user data:", error)
@@ -148,10 +150,11 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
         </>
       )}
 
-      {showMultisigSetting && userPkp && (
+      {(showMultisigSetting && userPkp && sessionPkp) && (
         <MultisigSetting
           authMethod={authMethod}
           userPkp={userPkp}
+          sessionPkp={sessionPkp}
           googleAuthMethodId={googleAuthMethodId}
           onClose={() => setShowMultisigSetting(false)}
           onSuccess={handleRefreshWallets}

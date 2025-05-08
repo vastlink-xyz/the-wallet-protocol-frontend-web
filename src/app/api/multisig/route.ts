@@ -53,10 +53,10 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     log('body', body)
     
-    // Email for both signers is required
-    if (!body.signer1Email || !body.signer2Email) {
+    // Email for signer is required
+    if (!body.signer1Email) {
       return Response.json(
-        { success: false, error: "Email addresses for both signers are required" },
+        { success: false, error: "Email address for signer is required" },
         { status: 400 }
       )
     }
@@ -77,15 +77,10 @@ export async function POST(request: NextRequest) {
           ethAddress: body.currentPkp.ethAddress,
           publicKey: body.currentPkp.publicKey,
           email: body.signer1Email
-        },
-        {
-          ethAddress: body.signer2.ethAddress,
-          publicKey: body.signer2.publicKey,
-          email: body.signer2Email
         }
       ],
-      threshold: 2,           // Currently fixed to 2
-      totalSigners: 2,        // Currently fixed to 2
+      threshold: 1,           // Changed to 1 for 1-of-1 wallet
+      totalSigners: 1,        // Changed to 1 for 1-of-1 wallet
       ciphertext: body.ciphertext,
       dataToEncryptHash: body.dataToEncryptHash,
       dataToEncryptHashSignature: body.dataToEncryptHashSignature,

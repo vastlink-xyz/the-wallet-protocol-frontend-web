@@ -1,4 +1,3 @@
-declare const subLitActionIpfsId: any
 declare const authParams: any
 declare const actionType: 'CreateWallet' | 'UpdateWallet'
 declare const createWalletParams: any
@@ -6,10 +5,7 @@ declare const updateWalletParams: any
 declare const ethers: any
 
 const _litActionCode = async () => {
-  console.log('subLitActionIpfsId', subLitActionIpfsId)
   console.log('authParams', authParams)
-  console.log('createWalletParams', createWalletParams)
-  console.log('updateWalletParams', updateWalletParams)
   console.log('actionType', actionType)
 
   // verify google auth

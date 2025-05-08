@@ -2,13 +2,11 @@ declare const tokenId: string;
 declare const authMethodId: string;
 declare const authMethodType: number;
 declare const accessToken: string;
+
 declare const ethers: any;
 declare const Lit: any;
 
 const _litActionCode = async () => {
-  console.log('tokenId', tokenId)
-  console.log('authMethodId', authMethodId)
-  console.log('authtype', authMethodType)
   console.log('ethers', ethers)
 
   const res = {
