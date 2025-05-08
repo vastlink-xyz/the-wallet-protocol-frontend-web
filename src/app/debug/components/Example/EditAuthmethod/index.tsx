@@ -12,6 +12,8 @@ import { getLitActionIpfsCid, getSessionSigsByPkp, mintPKP, uploadViaPinata } fr
 import { PKPEthersWallet } from "@lit-protocol/pkp-ethers";
 import { LitContracts } from "@lit-protocol/contracts-sdk";
 import { verifyMultisigLitActionCode } from "@/lib/lit-action-code/verify-multisig.lit";
+import { createWalletLitActionCode } from "@/app/debug/lit-actions/create-wallet";
+import { updateWalletLitActionCode } from "@/app/debug/lit-actions/update-wallet";
 
 // pkp sign anything
 const sessionPKP = {
@@ -93,7 +95,7 @@ export function EditAuthmethod({
     log('sessionSigs', sessionSigs)
     // const authMethodId = await getAuthIdByAuthMethod(authMethod)
     const ipfsIdHex = await getLitActionIpfsCid({
-      input: verifyMultisigLitActionCode,
+      input: updateWalletLitActionCode,
       outputFormat: 'hex',
     })
     const response = await litNodeClient.executeJs({

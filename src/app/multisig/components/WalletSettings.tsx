@@ -171,147 +171,147 @@ export function WalletSettings({
         {/* Fixed header */}
         <div className="sticky top-0 p-6 border-b flex justify-between items-center">
           <h2 className="text-xl font-semibold">Modify Wallet Settings</h2>
-          <button 
-            onClick={onClose} 
+        <button 
+          onClick={onClose} 
             className="text-gray-500 hover:text-gray-800"
-          >
-            <X size={20} />
-          </button>
+        >
+          <X size={20} />
+        </button>
         </div>
         
         {/* Scrollable content area */}
         <div className="p-6 overflow-y-auto">
-          <div className="space-y-6">
-            {/* Signers Section */}
-            <div className="space-y-4">
-              <h3 className="text-md font-semibold">Signers</h3>
-              <div className="space-y-3 bg-gray-50 p-4 rounded-md">
-                {signers.map((signer, index) => (
-                  <div key={index} className="flex items-center justify-between gap-2">
-                    <SignerEmailField
-                      label={`Signer ${index + 1}`}
-                      input={{
-                        value: signer.email,
-                        onChange: () => {},
-                      }}
-                      inputType="email"
-                      address={signer.ethAddress}
-                      disabled={true}
-                      className="flex-1"
-                    />
-                    
-                    {/* Only allow removing signers that are not the current user */}
-                    {signer.ethAddress !== currentPkp.ethAddress && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleRemoveSigner(signer.ethAddress)}
-                        className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                      >
-                        <Trash2 className="h-5 w-5" />
-                      </Button>
-                    )}
-                  </div>
-                ))}
-              </div>
+        <div className="space-y-6">
+          {/* Signers Section */}
+          <div className="space-y-4">
+            <h3 className="text-md font-semibold">Signers</h3>
+            <div className="space-y-3 bg-gray-50 p-4 rounded-md">
+              {signers.map((signer, index) => (
+                <div key={index} className="flex items-center justify-between gap-2">
+                  <SignerEmailField
+                    label={`Signer ${index + 1}`}
+                    input={{
+                      value: signer.email,
+                      onChange: () => {},
+                    }}
+                    inputType="email"
+                    address={signer.ethAddress}
+                    disabled={true}
+                    className="flex-1"
+                  />
+                  
+                  {/* Only allow removing signers that are not the current user */}
+                  {signer.ethAddress !== currentPkp.ethAddress && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleRemoveSigner(signer.ethAddress)}
+                      className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-5 w-5" />
+                    </Button>
+                  )}
+                </div>
+              ))}
             </div>
-            
-            {/* Add New Signer */}
-            <div className="space-y-3 border-t border-b py-4">
-              <h3 className="text-md font-semibold">Add New Signer</h3>
-              <div className="grid grid-cols-1 gap-3">
-                <SignerEmailField
-                  label="New Signer"
-                  input={{
-                    value: newSignerEmail,
-                    onChange: (value) => setNewSignerEmail(value),
-                    placeholder: "Enter signer's email or ETH address",
-                    id: "newSigner"
-                  }}
-                  onAddressFound={(addressData) => {
-                    if (addressData) {
-                      setNewSignerAddress(addressData.ethAddress);
-                      setNewSignerPublicKey(addressData.publicKey || '');
-                    } else {
-                      setNewSignerAddress('');
-                      setNewSignerPublicKey('');
-                    }
-                  }}
-                />
-                
-                <Button 
-                  onClick={handleAddSigner}
-                  variant="outline"
-                  disabled={!newSignerEmail || !newSignerAddress}
-                  className="w-full mt-2"
+          </div>
+          
+          {/* Add New Signer */}
+          <div className="space-y-3 border-t border-b py-4">
+            <h3 className="text-md font-semibold">Add New Signer</h3>
+            <div className="grid grid-cols-1 gap-3">
+              <SignerEmailField
+                label="New Signer"
+                input={{
+                  value: newSignerEmail,
+                  onChange: (value) => setNewSignerEmail(value),
+                  placeholder: "Enter signer's email or ETH address",
+                  id: "newSigner"
+                }}
+                onAddressFound={(addressData) => {
+                  if (addressData) {
+                    setNewSignerAddress(addressData.ethAddress);
+                    setNewSignerPublicKey(addressData.publicKey || '');
+                  } else {
+                    setNewSignerAddress('');
+                    setNewSignerPublicKey('');
+                  }
+                }}
+              />
+              
+              <Button 
+                onClick={handleAddSigner}
+                variant="outline"
+                disabled={!newSignerEmail || !newSignerAddress}
+                className="w-full mt-2"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Signer
+              </Button>
+            </div>
+          </div>
+          
+          {/* Threshold Setting */}
+          <div className="space-y-3">
+            <h3 className="text-md font-semibold">Signature Threshold</h3>
+            <div className="bg-gray-50 p-4 rounded-md">
+              <div className="flex items-center space-x-4">
+                <Label htmlFor="threshold">Required Signatures:</Label>
+                <select
+                  id="threshold"
+                  value={threshold}
+                  onChange={(e) => setThreshold(parseInt(e.target.value))}
+                  className="border border-gray-300 rounded-md px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Signer
-                </Button>
+                  {thresholdOptions.map((num) => (
+                    <option key={num} value={num}>
+                      {num} of {signers.length}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
-            
-            {/* Threshold Setting */}
-            <div className="space-y-3">
-              <h3 className="text-md font-semibold">Signature Threshold</h3>
-              <div className="bg-gray-50 p-4 rounded-md">
-                <div className="flex items-center space-x-4">
-                  <Label htmlFor="threshold">Required Signatures:</Label>
-                  <select
-                    id="threshold"
-                    value={threshold}
-                    onChange={(e) => setThreshold(parseInt(e.target.value))}
-                    className="border border-gray-300 rounded-md px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    {thresholdOptions.map((num) => (
-                      <option key={num} value={num}>
-                        {num} of {signers.length}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+          </div>
+          
+          {/* MFA Settings */}
+          <div className="space-y-3">
+            <h3 className="text-md font-semibold">MFA Settings (Optional)</h3>
+            <div className="bg-gray-50 p-4 rounded-md space-y-4">
+              <div>
+                <Label htmlFor="phoneNumber">Phone Number for 2FA</Label>
+                <Input
+                  id="phoneNumber"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  placeholder="+1 123 456 7890"
+                  type="tel"
+                  className="mt-1"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="dailyLimit">Daily Transfer Limit (USD)</Label>
+                <Input
+                  id="dailyLimit"
+                  value={dailyLimit}
+                  onChange={(e) => setDailyLimit(e.target.value)}
+                  placeholder="1000"
+                  type="number"
+                  className="mt-1"
+                />
               </div>
             </div>
-            
-            {/* MFA Settings */}
-            <div className="space-y-3">
-              <h3 className="text-md font-semibold">MFA Settings (Optional)</h3>
-              <div className="bg-gray-50 p-4 rounded-md space-y-4">
-                <div>
-                  <Label htmlFor="phoneNumber">Phone Number for 2FA</Label>
-                  <Input
-                    id="phoneNumber"
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    placeholder="+1 123 456 7890"
-                    type="tel"
-                    className="mt-1"
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="dailyLimit">Daily Transfer Limit (USD)</Label>
-                  <Input
-                    id="dailyLimit"
-                    value={dailyLimit}
-                    onChange={(e) => setDailyLimit(e.target.value)}
-                    placeholder="1000"
-                    type="number"
-                    className="mt-1"
-                  />
-                </div>
-              </div>
-            </div>
-            
-            {/* Submit Button */}
-            <Button
-              onClick={handleSubmitChanges}
-              disabled={isLoading}
-              className="w-full mt-6"
-            >
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Update Wallet Settings
-            </Button>
+          </div>
+          
+          {/* Submit Button */}
+          <Button
+            onClick={handleSubmitChanges}
+            disabled={isLoading}
+            className="w-full mt-6"
+          >
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Update Wallet Settings
+          </Button>
           </div>
         </div>
       </div>

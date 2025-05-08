@@ -11,22 +11,30 @@ import { AUTH_METHOD_TYPE } from "@lit-protocol/constants";
 import { verifyGoogleAuthLitActionCode } from "@/app/debug/lit-actions/verify-google-auth";
 import { verifyMultisigLitActionCode } from "@/lib/lit-action-code/verify-multisig.lit";
 import { editAuthmethodLitActionCode } from "../EditAuthmethod/code";
+import { updateWalletLitActionCode } from "@/app/debug/lit-actions/update-wallet";
+import { ethers } from "ethers";
 
 // session PKP
-const pkp = {
+const sessionPkp = {
   "ethAddress" : "0x20D53B71Edd06298DFa8ad49eD83A4847c5730B9",
   "publicKey" : "0x041043714804e4236e3fabba7e068571eb7f878754ed1d67d4a1328f764d7acf9d8af7d3b13d834eb3ed4746da68660e848d97e6fbf7feed16f7cd09c9188046c7",
   "tokenId" : "0x851a8fe056ef1edb067cfe1d9b6d85fc8b3b8141b2bed51343e1570d6a6b73d1",
 }
 
-const litActionCode = editAuthmethodLitActionCode
+const multisigPkp = {
+  "tokenId": "0x40cb3dc1270ba04074fafb3f836531a8a1e6531d698cfdd84df37521731d0c30",
+  "publicKey": "0x04feab19140a3f64fd7097343ad0b5e31131c585acbdce8420e104dd021b01370600a2219382d0a01dbf3643057bf5714ba1e38fde6b117dcc2c2c81fb98f78c38",
+  "ethAddress": "0xFC91d8Ed58C1e10506FB6fBe9A6c2aB2854b5317"
+}
+
+const litActionCode = updateWalletLitActionCode
 
 export function ExecuteLitActionCode({ authMethod }: { authMethod: AuthMethod }) {
 
   const handleExecuteLitAction = async () => {
     log('authMethod', authMethod);
     const sessionSigs = await getSessionSigs({
-      pkpPublicKey: pkp.publicKey,
+      pkpPublicKey: sessionPkp.publicKey,
       authMethod,
     });
     log('sessionSigs', sessionSigs);
@@ -40,16 +48,16 @@ export function ExecuteLitActionCode({ authMethod }: { authMethod: AuthMethod })
           authParams: {
             accessToken: authMethod.accessToken,
             authMethodId: googleAuthMethodId,
-            authMethodType: AUTH_METHOD_TYPE.GoogleJwt,
-            tokenId: pkp.tokenId,
+            authMethodType: ethers.utils.hexValue(AUTH_METHOD_TYPE.GoogleJwt),
           },
           dataToEncryptHash: '0x1234',
-          publicKey: pkp.publicKey,
+          publicKey: multisigPkp.publicKey,
+          env: process.env.NEXT_PUBLIC_ENV,
+          walletId: 'f1cd7b76-4c51-404c-9c0f-b33111c3f037',
+          proposalId: '2c024abe-d90e-4730-909d-89331174bcf4',
         },
       });
       log('response', response);
-      const signatureObj = response.signatures['create-wallet-signature']
-      log('signatureObj', signatureObj)
     } catch (error) {
       log('error', error);
     }

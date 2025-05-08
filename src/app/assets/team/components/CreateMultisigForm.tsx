@@ -16,6 +16,7 @@ import { mainLitActionCode } from '@/app/debug/lit-actions/main'
 import { editAuthmethodLitActionCode } from '@/app/debug/lit-actions/edit-authmethod'
 import { createWalletLitActionCode } from '@/app/debug/lit-actions/create-wallet'
 import { ethers } from 'ethers'
+import { updateWalletLitActionCode } from '@/app/debug/lit-actions/update-wallet'
 
 interface CreateMultisigFormProps {
   authMethod: AuthMethod
@@ -34,7 +35,8 @@ const accessControlConditions = [
     parameters: [':currentActionIpfsId'],
     returnValueTest: {
       comparator: '=',
-      value: MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID,
+      // kkktodo
+      value: 'QmUxJeWz52FEX1JwXNgE2pcLD4k7aPcjNHYU7DMjS6ohMU', // update wallet ipfs cid
     },
   },
 ];
@@ -64,9 +66,17 @@ export function CreateMultisigForm({
       input: createWalletLitActionCode,
       outputFormat: "hex"
     })
+    const updateWalletIpfsIdHex = await getLitActionIpfsCid({
+      input: updateWalletLitActionCode,
+      outputFormat: "hex"
+    })
+
     // kkktodo: remove upload
     const createWalletIpfsId = await uploadViaPinata(createWalletLitActionCode);
     log('createWalletIpfsId', createWalletIpfsId)
+
+    const updateWalletIpfsId = await uploadViaPinata(updateWalletLitActionCode);
+    log('updateWalletIpfsId', updateWalletIpfsId)
 
     // kkktodo: remove this
     const devIpfsIdHex = await getLitActionIpfsCid({
@@ -79,10 +89,10 @@ export function CreateMultisigForm({
     const multisigPkp = await mintPKP({
       authMethod,
       options: {
-        permittedAuthMethodTypes: [AUTH_METHOD_TYPE.LitAction, AUTH_METHOD_TYPE.LitAction, AUTH_METHOD_TYPE.GoogleJwt],
-        permittedAuthMethodIds: [createWalletIpfsIdHex, devIpfsIdHex, googleAuthMethodId],
-        permittedAuthMethodPubkeys: ['0x', '0x', '0x'],
-        permittedAuthMethodScopes: [[AUTH_METHOD_SCOPE.SignAnything], [AUTH_METHOD_SCOPE.SignAnything], [AUTH_METHOD_SCOPE.NoPermissions]],
+        permittedAuthMethodTypes: [AUTH_METHOD_TYPE.LitAction, AUTH_METHOD_TYPE.LitAction, AUTH_METHOD_TYPE.LitAction, AUTH_METHOD_TYPE.GoogleJwt],
+        permittedAuthMethodIds: [createWalletIpfsIdHex, updateWalletIpfsIdHex, devIpfsIdHex, googleAuthMethodId],
+        permittedAuthMethodPubkeys: ['0x', '0x', '0x', '0x'],
+        permittedAuthMethodScopes: [[AUTH_METHOD_SCOPE.SignAnything], [AUTH_METHOD_SCOPE.SignAnything], [AUTH_METHOD_SCOPE.SignAnything], [AUTH_METHOD_SCOPE.NoPermissions]],
         addPkpEthAddressAsPermittedAddress: false,
         sendPkpToItself: true,
       },
@@ -112,7 +122,7 @@ export function CreateMultisigForm({
           "publicKey": "0x04feab19140a3f64fd7097343ad0b5e31131c585acbdce8420e104dd021b01370600a2219382d0a01dbf3643057bf5714ba1e38fde6b117dcc2c2c81fb98f78c38",
           "ethAddress": "0xFC91d8Ed58C1e10506FB6fBe9A6c2aB2854b5317"
       }
-      const createWalletIpfsId = 'QmcPzsj2L9GC7yR5vmDmH7T3C45gUFw5nPpEq5YaJb9tLT'
+      const createWalletIpfsId = 'QmRPr5M6tpmaZHe4GsWrovpqZhqAQsMaZXwj4PGAqT7P3d'
 
       const mfaSettings = {
         phoneNumber: phoneNumber,
@@ -156,7 +166,6 @@ export function CreateMultisigForm({
             accessToken: authMethod.accessToken,
             authMethodId: googleAuthMethodId,
             authMethodType: ethers.utils.hexValue(AUTH_METHOD_TYPE.GoogleJwt),
-            tokenId: multisigPkp.tokenId,
           },
           dataToEncryptHash,
           publicKey: multisigPkp.publicKey,

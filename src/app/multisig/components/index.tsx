@@ -658,10 +658,10 @@ export function Multisig({
                       />
                     ) : (
                       <>
-                        <div><span className="font-medium">Recipient:</span> {txDetails.to}</div>
-                        <div><span className="font-medium">Amount:</span> {formatEthAmount(txDetails.value)} ETH</div>
-                        {txDetails.data && txDetails.data !== '0x' && (
-                          <div><span className="font-medium">Data:</span> {txDetails.data}</div>
+                    <div><span className="font-medium">Recipient:</span> {txDetails.to}</div>
+                    <div><span className="font-medium">Amount:</span> {formatEthAmount(txDetails.value)} ETH</div>
+                    {txDetails.data && txDetails.data !== '0x' && (
+                      <div><span className="font-medium">Data:</span> {txDetails.data}</div>
                         )}
                       </>
                     )}

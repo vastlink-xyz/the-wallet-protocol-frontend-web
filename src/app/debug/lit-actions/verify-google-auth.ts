@@ -1,4 +1,4 @@
-declare const tokenId: string;
+declare const publicKey: string;
 declare const authMethodId: string;
 declare const authMethodType: number;
 declare const accessToken: string;
@@ -37,8 +37,9 @@ const _litActionCode = async () => {
   }
   console.log("✅ Audience verified");
 
+  const pkpTokenId = await Lit.Actions.pubkeyToTokenId({ publicKey });
   res.isPermitted = await Lit.Actions.isPermittedAuthMethod({
-    tokenId: tokenId,
+    tokenId: pkpTokenId,
     authMethodType: authMethodType,
     userId: ethers.utils.arrayify(authMethodId),
   })

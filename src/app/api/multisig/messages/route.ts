@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { getMessageProposals, saveMessageProposal, getWalletById } from '../storage'
+import { getMessageProposals, saveMessageProposal, getWalletById, getProposalById } from '../storage'
 import { randomUUID } from 'crypto'
 import { log } from '@/lib/utils'
 import axios from 'axios'
@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
     const walletId = searchParams.get('walletId')
+    const proposalId = searchParams.get('proposalId')
     
     if (!walletId) {
       return Response.json(
@@ -17,9 +18,23 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // If proposalId is provided, return only that specific proposal
+    if (proposalId) {
+      const proposal = await getProposalById(proposalId, walletId)
+      if (!proposal) {
+        return Response.json(
+          { success: false, error: "Proposal not found" },
+          { status: 404 }
+        )
+      }
+      return Response.json({ success: true, data: proposal })
+    }
+
+    // Otherwise return all proposals for the wallet
     const proposals = await getMessageProposals(walletId)
     return Response.json({ success: true, data: proposals })
-  } catch {
+  } catch (error) {
+    console.error("Error fetching message proposals:", error)
     return Response.json(
       { success: false, error: "Failed to fetch message proposals" },
       { status: 500 }

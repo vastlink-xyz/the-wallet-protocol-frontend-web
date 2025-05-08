@@ -7,8 +7,11 @@ declare const publicKey: string
 const _litActionCode = async () => {
   // verify google auth
   const res = await Lit.Actions.call({
-    ipfsId: 'QmPEn2rn6fkSTByGCQfcKQfso9sUrwiZD4nBZCBr95QNmH',
-    params: authParams,
+    ipfsId: 'QmXVzcSHk16XLu5ACWNJywxfUHX1KnY1fu66J9Skh533pg',
+    params: {
+      ...authParams,
+      publicKey,
+    },
   })
   console.log('res', res)
   const parsedRes = JSON.parse(res)
