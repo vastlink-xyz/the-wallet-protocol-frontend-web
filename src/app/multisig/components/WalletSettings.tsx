@@ -89,6 +89,13 @@ export function WalletSettings({
       // Create an empty settings change data object
       const settingsData: any = {};
       
+      // Save original state for comparison after changes are applied
+      settingsData.originalState = {
+        threshold: wallet.threshold,
+        signers: wallet.signers,
+        mfaSettings: wallet.metadata?.mfaSettings
+      };
+      
       // Check if signers list has changed (added or removed signers)
       if (JSON.stringify(signers.map((s: any) => s.ethAddress).sort()) !== 
           JSON.stringify(wallet.signers.map((s: any) => s.ethAddress).sort())) {
@@ -113,8 +120,26 @@ export function WalletSettings({
         };
       }
       
+      // Store a summary of changes for display after proposal completion
+      const changeDescriptions = [];
+      if (settingsData.threshold !== undefined) {
+        changeDescriptions.push(`Change threshold from ${wallet.threshold} to ${threshold}`);
+      }
+      if (settingsData.signers) {
+        const addedCount = signers.filter(s => !wallet.signers.some((os: any) => os.ethAddress === s.ethAddress)).length;
+        const removedCount = wallet.signers.filter((os: any) => !signers.some(s => s.ethAddress === os.ethAddress)).length;
+        
+        if (addedCount > 0) changeDescriptions.push(`Add ${addedCount} signer(s)`);
+        if (removedCount > 0) changeDescriptions.push(`Remove ${removedCount} signer(s)`);
+      }
+      if (mfaChanged) {
+        changeDescriptions.push('Update MFA settings');
+      }
+      
+      settingsData.changeDescription = changeDescriptions.join(', ');
+      
       // Only proceed if there are actual changes
-      if (Object.keys(settingsData).length === 0) {
+      if (Object.keys(settingsData).length <= 2) { // originalState and changeDescription only
         toast.error('No changes detected. Please make changes before submitting.');
         setIsLoading(false);
         return;

@@ -1,5 +1,22 @@
 import type { MessageProposal, MultisigWallet } from '@/app/api/multisig/storage'
 
+// extend settingsData type to include originalState and changeDescription
+interface ExtendedSettingsData {
+  signers?: {
+    ethAddress: string;
+    publicKey: string;
+    email: string;
+    authMethodId?: string;
+  }[];
+  threshold?: number;
+  mfaSettings?: {
+    phoneNumber?: string;
+    dailyLimit?: string;
+  };
+  originalState?: any; // original wallet state
+  changeDescription?: string; // change description
+}
+
 interface WalletSettingsProposalProps {
   proposal: MessageProposal
   selectedWallet: MultisigWallet | null
@@ -7,18 +24,21 @@ interface WalletSettingsProposalProps {
 
 export function WalletSettingsProposal({ proposal, selectedWallet }: WalletSettingsProposalProps) {
   // Extract settings data from the proposal
-  const settingsData = proposal.settingsData;
+  const settingsData = proposal.settingsData as ExtendedSettingsData;
   if (!settingsData) {
     return <div>Unable to parse settings data</div>;
   }
+  
+  // Get original state from proposal or use selectedWallet as fallback
+  const originalState = settingsData.originalState || selectedWallet;
   
   // Prepare descriptions of changes
   const descriptions = [];
   
   // Check for threshold changes
-  if (settingsData.threshold !== undefined && selectedWallet?.threshold !== undefined) {
-    if (settingsData.threshold !== selectedWallet.threshold) {
-      descriptions.push(`Change threshold from ${selectedWallet.threshold} to ${settingsData.threshold}`);
+  if (settingsData.threshold !== undefined && originalState?.threshold !== undefined) {
+    if (settingsData.threshold !== originalState.threshold) {
+      descriptions.push(`Change threshold from ${originalState.threshold} to ${settingsData.threshold}`);
     }
   }
   
@@ -26,8 +46,8 @@ export function WalletSettingsProposal({ proposal, selectedWallet }: WalletSetti
   let removedSigners: any[] = [];
   
   // Check for signer changes
-  if (settingsData.signers && selectedWallet?.signers) {
-    const originalSigners = selectedWallet.signers;
+  if (settingsData.signers && originalState?.signers) {
+    const originalSigners = originalState.signers;
     
     newSigners = settingsData.signers.filter((s: any) => 
       !originalSigners.some((os: any) => os.ethAddress === s.ethAddress)
@@ -48,8 +68,8 @@ export function WalletSettingsProposal({ proposal, selectedWallet }: WalletSetti
   
   // Check for MFA setting changes
   let mfaChanges: string[] = [];
-  if (settingsData.mfaSettings && selectedWallet) {
-    const walletMfaSettings = (selectedWallet as any).mfaSettings || {};
+  if (settingsData.mfaSettings && originalState) {
+    const walletMfaSettings = (originalState as any).mfaSettings || {};
     
     if (settingsData.mfaSettings.phoneNumber !== walletMfaSettings.phoneNumber) {
       mfaChanges.push('Phone Number');
@@ -63,8 +83,10 @@ export function WalletSettingsProposal({ proposal, selectedWallet }: WalletSetti
     }
   }
   
-  // Default if no specific changes detected
-  if (descriptions.length === 0) {
+  // Handle case when proposal is completed but changes are not detected
+  if (descriptions.length === 0 && proposal.status === 'completed') {
+    descriptions.push(settingsData.changeDescription || 'Wallet settings updated');
+  } else if (descriptions.length === 0) {
     descriptions.push('No changes detected');
   }
 
@@ -74,13 +96,13 @@ export function WalletSettingsProposal({ proposal, selectedWallet }: WalletSetti
       <div><span className="font-medium">Changes:</span> {descriptions.join(', ')}</div>
       
       {/* Display detailed settings changes if available */}
-      {settingsData && selectedWallet && (
+      {settingsData && (
         <div className="mt-2 p-2 bg-gray-100 rounded-md text-sm">
-          {settingsData.threshold !== undefined && selectedWallet.threshold !== undefined && 
-           settingsData.threshold !== selectedWallet.threshold && (
+          {settingsData.threshold !== undefined && originalState?.threshold !== undefined && 
+           settingsData.threshold !== originalState.threshold && (
             <div className="flex gap-2">
               <span className="font-medium">Threshold:</span> 
-              {selectedWallet.threshold} → {settingsData.threshold} of {selectedWallet?.signers?.length || 0}
+              {originalState.threshold} → {settingsData.threshold} of {settingsData.signers?.length || originalState?.signers?.length || 0}
             </div>
           )}
           

@@ -46,6 +46,8 @@ export interface MessageProposal {
       phoneNumber?: string
       dailyLimit?: string
     }
+    originalState?: any  // Original wallet state before changes
+    changeDescription?: string  // Description of changes for display
   }
   txHash?: string       // Transaction hash after execution
 }
