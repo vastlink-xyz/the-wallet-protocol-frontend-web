@@ -13,12 +13,12 @@ import { litNodeClient } from "@/lib/lit"
 import { AlertCircle } from "lucide-react"
 import { AUTH_METHOD_TYPE, LIT_CHAINS } from "@lit-protocol/constants"
 import { ethers } from "ethers"
-import { toast, ToastContainer } from 'react-toastify'
+import { toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import { SignerEmailField } from "@/components/SignerEmailField"
 import { WalletSettings } from "./WalletSettings"
 import { WalletSettingsProposal } from "./WalletSettingsProposal"
-import { updateWalletLitActionCode } from "@/app/debug/lit-actions/update-wallet"
+import { getUpdateWalletIpfsId } from "@/lib/lit/ipfs-id-env"
 
 // eth sepolia
 const chainInfo = {
@@ -407,7 +407,7 @@ export function Multisig({
     if (!selectedWallet || !selectedMultisigPkp) return;
     log('selected multisig pkp', selectedWallet.pkp.publicKey)
 
-    const updateWalletIpfsId = await calculateCIDFromString(updateWalletLitActionCode)
+    const updateWalletIpfsId = await getUpdateWalletIpfsId("base58")
 
     try {
       const litActionResponse = await litNodeClient.executeJs({
@@ -587,18 +587,6 @@ export function Multisig({
 
   return (
     <div className="space-y-6">
-      <ToastContainer
-        position="top-center"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-      />
-
       {selectedWalletId && (
         <div className="bg-card p-4 rounded-lg border">
           {/* header */}

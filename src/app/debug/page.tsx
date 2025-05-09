@@ -9,11 +9,7 @@ import { PKPEthersWallet } from "@lit-protocol/pkp-ethers";
 import { LitContracts } from "@lit-protocol/contracts-sdk";
 import { ethers, utils } from "ethers";
 import { AUTH_METHOD_SCOPE, LIT_CHAINS } from "@lit-protocol/constants";
-// import signTransactionLitActionCode from './sign-transaction-lit-action-code'
-import { Encryption } from './components/Encryption';
 import { Example } from "./components/Example";
-import { customLitActionCode } from "./lit-actions/custom";
-import { verifyGoogleAuthLitActionCode } from "./lit-actions/verify-google-auth";
 import { mainLitActionCode } from "./lit-actions/main";
 
 // eth sepolia
@@ -160,7 +156,6 @@ export default function DebugPage() {
   const handleLogLitActionCode = async () => {
     // console.log(signTransactionLitActionCode)
     // console.log(customLitActionCode)
-    // console.log(verifyGoogleAuthLitActionCode)
     console.log(mainLitActionCode)
   }
 

@@ -11,8 +11,6 @@ import { getLitActionIpfsCid, getSessionSigsByPkp, mintPKP, uploadViaPinata } fr
 import { PKPEthersWallet } from "@lit-protocol/pkp-ethers";
 import { LitContracts } from "@lit-protocol/contracts-sdk";
 import { verifyMultisigLitActionCode } from "@/lib/lit-action-code/verify-multisig.lit";
-import { createWalletLitActionCode } from "@/app/debug/lit-actions/create-wallet";
-import { updateWalletLitActionCode } from "@/app/debug/lit-actions/update-wallet";
 import { editAuthmethodForDebugLitActionCode } from "@/app/debug/lit-actions/edit-authmethod-for-debug";
 import { editAuthmethodLitActionCode } from "@/app/debug/lit-actions/edit-authmethod";
 

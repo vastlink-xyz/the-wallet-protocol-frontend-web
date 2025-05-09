@@ -5,12 +5,8 @@ import { log } from "@/lib/utils";
 import { getAuthIdByAuthMethod } from "@lit-protocol/lit-auth-client";
 import { AuthMethod } from "@lit-protocol/types";
 import { calculateCIDFromString, getLitActionIpfsCid, uploadViaPinata } from "@/lib/lit/get-lit-action-ipfs-cid";
-import { createWalletLitActionCode } from "@/app/debug/lit-actions/create-wallet";
-import { customLitActionCode } from "@/app/debug/lit-actions/custom";
 import { AUTH_METHOD_TYPE } from "@lit-protocol/constants";
-import { verifyGoogleAuthLitActionCode } from "@/app/debug/lit-actions/verify-google-auth";
 import { verifyMultisigLitActionCode } from "@/lib/lit-action-code/verify-multisig.lit";
-import { updateWalletLitActionCode } from "@/app/debug/lit-actions/update-wallet";
 import { ethers } from "ethers";
 import { editAuthmethodLitActionCode } from "@/app/debug/lit-actions/edit-authmethod";
 import { editAuthmethodForDebugLitActionCode } from "@/app/debug/lit-actions/edit-authmethod-for-debug";
@@ -43,7 +39,7 @@ const multisigPkp = {
 //   "tokenId" : "0x197d20d1fb8efe5531baa1a0b9eae43435166174d98499c7b2569c84baa30974"
 // }
 
-const litActionCode = updateWalletLitActionCode
+const litActionCode = verifyMultisigLitActionCode
 
 export function ExecuteLitActionCode({ authMethod }: { authMethod: AuthMethod }) {
 
