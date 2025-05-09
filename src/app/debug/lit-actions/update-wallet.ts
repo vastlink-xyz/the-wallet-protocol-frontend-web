@@ -8,7 +8,167 @@ declare const Lit: any
 
 // kkktodo: update-settings
 const _litActionCode = async () => {
+  const currentActionIpfsId = Lit.Auth.actionIpfsIds[0]
+  console.log('currentActionIpfsId', currentActionIpfsId)
   const ipfsIdForVerifyGoogleAuthLitAction = 'QmXVzcSHk16XLu5ACWNJywxfUHX1KnY1fu66J9Skh533pg'
+
+  async function editAuthmethod({
+    pkpPublicKey,
+    litDatilNetwork,
+    authMethodMetadata,
+  }: {
+    pkpPublicKey: string;
+    litDatilNetwork: 'datil-dev' | 'datil-test' | 'datil';
+    authMethodMetadata: {
+      addOrRemove: 'add' | 'remove';
+      keyType: number;
+      authMethodType: number;
+      authMethodId: string;
+      authMethodPubkey: string;
+      permittedScopes: number[];
+    }
+  }) {
+    const PKP_PERMISSIONS_CONTRACT_ABI = [
+      "function addPermittedAuthMethod(uint256 tokenId, (uint256 authMethodType, bytes id, bytes userPubkey) authMethod, uint256[] scopes)",
+      "function removePermittedAuthMethod(uint256 tokenId, uint256 authMethodType, bytes id)",
+    ];
+
+    try {
+      const pkpTokenId = await Lit.Actions.pubkeyToTokenId({ publicKey: pkpPublicKey });
+      const pkpEthAddress = ethers.utils.computeAddress(pkpPublicKey);
+
+      let pkpPermissionsContractAddress: string;
+      switch (litDatilNetwork) {
+        case 'datil-dev':
+          pkpPermissionsContractAddress = '0xf64638F1eb3b064f5443F7c9e2Dc050ed535D891';
+          break;
+        case 'datil-test':
+          pkpPermissionsContractAddress = '0x60C1ddC8b9e38F730F0e7B70A2F84C1A98A69167';
+          break;
+        case 'datil':
+          pkpPermissionsContractAddress = '0x213Db6E1446928E19588269bEF7dFc9187c4829A';
+          break;
+        default:
+          throw new Error(`Invalid Lit Datil Network: ${litDatilNetwork}`);
+      }
+
+      const yellowstoneRpcProvider = new ethers.providers.JsonRpcProvider(
+        await Lit.Actions.getRpcUrl({
+          chain: 'yellowstone',
+        })
+      );
+
+      const [gasPrice, { chainId }] = await Promise.all([
+        yellowstoneRpcProvider.getGasPrice(),
+        yellowstoneRpcProvider.getNetwork()
+      ]);
+
+      const pkpPermissionsContract = new ethers.Contract(
+        pkpPermissionsContractAddress,
+        PKP_PERMISSIONS_CONTRACT_ABI,
+        yellowstoneRpcProvider
+      );
+
+      let rawTx;
+      let estimatedGas;
+      switch (authMethodMetadata.addOrRemove) {
+        case 'add':
+          rawTx = await pkpPermissionsContract.populateTransaction.addPermittedAuthMethod(
+            pkpTokenId,
+            {
+              authMethodType: ethers.BigNumber.from(authMethodMetadata.authMethodType.toString()).toHexString(),
+              id: ethers.utils.arrayify(authMethodMetadata.authMethodId),
+              userPubkey: ethers.utils.arrayify(authMethodMetadata.authMethodPubkey)
+            },
+            authMethodMetadata.permittedScopes,
+          );
+          estimatedGas = await pkpPermissionsContract.estimateGas.addPermittedAuthMethod(
+            pkpTokenId,
+            {
+              authMethodType: ethers.BigNumber.from(authMethodMetadata.authMethodType.toString()).toHexString(),
+              id: ethers.utils.arrayify(authMethodMetadata.authMethodId),
+              userPubkey: ethers.utils.arrayify(authMethodMetadata.authMethodPubkey)
+            },
+            authMethodMetadata.permittedScopes,
+            {
+              from: pkpEthAddress
+            }
+          );
+          break;
+        case 'remove':
+          rawTx = await pkpPermissionsContract.populateTransaction.removePermittedAuthMethod(
+            pkpTokenId,
+            authMethodMetadata.authMethodType,
+            authMethodMetadata.authMethodId,
+          );
+          estimatedGas = await pkpPermissionsContract.estimateGas.removePermittedAuthMethod(
+            pkpTokenId,
+            authMethodMetadata.authMethodType,
+            authMethodMetadata.authMethodId,
+            {
+              from: pkpEthAddress
+            }
+          );
+          break;
+        default:
+          throw new Error(`Invalid authMethodMetadata.addOrRemove: ${authMethodMetadata.addOrRemove}`);
+      }
+
+      // Add required transaction properties
+      rawTx = {
+        ...rawTx,
+        gasPrice: `0x${BigInt(gasPrice.toString()).toString(16)}`,
+        gasLimit: estimatedGas.mul(120).div(100).toHexString(), // Add 20% buffer to estimated gas
+        nonce: await yellowstoneRpcProvider.getTransactionCount(pkpEthAddress),
+        chainId,
+      };
+
+      console.log(`Unsigned transaction: ${JSON.stringify(rawTx)}`);
+
+      const publicKeyForLit = pkpPublicKey.replace(/^0x/, '');
+      console.log(`Signing using PKP Public Key: ${publicKeyForLit}...`);
+
+      const sig = await Lit.Actions.signAndCombineEcdsa({
+        toSign: ethers.utils.arrayify(
+          ethers.utils.keccak256(ethers.utils.serializeTransaction(rawTx))
+        ),
+        publicKey: publicKeyForLit,
+        sigName: 'pkp-edit-auth-methods',
+      });
+
+      const signedAndSerializedTx = ethers.utils.serializeTransaction(
+        rawTx,
+        ethers.utils.joinSignature({
+          r: '0x' + JSON.parse(sig).r.substring(2),
+          s: '0x' + JSON.parse(sig).s,
+          v: JSON.parse(sig).v,
+        })
+      );
+      console.log(`Signed transaction: ${signedAndSerializedTx}`);
+
+      const sendTxResponse = await Lit.Actions.runOnce(
+        { waitForResponse: true, name: 'sendTxSender' },
+        async () => {
+          try {
+            const txReceipt = await yellowstoneRpcProvider.sendTransaction(signedAndSerializedTx);
+            return JSON.stringify({
+              status: 'success',
+              txReceipt
+            });
+          } catch (error: unknown) {
+            return JSON.stringify({
+              status: 'error',
+              details: [(error as Error).message || JSON.stringify(error)]
+            });
+          }
+        }
+      );
+
+      return sendTxResponse;
+    } catch (error) {
+      throw new Error(`Error editing auth method: ${error}`)
+    }
+  }
 
   // verify google auth
   const authVerifyRes = await Lit.Actions.call({
@@ -21,13 +181,13 @@ const _litActionCode = async () => {
 
   const parsedAuthVerifyRes = JSON.parse(authVerifyRes)
   if (!parsedAuthVerifyRes.isPermitted) {
-    Lit.Actions.setResponse({response: JSON.stringify(parsedAuthVerifyRes)})
+    Lit.Actions.setResponse({ response: JSON.stringify(parsedAuthVerifyRes) })
     return
   }
 
   try {
     let apiBaseUrl: string;
-    let litDatilNetwork: string;
+    let litDatilNetwork: 'datil-dev' | 'datil-test' | 'datil';
     switch (env) {
       case 'dev':
         apiBaseUrl = 'https://4bb5-58-152-13-66.ngrok-free.app';
@@ -40,7 +200,7 @@ const _litActionCode = async () => {
       default:
         throw new Error(`Invalid Base URL`);
     }
-    
+
     const apiUrl = `${apiBaseUrl}/api/multisig?id=${walletId}`;
     const response = await fetch(apiUrl).then((response) => response.json());
     console.log('response.data', response.data)
@@ -54,7 +214,7 @@ const _litActionCode = async () => {
     // verify the dataToEncryptHashSignature
     const messageHash = ethers.utils.hashMessage(dataToEncryptHash);
     const recoveredAddress = ethers.utils.recoverAddress(messageHash, dataToEncryptHashSignature);
-    const expectedAddress = ethers.utils.computeAddress(publicKey);    
+    const expectedAddress = ethers.utils.computeAddress(publicKey);
     const isValid = recoveredAddress.toLowerCase() === expectedAddress.toLowerCase();
 
     if (!isValid) {
@@ -62,31 +222,31 @@ const _litActionCode = async () => {
     }
 
     // kkktodo
-    // const decryptedData = await Lit.Actions.decryptAndCombine({
-    //   accessControlConditions: metadata.accessControlConditions,
-    //   ciphertext,
-    //   dataToEncryptHash,
-    //   // @ts-ignore
-    //   authSig: null,
-    //   chain: "ethereum",
-    // });
-    // const parsedDecryptedData = JSON.parse(decryptedData)
-    // console.log('parsedDecryptedData', parsedDecryptedData)
+    const decryptedData = await Lit.Actions.decryptAndCombine({
+      accessControlConditions: metadata.accessControlConditions,
+      ciphertext,
+      dataToEncryptHash,
+      // @ts-ignore
+      authSig: null,
+      chain: "ethereum",
+    });
+    const parsedDecryptedData = JSON.parse(decryptedData)
+    console.log('parsedDecryptedData', parsedDecryptedData)
 
-    const parsedDecryptedData = {
-      "signers": [
-        {
-          "email": "zkyeshuoer@gmail.com",
-          "ethAddress": "0xee136485baB4ceB31b346383fB395a4eE5142bF8",
-          "publicKey": "0x045e0180adf3774affd6c9f57d6ac15c8f0c64fd2832334e977de8a03c2bd54ce49700c61a4897a063b1c58982aa6717c9ea738207df454a3b128a5e4a412aab8b"
-        }
-      ],
-      "threshold": 1,
-      "mfaSettings": {
-        "phoneNumber": "123",
-        "dailyLimit": "1"
-      }
-    }
+    // const parsedDecryptedData = {
+    //   "signers": [
+    //     {
+    //       "email": "zkyeshuoer@gmail.com",
+    //       "ethAddress": "0xee136485baB4ceB31b346383fB395a4eE5142bF8",
+    //       "publicKey": "0x045e0180adf3774affd6c9f57d6ac15c8f0c64fd2832334e977de8a03c2bd54ce49700c61a4897a063b1c58982aa6717c9ea738207df454a3b128a5e4a412aab8b"
+    //     }
+    //   ],
+    //   "threshold": 1,
+    //   "mfaSettings": {
+    //     "phoneNumber": "123",
+    //     "dailyLimit": "1"
+    //   }
+    // }
 
     // get signatures from proposal
     const proposalApiUrl = `${apiBaseUrl}/api/multisig/messages?proposalId=${proposalId}&walletId=${walletId}`;
@@ -101,7 +261,7 @@ const _litActionCode = async () => {
       if (!testSigner) {
         continue
       }
-              
+
       const proposalMessageHash = ethers.utils.hashMessage(proposalMessage);
       const recoveredAddress = ethers.utils.recoverAddress(proposalMessageHash, testSigner.signature);
       const expectedAddress = ethers.utils.computeAddress(expectedSigner.publicKey);
@@ -111,7 +271,7 @@ const _litActionCode = async () => {
 
       const isValid = recoveredAddress.toLowerCase() === expectedAddress.toLowerCase();
       console.log(`- Validation result: ${isValid ? 'VALID ✓' : 'INVALID ✗'}`);
-      
+
       if (isValid) {
         validSignaturesCount++;
       }
@@ -139,7 +299,7 @@ const _litActionCode = async () => {
 
     // Find signers to add (in proposal but not in decrypted data)
     for (const proposalSigner of parsedProposalMessage.signers) {
-      const exists = parsedDecryptedData.signers.some(signer => signer.ethAddress.toLowerCase() === proposalSigner.ethAddress.toLowerCase());
+      const exists = parsedDecryptedData.signers.some((signer: any) => signer.ethAddress.toLowerCase() === proposalSigner.ethAddress.toLowerCase());
       if (!exists) {
         changes.addSigners.push(proposalSigner);
       }
@@ -160,7 +320,7 @@ const _litActionCode = async () => {
 
     // Check if mfaSettings have changed (if they exist)
     if (parsedProposalMessage.mfaSettings && parsedDecryptedData.mfaSettings) {
-      const mfaChanged = 
+      const mfaChanged =
         parsedProposalMessage.mfaSettings.phoneNumber !== parsedDecryptedData.mfaSettings.phoneNumber ||
         parsedProposalMessage.mfaSettings.dailyLimit !== parsedDecryptedData.mfaSettings.dailyLimit;
       changes.mfaSettingsChanged = mfaChanged;
@@ -172,43 +332,39 @@ const _litActionCode = async () => {
       for (const signerToAdd of changes.addSigners) {
         console.log(`Adding signer: ${signerToAdd.email} (${signerToAdd.ethAddress})`);
         // Call the Action to add the signer
-        await Lit.Actions.call({
-          ipfsId: 'Qmbqm4MpVnSNekpik3Z2m36zKYgtyytZ9AcAHDzsENs63s',
-          params: {
-            pkpPublicKey: publicKey,
-            litDatilNetwork: litDatilNetwork, // kkktodo
-            authMethodMetadata: {
-              addOrRemove: 'add',
-              keyType: 2,
-              authMethodType: 6,
-              authMethodId: signerToAdd.authMethodId,
-              authMethodPubkey: '0x',
-              permittedScopes: [0],
-            }
-          },
-        });
+        const addSignerRes = await editAuthmethod({
+          pkpPublicKey: publicKey,
+          litDatilNetwork: litDatilNetwork, // kkktodo
+          authMethodMetadata: {
+            addOrRemove: 'add',
+            keyType: 2,
+            authMethodType: 6,
+            authMethodId: signerToAdd.authMethodId,
+            authMethodPubkey: '0x',
+            permittedScopes: [0],
+          }
+        })
         console.log('add signer success', signerToAdd.email)
+        console.log('addSignerRes', addSignerRes)
       }
 
       for (const signerToRemove of changes.removeSigners) {
         console.log(`Removing signer: ${signerToRemove.email} (${signerToRemove.ethAddress})`);
         // Call the Action to remove the signer
-        await Lit.Actions.call({
-          ipfsId: 'Qmbqm4MpVnSNekpik3Z2m36zKYgtyytZ9AcAHDzsENs63s',
-          params: {
-            pkpPublicKey: response.data.pkp.publicKey,
-            litDatilNetwork: litDatilNetwork, // kkktodo
-            authMethodMetadata: {
-              addOrRemove: 'remove',
-              keyType: 2,
-              authMethodType: 6,
-              authMethodId: signerToRemove.authMethodId,
-              authMethodPubkey: '0x',
-              // permittedScopes: [0],
-            }
-          },
-        });
+        const removeSignerRes = await editAuthmethod({
+          pkpPublicKey: response.data.pkp.publicKey,
+          litDatilNetwork: litDatilNetwork, // kkktodo
+          authMethodMetadata: {
+            addOrRemove: 'remove',
+            keyType: 2,
+            authMethodType: 6,
+            authMethodId: signerToRemove.authMethodId,
+            authMethodPubkey: '0x',
+            permittedScopes: [0],
+          }
+        })
         console.log('remove signer success', signerToRemove.email)
+        console.log('removeSignerRes', removeSignerRes)
       }
     }
 
@@ -219,7 +375,7 @@ const _litActionCode = async () => {
     if (changes.addSigners.length > 0 || changes.removeSigners.length > 0) {
       // create updated signers list
       const updatedSigners = [...parsedDecryptedData.signers];
-      
+
       // remove signers that should be removed
       for (const signerToRemove of changes.removeSigners) {
         const indexToRemove = updatedSigners.findIndex(signer => signer.ethAddress.toLowerCase() === signerToRemove.ethAddress.toLowerCase());
@@ -227,12 +383,12 @@ const _litActionCode = async () => {
           updatedSigners.splice(indexToRemove, 1);
         }
       }
-      
+
       // add new signers
       for (const signerToAdd of changes.addSigners) {
         updatedSigners.push(signerToAdd);
       }
-      
+
       // update signers list
       newDataToEncrypt.signers = updatedSigners;
     }
@@ -258,15 +414,15 @@ const _litActionCode = async () => {
     const dataToEncryptStr = JSON.stringify(newDataToEncrypt);
     console.log('String to encrypt:', dataToEncryptStr);
     const dataToEncryptBinary = new TextEncoder().encode(dataToEncryptStr)
-    
+
     const encryptResult = await Lit.Actions.encrypt({
       accessControlConditions: [
         {
           "contractAddress": "",
           "standardContractType": "",
-          "chain": "ethereum", 
+          "chain": "ethereum",
           "method": "",
-          "parameters": [ ":currentActionIpfsId" ],
+          "parameters": [":currentActionIpfsId"],
           "returnValueTest": {
             "comparator": "=",
             "value": Lit.Auth.actionIpfsIds[0]
@@ -288,19 +444,24 @@ const _litActionCode = async () => {
       sigName: 'dataToEncryptHashSignature',
     })
 
-    Lit.Actions.setResponse({response: JSON.stringify({
-      success: true,
-      message: 'wallet updated',
-      data: {
-        newDataToEncrypt,
-        dataToEncryptHash: encryptResult.dataToEncryptHash,
-      },
-    })})
+    Lit.Actions.setResponse({
+      response: JSON.stringify({
+        success: true,
+        message: 'wallet updated',
+        data: {
+          newDataToEncrypt,
+          ciphertext: encryptResult.ciphertext,
+          dataToEncryptHash: encryptResult.dataToEncryptHash,
+        },
+      })
+    })
   } catch (error) {
-    Lit.Actions.setResponse({response: JSON.stringify({
-      success: false,
-      error: (error as any).message,
-    })})
+    Lit.Actions.setResponse({
+      response: JSON.stringify({
+        success: false,
+        error: (error as any).message,
+      })
+    })
   }
 };
 

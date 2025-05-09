@@ -6,7 +6,6 @@ import { AUTH_METHOD_SCOPE, AUTH_METHOD_TYPE, LIT_ABILITY, LIT_NETWORK } from "@
 import { getAuthIdByAuthMethod } from "@lit-protocol/lit-auth-client";
 import { AuthMethod, IRelayPKP } from "@lit-protocol/types";
 import { ethers } from "ethers";
-import { editAuthmethodLitActionCode } from "./code";
 import { useState } from "react";
 import { getLitActionIpfsCid, getSessionSigsByPkp, mintPKP, uploadViaPinata } from "@/lib/lit";
 import { PKPEthersWallet } from "@lit-protocol/pkp-ethers";
@@ -14,31 +13,47 @@ import { LitContracts } from "@lit-protocol/contracts-sdk";
 import { verifyMultisigLitActionCode } from "@/lib/lit-action-code/verify-multisig.lit";
 import { createWalletLitActionCode } from "@/app/debug/lit-actions/create-wallet";
 import { updateWalletLitActionCode } from "@/app/debug/lit-actions/update-wallet";
+import { editAuthmethodForDebugLitActionCode } from "@/app/debug/lit-actions/edit-authmethod-for-debug";
+import { editAuthmethodLitActionCode } from "@/app/debug/lit-actions/edit-authmethod";
 
-// pkp sign anything
+// // pkp sign anything for user1
+// const sessionPKP = {
+//   "ethAddress" : "0xd027F558d7ae10E673816adb5CdCc23be7814C0e",
+//   "publicKey" : "0x04042e218a8729f011641a78da1939ab72299ebb70a0ba750645468311694ad1f24787945ebb91fe24caa76717203546748e89d4c589fe76bfa9e1fbd55f118eb0",
+//   "tokenId" : "0xb7aaf498c4d450855f7a3cccc900b24b348f0e108d5d5a7ba9072e9403f6ff4e",
+// }
+
+// // #4
+// const multisigPkp = {
+//   "tokenId": "0x40cb3dc1270ba04074fafb3f836531a8a1e6531d698cfdd84df37521731d0c30",
+//   "publicKey": "0x04feab19140a3f64fd7097343ad0b5e31131c585acbdce8420e104dd021b01370600a2219382d0a01dbf3643057bf5714ba1e38fde6b117dcc2c2c81fb98f78c38",
+//   "ethAddress": "0xFC91d8Ed58C1e10506FB6fBe9A6c2aB2854b5317"
+// }
+
+// user2
 const sessionPKP = {
-  "ethAddress" : "0xd027F558d7ae10E673816adb5CdCc23be7814C0e",
-  "publicKey" : "0x04042e218a8729f011641a78da1939ab72299ebb70a0ba750645468311694ad1f24787945ebb91fe24caa76717203546748e89d4c589fe76bfa9e1fbd55f118eb0",
-  "tokenId" : "0xb7aaf498c4d450855f7a3cccc900b24b348f0e108d5d5a7ba9072e9403f6ff4e",
+  "ethAddress" : "0x52C3710406d4AB58cDf9209b0b973b71d5c09902",
+  "publicKey" : "0x04d5fe3ef25dea74378d5c1a68c2ded596539d73695f14362c83e2a8a861d7edee83022041d7988ff5c430f841449bdd23f9fb24472bf6c9c824d7a2aaa833f04c",
+  "tokenId" : "0xe51f33deae0eddfab6487d89628255eb6f2ff0494632332fd87feb20087dfbd5",
+}
+ 
+const multisigPkp = {
+  "ethAddress" : "0x2FC03E0578Df353445d5557Bd6814F3d18b2c4A4",
+  "publicKey" : "0x04575112060aa7bbc89d8d09c75de37a8d4ba5aac4de7a85f9d7604e2bf83ea832d4a2545b13a203ecf8099680a49091cc6090060f220be2832be323e2cd0f667b",
+  "tokenId" : "0x35998dec0ff054379fa9c844741dd2700b29e94411a2760ffc9dd4feb76bd057"
 }
 
-// multisig wallet
-const mintedPKP = {
-  "ethAddress" : "0xFC91d8Ed58C1e10506FB6fBe9A6c2aB2854b5317",
-  "publicKey" : "0x04feab19140a3f64fd7097343ad0b5e31131c585acbdce8420e104dd021b01370600a2219382d0a01dbf3643057bf5714ba1e38fde6b117dcc2c2c81fb98f78c38",
-  "tokenId" : "0x40cb3dc1270ba04074fafb3f836531a8a1e6531d698cfdd84df37521731d0c30"
-}
 
 export function EditAuthmethod({
   authMethod,
 }: {
   authMethod: AuthMethod;
 }) {
-  const [pkp, setPkp] = useState<IRelayPKP | null>(mintedPKP);
+  const [pkp, setPkp] = useState<IRelayPKP | null>(multisigPkp);
 
   const permittedIpfsIdFromLitActionCode = async () => {
     const ipfsIdHex = await getLitActionIpfsCid({
-      input: editAuthmethodLitActionCode,
+      input: editAuthmethodForDebugLitActionCode,
       outputFormat: "hex"
     })
     log('ipfsId hex', ipfsIdHex)
@@ -47,7 +62,7 @@ export function EditAuthmethod({
 
   const handleMintPKP = async () => {
     const ipfsIdHex = await permittedIpfsIdFromLitActionCode();
-    const ipfsId = await uploadViaPinata(editAuthmethodLitActionCode);
+    const ipfsId = await uploadViaPinata(editAuthmethodForDebugLitActionCode);
     log('ipfsId', ipfsId)
     const pkp = await mintPKP({
       authMethod,
@@ -95,31 +110,31 @@ export function EditAuthmethod({
     log('sessionSigs', sessionSigs)
     // const authMethodId = await getAuthIdByAuthMethod(authMethod)
     const ipfsIdHex = await getLitActionIpfsCid({
-      input: updateWalletLitActionCode,
+      input: editAuthmethodForDebugLitActionCode,
       outputFormat: 'hex',
     })
     const response = await litNodeClient.executeJs({
-      code: editAuthmethodLitActionCode,
+      code: editAuthmethodForDebugLitActionCode,
       sessionSigs,
       jsParams: {
-        pkpPublicKey: pkp!.publicKey,
+        pkpPublicKey: multisigPkp.publicKey,
         litDatilNetwork: LIT_NETWORK.DatilDev,
-        authMethodMetadata: {
-          addOrRemove: 'add',
-          keyType: 2,
-          authMethodType: AUTH_METHOD_TYPE.LitAction,
-          authMethodId: ipfsIdHex,
-          authMethodPubkey: '0x',
-          permittedScopes: [AUTH_METHOD_SCOPE.SignAnything],
-        }
         // authMethodMetadata: {
         //   addOrRemove: 'add',
         //   keyType: 2,
-        //   authMethodType: AUTH_METHOD_TYPE.GoogleJwt,
-        //   authMethodId: authMethodId,
+        //   authMethodType: AUTH_METHOD_TYPE.LitAction,
+        //   authMethodId: ipfsIdHex,
         //   authMethodPubkey: '0x',
-        //   permittedScopes: [AUTH_METHOD_SCOPE.NoPermissions],
+        //   permittedScopes: [AUTH_METHOD_SCOPE.SignAnything],
         // }
+        authMethodMetadata: {
+          addOrRemove: 'add',
+          keyType: 2,
+          authMethodType: AUTH_METHOD_TYPE.GoogleJwt,
+          authMethodId: '0x92ae1dbc4ec9fe1eb01549bbaa858e58b8e6ccb69a59ceeca67971ddacaec925',
+          authMethodPubkey: '0x',
+          permittedScopes: [AUTH_METHOD_SCOPE.NoPermissions],
+        }
       },
     });
     log('response', response)
@@ -130,7 +145,7 @@ export function EditAuthmethod({
     log('sessionSigs', sessionSigs)
     const authMethodId = await getAuthIdByAuthMethod(authMethod)
     const response = await litNodeClient.executeJs({
-      code: editAuthmethodLitActionCode,
+      code: editAuthmethodForDebugLitActionCode,
       sessionSigs,
       jsParams: {
         pkpPublicKey: pkp!.publicKey,
@@ -149,7 +164,7 @@ export function EditAuthmethod({
   }
 
   const handleUploadLitAction = async () => {
-    const ipfsId = await uploadViaPinata(editAuthmethodLitActionCode);
+    const ipfsId = await uploadViaPinata(editAuthmethodForDebugLitActionCode);
     log('ipfsId', ipfsId)
   }
 
@@ -176,10 +191,10 @@ export function EditAuthmethod({
       await litContracts.connect();
       log('litcontract conneected')
 
-      const permittedActions = await litContracts.pkpPermissionsContractUtils.read.getPermittedActions(pkp!.tokenId)
+      const permittedActions = await litContracts.pkpPermissionsContractUtils.read.getPermittedActions(multisigPkp.tokenId)
       log('permitted actions', permittedActions)
 
-      const permittedAuthMethods = await litContracts.pkpPermissionsContract.read.getPermittedAuthMethods(pkp!.tokenId)
+      const permittedAuthMethods = await litContracts.pkpPermissionsContract.read.getPermittedAuthMethods(multisigPkp.tokenId)
       log('permitted authmethods', permittedAuthMethods)
     } catch (err) {
       log('err', err);

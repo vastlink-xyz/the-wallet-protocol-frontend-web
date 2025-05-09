@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { executeSignLitAction, mintMultisigPKP } from "../helper"
 import { log, formatEthAmount, fetchEthBalance } from "@/lib/utils"
-import { getSessionSigsByPkp, MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID, SIGN_PROPOSAL_LIT_ACTION_IPFS_ID } from "@/lib/lit"
+import { calculateCIDFromString, getSessionSigsByPkp, MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID, SIGN_PROPOSAL_LIT_ACTION_IPFS_ID } from "@/lib/lit"
 import { litNodeClient } from "@/lib/lit"
 import { AlertCircle } from "lucide-react"
 import { AUTH_METHOD_TYPE, LIT_CHAINS } from "@lit-protocol/constants"
@@ -18,6 +18,7 @@ import 'react-toastify/dist/ReactToastify.css'
 import { SignerEmailField } from "@/components/SignerEmailField"
 import { WalletSettings } from "./WalletSettings"
 import { WalletSettingsProposal } from "./WalletSettingsProposal"
+import { updateWalletLitActionCode } from "@/app/debug/lit-actions/update-wallet"
 
 // eth sepolia
 const chainInfo = {
@@ -381,10 +382,11 @@ export function Multisig({
     if (!selectedWallet || !selectedMultisigPkp) return;
     log('selected multisig pkp', selectedWallet.pkp.publicKey)
 
+    const updateWalletIpfsId = await calculateCIDFromString(updateWalletLitActionCode)
+
     try {
       const litActionResponse = await litNodeClient.executeJs({
-        // kkktodo: use constant instead
-        ipfsId: 'QmaXWFw1iRpQzTdEy2bxurQ95Fv7G6GghX5jmw8xGnJqKC',
+        ipfsId: updateWalletIpfsId,
         sessionSigs,
         jsParams: {
           authParams: {
@@ -411,6 +413,7 @@ export function Multisig({
         id: selectedWallet.id,
         ...responseObj.data.newDataToEncrypt,
         dataToEncryptHash: responseObj.data.dataToEncryptHash,
+        ciphertext: responseObj.data.ciphertext,
         dataToEncryptHashSignature: signature,
       }
 

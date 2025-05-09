@@ -163,4 +163,4 @@ const _litActionCode = async () => {
     }
 }
 
-export const editAuthmethodLitActionCode = `(${_litActionCode.toString()})();`;
+export const editAuthmethodForDebugLitActionCode = `(${_litActionCode.toString()})();`;

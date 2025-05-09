@@ -1,5 +1,7 @@
 import { ethers } from "ethers";
+import { sha256 } from "ethers/lib/utils";
 import ipfsOnlyHash from "typestub-ipfs-only-hash";
+import { ipfsHelpers } from "ipfs-helpers";
 
 /**
  * Get the IPFS CID of a litActionCode
@@ -52,4 +54,9 @@ export async function uploadViaPinata(litActionCode: string) {
     
     const response = await request.json();
     return response.IpfsHash;
+}
+
+export async function calculateCIDFromString(litActionCode: string) {
+    const ipfsHash = await ipfsHelpers.stringToCidV0(litActionCode);
+    return ipfsHash
 }
