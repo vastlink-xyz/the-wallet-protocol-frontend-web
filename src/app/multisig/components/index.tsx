@@ -434,13 +434,22 @@ export function Multisig({
 
       const signature = litActionResponse.signatures.dataToEncryptHashSignature.signature
 
+      // get the mfaSettings from the responseObj
+      const { mfaSettings } = responseObj.data.newDataToEncrypt;
+
       const body = {
         id: selectedWallet.id,
         ...responseObj.data.newDataToEncrypt,
         dataToEncryptHash: responseObj.data.dataToEncryptHash,
         ciphertext: responseObj.data.ciphertext,
         dataToEncryptHashSignature: signature,
+        metadata: {
+          ...selectedWallet.metadata, // save the original metadata
+          mfaSettings // update the mfaSettings
+        }
       }
+
+      log('Update wallet request body:', body);
 
       // Save the updated wallet to the database
       const response = await axios.put('/api/multisig', body);
