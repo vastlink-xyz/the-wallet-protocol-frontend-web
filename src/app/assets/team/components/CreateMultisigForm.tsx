@@ -5,7 +5,7 @@ import { AuthMethod, IRelayPKP } from '@lit-protocol/types'
 import { Button } from '@/components/ui/button'
 import { Loader2 } from 'lucide-react'
 import axios from 'axios'
-import { getEmailFromGoogleToken, log } from '@/lib/utils'
+import { getEmailFromGoogleToken, log, isGoogleTokenValid } from '@/lib/utils'
 import { SignerEmailField } from '@/components/SignerEmailField'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -17,6 +17,7 @@ import { editAuthmethodLitActionCode } from '@/app/debug/lit-actions/edit-authme
 import { createWalletLitActionCode } from '@/app/debug/lit-actions/create-wallet'
 import { ethers } from 'ethers'
 import { updateWalletLitActionCode } from '@/app/debug/lit-actions/update-wallet'
+import { toast } from "react-toastify"
 
 interface CreateMultisigFormProps {
   authMethod: AuthMethod
@@ -132,6 +133,18 @@ export function CreateMultisigForm({
     if (!userPkp) {
       console.error('Missing required information')
       return
+    }
+    
+    // Verify Google token before proceeding
+    if (!authMethod || !authMethod.accessToken) {
+      toast.error('Authentication information is missing');
+      return;
+    }
+    
+    const isValid = await isGoogleTokenValid(authMethod.accessToken);
+    if (!isValid) {
+      toast.error('Your Google login has expired. Please log in again.');
+      return;
     }
     
     try {

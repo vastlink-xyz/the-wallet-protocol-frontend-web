@@ -74,3 +74,22 @@ export async function fetchEthBalance(address: string, chainName: string = 'sepo
     return '0';
   }
 }
+
+/**
+ * Verify if a Google ID token is still valid
+ * @param token Google ID token to verify
+ * @returns Promise resolving to true if token is valid, false otherwise
+ */
+export async function isGoogleTokenValid(token: string): Promise<boolean> {
+  if (!token) return false;
+  
+  try {
+    const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${token}`);
+    
+    // If response is OK (status 200), token is valid
+    return response.ok;
+  } catch (error) {
+    console.error('Error validating Google token:', error);
+    return false;
+  }
+}

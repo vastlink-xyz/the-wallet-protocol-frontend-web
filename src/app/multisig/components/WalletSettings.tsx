@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SignerEmailField } from '@/components/SignerEmailField'
 import axios from 'axios'
-import { getEmailFromGoogleToken, log } from '@/lib/utils'
+import { getEmailFromGoogleToken, log, isGoogleTokenValid } from '@/lib/utils'
 import { X } from 'lucide-react'
 import { toast } from 'react-toastify'
 
@@ -85,6 +85,20 @@ export function WalletSettings({
   const handleSubmitChanges = async () => {
     try {
       setIsLoading(true);
+      
+      // Verify Google token before proceeding
+      if (!authMethod || !authMethod.accessToken) {
+        toast.error('Authentication information is missing');
+        setIsLoading(false);
+        return;
+      }
+      
+      const isValid = await isGoogleTokenValid(authMethod.accessToken);
+      if (!isValid) {
+        toast.error('Your Google login has expired. Please log in again.');
+        setIsLoading(false);
+        return;
+      }
       
       // Create an empty settings change data object
       const settingsData: any = {};

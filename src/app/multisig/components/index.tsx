@@ -7,7 +7,7 @@ import axios from 'axios'
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { executeSignLitAction, mintMultisigPKP } from "../helper"
-import { log, formatEthAmount, fetchEthBalance } from "@/lib/utils"
+import { log, formatEthAmount, fetchEthBalance, isGoogleTokenValid } from "@/lib/utils"
 import { calculateCIDFromString, getSessionSigsByPkp, MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID, SIGN_PROPOSAL_LIT_ACTION_IPFS_ID } from "@/lib/lit"
 import { litNodeClient } from "@/lib/lit"
 import { AlertCircle } from "lucide-react"
@@ -145,8 +145,27 @@ export function Multisig({
     }
   }
 
+  // Helper function to verify Google token before any action
+  const verifyGoogleToken = async (): Promise<boolean> => {
+    if (!authMethod || !authMethod.accessToken) {
+      toast.error('Authentication information is missing');
+      return false;
+    }
+    
+    const isValid = await isGoogleTokenValid(authMethod.accessToken);
+    if (!isValid) {
+      toast.error('Your Google login has expired. Please log in again.');
+      return false;
+    }
+    
+    return true;
+  };
+
   const handleCreateProposal = async () => {
-    if (!selectedWalletId || !recipientAddress || !amount) return
+    if (!selectedWalletId || !recipientAddress || !amount) return;
+    
+    // Verify Google token before proceeding
+    if (!await verifyGoogleToken()) return;
 
     try {
       setIsCreatingProposal(true)
@@ -184,6 +203,9 @@ export function Multisig({
       console.error('Missing required information for signing')
       return
     }
+    
+    // Verify Google token before proceeding
+    if (!await verifyGoogleToken()) return;
 
     try {
       setIsSigningProposal(true)
@@ -323,6 +345,9 @@ export function Multisig({
       console.error('Missing multisig wallet information or auth method')
       return
     }
+    
+    // Verify Google token before proceeding
+    if (!await verifyGoogleToken()) return;
     
     try {
       setIsLoading(true)

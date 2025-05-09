@@ -63,6 +63,8 @@ export default function DashboardPage() {
   }
 
   const redirectAfterAuthentication = async (authMethod: AuthMethod) => {
+    // router.push('/debug')
+    // return
     if (authMethod) {
       try {
         const authMethodId = await googleProvider.getAuthMethodId(authMethod)
