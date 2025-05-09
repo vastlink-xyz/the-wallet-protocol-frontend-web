@@ -67,7 +67,7 @@ export function WalletSettingsProposal({ proposal, selectedWallet }: WalletSetti
   }
   
   // Check for MFA setting changes
-  let mfaChanges: string[] = [];
+  const mfaChanges: string[] = [];
   if (settingsData.mfaSettings && originalState) {
     const walletMfaSettings = (originalState as any).mfaSettings || {};
     
