@@ -93,7 +93,6 @@ export function WalletSettings({
       if (JSON.stringify(signers.map((s: any) => s.ethAddress).sort()) !== 
           JSON.stringify(wallet.signers.map((s: any) => s.ethAddress).sort())) {
         settingsData.signers = signers;
-        settingsData.totalSigners = signers.length;
       }
       
       // Check if threshold has changed

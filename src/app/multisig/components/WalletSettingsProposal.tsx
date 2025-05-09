@@ -7,16 +7,7 @@ interface WalletSettingsProposalProps {
 
 export function WalletSettingsProposal({ proposal, selectedWallet }: WalletSettingsProposalProps) {
   // Extract settings data from the proposal
-  const settingsData = proposal.settingsData || 
-    (proposal.message ? (() => {
-      try {
-        return JSON.parse(proposal.message);
-      } catch (e) {
-        console.error('Error parsing proposal message:', e);
-        return null;
-      }
-    })() : null);
-  
+  const settingsData = proposal.settingsData;
   if (!settingsData) {
     return <div>Unable to parse settings data</div>;
   }
@@ -24,18 +15,26 @@ export function WalletSettingsProposal({ proposal, selectedWallet }: WalletSetti
   // Prepare descriptions of changes
   const descriptions = [];
   
-  if (settingsData.threshold !== undefined) {
-    descriptions.push(`Change threshold to ${settingsData.threshold} of ${settingsData.totalSigners}`);
+  // Check for threshold changes
+  if (settingsData.threshold !== undefined && selectedWallet?.threshold !== undefined) {
+    if (settingsData.threshold !== selectedWallet.threshold) {
+      descriptions.push(`Change threshold from ${selectedWallet.threshold} to ${settingsData.threshold}`);
+    }
   }
   
-  if (settingsData.signers && selectedWallet) {
-    const originalSigners = selectedWallet.signers || [];
-    const newSigners = settingsData.signers.filter((s: any) => 
+  let newSigners: any[] = [];
+  let removedSigners: any[] = [];
+  
+  // Check for signer changes
+  if (settingsData.signers && selectedWallet?.signers) {
+    const originalSigners = selectedWallet.signers;
+    
+    newSigners = settingsData.signers.filter((s: any) => 
       !originalSigners.some((os: any) => os.ethAddress === s.ethAddress)
     );
     
-    const removedSigners = originalSigners.filter((os: any) => 
-      !settingsData.signers.some((s: any) => s.ethAddress === os.ethAddress)
+    removedSigners = originalSigners.filter((os: any) => 
+      !settingsData.signers?.some((s: any) => s.ethAddress === os.ethAddress)
     );
     
     if (newSigners.length > 0) {
@@ -47,15 +46,26 @@ export function WalletSettingsProposal({ proposal, selectedWallet }: WalletSetti
     }
   }
   
-  if (settingsData.mfaSettings) {
-    if (settingsData.mfaSettings.phoneNumber || settingsData.mfaSettings.dailyLimit) {
-      descriptions.push('Update MFA settings');
+  // Check for MFA setting changes
+  let mfaChanges: string[] = [];
+  if (settingsData.mfaSettings && selectedWallet) {
+    const walletMfaSettings = (selectedWallet as any).mfaSettings || {};
+    
+    if (settingsData.mfaSettings.phoneNumber !== walletMfaSettings.phoneNumber) {
+      mfaChanges.push('Phone Number');
+    }
+    if (settingsData.mfaSettings.dailyLimit !== walletMfaSettings.dailyLimit) {
+      mfaChanges.push('Daily Limit');
+    }
+    
+    if (mfaChanges.length > 0) {
+      descriptions.push(`Update MFA settings (${mfaChanges.join(', ')})`);
     }
   }
   
   // Default if no specific changes detected
   if (descriptions.length === 0) {
-    descriptions.push('Wallet settings change');
+    descriptions.push('No changes detected');
   }
 
   return (
@@ -64,46 +74,34 @@ export function WalletSettingsProposal({ proposal, selectedWallet }: WalletSetti
       <div><span className="font-medium">Changes:</span> {descriptions.join(', ')}</div>
       
       {/* Display detailed settings changes if available */}
-      {settingsData && (
+      {settingsData && selectedWallet && (
         <div className="mt-2 p-2 bg-gray-100 rounded-md text-sm">
-          {settingsData.threshold !== undefined && (
+          {settingsData.threshold !== undefined && selectedWallet.threshold !== undefined && 
+           settingsData.threshold !== selectedWallet.threshold && (
             <div className="flex gap-2">
-              <span className="font-medium">New Threshold:</span> 
-              {settingsData.threshold} of {settingsData.totalSigners}
+              <span className="font-medium">Threshold:</span> 
+              {selectedWallet.threshold} → {settingsData.threshold} of {selectedWallet?.signers?.length || 0}
             </div>
           )}
           
-          {settingsData.signers && selectedWallet && (
-            <>
-              {settingsData.signers.filter((s: any) => 
-                !selectedWallet.signers.some((os: any) => os.ethAddress === s.ethAddress)
-              ).length > 0 && (
-                <div className="flex gap-2">
-                  <span className="font-medium">New Signers:</span> 
-                  {settingsData.signers.filter((s: any) => 
-                    !selectedWallet.signers.some((os: any) => os.ethAddress === s.ethAddress)
-                  ).length}
-                </div>
-              )}
-              
-              {selectedWallet.signers.filter((os: any) => 
-                !settingsData.signers?.some((s: any) => s.ethAddress === os.ethAddress)
-              ).length > 0 && (
-                <div className="flex gap-2">
-                  <span className="font-medium">Removed Signers:</span> 
-                  {selectedWallet.signers.filter((os: any) => 
-                    !settingsData.signers?.some((s: any) => s.ethAddress === os.ethAddress)
-                  ).length}
-                </div>
-              )}
-            </>
+          {newSigners.length > 0 && (
+            <div className="flex gap-2">
+              <span className="font-medium">New Signers:</span> 
+              {newSigners.map((s: any) => s.email || s.ethAddress).join(', ')}
+            </div>
           )}
           
-          {settingsData.mfaSettings && (
+          {removedSigners.length > 0 && (
+            <div className="flex gap-2">
+              <span className="font-medium">Removed Signers:</span> 
+              {removedSigners.map((s: any) => s.email || s.ethAddress).join(', ')}
+            </div>
+          )}
+          
+          {mfaChanges.length > 0 && (
             <div className="flex gap-2">
               <span className="font-medium">MFA Changes:</span> 
-              {settingsData.mfaSettings.phoneNumber ? 'Phone Number, ' : ''}
-              {settingsData.mfaSettings.dailyLimit ? 'Daily Limit' : ''}
+              {mfaChanges.join(', ')}
             </div>
           )}
         </div>

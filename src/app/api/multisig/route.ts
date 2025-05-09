@@ -82,7 +82,6 @@ export async function POST(request: NextRequest) {
         }
       ],
       threshold: 1,           // Changed to 1 for 1-of-1 wallet
-      totalSigners: 1,        // Changed to 1 for 1-of-1 wallet
       ciphertext: body.ciphertext,
       dataToEncryptHash: body.dataToEncryptHash,
       dataToEncryptHashSignature: body.dataToEncryptHashSignature,
@@ -145,7 +144,7 @@ export async function PUT(request: NextRequest) {
     
     log('Updated wallet settings:', {
       threshold: updatedWallet.threshold,
-      totalSigners: updatedWallet.totalSigners,
+      totalSigners: updatedWallet.signers.length,
       signers: updatedWallet.signers.map((s: { email: string, ethAddress: string }) => ({ email: s.email, ethAddress: s.ethAddress })),
       mfaSettings: updatedWallet.metadata?.mfaSettings
     })

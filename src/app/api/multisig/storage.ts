@@ -11,7 +11,6 @@ export interface MultisigWallet {
     authMethodId: string
   }[]
   threshold: number      // Number of signatures required to execute a transaction
-  totalSigners: number   // Total number of signers in the wallet
   ciphertext: string     // Encrypted data
   dataToEncryptHash: string // Hash of the data that was encrypted
   dataToEncryptHashSignature: string // Signature of the dataToEncryptHash
@@ -43,7 +42,6 @@ export interface MessageProposal {
       authMethodId?: string
     }[]
     threshold?: number
-    totalSigners?: number
     mfaSettings?: {
       phoneNumber?: string
       dailyLimit?: string
@@ -61,7 +59,6 @@ export async function getWallets(): Promise<MultisigWallet[]> {
       pkp: wallet.pkp as IRelayPKP,
       signers: wallet.signers,
       threshold: wallet.threshold,
-      totalSigners: wallet.totalSigners,
       ciphertext: wallet.ciphertext,
       dataToEncryptHash: wallet.dataToEncryptHash,
       dataToEncryptHashSignature: wallet.dataToEncryptHashSignature,
@@ -162,7 +159,6 @@ export async function getWalletById(walletId: string): Promise<MultisigWallet | 
       pkp: typedWallet.pkp as IRelayPKP,
       signers: typedWallet.signers,
       threshold: typedWallet.threshold,
-      totalSigners: typedWallet.totalSigners,
       ciphertext: typedWallet.ciphertext,
       dataToEncryptHash: typedWallet.dataToEncryptHash,
       dataToEncryptHashSignature: typedWallet.dataToEncryptHashSignature,

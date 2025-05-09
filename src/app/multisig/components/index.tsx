@@ -261,7 +261,7 @@ export function Multisig({
         const descriptions = [];
         
         if (settingsData.threshold !== undefined) {
-          descriptions.push(`Change threshold to ${settingsData.threshold} of ${settingsData.totalSigners}`);
+          descriptions.push(`Change threshold to ${settingsData.threshold}`);
         }
         
         if (settingsData.signers) {
@@ -592,7 +592,6 @@ export function Multisig({
           
           {/* Display selected wallet's PKP info */}
           <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-            <h3 className="font-medium mb-2">Selected Multisig Wallet PKP Details</h3>
             {wallets.filter(w => w.id === selectedWalletId).map(wallet => (
               <div key={wallet.id} className="space-y-2">
                 <div>
@@ -609,7 +608,7 @@ export function Multisig({
                 </div>
                 <div>
                   <div className="text-sm font-medium">Threshold:</div>
-                  <div className="text-sm ml-2">{wallet.threshold} of {wallet.totalSigners} signers</div>
+                  <div className="text-sm ml-2">{wallet.threshold} of {wallet.signers.length} signers</div>
                 </div>
                 <div>
                   <div className="text-sm font-medium">Signers:</div>

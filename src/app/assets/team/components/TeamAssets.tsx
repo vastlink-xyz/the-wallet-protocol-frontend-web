@@ -22,7 +22,6 @@ interface MultisigWallet {
     email: string
   }[]
   threshold: number
-  totalSigners: number
 }
 
 export default function TeamAssets({ authMethod }: TeamAssetsProps) {

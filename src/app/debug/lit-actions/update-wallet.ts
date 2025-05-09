@@ -297,19 +297,24 @@ const _litActionCode = async () => {
       mfaSettingsChanged: false
     } as any;
 
-    // Find signers to add (in proposal but not in decrypted data)
-    for (const proposalSigner of parsedProposalMessage.signers) {
-      const exists = parsedDecryptedData.signers.some((signer: any) => signer.ethAddress.toLowerCase() === proposalSigner.ethAddress.toLowerCase());
-      if (!exists) {
-        changes.addSigners.push(proposalSigner);
+    // Only process signer changes when the proposal explicitly includes a signers field
+    if (parsedProposalMessage.signers !== undefined) {
+      const parsedProposalMessageSigners = parsedProposalMessage.signers || []
+      
+      // Find signers to add (in proposal but not in decrypted data)
+      for (const proposalSigner of parsedProposalMessageSigners) {
+        const exists = parsedDecryptedData.signers.some((signer: any) => signer.ethAddress.toLowerCase() === proposalSigner.ethAddress.toLowerCase());
+        if (!exists) {
+          changes.addSigners.push(proposalSigner);
+        }
       }
-    }
 
-    // Find signers to remove (in decrypted data but not in proposal)
-    for (const decryptedSigner of parsedDecryptedData.signers) {
-      const exists = parsedProposalMessage.signers.some((signer: any) => signer.ethAddress.toLowerCase() === decryptedSigner.ethAddress.toLowerCase());
-      if (!exists) {
-        changes.removeSigners.push(decryptedSigner);
+      // Find signers to remove (in decrypted data but not in proposal)
+      for (const decryptedSigner of parsedDecryptedData.signers || []) {
+        const exists = parsedProposalMessageSigners.some((signer: any) => signer.ethAddress.toLowerCase() === decryptedSigner.ethAddress.toLowerCase());
+        if (!exists) {
+          changes.removeSigners.push(decryptedSigner);
+        }
       }
     }
 
@@ -374,7 +379,7 @@ const _litActionCode = async () => {
     // apply signer changes
     if (changes.addSigners.length > 0 || changes.removeSigners.length > 0) {
       // create updated signers list
-      const updatedSigners = [...parsedDecryptedData.signers];
+      const updatedSigners = parsedDecryptedData.signers ? [...parsedDecryptedData.signers] : [];
 
       // remove signers that should be removed
       for (const signerToRemove of changes.removeSigners) {
