@@ -11,7 +11,7 @@ import { log, formatEthAmount, fetchEthBalance } from "@/lib/utils"
 import { getSessionSigsByPkp, MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID, SIGN_PROPOSAL_LIT_ACTION_IPFS_ID } from "@/lib/lit"
 import { litNodeClient } from "@/lib/lit"
 import { AlertCircle } from "lucide-react"
-import { LIT_CHAINS } from "@lit-protocol/constants"
+import { AUTH_METHOD_TYPE, LIT_CHAINS } from "@lit-protocol/constants"
 import { ethers } from "ethers"
 import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
@@ -339,6 +339,7 @@ export function Multisig({
       const isWalletSettingsProposal = proposal.type === 'walletSettings';
       let settingsData = proposal.settingsData;
       
+      // kkktodo: remove this
       // Backward compatibility for older proposals
       if (!isWalletSettingsProposal && !settingsData) {
         try {
@@ -377,43 +378,69 @@ export function Multisig({
 
   // Function to execute wallet settings change proposal
   const executeWalletSettingsProposal = async (proposal: MessageProposal, settingsData: any, sessionSigs: any) => {
-    if (!selectedWallet) return;
-    
-    // Handle wallet settings change proposal
-    const updatedWallet = {
-      ...selectedWallet,
-      signers: settingsData.signers || selectedWallet.signers,
-      threshold: settingsData.threshold || selectedWallet.threshold,
-      totalSigners: settingsData.signers ? settingsData.signers.length : selectedWallet.totalSigners,
-      metadata: {
-        ...selectedWallet.metadata,
-        mfaSettings: settingsData.mfaSettings || selectedWallet.metadata?.mfaSettings
+    if (!selectedWallet || !selectedMultisigPkp) return;
+    log('selected multisig pkp', selectedWallet.pkp.publicKey)
+
+    try {
+      const litActionResponse = await litNodeClient.executeJs({
+        // kkktodo: use constant instead
+        ipfsId: 'QmaXWFw1iRpQzTdEy2bxurQ95Fv7G6GghX5jmw8xGnJqKC',
+        sessionSigs,
+        jsParams: {
+          authParams: {
+            accessToken: authMethod.accessToken,
+            authMethodId: googleAuthMethodId,
+            authMethodType: ethers.utils.hexValue(AUTH_METHOD_TYPE.GoogleJwt),
+          },
+          publicKey: selectedWallet.pkp.publicKey,
+          env: process.env.NEXT_PUBLIC_ENV,
+          walletId: selectedWallet.id,
+          proposalId: proposal.id,
+        },
+      });
+
+      log('lit action res', litActionResponse)
+
+      const responseObj = typeof litActionResponse.response === 'string' 
+        ? JSON.parse(litActionResponse.response) 
+        : litActionResponse.response;
+
+      const signature = litActionResponse.signatures.dataToEncryptHashSignature.signature
+
+      const body = {
+        id: selectedWallet.id,
+        ...responseObj.data.newDataToEncrypt,
+        dataToEncryptHash: responseObj.data.dataToEncryptHash,
+        dataToEncryptHashSignature: signature,
       }
-    };
-    
-    // Save the updated wallet to the database
-    const response = await axios.put('/api/multisig', updatedWallet);
-    
-    if (response.data.success) {
-      // Update proposal status to completed
-      await axios.put('/api/multisig/messages', {
-        proposalId: proposal.id,
-        walletId: proposal.walletId,
-        status: 'completed',
-      });
+
+      // Save the updated wallet to the database
+      const response = await axios.put('/api/multisig', body);
       
-      // Refresh data
-      await fetchWallets();
-      await fetchProposals();
-      
-      // Set result for UI
-      setExecuteResult({
-        proposalId: proposal.id,
-        success: true,
-        message: 'Wallet settings updated successfully',
-        walletId: selectedWallet.id
-      });
+      if (response.data.success) {
+        // Update proposal status to completed
+        await axios.put('/api/multisig/messages', {
+          proposalId: proposal.id,
+          walletId: proposal.walletId,
+          status: 'completed',
+        });
+        
+        // Refresh data
+        await fetchWallets();
+        await fetchProposals();
+        
+        // Set result for UI
+        setExecuteResult({
+          proposalId: proposal.id,
+          success: true,
+          message: 'Wallet settings updated successfully',
+          walletId: selectedWallet.id
+        });
+      }
+    } catch (error) {
+      log('error', error);
     }
+    
   }
 
   // Function to execute transaction proposal

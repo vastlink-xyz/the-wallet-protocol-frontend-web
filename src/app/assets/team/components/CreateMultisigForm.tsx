@@ -36,7 +36,7 @@ const accessControlConditions = [
     returnValueTest: {
       comparator: '=',
       // kkktodo
-      value: 'QmUxJeWz52FEX1JwXNgE2pcLD4k7aPcjNHYU7DMjS6ohMU', // update wallet ipfs cid
+      value: 'QmeDC6jY4YqsiK5qag65VMsT9t3ifqVf86Kc8Pf9HvPLUM', // update wallet ipfs cid
     },
   },
 ];
@@ -134,7 +134,8 @@ export function CreateMultisigForm({
           {
             email: currentUserEmail,
             ethAddress: userPkp.ethAddress,
-            publicKey: userPkp.publicKey
+            publicKey: userPkp.publicKey,
+            authMethodId: googleAuthMethodId
           }
         ],
         threshold: 1,
@@ -194,6 +195,7 @@ export function CreateMultisigForm({
         dataToEncryptHash,
         metadata,
         dataToEncryptHashSignature,
+        authMethodId: googleAuthMethodId
       })
 
       if (response.data.success) {

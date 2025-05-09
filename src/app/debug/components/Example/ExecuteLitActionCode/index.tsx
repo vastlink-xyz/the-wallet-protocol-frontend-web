@@ -50,11 +50,10 @@ export function ExecuteLitActionCode({ authMethod }: { authMethod: AuthMethod })
             authMethodId: googleAuthMethodId,
             authMethodType: ethers.utils.hexValue(AUTH_METHOD_TYPE.GoogleJwt),
           },
-          dataToEncryptHash: '0x1234',
           publicKey: multisigPkp.publicKey,
           env: process.env.NEXT_PUBLIC_ENV,
-          walletId: 'f1cd7b76-4c51-404c-9c0f-b33111c3f037',
-          proposalId: '2c024abe-d90e-4730-909d-89331174bcf4',
+          walletId: 'a18da2ed-7c5a-4587-baa6-d42ef26fe43a',
+          proposalId: '05681f0d-f001-441a-b184-30a54a7a02ef',
         },
       });
       log('response', response);

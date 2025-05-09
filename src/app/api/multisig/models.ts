@@ -50,7 +50,8 @@ export async function connectToDatabase(): Promise<mongoose.Connection> {
 const SignerSchema = new mongoose.Schema({
   ethAddress: { type: String, required: true },
   publicKey: { type: String, required: true },
-  email: { type: String, required: true }
+  email: { type: String, required: true },
+  authMethodId: { type: String }
 });
 
 // PKP Schema

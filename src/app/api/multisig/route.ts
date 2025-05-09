@@ -3,6 +3,7 @@ import { getWallets, saveWallet, MultisigWallet } from './storage'
 import { randomUUID } from 'crypto'
 import { getUserByPkpAddress, getUser } from '../user/storage'
 import { log } from '@/lib/utils'
+import { ethers } from 'ethers'
 
 export async function GET(request: NextRequest) {
   try {
@@ -76,7 +77,8 @@ export async function POST(request: NextRequest) {
         {
           ethAddress: body.currentPkp.ethAddress,
           publicKey: body.currentPkp.publicKey,
-          email: body.signer1Email
+          email: body.signer1Email,
+          authMethodId: body.authMethodId
         }
       ],
       threshold: 1,           // Changed to 1 for 1-of-1 wallet
@@ -120,7 +122,21 @@ export async function PUT(request: NextRequest) {
         { status: 404 }
       )
     }
-    
+
+    // verify signature
+    const publicKey = existingWallet.pkp.publicKey
+    const messageHash = ethers.utils.hashMessage(body.dataToEncryptHash);
+    const recoveredAddress = ethers.utils.recoverAddress(messageHash, body.dataToEncryptHashSignature);
+    const expectedAddress = ethers.utils.computeAddress(publicKey);
+    const isValid = recoveredAddress.toLowerCase() === expectedAddress.toLowerCase();
+
+    if (!isValid) {
+      return Response.json(
+        { success: false, error: "Invalid signature" },
+        { status: 403 }
+      )
+    }
+
     // Update wallet with new data
     const updatedWallet = {
       ...existingWallet,

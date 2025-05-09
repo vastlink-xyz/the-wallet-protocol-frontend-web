@@ -39,6 +39,7 @@ export function WalletSettings({
   const [newSignerEmail, setNewSignerEmail] = useState('')
   const [newSignerAddress, setNewSignerAddress] = useState('')
   const [newSignerPublicKey, setNewSignerPublicKey] = useState('')
+  const [authMethodId, setAuthMethodId] = useState('')
 
   // Get current user's email from authMethod
   let currentUserEmail = '';
@@ -56,13 +57,15 @@ export function WalletSettings({
     const newSigner = {
       email: newSignerEmail,
       ethAddress: newSignerAddress,
-      publicKey: newSignerPublicKey || ''
+      publicKey: newSignerPublicKey || '',
+      authMethodId: authMethodId || ''
     };
     
     setSigners([...signers, newSigner]);
     setNewSignerEmail('');
     setNewSignerAddress('');
     setNewSignerPublicKey('');
+    setAuthMethodId('');
   };
 
   // Handle removing a signer
@@ -142,23 +145,6 @@ export function WalletSettings({
     }
   };
 
-  // Auto-fetch user information when ETH address changes
-  const fetchUserByAddress = async (address: string) => {
-    if (!address || !address.startsWith('0x') || address.length !== 42) return;
-    
-    try {
-      const response = await axios.get(`/api/user/address?address=${address}`);
-      
-      if (response.data.success) {
-        const { pkp } = response.data.data;
-        setNewSignerPublicKey(pkp.publicKey);
-      }
-    } catch (error) {
-      console.error('Failed to fetch user by address:', error);
-      setNewSignerPublicKey('');
-    }
-  };
-
   // Check if threshold options need to be adjusted
   const thresholdOptions = Array.from(
     { length: signers.length }, 
@@ -232,9 +218,11 @@ export function WalletSettings({
                   if (addressData) {
                     setNewSignerAddress(addressData.ethAddress);
                     setNewSignerPublicKey(addressData.publicKey || '');
+                    setAuthMethodId(addressData.authMethodId || '');
                   } else {
                     setNewSignerAddress('');
                     setNewSignerPublicKey('');
+                    setAuthMethodId('');
                   }
                 }}
               />
