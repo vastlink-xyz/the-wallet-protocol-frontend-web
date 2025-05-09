@@ -10,7 +10,6 @@ import { LitContracts } from "@lit-protocol/contracts-sdk";
 import { ethers, utils } from "ethers";
 import { AUTH_METHOD_SCOPE, LIT_CHAINS } from "@lit-protocol/constants";
 // import signTransactionLitActionCode from './sign-transaction-lit-action-code'
-import verifyMultisigLitActionCdoe from '@/lib/lit-action-code/verify-multisig.lit'
 import { Encryption } from './components/Encryption';
 import { Example } from "./components/Example";
 import { customLitActionCode } from "./lit-actions/custom";
@@ -66,20 +65,6 @@ export default function DebugPage() {
       }
     }
   }, []);
-
-  const handleMintPKP = async () => {
-    if (!authMethod) {
-      return
-    }
-
-    const litActionIpfsId = 'QmSnoo4GnbFSvJ4z8YoR35HSGTQsuxvUjd9JFDzKDC5Tus'
-    const pkp = await mintPKP({
-      authMethod,
-      litActionIpfsId,
-    })
-    setCurrentPkp(pkp)
-    log('pkp minted', pkp)
-  }
 
   const handleExecuteLitAction = async () => {
     if (!authMethod || !currentPkp) {
@@ -259,7 +244,6 @@ export default function DebugPage() {
     <div className="space-y-8 p-4">
       <div className="flex flex-wrap gap-2">
         <Button onClick={handleGetAllPKPs}>All PKPs</Button>
-        <Button onClick={handleMintPKP}>Mint PKP</Button>
         <Button onClick={handleExecuteLitAction}>Execute Lit Action</Button>
         <Button onClick={handleAddLitActionPermission}>Add Lit Action</Button>
         <Button onClick={handleLogLitActionCode}>Log Lit Action Code</Button>
