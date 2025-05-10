@@ -400,7 +400,7 @@ export function MultisigWalletFormContent({
         
         // Build wallet link
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
-        const walletLink = walletId ? `${appUrl}/multisig?walletId=${walletId}` : `${appUrl}/multisig`;
+        const walletLink = appUrl;
         
         // Send email notifications to other signers
         await sendEmailToSigners(

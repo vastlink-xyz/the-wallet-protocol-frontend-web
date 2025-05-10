@@ -510,7 +510,7 @@ export function Multisig({
         
         // Build wallet link
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
-        const walletLink = `${appUrl}/multisig?walletId=${updatedWallet.id}`;
+        const walletLink = appUrl;
         
         // Send notifications to each new signer
         await Promise.all(newSigners.map(async (signer: any) => {
