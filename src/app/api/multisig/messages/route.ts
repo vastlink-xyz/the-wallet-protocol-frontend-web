@@ -69,21 +69,34 @@ export async function POST(request: NextRequest) {
       try {
         // Get wallet details to create wallet link
         const wallet = await getWalletById(walletId)
+        const walletLink = `${process.env.NEXT_PUBLIC_APP_URL}/multisig?walletId=${walletId}`;
         
-        // Organize notification content based on type
-        const notificationType = type === 'walletSettings' ? 'wallet settings change' : 'transaction';
-        
-        // Send notifications to all signers
-        for (const signer of signers) {
-          if (signer.email) {
-            await sendMultisigNotification({
-              to: signer.email,
-              proposalId: proposalId,
-              recipientAddress: type === 'walletSettings' ? 'Wallet Settings' : (transactionData?.to || 'N/A'),
-              amount: type === 'walletSettings' ? '0' : (transactionData?.value || '0'),
-              walletLink: `${process.env.NEXT_PUBLIC_APP_URL}/multisig?walletId=${walletId}`,
-              notificationType
-            })
+        // Send notifications based on proposal type
+        if (type === 'walletSettings') {
+          // Send wallet settings change notifications
+          for (const signer of signers) {
+            if (signer.email) {
+              await sendWalletSettingsNotification({
+                to: signer.email,
+                proposalId: proposalId,
+                settingsData,
+                walletLink,
+              });
+            }
+          }
+        } else {
+          // Send transaction notifications (original behavior)
+          for (const signer of signers) {
+            if (signer.email) {
+              await sendMultisigNotification({
+                to: signer.email,
+                proposalId: proposalId,
+                recipientAddress: transactionData?.to || 'N/A',
+                amount: transactionData?.value || '0',
+                walletLink,
+                notificationType: 'transaction'
+              });
+            }
           }
         }
       } catch (emailError) {
@@ -172,6 +185,73 @@ async function sendMultisigNotification({
     return response.data
   } catch (error) {
     console.error('Error sending multisig notification:', error)
+    throw error
+  }
+}
+
+// Helper function specifically for wallet settings change notifications
+async function sendWalletSettingsNotification({
+  to,
+  proposalId,
+  settingsData,
+  walletLink,
+}: {
+  to: string
+  proposalId: string
+  settingsData: any
+  walletLink: string
+}) {
+  try {
+    // Generate detailed change description
+    const changes = [];
+              
+    if (settingsData.threshold !== undefined) {
+      changes.push(`Threshold changed to ${settingsData.threshold}`);
+    }
+    
+    if (settingsData.signers) {
+      // Count added/removed signers by comparing with original state
+      const originalSigners = settingsData.originalState?.signers || [];
+      const newSigners = settingsData.signers || [];
+      
+      const addedCount = newSigners.filter((s: any) => 
+        !originalSigners.some((os: any) => os.ethAddress === s.ethAddress)
+      ).length;
+      const removedCount = originalSigners.filter((os: any) => 
+        !newSigners.some((s: any) => s.ethAddress === os.ethAddress)
+      ).length;
+      
+      if (addedCount > 0) changes.push(`Added ${addedCount} signer(s)`);
+      if (removedCount > 0) changes.push(`Removed ${removedCount} signer(s)`);
+    }
+    
+    if (settingsData.mfaSettings) {
+      changes.push('MFA settings updated');
+    }
+    
+    // Use the provided change description if available, or generate one
+    const changeDescription = settingsData.changeDescription || changes.join(', ') || 'Wallet settings updated';
+
+    // Send notification using existing API endpoint but with settings-specific info
+    const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/messaging/send-multisig-notification`, {
+      to,
+      proposalId,
+      recipientAddress: 'Wallet Settings',
+      amount: changeDescription,
+      walletLink,
+      notificationType: 'wallet settings change',
+      // Include additional details about the changes
+      settingsChanges: {
+        changeDescription,
+        threshold: settingsData.threshold,
+        signerChanges: settingsData.signers ? true : false,
+        mfaChanges: settingsData.mfaSettings ? true : false
+      }
+    })
+    
+    return response.data
+  } catch (error) {
+    console.error('Error sending wallet settings notification:', error)
     throw error
   }
 }
