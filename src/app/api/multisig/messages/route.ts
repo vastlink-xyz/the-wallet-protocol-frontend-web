@@ -86,11 +86,11 @@ export async function POST(request: NextRequest) {
           }
         } else {
           // Send transaction notifications (original behavior)
-          for (const signer of signers) {
-            if (signer.email) {
-              await sendMultisigNotification({
-                to: signer.email,
-                proposalId: proposalId,
+        for (const signer of signers) {
+          if (signer.email) {
+            await sendMultisigNotification({
+              to: signer.email,
+              proposalId: proposalId,
                 recipientAddress: transactionData?.to || 'N/A',
                 amount: transactionData?.value || '0',
                 walletLink,
@@ -239,7 +239,7 @@ async function sendWalletSettingsNotification({
       recipientAddress: 'Wallet Settings',
       amount: changeDescription,
       walletLink,
-      notificationType: 'wallet settings change',
+      notificationType: 'wallet-settings-change',
       // Include additional details about the changes
       settingsChanges: {
         changeDescription,

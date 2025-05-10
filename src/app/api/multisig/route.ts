@@ -74,12 +74,12 @@ export async function POST(request: NextRequest) {
     const signers = body.signers && Array.isArray(body.signers) && body.signers.length > 0
       ? body.signers
       : [
-          {
-            ethAddress: body.currentPkp.ethAddress,
-            publicKey: body.currentPkp.publicKey,
-            email: body.signer1Email,
-            authMethodId: body.authMethodId
-          }
+        {
+          ethAddress: body.currentPkp.ethAddress,
+          publicKey: body.currentPkp.publicKey,
+          email: body.signer1Email,
+          authMethodId: body.authMethodId
+        }
         ];
     
     // Use provided threshold if available, otherwise default to 1 or minimum required
@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
     });
 
     await saveWallet(wallet)
-    return Response.json({ success: true, data: wallet })
+    return Response.json({ success: true, data: wallet, walletId: wallet.id })
   } catch (error) {
     console.error('Error creating multisig wallet:', error)
     return Response.json(

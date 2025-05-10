@@ -27,12 +27,12 @@ export function WalletSettings({
         {/* Fixed header */}
         <div className="sticky top-0 p-6 border-b flex justify-between items-center">
           <h2 className="text-xl font-semibold">Modify Wallet Settings</h2>
-          <button 
-            onClick={onClose} 
+        <button 
+          onClick={onClose} 
             className="text-gray-500 hover:text-gray-800"
-          >
-            <X size={20} />
-          </button>
+        >
+          <X size={20} />
+        </button>
         </div>
         
         {/* Scrollable content area with components */}

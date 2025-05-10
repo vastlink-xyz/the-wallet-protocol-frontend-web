@@ -19,7 +19,7 @@ export function MultisigSetting({
   sessionPkp,
   googleAuthMethodId, 
   onClose,
-  onSuccess
+  onSuccess 
 }: MultisigSettingProps) {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -27,32 +27,32 @@ export function MultisigSetting({
         {/* Fixed header */}
         <div className="sticky top-0 p-6 border-b flex justify-between items-center">
           <h2 className="text-xl font-semibold">Create Multisig Wallet</h2>
-          <button 
-            onClick={onClose} 
+        <button 
+          onClick={onClose} 
             className="text-gray-500 hover:text-gray-800"
-          >
-            <X size={20} />
-          </button>
+        >
+          <X size={20} />
+        </button>
         </div>
         
         {/* Scrollable content area */}
         <div className="p-6 overflow-y-auto">
-          <p className="text-sm text-gray-500 mb-4">A multisig wallet requires approval from multiple signers to execute any transaction.</p>
-          
+        <p className="text-sm text-gray-500 mb-4">A multisig wallet requires approval from multiple signers to execute any transaction.</p>
+        
           <MultisigWalletFormContent
             mode="create"
-            authMethod={authMethod}
-            userPkp={userPkp}
-            sessionPkp={sessionPkp}
-            googleAuthMethodId={googleAuthMethodId}
+          authMethod={authMethod}
+          userPkp={userPkp}
+          sessionPkp={sessionPkp}
+          googleAuthMethodId={googleAuthMethodId}
             onCancel={onClose}
-            onSuccess={() => {
-              if (onSuccess) {
-                onSuccess();
-              }
-              onClose();
-            }}
-          />
+          onSuccess={() => {
+            if (onSuccess) {
+              onSuccess();
+            }
+            onClose();
+          }}
+        />
         </div>
       </div>
     </div>

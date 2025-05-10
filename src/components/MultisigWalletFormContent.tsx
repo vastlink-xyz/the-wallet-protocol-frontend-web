@@ -34,6 +34,100 @@ interface MultisigWalletFormContentProps {
   onSuccess?: () => void
 }
 
+// Function to send email to other signers
+const sendEmailToSigners = async (
+  currentUserEmail: string, 
+  signers: any[], 
+  walletAddress: string, 
+  threshold: number,
+  walletLink: string
+) => {
+  // Filter out the current user from the signers list
+  const otherSigners = signers.filter(signer => signer.email !== currentUserEmail);
+  
+  if (otherSigners.length === 0) {
+    console.log('No other signers to notify');
+    return {
+      success: true,
+      sentTo: []
+    };
+  }
+  
+  console.log(`Sending email notification to ${otherSigners.length} signers`);
+  
+  try {
+    // Get backend URL
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+    if (!backendUrl) {
+      console.error('NEXT_PUBLIC_BACKEND_URL environment variable is not defined');
+      throw new Error('Backend URL is not configured');
+    }
+    
+    // Send notification email to each recipient
+    const emailResults = await Promise.all(otherSigners.map(async (signer) => {
+      try {
+        // Prepare backend API request
+        const requestBody = {
+          to: signer.email,
+          walletLink,
+          notificationType: 'multisig-wallet-added',
+          currentUserEmail,
+          walletAddress,
+          threshold,
+          signersCount: signers.length
+        };
+        
+        // Call backend API to send notification email
+        const response = await axios.post(
+          `${backendUrl}/messaging/send-multisig-notification`, 
+          requestBody
+        );
+        
+        if (response.data && response.data.success) {
+          return {
+            success: true,
+            email: signer.email,
+            response: response.data
+          };
+        } else {
+          throw new Error(response.data?.message || 'Failed to send notification');
+        }
+      } catch (error) {
+        console.error(`Failed to send notification to ${signer.email}:`, error);
+        return {
+          success: false,
+          email: signer.email,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        };
+      }
+    }));
+    
+    // Count successfully sent emails
+    const successCount = emailResults.filter(result => result.success).length;
+    
+    if (successCount > 0) {
+      toast.success(`Successfully sent notification emails to ${successCount} signers`);
+    } else if (otherSigners.length > 0) {
+      toast.error('Failed to send notification emails');
+    }
+    
+    return {
+      success: successCount > 0,
+      sentTo: emailResults
+        .filter(result => result.success)
+        .map(result => result.email)
+    };
+  } catch (error) {
+    console.error('Failed to send notification emails:', error);
+    toast.error('Unable to send notification emails to other signers');
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+      sentTo: []
+    };
+  }
+};
+
 export function MultisigWalletFormContent({
   mode,
   authMethod,
@@ -333,6 +427,25 @@ export function MultisigWalletFormContent({
       });
 
       if (response.data.success) {
+        // Get created wallet ID (if available)
+        const walletId = response.data.walletId || '';
+        
+        // Build wallet link
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
+        const walletLink = walletId ? `${appUrl}/multisig?walletId=${walletId}` : `${appUrl}/multisig`;
+        
+        // Send email notifications to other signers
+        await sendEmailToSigners(
+          currentUserEmail,
+          signers,
+          multisigPkp.ethAddress,
+          threshold,
+          walletLink
+        ).catch(error => {
+          console.error('Failed to send notification emails:', error);
+          // Continue with the process even if email sending fails
+        });
+        
         // Clear form
         setPhoneNumber('');
         setDailyLimit('');
