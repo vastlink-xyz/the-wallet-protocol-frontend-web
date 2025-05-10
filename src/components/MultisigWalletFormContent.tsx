@@ -73,12 +73,6 @@ const sendEmailToSigners = async (
     // Count successfully sent emails
     const successCount = emailResults.filter(result => result.success).length;
     
-    if (successCount > 0) {
-      toast.success(`Successfully sent notification emails to ${successCount} signers`);
-    } else if (otherSigners.length > 0) {
-      toast.error('Failed to send notification emails');
-    }
-    
     return {
       success: successCount > 0,
       sentTo: emailResults
