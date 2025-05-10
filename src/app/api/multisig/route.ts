@@ -70,23 +70,43 @@ export async function POST(request: NextRequest) {
       )
     }
     
+    // Use provided signers array if available, otherwise fall back to creating one with current user
+    const signers = body.signers && Array.isArray(body.signers) && body.signers.length > 0
+      ? body.signers
+      : [
+          {
+            ethAddress: body.currentPkp.ethAddress,
+            publicKey: body.currentPkp.publicKey,
+            email: body.signer1Email,
+            authMethodId: body.authMethodId
+          }
+        ];
+    
+    // Use provided threshold if available, otherwise default to 1 or minimum required
+    const threshold = body.threshold !== undefined 
+      ? body.threshold 
+      : Math.min(1, signers.length);
+    
+    // Log the received threshold value and its type
+    console.log('Received threshold value:', body.threshold, 'Type:', typeof body.threshold);
+    console.log('Using threshold value:', threshold, 'Type:', typeof threshold);
+    
     const wallet = {
       id: randomUUID(),
       pkp: body.multisigPkp,
-      signers: [
-        {
-          ethAddress: body.currentPkp.ethAddress,
-          publicKey: body.currentPkp.publicKey,
-          email: body.signer1Email,
-          authMethodId: body.authMethodId
-        }
-      ],
-      threshold: 1,           // Changed to 1 for 1-of-1 wallet
+      signers: signers,
+      threshold: threshold,
       ciphertext: body.ciphertext,
       dataToEncryptHash: body.dataToEncryptHash,
       dataToEncryptHashSignature: body.dataToEncryptHashSignature,
       metadata: body.metadata
     }
+
+    log('Creating multisig wallet with:', {
+      totalSigners: signers.length,
+      threshold: threshold,
+      signerEmails: signers.map((s: any) => s.email)
+    });
 
     await saveWallet(wallet)
     return Response.json({ success: true, data: wallet })

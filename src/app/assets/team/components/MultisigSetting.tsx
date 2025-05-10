@@ -2,7 +2,7 @@
 
 import { AuthMethod, IRelayPKP } from '@lit-protocol/types'
 import { X } from 'lucide-react'
-import { CreateMultisigForm } from './CreateMultisigForm'
+import { MultisigWalletFormContent } from '@/components/MultisigWalletFormContent'
 
 interface MultisigSettingProps {
   authMethod: AuthMethod
@@ -19,33 +19,41 @@ export function MultisigSetting({
   sessionPkp,
   googleAuthMethodId, 
   onClose,
-  onSuccess 
+  onSuccess
 }: MultisigSettingProps) {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg max-w-md w-full p-6 relative">
-        <button 
-          onClick={onClose} 
-          className="absolute right-4 top-4 text-gray-500 hover:text-gray-800"
-        >
-          <X size={20} />
-        </button>
+      <div className="bg-white rounded-lg max-w-xl w-full relative flex flex-col max-h-[90vh]">
+        {/* Fixed header */}
+        <div className="sticky top-0 p-6 border-b flex justify-between items-center">
+          <h2 className="text-xl font-semibold">Create Multisig Wallet</h2>
+          <button 
+            onClick={onClose} 
+            className="text-gray-500 hover:text-gray-800"
+          >
+            <X size={20} />
+          </button>
+        </div>
         
-        <h2 className="text-xl font-semibold mb-6">Create Multisig Wallet</h2>
-        <p className="text-sm text-gray-500 mb-4">A multisig wallet requires approval from multiple signers to execute any transaction.</p>
-        
-        <CreateMultisigForm
-          authMethod={authMethod}
-          userPkp={userPkp}
-          sessionPkp={sessionPkp}
-          googleAuthMethodId={googleAuthMethodId}
-          onSuccess={() => {
-            if (onSuccess) {
-              onSuccess();
-            }
-            onClose();
-          }}
-        />
+        {/* Scrollable content area */}
+        <div className="p-6 overflow-y-auto">
+          <p className="text-sm text-gray-500 mb-4">A multisig wallet requires approval from multiple signers to execute any transaction.</p>
+          
+          <MultisigWalletFormContent
+            mode="create"
+            authMethod={authMethod}
+            userPkp={userPkp}
+            sessionPkp={sessionPkp}
+            googleAuthMethodId={googleAuthMethodId}
+            onCancel={onClose}
+            onSuccess={() => {
+              if (onSuccess) {
+                onSuccess();
+              }
+              onClose();
+            }}
+          />
+        </div>
       </div>
     </div>
   )

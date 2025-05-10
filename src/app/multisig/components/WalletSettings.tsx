@@ -2,7 +2,7 @@
 
 import { AuthMethod, IRelayPKP } from '@lit-protocol/types'
 import { X } from 'lucide-react'
-import { WalletSettingsContent } from '@/components/WalletSettingsContent'
+import { MultisigWalletFormContent } from '@/components/MultisigWalletFormContent'
 
 interface WalletSettingsProps {
   wallet: any // MultisigWallet
@@ -10,6 +10,7 @@ interface WalletSettingsProps {
   authMethod: AuthMethod
   onClose: () => void
   onSuccess?: () => void
+  googleAuthMethodId: string
 }
 
 export function WalletSettings({
@@ -17,7 +18,8 @@ export function WalletSettings({
   currentPkp,
   authMethod,
   onClose,
-  onSuccess
+  onSuccess,
+  googleAuthMethodId
 }: WalletSettingsProps) {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -33,14 +35,16 @@ export function WalletSettings({
           </button>
         </div>
         
-        {/* Scrollable content area with all logic contained within the component */}
+        {/* Scrollable content area with components */}
         <div className="p-6 overflow-y-auto">
-          <WalletSettingsContent 
+          <MultisigWalletFormContent
+            mode="edit"
             wallet={wallet}
-            currentPkp={currentPkp}
+            userPkp={currentPkp}
             authMethod={authMethod}
-            onRequestClose={onClose}
-            onUpdateSuccess={onSuccess}
+            googleAuthMethodId={googleAuthMethodId}
+            onCancel={onClose}
+            onSuccess={onSuccess}
           />
         </div>
       </div>
