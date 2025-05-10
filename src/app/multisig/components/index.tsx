@@ -776,6 +776,7 @@ export function Multisig({
           wallet={selectedWallet}
           currentPkp={currentPkp}
           authMethod={authMethod}
+          googleAuthMethodId={googleAuthMethodId}
           onClose={() => setShowWalletSettings(false)}
           onSuccess={() => {
             fetchWallets();
