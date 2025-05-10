@@ -7,7 +7,7 @@ import axios from 'axios'
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { executeSignLitAction, mintMultisigPKP } from "../helper"
-import { log, formatEthAmount, fetchEthBalance, isGoogleTokenValid } from "@/lib/utils"
+import { log, formatEthAmount, fetchEthBalance, isGoogleTokenValid, getEmailFromGoogleToken } from "@/lib/utils"
 import { calculateCIDFromString, getSessionSigsByPkp, MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID, SIGN_PROPOSAL_LIT_ACTION_IPFS_ID } from "@/lib/lit"
 import { litNodeClient } from "@/lib/lit"
 import { AlertCircle } from "lucide-react"
@@ -19,6 +19,7 @@ import { SignerEmailField } from "@/components/SignerEmailField"
 import { WalletSettings } from "./WalletSettings"
 import { WalletSettingsProposal } from "./WalletSettingsProposal"
 import { getUpdateWalletIpfsId } from "@/lib/lit/ipfs-id-env"
+import { sendMultisigNotification } from '@/lib/notification'
 
 // eth sepolia
 const chainInfo = {
@@ -466,6 +467,13 @@ export function Multisig({
         await fetchWallets();
         await fetchProposals();
         
+        // Find new signers and send notifications
+        const updatedWallet = await fetchUpdatedWallet(selectedWallet.id);
+        if (updatedWallet && settingsData.signers) {
+          // Send notifications to new signers
+          await sendNotificationsToNewSigners(selectedWallet, updatedWallet);
+        }
+        
         // Set result for UI
         setExecuteResult({
           proposalId: proposal.id,
@@ -477,8 +485,67 @@ export function Multisig({
     } catch (error) {
       log('error', error);
     }
-    
   }
+  
+  // Function to send notifications to new signers after wallet settings update
+  const sendNotificationsToNewSigners = async (originalWallet: MultisigWallet, updatedWallet: MultisigWallet) => {
+    try {
+      // Get original signers
+      const originalSigners = originalWallet.signers || [];
+      
+      // Find new signers (signers in updated wallet that were not in original wallet)
+      const newSigners = updatedWallet.signers.filter((newSigner: any) => 
+        !originalSigners.some((originalSigner: any) => 
+          originalSigner.ethAddress === newSigner.ethAddress
+        )
+      );
+      
+      // Send email notifications to new signers if any
+      if (newSigners.length > 0) {
+        // Get current user's email
+        let currentUserEmail = '';
+        if (authMethod.accessToken) {
+          currentUserEmail = getEmailFromGoogleToken(authMethod.accessToken) || '';
+        }
+        
+        // Build wallet link
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
+        const walletLink = `${appUrl}/multisig?walletId=${updatedWallet.id}`;
+        
+        // Send notifications to each new signer
+        await Promise.all(newSigners.map(async (signer: any) => {
+          await sendMultisigNotification({
+            to: signer.email,
+            walletLink,
+            notificationType: 'multisig-wallet-added',
+            currentUserEmail,
+            walletAddress: updatedWallet.pkp.ethAddress,
+            threshold: updatedWallet.threshold,
+            signersCount: updatedWallet.signers.length
+          });
+        }));
+      }
+      
+      return newSigners.length > 0;
+    } catch (error) {
+      console.error('Error sending notifications to new signers:', error);
+      return false;
+    }
+  };
+
+  // Helper function to fetch the most up-to-date wallet data after updates
+  const fetchUpdatedWallet = async (walletId: string) => {
+    try {
+      const response = await axios.get(`/api/multisig?id=${walletId}`);
+      if (response.data.success) {
+        return response.data.data;
+      }
+      return null;
+    } catch (error) {
+      console.error('Failed to fetch updated wallet:', error);
+      return null;
+    }
+  };
 
   // Function to execute transaction proposal
   const executeTransactionProposal = async (proposal: MessageProposal, sessionSigs: any) => {

@@ -22,6 +22,7 @@ import { encryptString } from '@lit-protocol/encryption'
 import { AUTH_METHOD_SCOPE, AUTH_METHOD_TYPE } from '@lit-protocol/constants'
 import { ethers } from 'ethers'
 import { getCreateWalletIpfsId, getUpdateWalletIpfsId } from '@/lib/lit/ipfs-id-env'
+import { sendMultisigNotification } from '@/lib/notification'
 
 interface MultisigWalletFormContentProps {
   mode: 'create' | 'edit'
@@ -56,50 +57,17 @@ const sendEmailToSigners = async (
   console.log(`Sending email notification to ${otherSigners.length} signers`);
   
   try {
-    // Get backend URL
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
-    if (!backendUrl) {
-      console.error('NEXT_PUBLIC_BACKEND_URL environment variable is not defined');
-      throw new Error('Backend URL is not configured');
-    }
-    
     // Send notification email to each recipient
     const emailResults = await Promise.all(otherSigners.map(async (signer) => {
-      try {
-        // Prepare backend API request
-        const requestBody = {
-          to: signer.email,
-          walletLink,
-          notificationType: 'multisig-wallet-added',
-          currentUserEmail,
-          walletAddress,
-          threshold,
-          signersCount: signers.length
-        };
-        
-        // Call backend API to send notification email
-        const response = await axios.post(
-          `${backendUrl}/messaging/send-multisig-notification`, 
-          requestBody
-        );
-        
-        if (response.data && response.data.success) {
-          return {
-            success: true,
-            email: signer.email,
-            response: response.data
-          };
-        } else {
-          throw new Error(response.data?.message || 'Failed to send notification');
-        }
-      } catch (error) {
-        console.error(`Failed to send notification to ${signer.email}:`, error);
-        return {
-          success: false,
-          email: signer.email,
-          error: error instanceof Error ? error.message : 'Unknown error'
-        };
-      }
+      return await sendMultisigNotification({
+        to: signer.email,
+        walletLink,
+        notificationType: 'multisig-wallet-added',
+        currentUserEmail,
+        walletAddress,
+        threshold,
+        signersCount: signers.length
+      });
     }));
     
     // Count successfully sent emails
