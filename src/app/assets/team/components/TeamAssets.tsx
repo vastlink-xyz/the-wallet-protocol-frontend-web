@@ -4,7 +4,7 @@ import { AuthMethod, IRelayPKP } from '@lit-protocol/types'
 import { Plus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import axios from 'axios'
-import { googleProvider } from '@/lib/lit/googleProvider'
+import { googleProvider } from '@/lib/lit/providers'
 import { MultisigSetting } from './MultisigSetting'
 import { WalletCard } from './WalletCard'
 

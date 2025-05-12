@@ -2,7 +2,7 @@ import {
   AuthMethod,
   SessionSigs,
 } from '@lit-protocol/types';
-import { litNodeClient } from './googleProvider';
+import { litNodeClient } from './providers';
 
 /**
  * Execute permanently bound Lit Action

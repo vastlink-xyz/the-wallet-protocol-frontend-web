@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { litNodeClient } from "@/lib/lit/googleProvider";
+import { litNodeClient } from "@/lib/lit/providers";
 import { getSessionSigs } from "@/lib/lit/sessionManager";
 import { log } from "@/lib/utils";
 import { getAuthIdByAuthMethod } from "@lit-protocol/lit-auth-client";

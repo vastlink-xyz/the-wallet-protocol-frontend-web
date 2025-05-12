@@ -8,7 +8,7 @@ import {
   MintRequestBody,
 } from '@lit-protocol/types';
 import { log } from '@/lib/utils';
-import { googleProvider } from './googleProvider';
+import { googleProvider } from './providers';
 import { utils } from 'ethers';
 
 /**

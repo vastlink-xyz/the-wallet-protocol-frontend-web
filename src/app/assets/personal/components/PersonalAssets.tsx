@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { AuthMethod, IRelayPKP } from '@lit-protocol/types'
 import { Loader2 } from 'lucide-react'
-import { googleProvider } from '@/lib/lit/googleProvider'
+import { googleProvider } from '@/lib/lit/providers'
 import { formatEthAmount, fetchEthBalance } from '@/lib/utils'
 
 interface PersonalAssetsProps {

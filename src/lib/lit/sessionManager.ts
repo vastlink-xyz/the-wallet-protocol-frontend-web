@@ -6,7 +6,7 @@ import {
 } from '@lit-protocol/types';
 import { LitActionResource, LitPKPResource } from '@lit-protocol/auth-helpers';
 import { LIT_ABILITY } from '@lit-protocol/constants';
-import { litNodeClient } from './googleProvider';
+import { litNodeClient } from './providers';
 
 /**
  * Generate session signatures
