@@ -20,6 +20,7 @@ import { WalletSettings } from "./WalletSettings"
 import { WalletSettingsProposal } from "./WalletSettingsProposal"
 import { getUpdateWalletIpfsId } from "@/lib/lit/ipfs-id-env"
 import { sendMultisigNotification } from '@/lib/notification'
+import { useAuthExpiration } from '@/hooks/useAuthExpiration'
 
 // eth sepolia
 const chainInfo = {
@@ -44,6 +45,7 @@ export function Multisig({
   googleAuthMethodId: string,
   initialWalletId?: string,
 }) {
+  const { handleExpiredAuth } = useAuthExpiration();
   const [isCreatingProposal, setIsCreatingProposal] = useState(false)
   const [isSigningProposal, setIsSigningProposal] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -155,7 +157,7 @@ export function Multisig({
     
     const isValid = await isGoogleTokenValid(authMethod.accessToken);
     if (!isValid) {
-      toast.error('Your Google login has expired. Please log in again.');
+      handleExpiredAuth();
       return false;
     }
     
@@ -263,7 +265,7 @@ export function Multisig({
       const errorMessage = error?.message || '';
       if (errorMessage.includes('Google JWT expired') || 
           (error?.shortMessage && error.shortMessage.includes('Google JWT expired'))) {
-        toast.error('Your Google login has expired. Please log in again.');
+        handleExpiredAuth();
       } else {
         toast.error(`Error signing proposal: ${errorMessage}`);
       }
@@ -394,7 +396,7 @@ export function Multisig({
       const errorMessage = error?.message || '';
       if (errorMessage.includes('Google JWT expired') || 
           (error?.shortMessage && error.shortMessage.includes('Google JWT expired'))) {
-        toast.error('Your Google login has expired. Please log in again.');
+        handleExpiredAuth();
       } else {
         toast.error(`Error executing operation: ${errorMessage}`);
       }

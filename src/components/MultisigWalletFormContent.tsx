@@ -23,6 +23,7 @@ import { AUTH_METHOD_SCOPE, AUTH_METHOD_TYPE } from '@lit-protocol/constants'
 import { ethers } from 'ethers'
 import { getCreateWalletIpfsId, getUpdateWalletIpfsId } from '@/lib/lit/ipfs-id-env'
 import { sendMultisigNotification } from '@/lib/notification'
+import { useAuthExpiration } from '@/hooks/useAuthExpiration'
 
 interface MultisigWalletFormContentProps {
   mode: 'create' | 'edit'
@@ -100,6 +101,7 @@ export function MultisigWalletFormContent({
   onCancel,
   onSuccess
 }: MultisigWalletFormContentProps) {
+  const { handleExpiredAuth } = useAuthExpiration();
   const [isLoading, setIsLoading] = useState(false)
   
   // Form states - initial values depend on mode
@@ -227,7 +229,7 @@ export function MultisigWalletFormContent({
     
     const isValid = await isGoogleTokenValid(authMethod.accessToken);
     if (!isValid) {
-      toast.error('Your Google login has expired. Please log in again.');
+      handleExpiredAuth();
       return;
     }
     
@@ -449,7 +451,7 @@ export function MultisigWalletFormContent({
       
       const isValid = await isGoogleTokenValid(authMethod.accessToken);
       if (!isValid) {
-        toast.error('Your Google login has expired. Please log in again.');
+        handleExpiredAuth();
         setIsLoading(false);
         return;
       }
