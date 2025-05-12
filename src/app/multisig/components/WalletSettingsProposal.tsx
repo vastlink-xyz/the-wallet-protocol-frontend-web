@@ -106,14 +106,6 @@ export function WalletSettingsProposal({ proposal, selectedWallet }: WalletSetti
       {/* Display detailed settings changes if available */}
       {settingsData && (
         <div className="mt-2 p-2 bg-gray-100 rounded-md text-sm">
-          {settingsData.name !== undefined && originalState?.name !== undefined && 
-           settingsData.name !== originalState.name && (
-            <div className="flex gap-2">
-              <span className="font-medium">Name:</span> 
-              "{originalState.name}" → "{settingsData.name}"
-            </div>
-          )}
-          
           {settingsData.threshold !== undefined && originalState?.threshold !== undefined && 
            settingsData.threshold !== originalState.threshold && (
             <div className="flex gap-2">
