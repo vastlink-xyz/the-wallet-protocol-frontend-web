@@ -15,6 +15,7 @@ export interface MultisigWallet {
   dataToEncryptHash: string // Hash of the data that was encrypted
   dataToEncryptHashSignature: string // Signature of the dataToEncryptHash
   metadata: Record<string, any> // Additional metadata as JSON
+  name: string          // Wallet name
 }
 
 export interface MessageProposal {
@@ -46,6 +47,7 @@ export interface MessageProposal {
       phoneNumber?: string
       dailyLimit?: string
     }
+    name?: string       // Wallet name
     originalState?: any  // Original wallet state before changes
     changeDescription?: string  // Description of changes for display
   }
@@ -64,7 +66,8 @@ export async function getWallets(): Promise<MultisigWallet[]> {
       ciphertext: wallet.ciphertext,
       dataToEncryptHash: wallet.dataToEncryptHash,
       dataToEncryptHashSignature: wallet.dataToEncryptHashSignature,
-      metadata: wallet.metadata
+      metadata: wallet.metadata,
+      name: wallet.name
     }));
   } catch (error) {
     console.error('Failed to get wallets:', error);
@@ -164,7 +167,8 @@ export async function getWalletById(walletId: string): Promise<MultisigWallet | 
       ciphertext: typedWallet.ciphertext,
       dataToEncryptHash: typedWallet.dataToEncryptHash,
       dataToEncryptHashSignature: typedWallet.dataToEncryptHashSignature,
-      metadata: typedWallet.metadata
+      metadata: typedWallet.metadata,
+      name: typedWallet.name
     };
   } catch (error) {
     console.error('Failed to get wallet by ID:', error);

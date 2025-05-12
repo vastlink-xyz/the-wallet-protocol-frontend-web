@@ -70,7 +70,8 @@ const MultisigWalletSchema = new mongoose.Schema({
   ciphertext: { type: String, required: true },
   dataToEncryptHash: { type: String, required: true },
   dataToEncryptHashSignature: { type: String, required: true },
-  metadata: { type: mongoose.Schema.Types.Mixed, required: true }
+  metadata: { type: mongoose.Schema.Types.Mixed, required: true },
+  name: { type: String, required: true }
 }, { timestamps: true });
 
 // Signature Schema

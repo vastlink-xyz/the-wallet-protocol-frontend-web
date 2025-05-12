@@ -70,6 +70,14 @@ export async function POST(request: NextRequest) {
       )
     }
     
+    // Check for required name field
+    if (!body.name) {
+      return Response.json(
+        { success: false, error: "Wallet name is required" },
+        { status: 400 }
+      )
+    }
+    
     // Use provided signers array if available, otherwise fall back to creating one with current user
     const signers = body.signers && Array.isArray(body.signers) && body.signers.length > 0
       ? body.signers
@@ -99,12 +107,14 @@ export async function POST(request: NextRequest) {
       ciphertext: body.ciphertext,
       dataToEncryptHash: body.dataToEncryptHash,
       dataToEncryptHashSignature: body.dataToEncryptHashSignature,
-      metadata: body.metadata
+      metadata: body.metadata,
+      name: body.name // Save wallet name from request
     }
 
     log('Creating multisig wallet with:', {
       totalSigners: signers.length,
       threshold: threshold,
+      name: body.name,
       signerEmails: signers.map((s: any) => s.email)
     });
 
@@ -142,17 +152,42 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    // verify signature
-    const publicKey = existingWallet.pkp.publicKey
-    const messageHash = ethers.utils.hashMessage(body.dataToEncryptHash);
-    const recoveredAddress = ethers.utils.recoverAddress(messageHash, body.dataToEncryptHashSignature);
-    const expectedAddress = ethers.utils.computeAddress(publicKey);
-    const isValid = recoveredAddress.toLowerCase() === expectedAddress.toLowerCase();
+    // Check if this is a name-only update
+    const isNameOnlyUpdate = 
+      body.name !== undefined && 
+      body.name !== existingWallet.name && 
+      Object.keys(body).length <= 2 && // just id and name
+      !body.signers && 
+      !body.threshold && 
+      !body.ciphertext && 
+      !body.metadata;
+    
+    // Skip signature verification for name-only updates
+    if (!isNameOnlyUpdate) {
+      // verify signature
+      const publicKey = existingWallet.pkp.publicKey
+      const messageHash = ethers.utils.hashMessage(body.dataToEncryptHash);
+      const recoveredAddress = ethers.utils.recoverAddress(messageHash, body.dataToEncryptHashSignature);
+      const expectedAddress = ethers.utils.computeAddress(publicKey);
+      const isValid = recoveredAddress.toLowerCase() === expectedAddress.toLowerCase();
 
-    if (!isValid) {
+      if (!isValid) {
+        return Response.json(
+          { success: false, error: "Invalid signature" },
+          { status: 403 }
+        )
+      }
+    } else {
+      log('Name-only update detected, skipping signature verification');
+    }
+
+    // Make sure name is always present
+    if (body.name === undefined && existingWallet.name) {
+      body.name = existingWallet.name;
+    } else if (!body.name) {
       return Response.json(
-        { success: false, error: "Invalid signature" },
-        { status: 403 }
+        { success: false, error: "Wallet name is required" },
+        { status: 400 }
       )
     }
 
@@ -163,6 +198,7 @@ export async function PUT(request: NextRequest) {
     }
     
     log('Updated wallet settings:', {
+      name: updatedWallet.name,
       threshold: updatedWallet.threshold,
       totalSigners: updatedWallet.signers.length,
       signers: updatedWallet.signers.map((s: { email: string, ethAddress: string }) => ({ email: s.email, ethAddress: s.ethAddress })),

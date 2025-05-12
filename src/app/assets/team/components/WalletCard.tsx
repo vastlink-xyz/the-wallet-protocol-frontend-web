@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation'
 import { IRelayPKP } from '@lit-protocol/types'
 import { Loader2, Copy, Check } from 'lucide-react'
 import { formatEthAmount, fetchEthBalance } from '@/lib/utils'
+import axios from 'axios'
 
 interface WalletCardProps {
   id: string
@@ -22,6 +23,26 @@ export function WalletCard({ id, signers, pkp }: WalletCardProps) {
   const [balance, setBalance] = useState<string>('')
   const [isLoadingBalance, setIsLoadingBalance] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [walletName, setWalletName] = useState<string>('')
+
+  // Fetch wallet details including name
+  useEffect(() => {
+    async function fetchWalletDetails() {
+      if (!id) return;
+      
+      try {
+        const { data } = await axios.get(`/api/multisig?id=${id}`);
+        if (data.success && data.data) {
+          // Set wallet name or use default
+          setWalletName(data.data.name || `Team Wallet`);
+        }
+      } catch (error) {
+        console.error('Failed to fetch wallet details:', error);
+      }
+    }
+    
+    fetchWalletDetails();
+  }, [id]);
 
   // Fetch wallet balance from Sepolia network
   useEffect(() => {
@@ -118,7 +139,7 @@ export function WalletCard({ id, signers, pkp }: WalletCardProps) {
       
       {/* Main content */}
       <div className="pt-14 pb-4">
-        <h3 className="font-medium text-xl">2-of-2 Multisig Wallet</h3>
+        <h3 className="font-medium text-xl">{walletName || "2-of-2 Multisig Wallet"}</h3>
         
         {/* Wallet address with copy button */}
         <div className="text-gray-600 mt-3 font-mono text-sm flex items-center">

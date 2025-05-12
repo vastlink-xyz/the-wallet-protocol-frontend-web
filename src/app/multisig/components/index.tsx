@@ -686,6 +686,10 @@ export function Multisig({
             {wallets.filter(w => w.id === selectedWalletId).map(wallet => (
               <div key={wallet.id} className="space-y-2">
                 <div>
+                  <div className="text-sm font-medium">Wallet Name:</div>
+                  <div className="text-sm ml-2 font-semibold">{wallet.name || "Unnamed Wallet"}</div>
+                </div>
+                <div>
                   <div className="text-sm font-medium">PKP Address:</div>
                   <div className="text-sm ml-2">{wallet.pkp.ethAddress}</div>
                 </div>

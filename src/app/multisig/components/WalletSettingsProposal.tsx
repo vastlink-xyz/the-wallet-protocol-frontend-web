@@ -13,6 +13,7 @@ interface ExtendedSettingsData {
     phoneNumber?: string;
     dailyLimit?: string;
   };
+  name?: string;
   originalState?: any; // original wallet state
   changeDescription?: string; // change description
 }
@@ -34,6 +35,13 @@ export function WalletSettingsProposal({ proposal, selectedWallet }: WalletSetti
   
   // Prepare descriptions of changes
   const descriptions = [];
+  
+  // Check for name changes
+  if (settingsData.name !== undefined && originalState?.name !== undefined) {
+    if (settingsData.name !== originalState.name) {
+      descriptions.push(`Change name from "${originalState.name}" to "${settingsData.name}"`);
+    }
+  }
   
   // Check for threshold changes
   if (settingsData.threshold !== undefined && originalState?.threshold !== undefined) {
@@ -98,6 +106,14 @@ export function WalletSettingsProposal({ proposal, selectedWallet }: WalletSetti
       {/* Display detailed settings changes if available */}
       {settingsData && (
         <div className="mt-2 p-2 bg-gray-100 rounded-md text-sm">
+          {settingsData.name !== undefined && originalState?.name !== undefined && 
+           settingsData.name !== originalState.name && (
+            <div className="flex gap-2">
+              <span className="font-medium">Name:</span> 
+              "{originalState.name}" → "{settingsData.name}"
+            </div>
+          )}
+          
           {settingsData.threshold !== undefined && originalState?.threshold !== undefined && 
            settingsData.threshold !== originalState.threshold && (
             <div className="flex gap-2">

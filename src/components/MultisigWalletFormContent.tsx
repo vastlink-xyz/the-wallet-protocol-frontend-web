@@ -125,6 +125,11 @@ export function MultisigWalletFormContent({
       ? wallet?.metadata?.mfaSettings?.dailyLimit || '' 
       : ''
   )
+  const [walletName, setWalletName] = useState(
+    mode === 'edit'
+      ? wallet?.name || ''
+      : ''
+  )
   
   // New signer state
   const [newSignerEmail, setNewSignerEmail] = useState('')
@@ -203,6 +208,29 @@ export function MultisigWalletFormContent({
       setThreshold(Math.max(1, signers.length));
     }
   }, [signers, threshold]);
+
+  // In create mode, when wallet has no name, set a default name based on existing wallets count
+  useEffect(() => {
+    if (mode === 'create' && !walletName) {
+      // Get user's existing wallets count
+      const fetchWalletCount = async () => {
+        if (!userPkp) return;
+        try {
+          const { data } = await axios.get(`/api/multisig?address=${userPkp.ethAddress}`);
+          if (data.success) {
+            const count = data.data.length + 1;
+            setWalletName(`Team Wallet ${count}`);
+          }
+        } catch (error) {
+          console.error('Failed to fetch wallet count:', error);
+          // If fetching fails, set a generic name
+          setWalletName('Team Wallet');
+        }
+      };
+      
+      fetchWalletCount();
+    }
+  }, [mode, userPkp, walletName]);
 
   // Create new multisig wallet (create mode)
   const handleCreateMultisigWallet = async () => {
@@ -374,6 +402,7 @@ export function MultisigWalletFormContent({
       const metadata = {
         accessControlConditions,
         mfaSettings,
+        name: walletName
       };
 
       // Create the wallet via API
@@ -388,6 +417,7 @@ export function MultisigWalletFormContent({
         authMethodId: googleAuthMethodId,
         signers, // Include all signers
         threshold, // Include threshold
+        name: walletName, // Add wallet name as top-level field
       });
 
       if (response.data.success) {
@@ -478,17 +508,20 @@ export function MultisigWalletFormContent({
       settingsData.originalState = {
         threshold: wallet.threshold,
         signers: wallet.signers,
-        mfaSettings: wallet.metadata?.mfaSettings
+        mfaSettings: wallet.metadata?.mfaSettings,
       };
       
       // Check if signers list has changed (added or removed signers)
-      if (JSON.stringify(signers.map((s: any) => s.ethAddress).sort()) !== 
-          JSON.stringify(wallet.signers.map((s: any) => s.ethAddress).sort())) {
+      const signersChanged = JSON.stringify(signers.map((s: any) => s.ethAddress).sort()) !== 
+          JSON.stringify(wallet.signers.map((s: any) => s.ethAddress).sort());
+      
+      if (signersChanged) {
         settingsData.signers = signers;
       }
       
       // Check if threshold has changed
-      if (threshold !== wallet.threshold) {
+      const thresholdChanged = threshold !== wallet.threshold;
+      if (thresholdChanged) {
         settingsData.threshold = threshold;
       }
       
@@ -530,7 +563,7 @@ export function MultisigWalletFormContent({
         return;
       }
       
-      // Create a new proposal with the settings change data
+      // For changes other than just the name, create a proposal
       const response = await axios.post('/api/multisig/messages', {
         walletId: wallet.id,
         createdBy: userPkp.ethAddress,
@@ -542,6 +575,7 @@ export function MultisigWalletFormContent({
       });
       
       if (response.data.success) {
+        toast.success('Wallet settings proposal created successfully');
         if (onSuccess) {
           onSuccess();
         }
@@ -552,6 +586,52 @@ export function MultisigWalletFormContent({
       }
     } catch (error) {
       console.error('Failed to create wallet settings proposal:', error);
+      toast.error('Failed to update wallet settings');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Dedicated function for handling wallet name updates only
+  const handleUpdateWalletName = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Verify Google token before proceeding
+      if (!authMethod || !authMethod.accessToken) {
+        toast.error('Authentication information is missing');
+        setIsLoading(false);
+        return;
+      }
+      
+      const isValid = await isGoogleTokenValid(authMethod.accessToken);
+      if (!isValid) {
+        handleExpiredAuth();
+        setIsLoading(false);
+        return;
+      }
+      
+      // For name-only updates, we now only need the wallet ID and the new name
+      // The API has been updated to skip signature verification for name-only updates
+      const updateData = {
+        id: wallet.id,
+        name: walletName
+      };
+      
+      // Call the API to update the wallet
+      const response = await axios.put('/api/multisig', updateData);
+      
+      if (response.data.success) {
+        toast.success('Wallet name updated successfully');
+        if (onSuccess) {
+          onSuccess();
+        }
+      } else {
+        toast.error('Failed to update wallet name');
+      }
+    } catch (error) {
+      console.error('Failed to update wallet name:', error);
+      toast.error('Failed to update wallet name');
     } finally {
       setIsLoading(false);
     }
@@ -574,6 +654,34 @@ export function MultisigWalletFormContent({
 
   return (
     <div className="space-y-6">
+      {/* Wallet Name */}
+      <div className="space-y-3">
+        <h3 className="text-md font-semibold">Wallet Name</h3>
+        <div className="bg-gray-50 p-4 rounded-md">
+          <div>
+            <Label htmlFor="walletName">Name</Label>
+            <div className="flex mt-1 gap-2">
+              <Input
+                id="walletName"
+                value={walletName}
+                onChange={(e) => setWalletName(e.target.value)}
+                placeholder="Enter wallet name"
+                className="flex-grow"
+              />
+              {mode === 'edit' && walletName !== wallet?.name && (
+                <Button 
+                  onClick={handleUpdateWalletName}
+                  disabled={isLoading || !walletName.trim()} 
+                  size="sm"
+                >
+                  {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Update Name'}
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+      
       {/* Signers Section */}
       <div className="space-y-4">
         <h3 className="text-md font-semibold">Signers</h3>
@@ -754,6 +862,7 @@ export function MultisigWalletFormContent({
           onClick={handleSubmit}
           disabled={isLoading || signers.length === 0}
           className="flex-1"
+          title={mode === 'edit' ? "Update signers, threshold or MFA settings (requires multi-signature approval)" : ""}
         >
           {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {mode === 'create' ? 'Create Wallet' : 'Update Wallet Settings'}
