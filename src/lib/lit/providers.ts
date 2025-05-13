@@ -6,7 +6,7 @@ import {
 import { LitNodeClient } from '@lit-protocol/lit-node-client';
 import {
   SELECTED_LIT_NETWORK,
-  DEFAULT_SIGNIN_REDIRECT,
+  GOOGLE_SIGNIN_REDIRECT,
 } from './config';
 
 // Initialize Lit Node Client
@@ -25,7 +25,7 @@ const litRelay = new LitRelay({
 export const googleProvider = new GoogleProvider({
   relay: litRelay,
   litNodeClient,
-  redirectUri: DEFAULT_SIGNIN_REDIRECT,
+  redirectUri: GOOGLE_SIGNIN_REDIRECT,
 });
 
 export const stytchEmailOtpProvider = new StytchAuthFactorOtpProvider<'email'>(

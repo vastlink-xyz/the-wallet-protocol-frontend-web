@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useRouter } from 'next/navigation';
 import { Mail } from 'lucide-react';
+import axios from 'axios';
 
 type OtpStep = 'submit' | 'verify';
 
@@ -27,23 +28,15 @@ const StytchOTP = () => {
     setError(undefined);
     try {
       // Call backend API to send OTP
-      const response = await fetch('/api/stytch/send-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: userId }),
+      const { data } = await axios.post('/api/stytch/send-otp', { 
+        email: userId 
       });
-      
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to send verification code');
-      }
       
       console.log('OTP sent successfully:', data);
       setMethodId(data.method_id);
       setStep('verify');
-    } catch (err) {
-      setError(err as Error);
+    } catch (err: any) {
+      setError(new Error(err.response?.data?.error || 'Failed to send verification code'));
     } finally {
       setLoading(false);
     }
@@ -55,17 +48,10 @@ const StytchOTP = () => {
     setError(undefined);
     try {
       // Call backend API to verify OTP
-      const response = await fetch('/api/stytch/verify-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ methodId, code }),
+      const { data } = await axios.post('/api/stytch/verify-otp', {
+        methodId,
+        code
       });
-      
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to verify code');
-      }
       
       // Use the session JWT and user ID to authenticate with Lit Protocol
       const authMethod = await stytchEmailOtpProvider?.authenticate({
@@ -75,10 +61,10 @@ const StytchOTP = () => {
       
       log('authMethod from stytch', authMethod);
       localStorage.setItem(AUTH_METHOD_STORAGE_KEY, JSON.stringify(authMethod));
-      router.push('/stytch-demo');
+      router.push('/assets-personal');
       
-    } catch (err) {
-      setError(err as Error);
+    } catch (err: any) {
+      setError(new Error(err.response?.data?.error || 'Failed to verify code'));
     } finally {
       setLoading(false);
     }

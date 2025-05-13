@@ -1,16 +1,9 @@
 'use client'
 
-import { Button } from '@/components/ui/button';
-import { googleProvider } from '@/lib/lit';
 import StytchOTP from './StytchOTP';
-import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
+import Social from './Social';
 
 export default function LoginForm() {
-
-  async function handleGoogleLogin() {
-    await googleProvider.signIn();
-  }
-
   return (
     <div className="flex flex-col items-center justify-center min-h-[400px] space-y-8">
       <div className="text-center">
@@ -20,24 +13,7 @@ export default function LoginForm() {
 
       <div className="w-full max-w-md grid grid-cols-1 gap-8">
         {/* Social Login Section */}
-        <Card className="w-full">
-          <CardHeader>
-            <CardTitle className="text-lg font-medium text-center">Social Login</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Button 
-              onClick={handleGoogleLogin} 
-              className="w-full flex items-center justify-center gap-2"
-            >
-              <img 
-                src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg" 
-                alt="Google logo" 
-                className="h-4 w-4" 
-              />
-              Sign in with Google
-            </Button>
-          </CardContent>
-        </Card>
+        <Social />
 
         {/* Divider */}
         <div className="relative">

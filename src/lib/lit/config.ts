@@ -7,7 +7,7 @@ const ORIGIN = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 export const SELECTED_LIT_NETWORK = LIT_NETWORK.DatilDev;
 
 // Path configuration
-export const DEFAULT_SIGNIN_REDIRECT = ORIGIN + '/dashboard';
+export const GOOGLE_SIGNIN_REDIRECT = ORIGIN + '/auth/google-callback';
 
 export const AUTH_METHOD_STORAGE_KEY = 'lit-auth-method';
 

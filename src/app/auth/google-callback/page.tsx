@@ -7,7 +7,7 @@ import { log, getEmailFromGoogleToken } from '@/lib/utils';
 import { isSignInRedirect, getProviderFromUrl } from '@lit-protocol/lit-auth-client';
 import { AuthMethod, IRelayPKP } from '@lit-protocol/types';
 
-export default function DashboardPage() {
+export default function GoogleCallbackPage() {
   const router = useRouter();
   const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null);
   const [loading, setLoading] = useState(true);
