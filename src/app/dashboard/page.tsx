@@ -2,12 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { DEFAULT_SIGNIN_REDIRECT, googleProvider, mintPKPNormally, mintPKPWithPermanentLitAction, SIGN_PROPOSAL_LIT_ACTION_IPFS_ID } from '@/lib/lit';
+import { AUTH_METHOD_STORAGE_KEY, DEFAULT_SIGNIN_REDIRECT, googleProvider, mintPKPNormally, mintPKPWithPermanentLitAction, SIGN_PROPOSAL_LIT_ACTION_IPFS_ID } from '@/lib/lit';
 import { log, getEmailFromGoogleToken } from '@/lib/utils';
 import { isSignInRedirect, getProviderFromUrl } from '@lit-protocol/lit-auth-client';
 import { AuthMethod, IRelayPKP } from '@lit-protocol/types';
-
-const AUTH_METHOD_STORAGE_KEY = 'lit-auth-method';
 
 export default function DashboardPage() {
   const router = useRouter();

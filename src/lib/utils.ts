@@ -93,3 +93,13 @@ export async function isGoogleTokenValid(token: string): Promise<boolean> {
     return false;
   }
 }
+
+export function getUserIdFromToken(token: string): string | null {
+  try {
+    const decoded = jwtDecode<{ sub?: string }>(token);
+    return decoded.sub || null;
+  } catch (error) {
+    console.error('Failed to decode JWT token:', error);
+    return null;
+  }
+}

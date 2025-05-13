@@ -1,6 +1,7 @@
 import {
   GoogleProvider,
   LitRelay,
+  StytchAuthFactorOtpProvider,
 } from '@lit-protocol/lit-auth-client';
 import { LitNodeClient } from '@lit-protocol/lit-node-client';
 import {
@@ -26,3 +27,12 @@ export const googleProvider = new GoogleProvider({
   litNodeClient,
   redirectUri: DEFAULT_SIGNIN_REDIRECT,
 });
+
+export const stytchEmailOtpProvider = new StytchAuthFactorOtpProvider<'email'>(
+  {
+    relay: litRelay,
+    litNodeClient,
+  },
+  { appId: process.env.NEXT_PUBLIC_STYTCH_PROJECT_ID! },
+  'email',
+);
