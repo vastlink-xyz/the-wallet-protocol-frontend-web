@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { getProviderByAuthMethodType, litNodeClient } from "@/lib/lit/providers";
+import { getAuthMethodTypeByProviderName, getProviderByAuthMethodType, litNodeClient } from "@/lib/lit/providers";
 import { log } from "@/lib/utils";
 import { LitActionResource, LitPKPResource } from "@lit-protocol/auth-helpers";
 import { AUTH_METHOD_SCOPE, AUTH_METHOD_TYPE, LIT_ABILITY, LIT_NETWORK } from "@lit-protocol/constants";
@@ -14,11 +14,17 @@ import { editAuthmethodForDebugLitActionCode } from "@/app/debug/lit-actions/edi
 import { editAuthmethodLitActionCode } from "@/app/debug/lit-actions/edit-authmethod";
 
 // // pkp sign anything for user1
-// const sessionPKP = {
-//   "ethAddress" : "0xd027F558d7ae10E673816adb5CdCc23be7814C0e",
-//   "publicKey" : "0x04042e218a8729f011641a78da1939ab72299ebb70a0ba750645468311694ad1f24787945ebb91fe24caa76717203546748e89d4c589fe76bfa9e1fbd55f118eb0",
-//   "tokenId" : "0xb7aaf498c4d450855f7a3cccc900b24b348f0e108d5d5a7ba9072e9403f6ff4e",
-// }
+const sessionPKP = {
+  "ethAddress" : "0x044c6D3e7D31EfA424067915Cdb7368ce8227989",
+  "publicKey" : "0x04345027076fd8a6e3e0a3a9964d44dd3617f2d44d1354bbdec622a1dad8b168b9d1a908aa9065567bc8eaf03a42c390336d00904b951d1b25c599080c272b5b96",
+  "tokenId" : "0xf61fca4abd27b15354f24ecc88c40fecace972e15b39e7a72ea6b9c9faafb486",  
+}
+
+const actionPKP = {
+  "ethAddress" : "0xC114c2c3B4582Eb3F518b9554654F6bcdA7cE7e0",
+  "publicKey" : "0x0411f7539565fc71b3dc65b89f8de07d7dfadb94e706ac39d30364215ee7a454235ef9685670821796e7f5ecb37a0ff1da97989734bb1eeeb9f9e4e2894959f5d2",
+  "tokenId" : "0x59a892b5dd9cea4fca5b08c2acd7425fee6f46e048e3a6a48f4660e69ada13b4",
+}
 
 // // #4
 // const multisigPkp = {
@@ -28,11 +34,11 @@ import { editAuthmethodLitActionCode } from "@/app/debug/lit-actions/edit-authme
 // }
 
 // user2
-const sessionPKP = {
-  "ethAddress" : "0x52C3710406d4AB58cDf9209b0b973b71d5c09902",
-  "publicKey" : "0x04d5fe3ef25dea74378d5c1a68c2ded596539d73695f14362c83e2a8a861d7edee83022041d7988ff5c430f841449bdd23f9fb24472bf6c9c824d7a2aaa833f04c",
-  "tokenId" : "0xe51f33deae0eddfab6487d89628255eb6f2ff0494632332fd87feb20087dfbd5",
-}
+// const sessionPKP = {
+//   "ethAddress" : "0x52C3710406d4AB58cDf9209b0b973b71d5c09902",
+//   "publicKey" : "0x04d5fe3ef25dea74378d5c1a68c2ded596539d73695f14362c83e2a8a861d7edee83022041d7988ff5c430f841449bdd23f9fb24472bf6c9c824d7a2aaa833f04c",
+//   "tokenId" : "0xe51f33deae0eddfab6487d89628255eb6f2ff0494632332fd87feb20087dfbd5",
+// }
  
 const multisigPkp = {
   "ethAddress" : "0x2FC03E0578Df353445d5557Bd6814F3d18b2c4A4",
@@ -41,12 +47,13 @@ const multisigPkp = {
 }
 
 
+
 export function EditAuthmethod({
   authMethod,
 }: {
   authMethod: AuthMethod;
 }) {
-  const [pkp, setPkp] = useState<IRelayPKP | null>(multisigPkp);
+  const [pkp, setPkp] = useState<IRelayPKP | null>(actionPKP);
 
   const permittedIpfsIdFromLitActionCode = async () => {
     const ipfsIdHex = await getLitActionIpfsCid({
@@ -113,6 +120,11 @@ export function EditAuthmethod({
       input: editAuthmethodForDebugLitActionCode,
       outputFormat: 'hex',
     })
+    const currentAuthProvider = localStorage.getItem(CURRENT_AUTH_PROVIDER_KEY)
+    if (!currentAuthProvider) {
+      throw new Error('No current auth provider found')
+    }
+    const authMethodType = getAuthMethodTypeByProviderName(currentAuthProvider)
     const response = await litNodeClient.executeJs({
       code: editAuthmethodForDebugLitActionCode,
       sessionSigs,
@@ -130,7 +142,7 @@ export function EditAuthmethod({
         authMethodMetadata: {
           addOrRemove: 'add',
           keyType: 2,
-          authMethodType: AUTH_METHOD_TYPE.GoogleJwt,
+          authMethodType,
           authMethodId: '0x92ae1dbc4ec9fe1eb01549bbaa858e58b8e6ccb69a59ceeca67971ddacaec925',
           authMethodPubkey: '0x',
           permittedScopes: [AUTH_METHOD_SCOPE.NoPermissions],
@@ -143,6 +155,11 @@ export function EditAuthmethod({
   const handleRemoveAuthmethod = async () => {
     const sessionSigs = await getSessionSigs();
     log('sessionSigs', sessionSigs)
+    const currentAuthProvider = localStorage.getItem(CURRENT_AUTH_PROVIDER_KEY)
+    if (!currentAuthProvider) {
+      throw new Error('No current auth provider found')
+    }
+    const authMethodType = getAuthMethodTypeByProviderName(currentAuthProvider)
     const authMethodId = await getAuthIdByAuthMethod(authMethod)
     const response = await litNodeClient.executeJs({
       code: editAuthmethodForDebugLitActionCode,
@@ -153,7 +170,7 @@ export function EditAuthmethod({
         authMethodMetadata: {
           addOrRemove: 'remove',
           keyType: 2,
-          authMethodType: AUTH_METHOD_TYPE.GoogleJwt,
+          authMethodType,
           authMethodId: authMethodId,
           authMethodPubkey: '0x',
           // permittedScopes: [AUTH_METHOD_SCOPE.NoPermissions],
@@ -191,10 +208,10 @@ export function EditAuthmethod({
       await litContracts.connect();
       log('litcontract conneected')
 
-      const permittedActions = await litContracts.pkpPermissionsContractUtils.read.getPermittedActions(multisigPkp.tokenId)
+      const permittedActions = await litContracts.pkpPermissionsContractUtils.read.getPermittedActions(actionPKP.tokenId)
       log('permitted actions', permittedActions)
 
-      const permittedAuthMethods = await litContracts.pkpPermissionsContract.read.getPermittedAuthMethods(multisigPkp.tokenId)
+      const permittedAuthMethods = await litContracts.pkpPermissionsContract.read.getPermittedAuthMethods(actionPKP.tokenId)
       log('permitted authmethods', permittedAuthMethods)
     } catch (err) {
       log('err', err);

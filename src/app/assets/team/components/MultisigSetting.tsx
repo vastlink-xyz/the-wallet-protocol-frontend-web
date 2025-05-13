@@ -8,7 +8,7 @@ interface MultisigSettingProps {
   authMethod: AuthMethod
   userPkp: IRelayPKP
   sessionPkp: IRelayPKP
-  googleAuthMethodId: string
+  authMethodId: string
   onClose: () => void
   onSuccess?: () => void
 }
@@ -17,7 +17,7 @@ export function MultisigSetting({
   authMethod, 
   userPkp, 
   sessionPkp,
-  googleAuthMethodId, 
+  authMethodId, 
   onClose,
   onSuccess 
 }: MultisigSettingProps) {
@@ -44,7 +44,7 @@ export function MultisigSetting({
           authMethod={authMethod}
           userPkp={userPkp}
           sessionPkp={sessionPkp}
-          googleAuthMethodId={googleAuthMethodId}
+          authMethodId={authMethodId}
             onCancel={onClose}
           onSuccess={() => {
             if (onSuccess) {

@@ -1,4 +1,4 @@
-import { CURRENT_AUTH_PROVIDER_KEY, getProviderByAuthMethodType, litNodeClient, MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID } from "@/lib/lit";
+import { CURRENT_AUTH_PROVIDER_KEY, getAuthMethodTypeByProviderName, getProviderByAuthMethodType, litNodeClient, MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID } from "@/lib/lit";
 import { log } from "@/lib/utils";
 import { AUTH_METHOD_SCOPE, AUTH_METHOD_TYPE } from "@lit-protocol/constants";
 import { AuthMethod, IRelayPKP, MintRequestBody, SessionSigs } from "@lit-protocol/types";
@@ -8,10 +8,10 @@ import { mintPKP } from "@/lib/lit/pkpManager";
 
 export async function mintMultisigPKP({
   authMethod,
-  googleAuthMethodIds,
+  authMethodIds,
 }: {
   authMethod: AuthMethod,
-  googleAuthMethodIds: string[],
+  authMethodIds: string[],
 }
 ): Promise<IRelayPKP> {
   const currentAuthProvider = localStorage.getItem(CURRENT_AUTH_PROVIDER_KEY)
@@ -19,6 +19,7 @@ export async function mintMultisigPKP({
     throw new Error('No current auth provider found')
   }
   const provider = getProviderByAuthMethodType(currentAuthProvider)
+  const authMethodType = getAuthMethodTypeByProviderName(currentAuthProvider)
     
   if (!provider) {
     throw new Error('Provider not available for this auth method');
@@ -31,8 +32,8 @@ export async function mintMultisigPKP({
 
   // 2. Set permissions - Key: only allow specific Lit Action
   const options: MintRequestBody = {
-    permittedAuthMethodTypes: [AUTH_METHOD_TYPE.LitAction, AUTH_METHOD_TYPE.GoogleJwt, AUTH_METHOD_TYPE.GoogleJwt],
-    permittedAuthMethodIds: [litActioinAuthMethodId, ...googleAuthMethodIds],
+    permittedAuthMethodTypes: [AUTH_METHOD_TYPE.LitAction, authMethodType, authMethodType],
+    permittedAuthMethodIds: [litActioinAuthMethodId, ...authMethodIds],
     permittedAuthMethodPubkeys: ['0x', '0x', '0x'],
     permittedAuthMethodScopes: [[AUTH_METHOD_SCOPE.SignAnything], [AUTH_METHOD_SCOPE.NoPermissions], [AUTH_METHOD_SCOPE.NoPermissions]],
     addPkpEthAddressAsPermittedAddress: false,

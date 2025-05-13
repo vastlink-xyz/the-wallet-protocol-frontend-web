@@ -31,7 +31,7 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
   const [userPkp, setUserPkp] = useState<IRelayPKP | null>(null)
   const [sessionPkp, setSessionPKP] = useState<IRelayPKP | null>(null)
   const [showMultisigSetting, setShowMultisigSetting] = useState(false)
-  const [googleAuthMethodId, setGoogleAuthMethodId] = useState<string>('')
+  const [authMethodId, setAuthMethodId] = useState<string>('')
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -46,7 +46,7 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
         }
         const provider = getProviderByAuthMethodType(currentAuthProvider)
         const authMethodId = await provider.getAuthMethodId(authMethod)
-        setGoogleAuthMethodId(authMethodId)
+        setAuthMethodId(authMethodId)
         
         // Fetch user's information from database API
         const userResponse = await fetch(`/api/user?authMethodId=${authMethodId}`)
@@ -145,10 +145,10 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
       <button
         className="fixed bottom-8 right-8 flex items-center justify-center w-14 h-14 text-sm font-medium text-white bg-black rounded-full hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-700 focus:ring-offset-2 shadow-lg z-10 cursor-pointer"
         onClick={() => {
-          if (userPkp && googleAuthMethodId) {
+          if (userPkp && authMethodId) {
             setShowMultisigSetting(true)
           } else {
-            console.error('Missing userPkp or googleAuthMethodId')
+            console.error('Missing userPkp or authMethodId')
           }
         }}
       >
@@ -160,7 +160,7 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
           authMethod={authMethod}
           userPkp={userPkp}
           sessionPkp={sessionPkp}
-          googleAuthMethodId={googleAuthMethodId}
+          authMethodId={authMethodId}
           onClose={() => setShowMultisigSetting(false)}
           onSuccess={handleRefreshWallets}
         />

@@ -235,6 +235,19 @@ export default function DebugPage() {
     }
   }
 
+  const handleVerifyToken = async () => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/verify-token`, {
+      method: 'POST',
+      body: JSON.stringify({
+        authMethodType: authMethod?.authMethodType,
+        accessToken: authMethod!.accessToken,
+      }),
+    })
+
+    const data = await res.json()
+    log('verify token', data)
+  }
+
   return (
     <div className="space-y-8 p-4">
       <div className="flex flex-wrap gap-2">
@@ -249,6 +262,8 @@ export default function DebugPage() {
           authMethod && <Example authMethod={authMethod} />
         }
       </div>
+
+      <Button onClick={handleVerifyToken}>Verify token</Button>
     </div>
   );
 }

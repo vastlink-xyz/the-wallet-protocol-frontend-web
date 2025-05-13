@@ -10,7 +10,7 @@ interface WalletSettingsProps {
   authMethod: AuthMethod
   onClose: () => void
   onSuccess?: () => void
-  googleAuthMethodId: string
+  authMethodId: string
 }
 
 export function WalletSettings({
@@ -19,7 +19,7 @@ export function WalletSettings({
   authMethod,
   onClose,
   onSuccess,
-  googleAuthMethodId
+  authMethodId
 }: WalletSettingsProps) {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -42,7 +42,7 @@ export function WalletSettings({
             wallet={wallet}
             userPkp={currentPkp}
             authMethod={authMethod}
-            googleAuthMethodId={googleAuthMethodId}
+            authMethodId={authMethodId}
             onCancel={onClose}
             onSuccess={onSuccess}
           />

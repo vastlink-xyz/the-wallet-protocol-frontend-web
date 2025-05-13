@@ -1,0 +1,61 @@
+// This is a Lit Action that verifies tokens from different auth providers
+// Based on the authMethodType, it will call different verification endpoints
+
+declare const publicKey: string;
+declare const authMethodId: string;
+declare const authMethodType: number;
+declare const accessToken: string;
+declare const env: string
+
+declare const ethers: any;
+// declare const Lit: any;
+
+const _litActionCode = async () => {
+  const res = {
+    "isPermitted": false,
+  }
+
+  let apiBaseUrl: string;
+  switch (env) {
+    case 'dev':
+      apiBaseUrl = 'https://4bb5-58-152-13-66.ngrok-free.app';
+      break;
+    case 'test':
+      apiBaseUrl = 'https://dev-app-vastbase-eb1a4b4e8e63.herokuapp.com';
+      break;
+    default:
+      throw new Error(`Invalid Base URL`);
+  }
+
+  const verifyTokenRes = await fetch(`${apiBaseUrl}/api/verify-token`, {
+    method: 'POST',
+    body: JSON.stringify({
+      authMethodType,
+      accessToken,
+    }),
+  })
+  const data = await verifyTokenRes.json()
+  console.log('verify token data', data)
+
+  // If the token is not valid, return false
+  if (!data.valid) {
+    return Lit.Actions.setResponse({
+      response: JSON.stringify(res),
+    });
+  }
+
+  const pkpTokenId = await Lit.Actions.pubkeyToTokenId({ publicKey });
+  console.log('authMethodType before conversion:', authMethodType);
+  console.log('authMethodId:', authMethodId);
+  
+  res.isPermitted = await Lit.Actions.isPermittedAuthMethod({
+    tokenId: pkpTokenId,
+    authMethodType: ethers.utils.hexValue(authMethodType),
+    userId: ethers.utils.arrayify(authMethodId),
+  })
+  console.log('isPermitted', res.isPermitted)
+
+  Lit.Actions.setResponse({response: JSON.stringify(res)})
+};
+
+export const verifyAuthTokenLitActionCode = `(${_litActionCode.toString()})();`;

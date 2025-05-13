@@ -12,6 +12,7 @@ import axios from 'axios'
 import { getEmailFromGoogleToken, isGoogleTokenValid, log } from '@/lib/utils'
 import { 
   CURRENT_AUTH_PROVIDER_KEY,
+  getAuthMethodTypeByProviderName,
   getProviderByAuthMethodType,
   getSessionSigsByPkp, 
   litNodeClient, 
@@ -29,7 +30,7 @@ interface MultisigWalletFormContentProps {
   authMethod: AuthMethod
   userPkp: IRelayPKP
   sessionPkp?: IRelayPKP
-  googleAuthMethodId: string
+  authMethodId: string
   wallet?: any // Only needed for edit mode
   onCancel?: () => void
   onSuccess?: () => void
@@ -95,7 +96,7 @@ export function MultisigWalletFormContent({
   authMethod,
   userPkp,
   sessionPkp,
-  googleAuthMethodId,
+  authMethodId,
   wallet,
   onCancel,
   onSuccess
@@ -134,7 +135,7 @@ export function MultisigWalletFormContent({
   const [newSignerEmail, setNewSignerEmail] = useState('')
   const [newSignerAddress, setNewSignerAddress] = useState('')
   const [newSignerPublicKey, setNewSignerPublicKey] = useState('')
-  const [authMethodId, setAuthMethodId] = useState('')
+  const [signerAuthMethodId, setSignerAuthMethodId] = useState('')
   const [showAddSignerForm, setShowAddSignerForm] = useState(false)
   const [newSignerError, setNewSignerError] = useState(false)
   
@@ -157,10 +158,10 @@ export function MultisigWalletFormContent({
         email: currentUserEmail,
         ethAddress: userPkp.ethAddress,
         publicKey: userPkp.publicKey,
-        authMethodId: googleAuthMethodId
+        authMethodId: authMethodId
       }]);
     }
-  }, [mode, signers.length, userPkp, currentUserEmail, googleAuthMethodId]);
+  }, [mode, signers.length, userPkp, currentUserEmail, authMethodId]);
 
   // Handle adding a new signer
   const handleAddSigner = () => {
@@ -180,7 +181,7 @@ export function MultisigWalletFormContent({
       email: newSignerEmail,
       ethAddress: newSignerAddress,
       publicKey: newSignerPublicKey || '',
-      authMethodId: authMethodId || ''
+      authMethodId: signerAuthMethodId || ''
     };
     
     setSigners([...signers, newSigner]);
@@ -189,7 +190,7 @@ export function MultisigWalletFormContent({
     setNewSignerEmail('');
     setNewSignerAddress('');
     setNewSignerPublicKey('');
-    setAuthMethodId('');
+    setSignerAuthMethodId('');
     setShowAddSignerForm(false);
     setNewSignerError(false);
   };
@@ -237,6 +238,12 @@ export function MultisigWalletFormContent({
       console.error('Missing required information');
       return;
     }
+
+    const currentAuthProvider = localStorage.getItem(CURRENT_AUTH_PROVIDER_KEY)
+    if (!currentAuthProvider) {
+      throw new Error('No current auth provider found')
+    }
+    const authMethodType = getAuthMethodTypeByProviderName(currentAuthProvider)
     
     // Check for unconfirmed new signer
     if (showAddSignerForm && newSignerEmail.trim() !== '') {
@@ -284,16 +291,16 @@ export function MultisigWalletFormContent({
       const allAuthMethodIds = [
         createWalletIpfsIdHex, 
         updateWalletIpfsIdHex, 
-        googleAuthMethodId,
-        ...signerAuthMethodIds.filter(id => id !== googleAuthMethodId) // Avoid duplicates
+        authMethodId,
+        ...signerAuthMethodIds.filter(id => id !== authMethodId) // Avoid duplicates
       ];
       
       // Create arrays with the same length for all parameters
       const allAuthMethodTypes = [
         AUTH_METHOD_TYPE.LitAction,
         AUTH_METHOD_TYPE.LitAction,
-        AUTH_METHOD_TYPE.GoogleJwt,
-        ...signerAuthMethodIds.filter(id => id !== googleAuthMethodId).map(() => AUTH_METHOD_TYPE.GoogleJwt)
+        authMethodType,
+        ...signerAuthMethodIds.filter(id => id !== authMethodId).map(() => authMethodType)
       ];
       
       const allAuthMethodPubkeys = allAuthMethodIds.map(() => '0x');
@@ -302,7 +309,7 @@ export function MultisigWalletFormContent({
         [AUTH_METHOD_SCOPE.SignAnything],
         [AUTH_METHOD_SCOPE.SignAnything],
         [AUTH_METHOD_SCOPE.NoPermissions],
-        ...signerAuthMethodIds.filter(id => id !== googleAuthMethodId).map(() => [AUTH_METHOD_SCOPE.NoPermissions])
+        ...signerAuthMethodIds.filter(id => id !== authMethodId).map(() => [AUTH_METHOD_SCOPE.NoPermissions])
       ];
 
       const currentAuthProvider = localStorage.getItem(CURRENT_AUTH_PROVIDER_KEY)
@@ -382,8 +389,8 @@ export function MultisigWalletFormContent({
         jsParams: {
           authParams: {
             accessToken: authMethod.accessToken,
-            authMethodId: googleAuthMethodId,
-            authMethodType: ethers.utils.hexValue(AUTH_METHOD_TYPE.GoogleJwt),
+            authMethodId: authMethodId,
+            authMethodType: ethers.utils.hexValue(authMethodType), // kkktodo
           },
           dataToEncryptHash,
           publicKey: multisigPkp.publicKey,
@@ -416,7 +423,7 @@ export function MultisigWalletFormContent({
         dataToEncryptHash,
         metadata,
         dataToEncryptHashSignature,
-        authMethodId: googleAuthMethodId,
+        authMethodId,
         signers, // Include all signers
         threshold, // Include threshold
         name: walletName, // Add wallet name as top-level field
@@ -740,11 +747,11 @@ export function MultisigWalletFormContent({
                 if (addressData) {
                   setNewSignerAddress(addressData.ethAddress);
                   setNewSignerPublicKey(addressData.publicKey || '');
-                  setAuthMethodId(addressData.authMethodId || '');
+                  setSignerAuthMethodId(addressData.authMethodId || '');
                 } else {
                   setNewSignerAddress('');
                   setNewSignerPublicKey('');
-                  setAuthMethodId('');
+                  setSignerAuthMethodId('');
                 }
               }}
             />
@@ -772,7 +779,7 @@ export function MultisigWalletFormContent({
                   setNewSignerEmail('');
                   setNewSignerAddress('');
                   setNewSignerPublicKey('');
-                  setAuthMethodId('');
+                  setSignerAuthMethodId('');
                   setNewSignerError(false);
                 }}
                 variant="ghost"

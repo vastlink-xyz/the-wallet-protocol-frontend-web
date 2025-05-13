@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { executeSignLitAction, mintMultisigPKP } from "../helper"
 import { log, formatEthAmount, fetchEthBalance, isGoogleTokenValid, getEmailFromGoogleToken } from "@/lib/utils"
-import { calculateCIDFromString, getSessionSigsByPkp, MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID, SIGN_PROPOSAL_LIT_ACTION_IPFS_ID } from "@/lib/lit"
+import { calculateCIDFromString, CURRENT_AUTH_PROVIDER_KEY, getAuthMethodTypeByProviderName, getSessionSigsByPkp, MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID, SIGN_PROPOSAL_LIT_ACTION_IPFS_ID } from "@/lib/lit"
 import { litNodeClient } from "@/lib/lit"
 import { AlertCircle } from "lucide-react"
 import { AUTH_METHOD_TYPE, LIT_CHAINS } from "@lit-protocol/constants"
@@ -36,13 +36,13 @@ export function Multisig({
   currentPkp,
   sessionPkp,
   authMethod,
-  googleAuthMethodId,
+  authMethodId,
   initialWalletId = '',
 }: {
   currentPkp: IRelayPKP,
   sessionPkp: IRelayPKP,
   authMethod: AuthMethod,
-  googleAuthMethodId: string,
+  authMethodId: string,
   initialWalletId?: string,
 }) {
   const { handleExpiredAuth } = useAuthExpiration();
@@ -411,6 +411,11 @@ export function Multisig({
     log('selected multisig pkp', selectedWallet.pkp.publicKey)
 
     const updateWalletIpfsId = await getUpdateWalletIpfsId("base58")
+    const currentAuthProvider = localStorage.getItem(CURRENT_AUTH_PROVIDER_KEY)
+    if (!currentAuthProvider) {
+      throw new Error('No current auth provider found')
+    }
+    const authMethodType = getAuthMethodTypeByProviderName(currentAuthProvider)
 
     try {
       const litActionResponse = await litNodeClient.executeJs({
@@ -419,8 +424,8 @@ export function Multisig({
         jsParams: {
           authParams: {
             accessToken: authMethod.accessToken,
-            authMethodId: googleAuthMethodId,
-            authMethodType: ethers.utils.hexValue(AUTH_METHOD_TYPE.GoogleJwt),
+            authMethodId: authMethodId,
+            authMethodType,
           },
           publicKey: selectedWallet.pkp.publicKey,
           env: process.env.NEXT_PUBLIC_ENV,
@@ -849,7 +854,7 @@ export function Multisig({
           wallet={selectedWallet}
           currentPkp={currentPkp}
           authMethod={authMethod}
-          googleAuthMethodId={googleAuthMethodId}
+          authMethodId={authMethodId}
           onClose={() => setShowWalletSettings(false)}
           onSuccess={() => {
             fetchWallets();

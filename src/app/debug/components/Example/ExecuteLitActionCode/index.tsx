@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { litNodeClient } from "@/lib/lit/providers";
+import { getAuthMethodTypeByProviderName, litNodeClient } from "@/lib/lit/providers";
 import { getSessionSigs } from "@/lib/lit/sessionManager";
 import { log } from "@/lib/utils";
 import { getAuthIdByAuthMethod } from "@lit-protocol/lit-auth-client";
@@ -11,12 +11,20 @@ import { ethers } from "ethers";
 import { editAuthmethodLitActionCode } from "@/app/debug/lit-actions/edit-authmethod";
 import { editAuthmethodForDebugLitActionCode } from "@/app/debug/lit-actions/edit-authmethod-for-debug";
 import { encryptString } from "@lit-protocol/encryption";
+import { verifyAuthTokenLitActionCode } from "@/app/debug/lit-actions/verify-auth-token";
+import { CURRENT_AUTH_PROVIDER_KEY } from "@/lib/lit";
 
 // session PKP
+// const sessionPkp = {
+//   "ethAddress" : "0x20D53B71Edd06298DFa8ad49eD83A4847c5730B9",
+//   "publicKey" : "0x041043714804e4236e3fabba7e068571eb7f878754ed1d67d4a1328f764d7acf9d8af7d3b13d834eb3ed4746da68660e848d97e6fbf7feed16f7cd09c9188046c7",
+//   "tokenId" : "0x851a8fe056ef1edb067cfe1d9b6d85fc8b3b8141b2bed51343e1570d6a6b73d1",
+// }
+
 const sessionPkp = {
-  "ethAddress" : "0x20D53B71Edd06298DFa8ad49eD83A4847c5730B9",
-  "publicKey" : "0x041043714804e4236e3fabba7e068571eb7f878754ed1d67d4a1328f764d7acf9d8af7d3b13d834eb3ed4746da68660e848d97e6fbf7feed16f7cd09c9188046c7",
-  "tokenId" : "0x851a8fe056ef1edb067cfe1d9b6d85fc8b3b8141b2bed51343e1570d6a6b73d1",
+  "ethAddress" : "0x044c6D3e7D31EfA424067915Cdb7368ce8227989",
+  "publicKey" : "0x04345027076fd8a6e3e0a3a9964d44dd3617f2d44d1354bbdec622a1dad8b168b9d1a908aa9065567bc8eaf03a42c390336d00904b951d1b25c599080c272b5b96",
+  "tokenId" : "0xf61fca4abd27b15354f24ecc88c40fecace972e15b39e7a72ea6b9c9faafb486",  
 }
 
 // user2
@@ -39,7 +47,13 @@ const multisigPkp = {
 //   "tokenId" : "0x197d20d1fb8efe5531baa1a0b9eae43435166174d98499c7b2569c84baa30974"
 // }
 
-const litActionCode = verifyMultisigLitActionCode
+const actionPKP = {
+  "ethAddress" : "0xC114c2c3B4582Eb3F518b9554654F6bcdA7cE7e0",
+  "publicKey" : "0x0411f7539565fc71b3dc65b89f8de07d7dfadb94e706ac39d30364215ee7a454235ef9685670821796e7f5ecb37a0ff1da97989734bb1eeeb9f9e4e2894959f5d2",
+  "tokenId" : "0x59a892b5dd9cea4fca5b08c2acd7425fee6f46e048e3a6a48f4660e69ada13b4",
+}
+
+const litActionCode = verifyAuthTokenLitActionCode
 
 export function ExecuteLitActionCode({ authMethod }: { authMethod: AuthMethod }) {
 
@@ -50,8 +64,12 @@ export function ExecuteLitActionCode({ authMethod }: { authMethod: AuthMethod })
       authMethod,
     });
     log('sessionSigs', sessionSigs);
-    const googleAuthMethodId = await getAuthIdByAuthMethod(authMethod);
-    
+    const authMethodId = await getAuthIdByAuthMethod(authMethod);
+    const currentAuthProvider = localStorage.getItem(CURRENT_AUTH_PROVIDER_KEY)
+    if (!currentAuthProvider) {
+      throw new Error('No current auth provider found')
+    }
+    const authMethodType = getAuthMethodTypeByProviderName(currentAuthProvider)
     try {
       const response = await litNodeClient.executeJs({
         code: litActionCode,
@@ -59,8 +77,8 @@ export function ExecuteLitActionCode({ authMethod }: { authMethod: AuthMethod })
         jsParams: {
           authParams: {
             accessToken: authMethod.accessToken,
-            authMethodId: googleAuthMethodId,
-            authMethodType: ethers.utils.hexValue(AUTH_METHOD_TYPE.GoogleJwt),
+            authMethodId: authMethodId,
+            authMethodType,
           },
           publicKey: multisigPkp.publicKey,
           env: process.env.NEXT_PUBLIC_ENV,
@@ -143,6 +161,33 @@ export function ExecuteLitActionCode({ authMethod }: { authMethod: AuthMethod })
     log('dataToEncryptHash', dataToEncryptHash);
   }
 
+  const handleVerifyToken = async () => {
+    log('authMethod', authMethod);
+    const sessionSigs = await getSessionSigs({
+      pkpPublicKey: sessionPkp.publicKey,
+      authMethod,
+    });
+    log('sessionSigs', sessionSigs);
+    const authMethodId = await getAuthIdByAuthMethod(authMethod);
+    log('authMethodId', authMethodId);
+    try {
+      const response = await litNodeClient.executeJs({
+        code: litActionCode,
+        sessionSigs,
+        jsParams: {
+          accessToken: authMethod.accessToken,
+          authMethodId,
+          authMethodType: authMethod.authMethodType,
+          publicKey: actionPKP.publicKey,
+          env: process.env.NEXT_PUBLIC_ENV,
+        },
+      });
+      log('response', response);
+    } catch (error) {
+      log('error', error);
+    }
+  }
+
   return (
     <div>
       <h2>Execute Lit Action</h2>
@@ -172,6 +217,13 @@ export function ExecuteLitActionCode({ authMethod }: { authMethod: AuthMethod })
         className="mt-4"
       >
         Encrypt Data
+      </Button>
+
+      <Button
+        onClick={handleVerifyToken}
+        className="mt-4"
+      >
+        Verify Token
       </Button>
     </div>
   );

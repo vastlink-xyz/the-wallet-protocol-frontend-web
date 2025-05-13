@@ -9,6 +9,7 @@ import {
   SELECTED_LIT_NETWORK,
   GOOGLE_SIGNIN_REDIRECT,
 } from './config';
+import { AUTH_METHOD_TYPE } from '@lit-protocol/constants';
 
 // Initialize Lit Node Client
 export const litNodeClient: LitNodeClient = new LitNodeClient({
@@ -58,5 +59,18 @@ export function getProviderByAuthMethodType(authMethodType: string) {
     //   return appleProvider;
     default:
       throw new Error(`Unsupported auth method type: ${authMethodType}`);
+  }
+}
+
+export function getAuthMethodTypeByProviderName(providerName: string) {
+  switch (providerName.toLowerCase()) {
+    case 'google':
+      return AUTH_METHOD_TYPE.GoogleJwt;
+    case 'stytch':
+      return AUTH_METHOD_TYPE.StytchEmailFactorOtp;
+    // case 'apple':
+    //   return AUTH_METHOD_TYPE.Apple;
+    default:
+      throw new Error(`Unsupported provider name: ${providerName}`);
   }
 }

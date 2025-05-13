@@ -9,7 +9,7 @@ import {
 } from '@lit-protocol/types';
 import { log } from '@/lib/utils';
 import { utils } from 'ethers';
-import { getProviderByAuthMethodType } from './providers';
+import { getAuthMethodTypeByProviderName, getProviderByAuthMethodType } from './providers';
 import { CURRENT_AUTH_PROVIDER_KEY } from './config';
 /**
  * Get all PKPs for the user
@@ -127,6 +127,7 @@ export async function mintPKPWithPermanentLitAction({
     throw new Error('No current auth provider found')
   }
   const provider = getProviderByAuthMethodType(currentAuthProvider)
+  const authMethodType = getAuthMethodTypeByProviderName(currentAuthProvider)
     
   if (!provider) {
     throw new Error('Provider not available for this auth method');
@@ -136,7 +137,7 @@ export async function mintPKPWithPermanentLitAction({
   const bytes = Buffer.from(utils.base58.decode(litActionIpfsId));
   const litActioinAuthMethodId = `0x${bytes.toString('hex')}`;
 
-  const googleAuthMethodId = await provider.getAuthMethodId(authMethod);
+  const authMethodId = await provider.getAuthMethodId(authMethod);
 
   // 2. Set permissions - Key: only allow specific Lit Action
   // const options: MintRequestBody = {
@@ -149,8 +150,8 @@ export async function mintPKPWithPermanentLitAction({
   //   // keyType: 2 // Standard PKP type
   // };
   const options: MintRequestBody = {
-    permittedAuthMethodTypes: [AUTH_METHOD_TYPE.LitAction, AUTH_METHOD_TYPE.GoogleJwt],
-    permittedAuthMethodIds: [litActioinAuthMethodId, googleAuthMethodId],
+    permittedAuthMethodTypes: [AUTH_METHOD_TYPE.LitAction, authMethodType],
+    permittedAuthMethodIds: [litActioinAuthMethodId, authMethodId],
     permittedAuthMethodPubkeys: ['0x', '0x'],
     permittedAuthMethodScopes: [[AUTH_METHOD_SCOPE.SignAnything], [AUTH_METHOD_SCOPE.NoPermissions]],
     addPkpEthAddressAsPermittedAddress: false,

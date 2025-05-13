@@ -18,7 +18,7 @@ export default function MultisigContent() {
   const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null);
   const [loading, setLoading] = useState(true);
   const [fetchingData, setFetchingData] = useState(false);
-  const [googleAuthMethodId, setGoogleAuthMethodId] = useState<string | null>(null)
+  const [authMethodId, setAuthMethodId] = useState<string | null>(null)
   const [sessionPkp, setSessionPkp] = useState<IRelayPKP | null>(null);
   const [litActionPkp, setLitActionPkp] = useState<IRelayPKP | null>(null);
 
@@ -48,7 +48,7 @@ export default function MultisigContent() {
       }
       const provider = getProviderByAuthMethodType(currentAuthProvider)
       const authMethodId = await provider.getAuthMethodId(authMethod);
-      setGoogleAuthMethodId(authMethodId);
+      setAuthMethodId(authMethodId);
       
       const response = await fetch(`/api/user/pkp?authMethodId=${authMethodId}`);
       
@@ -103,7 +103,7 @@ export default function MultisigContent() {
     );
   }
 
-  if (authMethod && googleAuthMethodId) {
+  if (authMethod && authMethodId) {
     return (
       <>
         {/* <Mint 
@@ -120,7 +120,7 @@ export default function MultisigContent() {
                 currentPkp={litActionPkp}
                 sessionPkp={sessionPkp}
                 authMethod={authMethod}
-                googleAuthMethodId={googleAuthMethodId}
+                authMethodId={authMethodId}
                 initialWalletId={walletId || ''}
               />
             </div>
