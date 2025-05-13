@@ -1,12 +1,13 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react';
-import { googleProvider } from '@/lib/lit';
 import { AuthMethod, IRelayPKP } from '@lit-protocol/types';
 import { Button } from '@/components/ui/button';
 import { Multisig } from './components';
 import { Loader2 } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
+import { getProviderByAuthMethodType } from '@/lib/lit';
+import { CURRENT_AUTH_PROVIDER_KEY } from '@/lib/lit';
 
 const AUTH_METHOD_STORAGE_KEY = 'lit-auth-method';
 
@@ -41,7 +42,12 @@ export default function MultisigContent() {
     
     try {
       setFetchingData(true);
-      const authMethodId = await googleProvider.getAuthMethodId(authMethod);
+      const currentAuthProvider = localStorage.getItem(CURRENT_AUTH_PROVIDER_KEY)
+      if (!currentAuthProvider) {
+        throw new Error('No current auth provider found')
+      }
+      const provider = getProviderByAuthMethodType(currentAuthProvider)
+      const authMethodId = await provider.getAuthMethodId(authMethod);
       setGoogleAuthMethodId(authMethodId);
       
       const response = await fetch(`/api/user/pkp?authMethodId=${authMethodId}`);

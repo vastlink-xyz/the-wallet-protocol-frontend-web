@@ -8,9 +8,9 @@ import {
   MintRequestBody,
 } from '@lit-protocol/types';
 import { log } from '@/lib/utils';
-import { googleProvider } from './providers';
 import { utils } from 'ethers';
-
+import { getProviderByAuthMethodType } from './providers';
+import { CURRENT_AUTH_PROVIDER_KEY } from './config';
 /**
  * Get all PKPs for the user
  * @param authMethod Authentication method
@@ -20,10 +20,12 @@ export async function getPKPs({
 }: {
   authMethod: AuthMethod,
 }): Promise<IRelayPKP[]> {
-  const provider = authMethod.authMethodType === AUTH_METHOD_TYPE.GoogleJwt 
-    ? googleProvider
-    : null;
-    
+  const currentAuthProvider = localStorage.getItem(CURRENT_AUTH_PROVIDER_KEY)
+  if (!currentAuthProvider) {
+    throw new Error('No current auth provider found')
+  }
+  const provider = getProviderByAuthMethodType(currentAuthProvider)
+
   if (!provider) {
     throw new Error('Provider not available for this auth method');
   }
@@ -38,9 +40,11 @@ export async function getPKPs({
  * @param authMethod Authentication method
  */
 export async function mintPKPNormally(authMethod: AuthMethod): Promise<IRelayPKP> {
-  const provider = authMethod.authMethodType === AUTH_METHOD_TYPE.GoogleJwt 
-    ? googleProvider
-    : null;
+  const currentAuthProvider = localStorage.getItem(CURRENT_AUTH_PROVIDER_KEY)
+  if (!currentAuthProvider) {
+    throw new Error('No current auth provider found')
+  }
+  const provider = getProviderByAuthMethodType(currentAuthProvider)
     
   if (!provider) {
     throw new Error('Provider not available for this auth method');
@@ -118,9 +122,11 @@ export async function mintPKPWithPermanentLitAction({
   litActionIpfsId: string,
 }
 ): Promise<IRelayPKP> {
-  const provider = authMethod.authMethodType === AUTH_METHOD_TYPE.GoogleJwt 
-    ? googleProvider
-    : null;
+  const currentAuthProvider = localStorage.getItem(CURRENT_AUTH_PROVIDER_KEY)
+  if (!currentAuthProvider) {
+    throw new Error('No current auth provider found')
+  }
+  const provider = getProviderByAuthMethodType(currentAuthProvider)
     
   if (!provider) {
     throw new Error('Provider not available for this auth method');
@@ -195,13 +201,17 @@ export async function mintPKPWithPermanentLitAction({
 export async function mintPKP({
   authMethod,
   options,
-  provider = googleProvider,
 }: {
   authMethod: AuthMethod,
   options: MintRequestBody,
-  provider: any,
 }
 ): Promise<IRelayPKP> {
+  const currentAuthProvider = localStorage.getItem(CURRENT_AUTH_PROVIDER_KEY)
+  if (!currentAuthProvider) {
+    throw new Error('No current auth provider found')
+  }
+  const provider = getProviderByAuthMethodType(currentAuthProvider)
+
   // Mint PKP through relay server
   const txHash = await provider.mintPKPThroughRelayer(authMethod, options);
 

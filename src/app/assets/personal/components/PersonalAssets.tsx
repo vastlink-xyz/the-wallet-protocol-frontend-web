@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react'
 import { AuthMethod, IRelayPKP } from '@lit-protocol/types'
 import { Loader2 } from 'lucide-react'
-import { googleProvider } from '@/lib/lit/providers'
 import { formatEthAmount, fetchEthBalance } from '@/lib/utils'
+import { getProviderByAuthMethodType } from '@/lib/lit/providers'
+import { CURRENT_AUTH_PROVIDER_KEY } from '@/lib/lit'
 
 interface PersonalAssetsProps {
   authMethod: AuthMethod
@@ -25,7 +26,12 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
       try {
         setIsLoading(true)
         // Get user's authMethodId
-        const authMethodId = await googleProvider.getAuthMethodId(authMethod)
+        const currentAuthProvider = localStorage.getItem(CURRENT_AUTH_PROVIDER_KEY)
+        if (!currentAuthProvider) {
+          throw new Error('No current auth provider found')
+        }
+        const provider = getProviderByAuthMethodType(currentAuthProvider)
+        const authMethodId = await provider.getAuthMethodId(authMethod)
         
         // Fetch user's information from database API
         const userResponse = await fetch(`/api/user?authMethodId=${authMethodId}`)

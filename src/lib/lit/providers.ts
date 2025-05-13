@@ -1,5 +1,6 @@
 import {
   GoogleProvider,
+  AppleProvider,
   LitRelay,
   StytchAuthFactorOtpProvider,
 } from '@lit-protocol/lit-auth-client';
@@ -22,13 +23,13 @@ const litRelay = new LitRelay({
   relayApiKey: 'test-api-key',
 });
 
-export const googleProvider = new GoogleProvider({
+const googleProvider = new GoogleProvider({
   relay: litRelay,
   litNodeClient,
   redirectUri: GOOGLE_SIGNIN_REDIRECT,
 });
 
-export const stytchEmailOtpProvider = new StytchAuthFactorOtpProvider<'email'>(
+const stytchEmailOtpProvider = new StytchAuthFactorOtpProvider<'email'>(
   {
     relay: litRelay,
     litNodeClient,
@@ -36,3 +37,26 @@ export const stytchEmailOtpProvider = new StytchAuthFactorOtpProvider<'email'>(
   { appId: process.env.NEXT_PUBLIC_STYTCH_PROJECT_ID! },
   'email',
 );
+
+// const appleProvider = new AppleProvider({
+//   relay: litRelay,
+//   litNodeClient,
+// });
+
+/**
+ * Get the appropriate authentication provider based on the auth method type
+ * @param authMethodType Authentication method type ('google', 'stytch', 'apple')
+ * @returns The corresponding authentication provider
+ */
+export function getProviderByAuthMethodType(authMethodType: string) {
+  switch (authMethodType.toLowerCase()) {
+    case 'google':
+      return googleProvider;
+    case 'stytch':
+      return stytchEmailOtpProvider;
+    // case 'apple':
+    //   return appleProvider;
+    default:
+      throw new Error(`Unsupported auth method type: ${authMethodType}`);
+  }
+}

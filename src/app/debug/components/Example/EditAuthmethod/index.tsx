@@ -1,13 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { googleProvider, litNodeClient } from "@/lib/lit/providers";
+import { getProviderByAuthMethodType, litNodeClient } from "@/lib/lit/providers";
 import { log } from "@/lib/utils";
 import { LitActionResource, LitPKPResource } from "@lit-protocol/auth-helpers";
 import { AUTH_METHOD_SCOPE, AUTH_METHOD_TYPE, LIT_ABILITY, LIT_NETWORK } from "@lit-protocol/constants";
 import { getAuthIdByAuthMethod } from "@lit-protocol/lit-auth-client";
 import { AuthMethod, IRelayPKP } from "@lit-protocol/types";
-import { ethers } from "ethers";
 import { useState } from "react";
-import { getLitActionIpfsCid, getSessionSigsByPkp, mintPKP, uploadViaPinata } from "@/lib/lit";
+import { CURRENT_AUTH_PROVIDER_KEY, getLitActionIpfsCid, getSessionSigsByPkp, mintPKP, uploadViaPinata } from "@/lib/lit";
 import { PKPEthersWallet } from "@lit-protocol/pkp-ethers";
 import { LitContracts } from "@lit-protocol/contracts-sdk";
 import { verifyMultisigLitActionCode } from "@/lib/lit-action-code/verify-multisig.lit";
@@ -62,6 +61,10 @@ export function EditAuthmethod({
     const ipfsIdHex = await permittedIpfsIdFromLitActionCode();
     const ipfsId = await uploadViaPinata(editAuthmethodForDebugLitActionCode);
     log('ipfsId', ipfsId)
+    const currentAuthProvider = localStorage.getItem(CURRENT_AUTH_PROVIDER_KEY)
+    if (!currentAuthProvider) {
+      throw new Error('No current auth provider found')
+    }
     const pkp = await mintPKP({
       authMethod,
       options: {
@@ -73,7 +76,6 @@ export function EditAuthmethod({
         sendPkpToItself: true,
         keyType: 2 // Standard PKP type
       },
-      provider: googleProvider,
     });
     log('pkp', pkp)
     setPkp(pkp);

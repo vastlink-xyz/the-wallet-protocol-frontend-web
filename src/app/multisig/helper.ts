@@ -1,4 +1,4 @@
-import { googleProvider, litNodeClient, MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID } from "@/lib/lit";
+import { CURRENT_AUTH_PROVIDER_KEY, getProviderByAuthMethodType, litNodeClient, MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID } from "@/lib/lit";
 import { log } from "@/lib/utils";
 import { AUTH_METHOD_SCOPE, AUTH_METHOD_TYPE } from "@lit-protocol/constants";
 import { AuthMethod, IRelayPKP, MintRequestBody, SessionSigs } from "@lit-protocol/types";
@@ -14,7 +14,11 @@ export async function mintMultisigPKP({
   googleAuthMethodIds: string[],
 }
 ): Promise<IRelayPKP> {
-  const provider = googleProvider
+  const currentAuthProvider = localStorage.getItem(CURRENT_AUTH_PROVIDER_KEY)
+  if (!currentAuthProvider) {
+    throw new Error('No current auth provider found')
+  }
+  const provider = getProviderByAuthMethodType(currentAuthProvider)
     
   if (!provider) {
     throw new Error('Provider not available for this auth method');
@@ -42,7 +46,6 @@ export async function mintMultisigPKP({
   const newPKP = await mintPKP({
     authMethod,
     options,
-    provider
   });
 
   console.log(`PKP has been minted and permanently bound to Lit Action: ${litActionIpfsId}`);

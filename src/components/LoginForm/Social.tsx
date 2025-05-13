@@ -1,12 +1,14 @@
 'use client'
 
 import { Button } from '@/components/ui/button';
-import { googleProvider } from '@/lib/lit';
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
+import { getProviderByAuthMethodType } from '@/lib/lit';
+import { GoogleProvider } from '@lit-protocol/lit-auth-client';
 
 export default function Social() {
   async function handleGoogleLogin() {
-    await googleProvider.signIn();
+    const provider = getProviderByAuthMethodType('google') as GoogleProvider
+    await provider.signIn();
   }
 
   return (

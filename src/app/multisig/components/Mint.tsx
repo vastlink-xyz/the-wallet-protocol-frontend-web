@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button"
-import { mintPKPNormally, mintPKPWithPermanentLitAction, googleProvider, SIGN_PROPOSAL_LIT_ACTION_IPFS_ID } from "@/lib/lit";
+import { CURRENT_AUTH_PROVIDER_KEY, getProviderByAuthMethodType, mintPKPNormally, mintPKPWithPermanentLitAction, SIGN_PROPOSAL_LIT_ACTION_IPFS_ID } from "@/lib/lit";
 import { AuthMethod, IRelayPKP } from "@lit-protocol/types";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
@@ -54,7 +54,12 @@ export function Mint({
       log('ipfsid', litActionIpfsId)
 
       // Step 1: Get auth method ID
-      const authMethodId = await googleProvider.getAuthMethodId(authMethod);
+      const currentAuthProvider = localStorage.getItem(CURRENT_AUTH_PROVIDER_KEY)
+      if (!currentAuthProvider) {
+        throw new Error('No current auth provider found')
+      }
+      const provider = getProviderByAuthMethodType(currentAuthProvider)
+      const authMethodId = await provider.getAuthMethodId(authMethod);
       setStatus("Minting session PKP...");
       
       // Step 2: Mint the first PKP for session

@@ -2,7 +2,15 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AUTH_METHOD_STORAGE_KEY, GOOGLE_SIGNIN_REDIRECT, googleProvider, mintPKPNormally, mintPKPWithPermanentLitAction, SIGN_PROPOSAL_LIT_ACTION_IPFS_ID } from '@/lib/lit';
+import { 
+  CURRENT_AUTH_PROVIDER_KEY,
+  GOOGLE_SIGNIN_REDIRECT, 
+  getProviderByAuthMethodType,
+  mintPKPNormally, 
+  mintPKPWithPermanentLitAction, 
+  SIGN_PROPOSAL_LIT_ACTION_IPFS_ID, 
+  AUTH_METHOD_STORAGE_KEY
+} from '@/lib/lit';
 import { log, getEmailFromGoogleToken } from '@/lib/utils';
 import { isSignInRedirect, getProviderFromUrl } from '@lit-protocol/lit-auth-client';
 import { AuthMethod, IRelayPKP } from '@lit-protocol/types';
@@ -26,9 +34,15 @@ export default function GoogleCallbackPage() {
       const providerName = getProviderFromUrl();
       if (providerName === 'google') {
         try {
+          // Get Google provider
+          const googleProvider = getProviderByAuthMethodType('google');
           const authMethod = await googleProvider.authenticate();
-          // Store authMethod in localStorage
+          
+          // Store authentication method in new storage key
           localStorage.setItem(AUTH_METHOD_STORAGE_KEY, JSON.stringify(authMethod));
+          // Set current auth provider
+          localStorage.setItem(CURRENT_AUTH_PROVIDER_KEY, 'google');
+          
           setAuthMethod(authMethod);
 
           redirectAfterAuthentication(authMethod)
@@ -38,13 +52,16 @@ export default function GoogleCallbackPage() {
         }
       }
     } else {
+      // Check for stored Google authentication method
       const storedAuthMethod = localStorage.getItem(AUTH_METHOD_STORAGE_KEY);
+                               
       if (storedAuthMethod) {
         // Check for stored auth method
         log('storedauthmethod')
         try {
           const parsedAuthMethod = JSON.parse(storedAuthMethod);
           setAuthMethod(parsedAuthMethod);
+          
           // get user email
           const userEmail = getEmailFromGoogleToken(parsedAuthMethod.accessToken);
           setEmail(userEmail);
@@ -65,7 +82,9 @@ export default function GoogleCallbackPage() {
     // return
     if (authMethod) {
       try {
-        const authMethodId = await googleProvider.getAuthMethodId(authMethod)
+        // Get Google provider
+        const googleProvider = getProviderByAuthMethodType('google');
+        const authMethodId = await googleProvider.getAuthMethodId(authMethod);
         
         // Get user email
         const userEmail = getEmailFromGoogleToken(authMethod.accessToken);
@@ -140,6 +159,7 @@ export default function GoogleCallbackPage() {
 
   const handleLogout = () => {
     localStorage.removeItem(AUTH_METHOD_STORAGE_KEY);
+    localStorage.removeItem(CURRENT_AUTH_PROVIDER_KEY);
     setAuthMethod(null);
     setEmail(null);
     router.push('/');
@@ -172,6 +192,9 @@ export default function GoogleCallbackPage() {
     try {
       const litActionIpfsId = SIGN_PROPOSAL_LIT_ACTION_IPFS_ID
       log('ipfsid', litActionIpfsId)
+
+      // Get Google provider
+      const googleProvider = getProviderByAuthMethodType('google');
 
       // Step 1: Get auth method ID
       const authMethodId = await googleProvider.getAuthMethodId(authMethod);

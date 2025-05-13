@@ -1,5 +1,10 @@
 import { useState } from 'react';
-import { AUTH_METHOD_STORAGE_KEY, stytchEmailOtpProvider } from '@/lib/lit';
+import { 
+  AUTH_METHOD_STORAGE_KEY,
+  CURRENT_AUTH_PROVIDER_KEY,
+  STYTCH_SIGNIN_REDIRECT,
+  getProviderByAuthMethodType,
+} from '@/lib/lit';
 import { log } from '@/lib/utils';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,14 +59,20 @@ const StytchOTP = () => {
       });
       
       // Use the session JWT and user ID to authenticate with Lit Protocol
-      const authMethod = await stytchEmailOtpProvider?.authenticate({
+      const authMethod = await getProviderByAuthMethodType('stytch')?.authenticate({
         accessToken: data.session_jwt,
         userId: data.user_id,
       });
       
       log('authMethod from stytch', authMethod);
+      
+      // Store Stytch authentication method
       localStorage.setItem(AUTH_METHOD_STORAGE_KEY, JSON.stringify(authMethod));
-      router.push('/assets-personal');
+      // Set current auth provider
+      localStorage.setItem(CURRENT_AUTH_PROVIDER_KEY, 'stytch');
+      
+      // Redirect to Stytch callback page
+      router.push(STYTCH_SIGNIN_REDIRECT.replace(window.location.origin, ''));
       
     } catch (err: any) {
       setError(new Error(err.response?.data?.error || 'Failed to verify code'));

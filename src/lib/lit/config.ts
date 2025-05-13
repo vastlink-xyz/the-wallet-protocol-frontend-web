@@ -6,11 +6,13 @@ import { LIT_NETWORK } from '@lit-protocol/constants';
 const ORIGIN = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 export const SELECTED_LIT_NETWORK = LIT_NETWORK.DatilDev;
 
-// Path configuration
+// Auth redirect URLs
 export const GOOGLE_SIGNIN_REDIRECT = ORIGIN + '/auth/google-callback';
+export const STYTCH_SIGNIN_REDIRECT = ORIGIN + '/auth/stytch-callback';
 
-export const AUTH_METHOD_STORAGE_KEY = 'lit-auth-method';
-
+// Auth storage keys - each provider has its own storage key
+export const CURRENT_AUTH_PROVIDER_KEY = 'current-auth-provider';
+export const AUTH_METHOD_STORAGE_KEY = 'lit-auth-method'
 
 // used for multisig
 export const SIGN_PROPOSAL_LIT_ACTION_IPFS_ID = 'QmUUR1QK2DVS9CfD6b5ggBtvH9UTJuirmCBcMAXkrj2P8p'

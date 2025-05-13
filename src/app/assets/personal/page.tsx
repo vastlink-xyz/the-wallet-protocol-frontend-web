@@ -4,8 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { AuthMethod } from '@lit-protocol/types'
 import PersonalAssets from './components/PersonalAssets'
-
-const AUTH_METHOD_STORAGE_KEY = 'lit-auth-method'
+import { AUTH_METHOD_STORAGE_KEY } from '@/lib/lit'
 
 export default function PersonalAssetsPage() {
   const router = useRouter()

@@ -11,10 +11,9 @@ import { toast } from 'react-toastify'
 import axios from 'axios'
 import { getEmailFromGoogleToken, isGoogleTokenValid, log } from '@/lib/utils'
 import { 
-  calculateCIDFromString, 
-  getLitActionIpfsCid, 
+  CURRENT_AUTH_PROVIDER_KEY,
+  getProviderByAuthMethodType,
   getSessionSigsByPkp, 
-  googleProvider, 
   litNodeClient, 
   mintPKP
 } from '@/lib/lit'
@@ -306,6 +305,10 @@ export function MultisigWalletFormContent({
         ...signerAuthMethodIds.filter(id => id !== googleAuthMethodId).map(() => [AUTH_METHOD_SCOPE.NoPermissions])
       ];
 
+      const currentAuthProvider = localStorage.getItem(CURRENT_AUTH_PROVIDER_KEY)
+      if (!currentAuthProvider) {
+        throw new Error('No current auth provider found')
+      }
       const multisigPkp = await mintPKP({
         authMethod,
         options: {
@@ -316,7 +319,6 @@ export function MultisigWalletFormContent({
           addPkpEthAddressAsPermittedAddress: false,
           sendPkpToItself: true,
         },
-        provider: googleProvider,
       });
       
       log('multisig pkp', multisigPkp);
