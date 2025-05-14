@@ -150,7 +150,7 @@ export function Multisig({
   }
 
   // Helper function to verify Google token before any action
-  const verifyGoogleToken = async (): Promise<boolean> => {
+  const verifyToken = async (): Promise<boolean> => {
     if (!authMethod || !authMethod.accessToken) {
       toast.error('Authentication information is missing');
       return false;
@@ -168,11 +168,14 @@ export function Multisig({
   const handleCreateProposal = async () => {
     if (!selectedWalletId || !recipientAddress || !amount) return;
     
-    // Verify Google token before proceeding
-    if (!await verifyGoogleToken()) return;
-
+    
     try {
       setIsCreatingProposal(true)
+      // Verify token before proceeding
+      if (!await verifyToken()) {
+        setIsCreatingProposal(false)
+        return
+      };
       const txData = {
         to: recipientAddress,
         value: amount,
@@ -208,17 +211,19 @@ export function Multisig({
       return
     }
     
-    // Verify Google token before proceeding
-    if (!await verifyGoogleToken()) return;
-
     try {
       setIsSigningProposal(true)
+      // Verify token before proceeding
+      if (!await verifyToken()) {
+        setIsSigningProposal(false)
+        return
+      };
 
       const litActionIpfsId = SIGN_PROPOSAL_LIT_ACTION_IPFS_ID
       log('ipfsid', litActionIpfsId)
 
       log('current pkp', currentPkp)
-      const sessionSigs = await getSessionSigsByPkp(authMethod, sessionPkp)
+      const sessionSigs = await getSessionSigsByPkp({authMethod, pkp: sessionPkp, refreshStytchAccessToken: true})
       log('session sigs', sessionSigs)
 
       const signature = await executeSignLitAction({
@@ -350,11 +355,14 @@ export function Multisig({
       return
     }
     
-    // Verify Google token before proceeding
-    if (!await verifyGoogleToken()) return;
     
     try {
       setIsLoading(true)
+      // Verify token before proceeding
+      if (!await verifyToken()) {
+        setIsLoading(false)
+        return
+      };
       setExecuteResult(null)
       
       // Connect to Lit Network
@@ -363,7 +371,7 @@ export function Multisig({
       log('selected mulsig pkp', selectedMultisigPkp)
       
       // Get session signatures for the current user
-      const sessionSigs = await getSessionSigsByPkp(authMethod, sessionPkp)
+      const sessionSigs = await getSessionSigsByPkp({authMethod, pkp: sessionPkp, refreshStytchAccessToken: true})
       
       // Check if this is a wallet settings change proposal
       const isWalletSettingsProposal = proposal.type === 'walletSettings';
@@ -632,6 +640,15 @@ export function Multisig({
           if (sendTxObj.status === 'success' && sendTxObj.txReceipt && sendTxObj.txReceipt.hash) {
             txHash = sendTxObj.txReceipt.hash;
             log('Transaction hash from receipt:', txHash);
+            
+            // Add txHash to execution result
+            setExecuteResult({
+              txHash: txHash
+            });
+            
+            toast.success(`Transaction completed with hash ${txHash.substring(0, 10)}...${txHash.substring(txHash.length - 8)}`);
+          } else {
+            toast.error('Transaction failed')
           }
         } catch (e) {
           console.error('Error parsing sendTxResponse:', e);

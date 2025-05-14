@@ -66,7 +66,7 @@ export default function DebugPage() {
       return
     }
 
-    const sessionSigs = await getSessionSigsByPkp(authMethod, sessionPKP)
+    const sessionSigs = await getSessionSigsByPkp({authMethod, pkp: sessionPKP})
     log('session sigs', sessionSigs)
 
     // Remove '0x' prefix, Lit.Actions.signAndCombineEcdsa requires public key without the '0x' prefix
@@ -124,7 +124,7 @@ export default function DebugPage() {
         return
       }
 
-      const sessionSigs = await getSessionSigsByPkp(authMethod, currentPkp)
+      const sessionSigs = await getSessionSigsByPkp({authMethod, pkp: currentPkp})
       const pkpWallet = new PKPEthersWallet({
         controllerSessionSigs: sessionSigs,
         pkpPubKey: currentPkp.publicKey,
@@ -167,7 +167,7 @@ export default function DebugPage() {
 
       log('current pkp', currentPkp)
 
-      const sessionSigs = await getSessionSigsByPkp(authMethod, currentPkp)
+      const sessionSigs = await getSessionSigsByPkp({authMethod, pkp: currentPkp})
       const pkpWallet = new PKPEthersWallet({
         controllerSessionSigs: sessionSigs,
         pkpPubKey: currentPkp.publicKey,
@@ -207,7 +207,7 @@ export default function DebugPage() {
 
       log('current pkp', currentPkp)
 
-      const sessionSigs = await getSessionSigsByPkp(authMethod, currentPkp)
+      const sessionSigs = await getSessionSigsByPkp({authMethod, pkp: currentPkp})
       const pkpWallet = new PKPEthersWallet({
         controllerSessionSigs: sessionSigs,
         pkpPubKey: currentPkp.publicKey,

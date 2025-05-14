@@ -175,4 +175,4 @@ const go = async () => {
   }
 };
 
-export const verifyMultisigLitActionCode = `(${go.toString()})();`;
+export const multisigTransactionLitActionCode = `(${go.toString()})();`;

@@ -21,7 +21,7 @@ import {
 import { encryptString } from '@lit-protocol/encryption'
 import { AUTH_METHOD_SCOPE, AUTH_METHOD_TYPE } from '@lit-protocol/constants'
 import { ethers } from 'ethers'
-import { getCreateWalletIpfsId, getUpdateWalletIpfsId } from '@/lib/lit/ipfs-id-env'
+import { getCreateWalletIpfsId, getMultisigTransactionIpfsId, getUpdateWalletIpfsId } from '@/lib/lit/ipfs-id-env'
 import { sendMultisigNotification } from '@/lib/notification'
 import { useAuthExpiration } from '@/hooks/useAuthExpiration'
 import { isTokenValid } from '@/lib/jwt'
@@ -262,12 +262,6 @@ export function MultisigWalletFormContent({
       return;
     }
     
-    const isValid = await isTokenValid(authMethod);
-    if (!isValid) {
-      handleExpiredAuth();
-      return;
-    }
-    
     // Validate signers data
     const invalidSigners = signers.filter(s => !s.ethAddress || !s.email);
     if (invalidSigners.length > 0) {
@@ -278,9 +272,17 @@ export function MultisigWalletFormContent({
     try {
       setIsLoading(true);
 
+      const isValid = await isTokenValid(authMethod);
+      if (!isValid) {
+        handleExpiredAuth();
+        setIsLoading(false)
+        return;
+      }
+
       // Generate multisig PKP
       const createWalletIpfsIdHex = await getCreateWalletIpfsId("hex");
       const updateWalletIpfsIdHex = await getUpdateWalletIpfsId("hex");
+      const multisigTransactionIpfsIdHex = await getMultisigTransactionIpfsId('hex')
       const createWalletIpfsId = await getCreateWalletIpfsId("base58");
 
       // Collect all authMethodIds from signers
@@ -292,12 +294,14 @@ export function MultisigWalletFormContent({
       const allAuthMethodIds = [
         createWalletIpfsIdHex, 
         updateWalletIpfsIdHex, 
+        multisigTransactionIpfsIdHex,
         authMethodId,
         ...signerAuthMethodIds.filter(id => id !== authMethodId) // Avoid duplicates
       ];
       
       // Create arrays with the same length for all parameters
       const allAuthMethodTypes = [
+        AUTH_METHOD_TYPE.LitAction,
         AUTH_METHOD_TYPE.LitAction,
         AUTH_METHOD_TYPE.LitAction,
         authMethodType,
@@ -307,6 +311,7 @@ export function MultisigWalletFormContent({
       const allAuthMethodPubkeys = allAuthMethodIds.map(() => '0x');
       
       const allAuthMethodScopes = [
+        [AUTH_METHOD_SCOPE.SignAnything],
         [AUTH_METHOD_SCOPE.SignAnything],
         [AUTH_METHOD_SCOPE.SignAnything],
         [AUTH_METHOD_SCOPE.NoPermissions],
@@ -376,7 +381,7 @@ export function MultisigWalletFormContent({
       log('encrypt data');
 
       // Get session signatures
-      const sessionSigs = await getSessionSigsByPkp(authMethod, sessionPkp);
+      const sessionSigs = await getSessionSigsByPkp({authMethod, pkp: sessionPkp, refreshStytchAccessToken: true});
       log('session sigs', sessionSigs);
 
       // Execute Lit Action to create wallet

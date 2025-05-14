@@ -5,8 +5,9 @@ import {
   SessionSigs,
 } from '@lit-protocol/types';
 import { LitActionResource, LitPKPResource } from '@lit-protocol/auth-helpers';
-import { LIT_ABILITY } from '@lit-protocol/constants';
+import { AUTH_METHOD_TYPE, LIT_ABILITY } from '@lit-protocol/constants';
 import { litNodeClient } from './providers';
+import { getNewStytchAccessToken } from '../jwt';
 
 /**
  * Generate session signatures
@@ -18,12 +19,22 @@ export async function getSessionSigs({
   pkpPublicKey,
   authMethod,
   sessionSigsParams,
+  refreshStytchAccessToken,
 }: {
   pkpPublicKey: string;
   authMethod: AuthMethod;
+  refreshStytchAccessToken?: boolean;
   sessionSigsParams?: GetSessionSigsProps;
 }): Promise<SessionSigs> {
-  await litNodeClient.connect();
+  if (!litNodeClient.ready) {
+    await litNodeClient.connect();
+  }
+
+  if (authMethod.authMethodType === AUTH_METHOD_TYPE.StytchEmailFactorOtp && refreshStytchAccessToken) {
+    const newAccessToken = await getNewStytchAccessToken(authMethod.accessToken);
+    authMethod.accessToken = newAccessToken;
+  }
+
   const sessionSigs = await litNodeClient.getPkpSessionSigs({
     ...sessionSigsParams,
     pkpPublicKey,
@@ -44,8 +55,24 @@ export async function getSessionSigs({
   return sessionSigs;
 } 
 
-export const getSessionSigsByPkp = async (authMethod: AuthMethod, pkp: IRelayPKP) => {
-  await litNodeClient.connect();
+export const getSessionSigsByPkp = async ({
+  authMethod,
+  pkp,
+  refreshStytchAccessToken,
+}: {
+  authMethod: AuthMethod;
+  pkp: IRelayPKP;
+  refreshStytchAccessToken?: boolean;
+}) => {
+  if (!litNodeClient.ready) {
+    await litNodeClient.connect();
+  }
+
+  if (authMethod.authMethodType === AUTH_METHOD_TYPE.StytchEmailFactorOtp && refreshStytchAccessToken) {
+    const newAccessToken = await getNewStytchAccessToken(authMethod.accessToken);
+    authMethod.accessToken = newAccessToken;
+  }
+
   const sessionSigs = await litNodeClient.getPkpSessionSigs({
     pkpPublicKey: pkp.publicKey,
     // expiration: new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString(), // 24 hours

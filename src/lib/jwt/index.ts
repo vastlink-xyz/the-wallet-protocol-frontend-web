@@ -1,6 +1,7 @@
 import { AUTH_METHOD_TYPE } from '@lit-protocol/constants';
 import { AuthMethod } from '@lit-protocol/types';
 import { jwtDecode } from 'jwt-decode';
+import { log } from '../utils';
 
 /**
  * Extract email address from Google JWT token
@@ -55,6 +56,7 @@ async function isStytchTokenValid(token: string): Promise<boolean> {
     }),
   })
   const data = await verifyTokenRes.json()
+  log('is token valid', data)
   return data.valid
 }
 
@@ -87,4 +89,24 @@ export function getUserIdFromToken(token: string): string | null {
     console.error('Failed to decode JWT token:', error);
     return null;
   }
+}
+
+export async function getNewStytchAccessToken(token: string): Promise<string> {
+  if (!token) return '';
+  
+  const verifyTokenRes = await fetch(`/api/verify-token`, {
+    method: 'POST',
+    body: JSON.stringify({
+      authMethodType: AUTH_METHOD_TYPE.StytchEmailFactorOtp,
+      accessToken: token,
+    }),
+  })
+  const data = await verifyTokenRes.json()
+
+  log('refresh stytch access token', data)
+  if (data.valid && data.sessionJwt) {
+    return data.sessionJwt
+  }
+
+  return ''
 }

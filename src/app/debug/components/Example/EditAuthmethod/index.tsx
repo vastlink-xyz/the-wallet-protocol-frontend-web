@@ -9,7 +9,6 @@ import { useState } from "react";
 import { CURRENT_AUTH_PROVIDER_KEY, getLitActionIpfsCid, getSessionSigsByPkp, mintPKP, uploadViaPinata } from "@/lib/lit";
 import { PKPEthersWallet } from "@lit-protocol/pkp-ethers";
 import { LitContracts } from "@lit-protocol/contracts-sdk";
-import { verifyMultisigLitActionCode } from "@/lib/lit-action-code/verify-multisig.lit";
 import { editAuthmethodForDebugLitActionCode } from "@/app/debug/lit-actions/edit-authmethod-for-debug";
 import { editAuthmethodLitActionCode } from "@/app/debug/lit-actions/edit-authmethod";
 
@@ -192,7 +191,7 @@ export function EditAuthmethod({
         await litNodeClient.connect();
       }
 
-      const sessionSigs = await getSessionSigsByPkp(authMethod, sessionPKP)
+      const sessionSigs = await getSessionSigsByPkp({authMethod, pkp: sessionPKP})
       const pkpWallet = new PKPEthersWallet({
         controllerSessionSigs: sessionSigs,
         pkpPubKey: sessionPKP.publicKey,

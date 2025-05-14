@@ -6,7 +6,6 @@ import { getAuthIdByAuthMethod } from "@lit-protocol/lit-auth-client";
 import { AuthMethod, IRelayPKP } from "@lit-protocol/types";
 import { calculateCIDFromString, getLitActionIpfsCid, uploadViaPinata } from "@/lib/lit/get-lit-action-ipfs-cid";
 import { AUTH_METHOD_TYPE } from "@lit-protocol/constants";
-import { verifyMultisigLitActionCode } from "@/lib/lit-action-code/verify-multisig.lit";
 import { ethers } from "ethers";
 import { editAuthmethodLitActionCode } from "@/app/debug/lit-actions/edit-authmethod";
 import { editAuthmethodForDebugLitActionCode } from "@/app/debug/lit-actions/edit-authmethod-for-debug";
@@ -17,6 +16,7 @@ import { Loader2 } from "lucide-react";
 import { verifyAuthTokenLitActionCode } from "@/lib/lit-action-code/verify-auth-token";
 import { updateWalletSettingsLitActionCode } from "@/lib/lit-action-code/update-wallet-settings";
 import { createWalletLitActionCode } from "@/lib/lit-action-code/create-wallet";
+import { multisigTransactionLitActionCode } from "@/lib/lit-action-code/multisig-transaction.lit";
 
 // session PKP
 // const sessionPkp = {
@@ -57,7 +57,7 @@ const actionPKP_hardcoded = {
   "tokenId" : "0x59a892b5dd9cea4fca5b08c2acd7425fee6f46e048e3a6a48f4660e69ada13b4",
 }
 
-const litActionCode = updateWalletSettingsLitActionCode
+const litActionCode = verifyAuthTokenLitActionCode
 
 export function ExecuteLitActionCode({ authMethod }: { authMethod: AuthMethod }) {
   const [sessionPkp, setSessionPkp] = useState<IRelayPKP | null>(null);
