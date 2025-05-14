@@ -1,12 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { AuthMethod, IRelayPKP, SessionSigs } from "@lit-protocol/types";
-import { log, getEmailFromGoogleToken } from "@/lib/utils";
+import { log } from "@/lib/utils";
 import { litNodeClient } from "@/lib/lit";
 import mfaLitActionCode from "@/lib/lit-action-code/mfa";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import axios from "axios";
+import { getEmailFromGoogleToken } from "@/lib/jwt";
 
 const baseUrl = 'https://e5d6-1-168-164-238.ngrok-free.app'
 

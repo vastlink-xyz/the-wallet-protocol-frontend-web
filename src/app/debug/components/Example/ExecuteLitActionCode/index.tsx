@@ -3,7 +3,7 @@ import { getAuthMethodTypeByProviderName, litNodeClient } from "@/lib/lit/provid
 import { getSessionSigs } from "@/lib/lit/sessionManager";
 import { log } from "@/lib/utils";
 import { getAuthIdByAuthMethod } from "@lit-protocol/lit-auth-client";
-import { AuthMethod } from "@lit-protocol/types";
+import { AuthMethod, IRelayPKP } from "@lit-protocol/types";
 import { calculateCIDFromString, getLitActionIpfsCid, uploadViaPinata } from "@/lib/lit/get-lit-action-ipfs-cid";
 import { AUTH_METHOD_TYPE } from "@lit-protocol/constants";
 import { verifyMultisigLitActionCode } from "@/lib/lit-action-code/verify-multisig.lit";
@@ -12,7 +12,9 @@ import { editAuthmethodLitActionCode } from "@/app/debug/lit-actions/edit-authme
 import { editAuthmethodForDebugLitActionCode } from "@/app/debug/lit-actions/edit-authmethod-for-debug";
 import { encryptString } from "@lit-protocol/encryption";
 import { verifyAuthTokenLitActionCode } from "@/app/debug/lit-actions/verify-auth-token";
-import { CURRENT_AUTH_PROVIDER_KEY } from "@/lib/lit";
+import { CURRENT_AUTH_PROVIDER_KEY, getProviderByAuthMethodType } from "@/lib/lit";
+import { useState, useEffect, useCallback } from "react";
+import { Loader2 } from "lucide-react";
 
 // session PKP
 // const sessionPkp = {
@@ -21,7 +23,7 @@ import { CURRENT_AUTH_PROVIDER_KEY } from "@/lib/lit";
 //   "tokenId" : "0x851a8fe056ef1edb067cfe1d9b6d85fc8b3b8141b2bed51343e1570d6a6b73d1",
 // }
 
-const sessionPkp = {
+const sessionPkp_hardcoded = {
   "ethAddress" : "0x044c6D3e7D31EfA424067915Cdb7368ce8227989",
   "publicKey" : "0x04345027076fd8a6e3e0a3a9964d44dd3617f2d44d1354bbdec622a1dad8b168b9d1a908aa9065567bc8eaf03a42c390336d00904b951d1b25c599080c272b5b96",
   "tokenId" : "0xf61fca4abd27b15354f24ecc88c40fecace972e15b39e7a72ea6b9c9faafb486",  
@@ -47,7 +49,7 @@ const multisigPkp = {
 //   "tokenId" : "0x197d20d1fb8efe5531baa1a0b9eae43435166174d98499c7b2569c84baa30974"
 // }
 
-const actionPKP = {
+const actionPKP_hardcoded = {
   "ethAddress" : "0xC114c2c3B4582Eb3F518b9554654F6bcdA7cE7e0",
   "publicKey" : "0x0411f7539565fc71b3dc65b89f8de07d7dfadb94e706ac39d30364215ee7a454235ef9685670821796e7f5ecb37a0ff1da97989734bb1eeeb9f9e4e2894959f5d2",
   "tokenId" : "0x59a892b5dd9cea4fca5b08c2acd7425fee6f46e048e3a6a48f4660e69ada13b4",
@@ -56,14 +58,60 @@ const actionPKP = {
 const litActionCode = verifyAuthTokenLitActionCode
 
 export function ExecuteLitActionCode({ authMethod }: { authMethod: AuthMethod }) {
+  const [sessionPkp, setSessionPkp] = useState<IRelayPKP | null>(null);
+  const [actionPkp, setActionPkp] = useState<IRelayPKP | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  // Fetch user PKPs from API
+  const fetchUserPkps = useCallback(async () => {
+    if (!authMethod) return;
+    
+    try {
+      setLoading(true);
+      const currentAuthProvider = localStorage.getItem(CURRENT_AUTH_PROVIDER_KEY);
+      if (!currentAuthProvider) {
+        throw new Error('No current auth provider found');
+      }
+      const provider = getProviderByAuthMethodType(currentAuthProvider);
+      const authMethodId = await provider.getAuthMethodId(authMethod);
+      
+      const response = await fetch(`/api/user/pkp?authMethodId=${authMethodId}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.sessionPkp) {
+          setSessionPkp(data.sessionPkp);
+          log('Session PKP loaded:', data.sessionPkp);
+        }
+        if (data.litActionPkp) {
+          setActionPkp(data.litActionPkp);
+          log('Action PKP loaded:', data.litActionPkp);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching user PKPs:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [authMethod]);
+
+  // Initial data fetch when authMethod is available
+  useEffect(() => {
+    if (authMethod) {
+      fetchUserPkps();
+    }
+  }, [authMethod, fetchUserPkps]);
 
   const handleExecuteLitAction = async () => {
     log('authMethod', authMethod);
+    const pkpPublicKey = sessionPkp?.publicKey || sessionPkp_hardcoded.publicKey;
+    
     const sessionSigs = await getSessionSigs({
-      pkpPublicKey: sessionPkp.publicKey,
+      pkpPublicKey,
       authMethod,
     });
     log('sessionSigs', sessionSigs);
+    
     const authMethodId = await getAuthIdByAuthMethod(authMethod);
     const currentAuthProvider = localStorage.getItem(CURRENT_AUTH_PROVIDER_KEY)
     if (!currentAuthProvider) {
@@ -163,11 +211,14 @@ export function ExecuteLitActionCode({ authMethod }: { authMethod: AuthMethod })
 
   const handleVerifyToken = async () => {
     log('authMethod', authMethod);
+    const pkpPublicKey = sessionPkp?.publicKey!;
+    
     const sessionSigs = await getSessionSigs({
-      pkpPublicKey: sessionPkp.publicKey,
+      pkpPublicKey,
       authMethod,
     });
     log('sessionSigs', sessionSigs);
+    
     const authMethodId = await getAuthIdByAuthMethod(authMethod);
     log('authMethodId', authMethodId);
     try {
@@ -178,7 +229,7 @@ export function ExecuteLitActionCode({ authMethod }: { authMethod: AuthMethod })
           accessToken: authMethod.accessToken,
           authMethodId,
           authMethodType: authMethod.authMethodType,
-          publicKey: actionPKP.publicKey,
+          publicKey: actionPkp?.publicKey,
           env: process.env.NEXT_PUBLIC_ENV,
         },
       });
@@ -191,6 +242,7 @@ export function ExecuteLitActionCode({ authMethod }: { authMethod: AuthMethod })
   return (
     <div>
       <h2>Execute Lit Action</h2>
+
       <Button 
         onClick={handleExecuteLitAction}
         className="mt-4"

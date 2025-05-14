@@ -11,9 +11,10 @@ import {
   SIGN_PROPOSAL_LIT_ACTION_IPFS_ID, 
   AUTH_METHOD_STORAGE_KEY
 } from '@/lib/lit';
-import { log, getEmailFromGoogleToken } from '@/lib/utils';
+import { log } from '@/lib/utils';
 import { isSignInRedirect, getProviderFromUrl } from '@lit-protocol/lit-auth-client';
 import { AuthMethod, IRelayPKP } from '@lit-protocol/types';
+import { getEmailFromGoogleToken } from '@/lib/jwt';
 
 export default function GoogleCallbackPage() {
   const router = useRouter();

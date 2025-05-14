@@ -27,18 +27,24 @@ const _litActionCode = async () => {
       throw new Error(`Invalid Base URL`);
   }
 
-  const verifyTokenRes = await fetch(`${apiBaseUrl}/api/verify-token`, {
-    method: 'POST',
-    body: JSON.stringify({
-      authMethodType,
-      accessToken,
-    }),
-  })
-  const data = await verifyTokenRes.json()
-  console.log('verify token data', data)
+  const isSuccess = await Lit.Actions.runOnce(
+    { waitForResponse: true, name: 'verifyToken' },
+    async () => {
+      const verifyTokenRes = await fetch(`${apiBaseUrl}/api/verify-token`, {
+        method: 'POST',
+        body: JSON.stringify({
+          authMethodType,
+          accessToken,
+        }),
+      })
+      const data = await verifyTokenRes.json()
+      return data.valid
+    }
+  )
+  console.log('verify token data is success', isSuccess)
 
   // If the token is not valid, return false
-  if (!data.valid) {
+  if ((isSuccess as any) !== 'true') {
     return Lit.Actions.setResponse({
       response: JSON.stringify(res),
     });

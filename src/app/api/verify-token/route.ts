@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       valid: true,
-      user: verificationResult.user
+      sessionJwt: verificationResult.sessionJwt,
     });
   } catch (error: any) {
     console.error('Error verifying token:', error);
@@ -48,12 +48,7 @@ const GOOGLE_CLIENT_ID = '490433686717-d2j3b3ocpu1qdaqql38c5ge841fu75p7.apps.goo
 
 interface VerificationResult {
   valid: boolean;
-  user?: {
-    id: string;
-    email?: string;
-    name?: string;
-    [key: string]: any;
-  };
+  sessionJwt?: string;
   error?: string;
 }
 
@@ -83,11 +78,6 @@ async function verifyGoogleToken(token: string): Promise<VerificationResult | nu
 
     return {
       valid: true,
-      user: {
-        id: tokenInfo.sub,
-        email: tokenInfo.email,
-        name: tokenInfo.name
-      }
     };
   } catch (error) {
     console.error("Error verifying Google token:", error);
@@ -105,12 +95,12 @@ async function verifyStytchToken(token: string): Promise<VerificationResult | nu
     const response = await stytchClient.sessions.authenticateJwt({
       session_jwt: token
     });
+
+    console.log('res', response)
     
     return {
       valid: true,
-      user: {
-        id: response.session.user_id,
-      }
+      sessionJwt: response.session_jwt,
     };
   } catch (error) {
     console.error("Error verifying Stytch token:", error);

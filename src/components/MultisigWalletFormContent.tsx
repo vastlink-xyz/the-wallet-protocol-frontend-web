@@ -9,7 +9,7 @@ import { Loader2, Plus, Trash2 } from 'lucide-react'
 import { AuthMethod, IRelayPKP } from '@lit-protocol/types'
 import { toast } from 'react-toastify'
 import axios from 'axios'
-import { getEmailFromGoogleToken, isGoogleTokenValid, log } from '@/lib/utils'
+import { log } from '@/lib/utils'
 import { 
   CURRENT_AUTH_PROVIDER_KEY,
   getAuthMethodTypeByProviderName,
@@ -24,6 +24,7 @@ import { ethers } from 'ethers'
 import { getCreateWalletIpfsId, getUpdateWalletIpfsId } from '@/lib/lit/ipfs-id-env'
 import { sendMultisigNotification } from '@/lib/notification'
 import { useAuthExpiration } from '@/hooks/useAuthExpiration'
+import { getEmailFromGoogleToken, isTokenValid } from '@/lib/jwt'
 
 interface MultisigWalletFormContentProps {
   mode: 'create' | 'edit'
@@ -261,7 +262,7 @@ export function MultisigWalletFormContent({
       return;
     }
     
-    const isValid = await isGoogleTokenValid(authMethod.accessToken);
+    const isValid = await isTokenValid(authMethod);
     if (!isValid) {
       handleExpiredAuth();
       return;
@@ -488,7 +489,7 @@ export function MultisigWalletFormContent({
         return;
       }
       
-      const isValid = await isGoogleTokenValid(authMethod.accessToken);
+      const isValid = await isTokenValid(authMethod);
       if (!isValid) {
         handleExpiredAuth();
         setIsLoading(false);
@@ -613,7 +614,7 @@ export function MultisigWalletFormContent({
         return;
       }
       
-      const isValid = await isGoogleTokenValid(authMethod.accessToken);
+      const isValid = await isTokenValid(authMethod);
       if (!isValid) {
         handleExpiredAuth();
         setIsLoading(false);

@@ -7,7 +7,7 @@ import axios from 'axios'
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { executeSignLitAction, mintMultisigPKP } from "../helper"
-import { log, formatEthAmount, fetchEthBalance, isGoogleTokenValid, getEmailFromGoogleToken } from "@/lib/utils"
+import { log, formatEthAmount, fetchEthBalance } from "@/lib/utils"
 import { calculateCIDFromString, CURRENT_AUTH_PROVIDER_KEY, getAuthMethodTypeByProviderName, getSessionSigsByPkp, MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID, SIGN_PROPOSAL_LIT_ACTION_IPFS_ID } from "@/lib/lit"
 import { litNodeClient } from "@/lib/lit"
 import { AlertCircle } from "lucide-react"
@@ -21,6 +21,7 @@ import { WalletSettingsProposal } from "./WalletSettingsProposal"
 import { getUpdateWalletIpfsId } from "@/lib/lit/ipfs-id-env"
 import { sendMultisigNotification } from '@/lib/notification'
 import { useAuthExpiration } from '@/hooks/useAuthExpiration'
+import { getEmailFromGoogleToken, isTokenValid } from "@/lib/jwt"
 
 // eth sepolia
 const chainInfo = {
@@ -155,7 +156,7 @@ export function Multisig({
       return false;
     }
     
-    const isValid = await isGoogleTokenValid(authMethod.accessToken);
+    const isValid = await isTokenValid(authMethod);
     if (!isValid) {
       handleExpiredAuth();
       return false;
