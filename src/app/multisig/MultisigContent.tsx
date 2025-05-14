@@ -4,16 +4,21 @@ import { useEffect, useState, useCallback } from 'react';
 import { AuthMethod, IRelayPKP } from '@lit-protocol/types';
 import { Button } from '@/components/ui/button';
 import { Multisig } from './components';
-import { Loader2 } from 'lucide-react';
-import { useSearchParams } from 'next/navigation';
+import { Loader2, ArrowLeft } from 'lucide-react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { getProviderByAuthMethodType } from '@/lib/lit';
 import { CURRENT_AUTH_PROVIDER_KEY } from '@/lib/lit';
+import { useAuthExpiration } from '@/hooks/useAuthExpiration';
 
 const AUTH_METHOD_STORAGE_KEY = 'lit-auth-method';
 
 export default function MultisigContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const walletId = searchParams.get('walletId');
+
+  // Check if the auth method is expired when the component mounts
+  const { handleExpiredAuth } = useAuthExpiration();
   
   const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null);
   const [loading, setLoading] = useState(true);
@@ -34,6 +39,9 @@ export default function MultisigContent() {
       }
     }
     setLoading(false);
+
+    // Check if the auth method is expired when the component mounts
+    handleExpiredAuth()
   }, []);
 
   // Fetch user PKPs from API
@@ -74,12 +82,6 @@ export default function MultisigContent() {
       fetchUserPkps();
     }
   }, [authMethod, fetchUserPkps]);
-  
-  // Callback function for when Mint component completes PKP minting
-  const handleMintComplete = useCallback((newSessionPkp: IRelayPKP, newLitActionPkp: IRelayPKP) => {
-    setSessionPkp(newSessionPkp);
-    setLitActionPkp(newLitActionPkp);
-  }, []);
 
   if (loading) {
     return (
@@ -106,16 +108,18 @@ export default function MultisigContent() {
   if (authMethod && authMethodId) {
     return (
       <>
-        {/* <Mint 
-          authMethod={authMethod} 
-          litActionPkp={litActionPkp}
-          isLoading={fetchingData}
-          onMintComplete={handleMintComplete}
-        /> */}
-
         {
           (litActionPkp && sessionPkp) ? (
             <div className="max-w-4xl mx-auto p-4 space-y-6">
+              <div className="mb-4">
+                <button 
+                  onClick={() => router.push('/assets/team')}
+                  className="flex items-center text-sm font-medium text-gray-600 hover:text-gray-900 cursor-pointer"
+                >
+                  <ArrowLeft className="h-5 w-5 mr-1" />
+                  Back to Team Assets
+                </button>
+              </div>
               <Multisig
                 currentPkp={litActionPkp}
                 sessionPkp={sessionPkp}
@@ -129,21 +133,4 @@ export default function MultisigContent() {
       </>
     );
   }
-
-  return (
-    <div className="max-w-4xl mx-auto p-4">
-      <div className="bg-card p-6 rounded-lg border text-center space-y-4">
-        <h2 className="text-lg font-semibold">Welcome to Vastbase powered by Vastlink</h2>
-        <p className="text-muted-foreground">
-          Please sign in with Google or Email.
-        </p>
-        <Button 
-          onClick={() => window.location.href = '/'} 
-          variant="outline"
-        >
-          Sign In
-        </Button>
-      </div>
-    </div>
-  );
 }

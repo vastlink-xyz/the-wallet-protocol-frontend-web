@@ -109,8 +109,8 @@ export function WalletCard({ id, signers, pkp }: WalletCardProps) {
 
   // Handle click on the wallet card
   const handleCardClick = () => {
-    // Navigate to multisig page with wallet ID as query parameter
-    router.push(`/multisig?walletId=${id}`)
+    // Open multisig page in a new tab
+    window.open(`/multisig?walletId=${id}`, '_blank')
   }
 
   return (

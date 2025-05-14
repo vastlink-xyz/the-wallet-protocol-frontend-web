@@ -1,4 +1,5 @@
 import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import { toast } from 'react-toastify';
 
 /**
@@ -9,7 +10,7 @@ export function useAuthExpiration() {
   const router = useRouter();
   
   const handleExpiredAuth = (message?: string) => {
-    const defaultMessage = 'Your Google login has expired. Please log in again.';
+    const defaultMessage = 'Your access token has expired. Please log in again.';
     toast.error(message || defaultMessage);
     
     // Redirect to home page after a short delay to allow toast to be visible
