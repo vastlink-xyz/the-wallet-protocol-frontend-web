@@ -3,14 +3,16 @@ declare const ethers: any
 declare const authParams: any
 declare const dataToEncryptHash: string
 declare const publicKey: string
+declare const env: string
 
 const _litActionCode = async () => {
-  // verify google auth
+  // verify auth token
   const res = await Lit.Actions.call({
-    ipfsId: 'QmXVzcSHk16XLu5ACWNJywxfUHX1KnY1fu66J9Skh533pg',
+    ipfsId: 'QmNcUQ4jqnnjNue8T5RNekSQ2numbqshSiyXCnZi73QZ1u',
     params: {
       ...authParams,
       publicKey,
+      env,
     },
   })
   console.log('res', res)

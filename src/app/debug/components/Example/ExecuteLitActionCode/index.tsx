@@ -11,10 +11,12 @@ import { ethers } from "ethers";
 import { editAuthmethodLitActionCode } from "@/app/debug/lit-actions/edit-authmethod";
 import { editAuthmethodForDebugLitActionCode } from "@/app/debug/lit-actions/edit-authmethod-for-debug";
 import { encryptString } from "@lit-protocol/encryption";
-import { verifyAuthTokenLitActionCode } from "@/app/debug/lit-actions/verify-auth-token";
 import { CURRENT_AUTH_PROVIDER_KEY, getProviderByAuthMethodType } from "@/lib/lit";
 import { useState, useEffect, useCallback } from "react";
 import { Loader2 } from "lucide-react";
+import { verifyAuthTokenLitActionCode } from "@/lib/lit-action-code/verify-auth-token";
+import { updateWalletSettingsLitActionCode } from "@/lib/lit-action-code/update-wallet-settings";
+import { createWalletLitActionCode } from "@/lib/lit-action-code/create-wallet";
 
 // session PKP
 // const sessionPkp = {
@@ -55,7 +57,7 @@ const actionPKP_hardcoded = {
   "tokenId" : "0x59a892b5dd9cea4fca5b08c2acd7425fee6f46e048e3a6a48f4660e69ada13b4",
 }
 
-const litActionCode = verifyAuthTokenLitActionCode
+const litActionCode = updateWalletSettingsLitActionCode
 
 export function ExecuteLitActionCode({ authMethod }: { authMethod: AuthMethod }) {
   const [sessionPkp, setSessionPkp] = useState<IRelayPKP | null>(null);
@@ -211,7 +213,7 @@ export function ExecuteLitActionCode({ authMethod }: { authMethod: AuthMethod })
 
   const handleVerifyToken = async () => {
     log('authMethod', authMethod);
-    const pkpPublicKey = sessionPkp?.publicKey!;
+    const pkpPublicKey = sessionPkp?.publicKey || sessionPkp_hardcoded.publicKey;
     
     const sessionSigs = await getSessionSigs({
       pkpPublicKey,

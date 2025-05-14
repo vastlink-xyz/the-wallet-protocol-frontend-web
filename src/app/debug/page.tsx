@@ -10,7 +10,6 @@ import { LitContracts } from "@lit-protocol/contracts-sdk";
 import { ethers, utils } from "ethers";
 import { AUTH_METHOD_SCOPE, LIT_CHAINS } from "@lit-protocol/constants";
 import { Example } from "./components/Example";
-import { mainLitActionCode } from "./lit-actions/main";
 
 // eth sepolia
 const chainInfo = {
@@ -156,7 +155,6 @@ export default function DebugPage() {
   const handleLogLitActionCode = async () => {
     // console.log(signTransactionLitActionCode)
     // console.log(customLitActionCode)
-    console.log(mainLitActionCode)
   }
 
   const handleLogPermittedActions = async () => {

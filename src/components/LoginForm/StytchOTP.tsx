@@ -21,7 +21,7 @@ type OtpStep = 'submit' | 'verify';
 const StytchOTP = () => {
   const router = useRouter();
   const [step, setStep] = useState<OtpStep>('submit');
-  const [userId, setUserId] = useState<string>('');
+  const [email, setEmail] = useState<string>('');
   const [methodId, setMethodId] = useState<string>('');
   const [code, setCode] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
@@ -34,7 +34,7 @@ const StytchOTP = () => {
     try {
       // Call backend API to send OTP
       const { data } = await axios.post('/api/stytch/send-otp', { 
-        email: userId 
+        email 
       });
       
       console.log('OTP sent successfully:', data);
@@ -70,6 +70,8 @@ const StytchOTP = () => {
       localStorage.setItem(AUTH_METHOD_STORAGE_KEY, JSON.stringify(authMethod));
       // Set current auth provider
       localStorage.setItem(CURRENT_AUTH_PROVIDER_KEY, 'stytch');
+
+      localStorage.setItem('user', JSON.stringify({ email }));
       
       // Redirect to Stytch callback page
       router.push(STYTCH_SIGNIN_REDIRECT.replace(window.location.origin, ''));
@@ -107,8 +109,8 @@ const StytchOTP = () => {
                 </label>
                 <Input
                   id="email"
-                  value={userId}
-                  onChange={e => setUserId(e.target.value)}
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
                   type="email"
                   placeholder="Your email"
                   autoComplete="off"
@@ -137,7 +139,7 @@ const StytchOTP = () => {
           <CardHeader>
             <CardTitle>Check your email</CardTitle>
             <CardDescription>
-              Enter the 6-digit verification code sent to {userId}
+              Enter the 6-digit verification code sent to {email}
             </CardDescription>
           </CardHeader>
           

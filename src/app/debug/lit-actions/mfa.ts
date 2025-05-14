@@ -61,6 +61,4 @@ const _litActionCode = async () => {
   }
 };
 
-const litActionCode = `(${_litActionCode.toString()})();`;
-
-export default litActionCode;
+export const mfaLitActionCode = `(${_litActionCode.toString()})();`;

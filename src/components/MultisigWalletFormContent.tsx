@@ -9,7 +9,7 @@ import { Loader2, Plus, Trash2 } from 'lucide-react'
 import { AuthMethod, IRelayPKP } from '@lit-protocol/types'
 import { toast } from 'react-toastify'
 import axios from 'axios'
-import { log } from '@/lib/utils'
+import { getUserEmailFromStorage, log } from '@/lib/utils'
 import { 
   CURRENT_AUTH_PROVIDER_KEY,
   getAuthMethodTypeByProviderName,
@@ -24,7 +24,7 @@ import { ethers } from 'ethers'
 import { getCreateWalletIpfsId, getUpdateWalletIpfsId } from '@/lib/lit/ipfs-id-env'
 import { sendMultisigNotification } from '@/lib/notification'
 import { useAuthExpiration } from '@/hooks/useAuthExpiration'
-import { getEmailFromGoogleToken, isTokenValid } from '@/lib/jwt'
+import { isTokenValid } from '@/lib/jwt'
 
 interface MultisigWalletFormContentProps {
   mode: 'create' | 'edit'
@@ -146,7 +146,7 @@ export function MultisigWalletFormContent({
   // Get current user's email from authMethod
   let currentUserEmail = '';
   if (authMethod.accessToken) {
-    const email = getEmailFromGoogleToken(authMethod.accessToken);
+    const email = getUserEmailFromStorage()
     if (email) {
       currentUserEmail = email;
     }
@@ -313,10 +313,6 @@ export function MultisigWalletFormContent({
         ...signerAuthMethodIds.filter(id => id !== authMethodId).map(() => [AUTH_METHOD_SCOPE.NoPermissions])
       ];
 
-      const currentAuthProvider = localStorage.getItem(CURRENT_AUTH_PROVIDER_KEY)
-      if (!currentAuthProvider) {
-        throw new Error('No current auth provider found')
-      }
       const multisigPkp = await mintPKP({
         authMethod,
         options: {
@@ -391,10 +387,11 @@ export function MultisigWalletFormContent({
           authParams: {
             accessToken: authMethod.accessToken,
             authMethodId: authMethodId,
-            authMethodType: ethers.utils.hexValue(authMethodType), // kkktodo
+            authMethodType: authMethod.authMethodType,
           },
           dataToEncryptHash,
           publicKey: multisigPkp.publicKey,
+          env: process.env.NEXT_PUBLIC_ENV,
         },
       });
       log('litaction res', litActionRes);

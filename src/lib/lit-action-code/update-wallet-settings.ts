@@ -6,11 +6,10 @@ declare const publicKey: string
 declare const env: string
 declare const Lit: any
 
-// kkktodo: update-settings
 const _litActionCode = async () => {
   const currentActionIpfsId = Lit.Auth.actionIpfsIds[0]
   console.log('currentActionIpfsId', currentActionIpfsId)
-  const ipfsIdForVerifyGoogleAuthLitAction = 'QmXVzcSHk16XLu5ACWNJywxfUHX1KnY1fu66J9Skh533pg'
+  const ipfsIdForVerifyAuthTokenLitAction = 'QmNcUQ4jqnnjNue8T5RNekSQ2numbqshSiyXCnZi73QZ1u'
 
   async function editAuthmethod({
     pkpPublicKey,
@@ -172,10 +171,11 @@ const _litActionCode = async () => {
 
   // verify google auth
   const authVerifyRes = await Lit.Actions.call({
-    ipfsId: ipfsIdForVerifyGoogleAuthLitAction,
+    ipfsId: ipfsIdForVerifyAuthTokenLitAction,
     params: {
       ...authParams,
       publicKey,
+      env,
     },
   })
 
@@ -300,7 +300,7 @@ const _litActionCode = async () => {
     // Only process signer changes when the proposal explicitly includes a signers field
     if (parsedProposalMessage.signers !== undefined) {
       const parsedProposalMessageSigners = parsedProposalMessage.signers || []
-      
+
       // Find signers to add (in proposal but not in decrypted data)
       for (const proposalSigner of parsedProposalMessageSigners) {
         const exists = parsedDecryptedData.signers.some((signer: any) => signer.ethAddress.toLowerCase() === proposalSigner.ethAddress.toLowerCase());
@@ -470,4 +470,4 @@ const _litActionCode = async () => {
   }
 };
 
-export const updateWalletLitActionCode = `(${_litActionCode.toString()})();`;
+export const updateWalletSettingsLitActionCode = `(${_litActionCode.toString()})();`;

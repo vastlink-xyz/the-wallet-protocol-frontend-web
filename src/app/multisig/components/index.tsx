@@ -7,7 +7,7 @@ import axios from 'axios'
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { executeSignLitAction, mintMultisigPKP } from "../helper"
-import { log, formatEthAmount, fetchEthBalance } from "@/lib/utils"
+import { log, formatEthAmount, fetchEthBalance, getUserEmailFromStorage } from "@/lib/utils"
 import { calculateCIDFromString, CURRENT_AUTH_PROVIDER_KEY, getAuthMethodTypeByProviderName, getSessionSigsByPkp, MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID, SIGN_PROPOSAL_LIT_ACTION_IPFS_ID } from "@/lib/lit"
 import { litNodeClient } from "@/lib/lit"
 import { AlertCircle } from "lucide-react"
@@ -21,7 +21,7 @@ import { WalletSettingsProposal } from "./WalletSettingsProposal"
 import { getUpdateWalletIpfsId } from "@/lib/lit/ipfs-id-env"
 import { sendMultisigNotification } from '@/lib/notification'
 import { useAuthExpiration } from '@/hooks/useAuthExpiration'
-import { getEmailFromGoogleToken, isTokenValid } from "@/lib/jwt"
+import { isTokenValid } from "@/lib/jwt"
 
 // eth sepolia
 const chainInfo = {
@@ -412,11 +412,6 @@ export function Multisig({
     log('selected multisig pkp', selectedWallet.pkp.publicKey)
 
     const updateWalletIpfsId = await getUpdateWalletIpfsId("base58")
-    const currentAuthProvider = localStorage.getItem(CURRENT_AUTH_PROVIDER_KEY)
-    if (!currentAuthProvider) {
-      throw new Error('No current auth provider found')
-    }
-    const authMethodType = getAuthMethodTypeByProviderName(currentAuthProvider)
 
     try {
       const litActionResponse = await litNodeClient.executeJs({
@@ -426,7 +421,7 @@ export function Multisig({
           authParams: {
             accessToken: authMethod.accessToken,
             authMethodId: authMethodId,
-            authMethodType,
+            authMethodType: authMethod.authMethodType,
           },
           publicKey: selectedWallet.pkp.publicKey,
           env: process.env.NEXT_PUBLIC_ENV,
@@ -511,10 +506,7 @@ export function Multisig({
       // Send email notifications to new signers if any
       if (newSigners.length > 0) {
         // Get current user's email
-        let currentUserEmail = '';
-        if (authMethod.accessToken) {
-          currentUserEmail = getEmailFromGoogleToken(authMethod.accessToken) || '';
-        }
+        const currentUserEmail = getUserEmailFromStorage()
         
         // Build wallet link
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;

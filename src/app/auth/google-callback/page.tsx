@@ -66,6 +66,15 @@ export default function GoogleCallbackPage() {
           // get user email
           const userEmail = getEmailFromGoogleToken(parsedAuthMethod.accessToken);
           setEmail(userEmail);
+          
+          // Store user email in localStorage
+          if (userEmail) {
+            try {
+              localStorage.setItem('user', JSON.stringify({ email: userEmail }));
+            } catch (error) {
+              console.error('Failed to save user email to localStorage:', error);
+            }
+          }
 
           redirectAfterAuthentication(parsedAuthMethod)
           return
@@ -161,6 +170,7 @@ export default function GoogleCallbackPage() {
   const handleLogout = () => {
     localStorage.removeItem(AUTH_METHOD_STORAGE_KEY);
     localStorage.removeItem(CURRENT_AUTH_PROVIDER_KEY);
+    localStorage.removeItem('user');
     setAuthMethod(null);
     setEmail(null);
     router.push('/');

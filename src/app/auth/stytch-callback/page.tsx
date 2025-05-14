@@ -10,10 +10,11 @@ import {
   mintPKPWithPermanentLitAction, 
   SIGN_PROPOSAL_LIT_ACTION_IPFS_ID 
 } from '@/lib/lit';
-import { getUserIdFromToken, log } from '@/lib/utils';
+import { log } from '@/lib/utils';
 import { AuthMethod, IRelayPKP } from '@lit-protocol/types';
 import axios from 'axios';
 import { AUTH_METHOD_TYPE } from '@lit-protocol/constants';
+import { getUserIdFromToken } from '@/lib/jwt';
 
 export default function StytchCallbackPage() {
   const router = useRouter();

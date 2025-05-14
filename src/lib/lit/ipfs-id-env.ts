@@ -1,25 +1,28 @@
-import { updateWalletLitActionCode } from "@/app/debug/lit-actions/update-wallet"
 import { getLitActionIpfsCid } from "./get-lit-action-ipfs-cid"
-import { createWalletLitActionCode } from "@/app/debug/lit-actions/create-wallet"
+import { createWalletLitActionCode } from "../lit-action-code/create-wallet"
+import { verifyAuthTokenLitActionCode } from "../lit-action-code/verify-auth-token"
+import { updateWalletSettingsLitActionCode } from "../lit-action-code/update-wallet-settings"
 
-const updateWalletIpfsId = 'QmRvbDbi1ABJDeK4wXVXYsjj1Z952RvG4VZX4dghqWBmsV'
-const updateWalletIpfsIdHex = '0x12203544dc44fc12ef96c4f648ea7279b9051f7129ba5a33e49fa21cc1b65e86d980'
+const updateWalletSettingsIpfsId = 'QmWiXDMMRSSY4rKmSy5ZrXvBYRm8FeY7VdPoyx1hwNjo5Y'
+const updateWalletSettingsIpfsIdHex = '0x12207c77cc36cbed78a0cbad49516cc7bdfe6b7391be0ff8c55f8df69c099e24d31f'
 
-const createWalletIpfsId = 'QmRPr5M6tpmaZHe4GsWrovpqZhqAQsMaZXwj4PGAqT7P3d'
-const createWalletIpfsIdHex = '0x12202d64a7b02f6aa59d52801624ba20945d0a56c57c5d7d3e711e176bbc2f6ab200'
+const createWalletIpfsId = 'QmWWCfH9doco4zadnFk5wKYTfvnWx71ZoUCoUcMj69qPuk'
+const createWalletIpfsIdHex = '0x1220794fd99f5f8459c602e869a7af409bd7f3bf92b5d45f689bcf31b9f736a9a2ab'
 
+const verifyAuthTokenIpfsId = 'QmNcUQ4jqnnjNue8T5RNekSQ2numbqshSiyXCnZi73QZ1u'
+const verifyAuthTokenIpfsHex = '0x1220040da25a9624a5c139461568874b5f39658a5f9d728c4bc538fb320eb19add6c'
 
 export const getUpdateWalletIpfsId = async (outputFormat: "base58" | "hex") => {
   if (process.env.NEXT_PUBLIC_ENV === 'dev') {
     return await getLitActionIpfsCid({
-      input: updateWalletLitActionCode,
+      input: updateWalletSettingsLitActionCode,
       outputFormat: outputFormat
     })
   } else {
     if (outputFormat === "base58") {
-      return updateWalletIpfsId
+      return updateWalletSettingsIpfsId
     } else {
-      return updateWalletIpfsIdHex
+      return updateWalletSettingsIpfsIdHex
     }
   }
 }
@@ -35,6 +38,21 @@ export const getCreateWalletIpfsId = async (outputFormat: "base58" | "hex") => {
       return createWalletIpfsId
     } else {
       return createWalletIpfsIdHex
+    }
+  }
+}
+
+export const getVerifyAuthTokenIpfsId = async (outputFormat: "base58" | "hex") => {
+  if (process.env.NEXT_PUBLIC_ENV === 'dev') {
+    return await getLitActionIpfsCid({
+      input: verifyAuthTokenLitActionCode,
+      outputFormat: outputFormat
+    })
+  } else {
+    if (outputFormat === "base58") {
+      return verifyAuthTokenIpfsId
+    } else {
+      return verifyAuthTokenIpfsHex
     }
   }
 }

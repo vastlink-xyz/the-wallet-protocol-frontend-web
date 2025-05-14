@@ -3,10 +3,11 @@
 import { useEffect, useState } from 'react';
 import { StytchMfa } from './components/StytchMfa';
 import { AUTH_METHOD_STORAGE_KEY } from '@/lib/lit';
-import { log, getUserIdFromToken } from '@/lib/utils';
+import { log } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { getUserIdFromToken } from '@/lib/jwt';
 
 export default function StytchDemoPage() {
   const [authMethod, setAuthMethod] = useState<any>(null);
@@ -125,6 +126,7 @@ export default function StytchDemoPage() {
         <div className="mt-8">
           <Button variant="outline" onClick={() => {
             localStorage.removeItem(AUTH_METHOD_STORAGE_KEY);
+            localStorage.removeItem('user');
             window.location.href = '/';
           }}>
             Logout
