@@ -133,9 +133,9 @@ export default function MultisigContent() {
   return (
     <div className="max-w-4xl mx-auto p-4">
       <div className="bg-card p-6 rounded-lg border text-center space-y-4">
-        <h2 className="text-lg font-semibold">Welcome to Lit Protocol Dashboard</h2>
+        <h2 className="text-lg font-semibold">Welcome to Vastbase powered by Vastlink</h2>
         <p className="text-muted-foreground">
-          Please sign in with Google to access your PKP and manage your digital assets.
+          Please sign in with Google or Email.
         </p>
         <Button 
           onClick={() => window.location.href = '/'} 

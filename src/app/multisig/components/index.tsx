@@ -685,7 +685,7 @@ export function Multisig({
         <div className="bg-card p-4 rounded-lg border">
           {/* header */}
           <div className="flex justify-between items-center mb-4">
-            <h3 className="font-medium">Selected Multisig Wallet PKP Details</h3>
+            <h3 className="font-medium">Team Multisig Wallet Details</h3>
             <Button
               variant="outline"
               size="sm"
