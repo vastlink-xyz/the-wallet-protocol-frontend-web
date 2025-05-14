@@ -643,6 +643,7 @@ export function Multisig({
             
             // Add txHash to execution result
             setExecuteResult({
+              proposalId: proposal.id,
               txHash: txHash
             });
             
