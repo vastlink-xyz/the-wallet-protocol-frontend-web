@@ -205,7 +205,7 @@ export default function StytchCallbackPage() {
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">Processing Stytch Login...</div>;
+    return <div className="flex items-center justify-center min-h-screen">Logging in ...</div>;
   }
   
   if (error) {

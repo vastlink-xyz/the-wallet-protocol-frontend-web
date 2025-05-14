@@ -139,7 +139,7 @@ export function WalletCard({ id, signers, pkp }: WalletCardProps) {
       
       {/* Main content */}
       <div className="pt-14 pb-4">
-        <h3 className="font-medium text-xl">{walletName || "2-of-2 Multisig Wallet"}</h3>
+        <h3 className="font-medium text-xl">{walletName || "Team Multisig Wallet"}</h3>
         
         {/* Wallet address with copy button */}
         <div className="text-gray-600 mt-3 font-mono text-sm flex items-center">

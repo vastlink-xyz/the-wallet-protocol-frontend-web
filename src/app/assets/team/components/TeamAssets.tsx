@@ -134,7 +134,7 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
           ) : (
             <div className="text-center mb-4">
               <p>You don&apos;t have any multisig wallets yet.</p>
-              <p className="text-sm text-gray-500 mt-2">Create your first 2-of-2 multisig wallet by clicking the button below.</p>
+              <p className="text-sm text-gray-500 mt-2">Create your first team multisig wallet by clicking the button below.</p>
               <p className="text-xs text-gray-400 mt-1">Both signers must approve each transaction.</p>
             </div>
           )}
