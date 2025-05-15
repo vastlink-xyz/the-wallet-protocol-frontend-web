@@ -6,14 +6,13 @@ import {
   AUTH_METHOD_STORAGE_KEY,
   CURRENT_AUTH_PROVIDER_KEY,
   getProviderByAuthMethodType,
-  mintPKPNormally, 
-  mintPKPWithPermanentLitAction, 
+  mintPersonalPKP,
+  mintSessionPKP, 
   SIGN_PROPOSAL_LIT_ACTION_IPFS_ID 
 } from '@/lib/lit';
 import { log } from '@/lib/utils';
 import { AuthMethod, IRelayPKP } from '@lit-protocol/types';
 import axios from 'axios';
-import { AUTH_METHOD_TYPE } from '@lit-protocol/constants';
 import { getUserIdFromToken } from '@/lib/jwt';
 
 export default function StytchCallbackPage() {
@@ -175,9 +174,6 @@ export default function StytchCallbackPage() {
 
   const handleMintPkp = async (authMethod: AuthMethod) => {
     try {
-      const litActionIpfsId = SIGN_PROPOSAL_LIT_ACTION_IPFS_ID;
-      log('ipfsid', litActionIpfsId);
-
       // Get the Stytch provider
       const stytchProvider = getProviderByAuthMethodType('stytch');
 
@@ -185,15 +181,14 @@ export default function StytchCallbackPage() {
       const authMethodId = await stytchProvider.getAuthMethodId(authMethod);
       
       // Step 2: Mint the first PKP for session
-      const pkpForSession = await mintPKPNormally(authMethod);
+      const pkpForSession = await mintSessionPKP(authMethod);
       
       // Step 3: Save first PKP to database with 'session' type
       await savePkpToDatabase(authMethodId, pkpForSession, 'session');
       
       // Step 4: Mint the second PKP with permanent Lit Action
-      const pkpForLitAction = await mintPKPWithPermanentLitAction({
+      const pkpForLitAction = await mintPersonalPKP({
         authMethod,
-        litActionIpfsId,
       });
       
       // Step 5: Save second PKP to database with 'litAction' type

@@ -17,6 +17,8 @@ import { verifyAuthTokenLitActionCode } from "@/lib/lit-action-code/verify-auth-
 import { updateWalletSettingsLitActionCode } from "@/lib/lit-action-code/update-wallet-settings";
 import { createWalletLitActionCode } from "@/lib/lit-action-code/create-wallet";
 import { multisigTransactionLitActionCode } from "@/lib/lit-action-code/multisig-transaction.lit";
+import { personalSignLitActionCode } from "@/lib/lit-action-code/proposal-sign.lit";
+import { upgradeLitActionCode } from "@/lib/lit-action-code/upgrade.lit";
 
 // session PKP
 // const sessionPkp = {
@@ -57,7 +59,7 @@ const actionPKP_hardcoded = {
   "tokenId" : "0x59a892b5dd9cea4fca5b08c2acd7425fee6f46e048e3a6a48f4660e69ada13b4",
 }
 
-const litActionCode = verifyAuthTokenLitActionCode
+const litActionCode = upgradeLitActionCode
 
 export function ExecuteLitActionCode({ authMethod }: { authMethod: AuthMethod }) {
   const [sessionPkp, setSessionPkp] = useState<IRelayPKP | null>(null);

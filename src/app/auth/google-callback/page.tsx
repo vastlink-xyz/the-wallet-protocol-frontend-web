@@ -6,10 +6,9 @@ import {
   CURRENT_AUTH_PROVIDER_KEY,
   GOOGLE_SIGNIN_REDIRECT, 
   getProviderByAuthMethodType,
-  mintPKPNormally, 
-  mintPKPWithPermanentLitAction, 
   SIGN_PROPOSAL_LIT_ACTION_IPFS_ID, 
-  AUTH_METHOD_STORAGE_KEY
+  mintSessionPKP,
+  mintPersonalPKP
 } from '@/lib/lit';
 import { log } from '@/lib/utils';
 import { isSignInRedirect, getProviderFromUrl } from '@lit-protocol/lit-auth-client';
@@ -196,9 +195,6 @@ export default function GoogleCallbackPage() {
   const handleMintPkp = async (authMethod: AuthMethod) => {
     setLoading(true);
     try {
-      const litActionIpfsId = SIGN_PROPOSAL_LIT_ACTION_IPFS_ID
-      log('ipfsid', litActionIpfsId)
-
       // Get Google provider
       const googleProvider = getProviderByAuthMethodType('google');
 
@@ -206,15 +202,14 @@ export default function GoogleCallbackPage() {
       const authMethodId = await googleProvider.getAuthMethodId(authMethod);
       
       // Step 2: Mint the first PKP for session
-      const pkpForSession = await mintPKPNormally(authMethod);
+      const pkpForSession = await mintSessionPKP(authMethod);
       
       // Step 3: Save first PKP to database with 'session' type
       await savePkpToDatabase(authMethodId, pkpForSession, 'session');
       
       // Step 4: Mint the second PKP with permanent Lit Action
-      const pkpForLitAction = await mintPKPWithPermanentLitAction({
+      const pkpForLitAction = await mintPersonalPKP({
         authMethod,
-        litActionIpfsId,
       });
       
       // Step 5: Save second PKP to database with 'litAction' type
