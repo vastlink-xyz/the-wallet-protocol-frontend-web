@@ -96,14 +96,6 @@ export function MFASettingsContent({ isOpen }: MFASettingsContentProps) {
 
   return (
     <div className="space-y-4 p-2">
-      {/* Title and description */}
-      <div>
-        <h2 className="text-lg font-semibold">Multi-Factor Authentication</h2>
-        <p className="text-sm text-muted-foreground">
-          Add an extra layer of security to your account
-        </p>
-      </div>
-      
       {/* Loading indicator */}
       {isLoading && (
         <div className="flex justify-center items-center p-2">
@@ -112,6 +104,7 @@ export function MFASettingsContent({ isOpen }: MFASettingsContentProps) {
       )}
 
       {/* Phone WhatsApp MFA */}
+      <h3 className="font-medium text-base mt-6">WhatsApp Authentication</h3>
       <div className="border rounded-md p-4">
         <MFAPhoneWhatsApp 
           verifiedPhone={verifiedPhone}

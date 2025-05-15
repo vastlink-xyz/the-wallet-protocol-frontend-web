@@ -26,6 +26,56 @@ interface MFAPhoneWhatsAppProps {
   onSuccess: () => void;
 }
 
+// Common container for all UI states
+const FormContainer: React.FC<{
+  children: React.ReactNode;
+  errorMessage: string | null;
+  successMessage?: string | null;
+}> = ({ children, errorMessage, successMessage }) => (
+  <div className="py-2">
+    {errorMessage && (
+      <p className="text-sm text-red-500 p-2 bg-red-50 rounded-md mb-2">Error: {errorMessage}</p>
+    )}
+    {successMessage && (
+      <p className="text-sm text-green-600 p-2 bg-green-50 rounded-md mb-2">{successMessage}</p>
+    )}
+    {children}
+  </div>
+);
+
+// Action buttons component
+const ActionButtons: React.FC<{
+  primaryText: string;
+  isLoading: boolean;
+  isDisabled: boolean;
+  onCancel: () => void;
+  loadingText?: string;
+}> = ({ primaryText, isLoading, isDisabled, onCancel, loadingText }) => (
+  <div className="flex gap-2">
+    <Button 
+      type="submit" 
+      disabled={isLoading || isDisabled} 
+      className="flex-1"
+    >
+      {isLoading ? (
+        <>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          {loadingText || 'Processing...'}
+        </>
+      ) : primaryText}
+    </Button>
+    <Button 
+      type="button" 
+      variant="outline" 
+      onClick={onCancel} 
+      disabled={isLoading} 
+      className="flex-1"
+    >
+      Cancel
+    </Button>
+  </div>
+);
+
 export function MFAPhoneWhatsApp({ 
   verifiedPhone, 
   sessionJwt,
@@ -198,26 +248,10 @@ export function MFAPhoneWhatsApp({
   // Validate phone number format
   const isValidPhoneNumber = (num: string) => num.startsWith('+') && num.length >= 10;
 
-  // Render error messages
-  const renderError = () => {
-    if (!error) return null;
-    return <p className="text-sm text-red-500 p-2 bg-red-50 rounded-md mb-2">Error: {error}</p>;
-  };
-
-  // Render success message
-  const renderSuccess = () => {
-    if (!successMessage) return null;
-    return <p className="text-sm text-green-600 p-2 bg-green-50 rounded-md mb-2">{successMessage}</p>;
-  };
-
   // Initial state - show current phone (if exists) or add button
   if (uiState === 'initial') {
     return (
-      <div className="py-2">
-        <h3 className="text-sm font-medium mb-2">WhatsApp Authentication</h3>
-        {renderError()}
-        {renderSuccess()}
-        
+      <FormContainer errorMessage={error} successMessage={successMessage}>
         {verifiedPhone ? (
           <div className="bg-muted p-2 rounded-md">
             <div className="flex items-center justify-between">
@@ -245,21 +279,17 @@ export function MFAPhoneWhatsApp({
             Add Phone Number
           </Button>
         )}
-      </div>
+      </FormContainer>
     );
   }
 
   // Phone setup state - enter phone number
   if (uiState === 'setup') {
     return (
-      <div className="py-2">
-        <h3 className="text-sm font-medium mb-2">WhatsApp Authentication</h3>
-        {renderError()}
-        {renderSuccess()}
-        
+      <FormContainer errorMessage={error} successMessage={successMessage}>
         <form onSubmit={handleSendOtp} className="space-y-4">
           <div>
-            <Label htmlFor="phone-number-input" className="block mb-2">Phone Number (E.164 format, e.g., +12345678900)</Label>
+            <Label htmlFor="phone-number-input" className="block mb-2">Phone Number (e.g., +12345678900)</Label>
             <Input 
               id="phone-number-input" 
               type="tel" 
@@ -269,41 +299,22 @@ export function MFAPhoneWhatsApp({
               disabled={isLoading}
             />
           </div>
-          <div className="flex gap-2">
-            <Button 
-              type="submit" 
-              disabled={isLoading || !isValidPhoneNumber(phoneNumber)} 
-              className="flex-1"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Sending...
-                </>
-              ) : 'Send Code'}
-            </Button>
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={handleCancel} 
-              disabled={isLoading} 
-              className="flex-1"
-            >
-              Cancel
-            </Button>
-          </div>
+          <ActionButtons
+            primaryText="Send Code"
+            loadingText="Sending..."
+            isLoading={isLoading}
+            isDisabled={!isValidPhoneNumber(phoneNumber)}
+            onCancel={handleCancel}
+          />
         </form>
-      </div>
+      </FormContainer>
     );
   }
 
   // Verify code state
   if (uiState === 'verify') {
     return (
-      <div className="py-2">
-        <h3 className="text-sm font-medium mb-2">WhatsApp Authentication</h3>
-        {renderError()}
-        
+      <FormContainer errorMessage={error} successMessage={successMessage}>
         <form onSubmit={handleVerifyOtp} className="space-y-4">
           <div>
             <Label htmlFor="otp-code-input" className="block mb-2">Verification Code</Label>
@@ -318,31 +329,15 @@ export function MFAPhoneWhatsApp({
             />
           </div>
           <p className="text-xs text-muted-foreground">A code was sent via WhatsApp to {phoneNumber}</p>
-          <div className="flex gap-2">
-            <Button 
-              type="submit" 
-              disabled={isLoading || code.length !== 6} 
-              className="flex-1"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Verifying...
-                </>
-              ) : 'Verify Code'}
-            </Button>
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={handleCancel} 
-              disabled={isLoading} 
-              className="flex-1"
-            >
-              Cancel
-            </Button>
-          </div>
+          <ActionButtons
+            primaryText="Verify Code"
+            loadingText="Verifying..."
+            isLoading={isLoading}
+            isDisabled={code.length !== 6}
+            onCancel={handleCancel}
+          />
         </form>
-      </div>
+      </FormContainer>
     );
   }
 
