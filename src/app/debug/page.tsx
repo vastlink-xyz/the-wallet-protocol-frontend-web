@@ -10,6 +10,7 @@ import { LitContracts } from "@lit-protocol/contracts-sdk";
 import { ethers, utils } from "ethers";
 import { AUTH_METHOD_SCOPE, LIT_CHAINS } from "@lit-protocol/constants";
 import { Example } from "./components/Example";
+import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
 
 // eth sepolia
 const chainInfo = {
@@ -50,14 +51,9 @@ export default function DebugPage() {
 
   // Initialize by reading authMethod from localStorage
   useEffect(() => {
-    const storedAuthMethod = localStorage.getItem(AUTH_METHOD_STORAGE_KEY);
+    const storedAuthMethod = getAuthMethodFromStorage();
     if (storedAuthMethod) {
-      try {
-        setAuthMethod(JSON.parse(storedAuthMethod));
-      } catch (error) {
-        console.error('Failed to parse stored auth method:', error);
-        localStorage.removeItem(AUTH_METHOD_STORAGE_KEY);
-      }
+      setAuthMethod(storedAuthMethod);
     }
   }, []);
 

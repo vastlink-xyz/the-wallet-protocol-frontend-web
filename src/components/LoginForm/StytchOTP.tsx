@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { useRouter } from 'next/navigation';
 import { Mail } from 'lucide-react';
 import axios from 'axios';
+import { setAuthMethodToStorage } from '@/lib/storage/authmethod';
 
 type OtpStep = 'submit' | 'verify';
 
@@ -67,7 +68,7 @@ const StytchOTP = () => {
       log('authMethod from stytch', authMethod);
       
       // Store Stytch authentication method
-      localStorage.setItem(AUTH_METHOD_STORAGE_KEY, JSON.stringify(authMethod));
+      setAuthMethodToStorage(authMethod);
       // Set current auth provider
       localStorage.setItem(CURRENT_AUTH_PROVIDER_KEY, 'stytch');
 

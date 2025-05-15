@@ -7,6 +7,7 @@ import { formatEthAmount, fetchEthBalance } from '@/lib/utils'
 import { getProviderByAuthMethodType } from '@/lib/lit/providers'
 import { CURRENT_AUTH_PROVIDER_KEY } from '@/lib/lit'
 import { SendEth } from './SendEth'
+import { MFASettings } from './MFASettings'
 
 interface PersonalAssetsProps {
   authMethod: AuthMethod
@@ -127,6 +128,7 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
       </div>
       
       {/* <SendEth pkp={pkp} authMethod={authMethod} /> */}
+      <MFASettings />
     </div>
   )
 } 

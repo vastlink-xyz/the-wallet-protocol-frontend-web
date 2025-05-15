@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { AuthMethod } from '@lit-protocol/types'
 import PersonalAssets from './components/PersonalAssets'
 import { AUTH_METHOD_STORAGE_KEY } from '@/lib/lit'
+import { getAuthMethodFromStorage } from '@/lib/storage/authmethod'
 
 export default function PersonalAssetsPage() {
   const router = useRouter()
@@ -13,14 +14,9 @@ export default function PersonalAssetsPage() {
 
   // Check if user is logged in
   useEffect(() => {
-    const storedAuthMethod = localStorage.getItem(AUTH_METHOD_STORAGE_KEY)
+    const storedAuthMethod = getAuthMethodFromStorage()
     if (storedAuthMethod) {
-      try {
-        setAuthMethod(JSON.parse(storedAuthMethod))
-      } catch (error) {
-        console.error('Failed to parse stored auth method:', error)
-        router.push('/')
-      }
+      setAuthMethod(storedAuthMethod)
     } else {
       // Redirect to homepage if not logged in
       router.push('/')

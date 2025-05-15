@@ -4,8 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { AuthMethod } from '@lit-protocol/types'
 import TeamAssets from './components/TeamAssets'
-
-const AUTH_METHOD_STORAGE_KEY = 'lit-auth-method'
+import { getAuthMethodFromStorage } from '@/lib/storage/authmethod'
 
 export default function TeamAssetsPage() {
   const router = useRouter()
@@ -14,14 +13,9 @@ export default function TeamAssetsPage() {
 
   // Check if user is logged in
   useEffect(() => {
-    const storedAuthMethod = localStorage.getItem(AUTH_METHOD_STORAGE_KEY)
+    const storedAuthMethod = getAuthMethodFromStorage()
     if (storedAuthMethod) {
-      try {
-        setAuthMethod(JSON.parse(storedAuthMethod))
-      } catch (error) {
-        console.error('Failed to parse stored auth method:', error)
-        router.push('/')
-      }
+      setAuthMethod(storedAuthMethod)
     } else {
       // Redirect to homepage if not logged in
       router.push('/')

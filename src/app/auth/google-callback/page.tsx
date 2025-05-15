@@ -15,6 +15,7 @@ import { log } from '@/lib/utils';
 import { isSignInRedirect, getProviderFromUrl } from '@lit-protocol/lit-auth-client';
 import { AuthMethod, IRelayPKP } from '@lit-protocol/types';
 import { getEmailFromGoogleToken } from '@/lib/jwt';
+import { getAuthMethodFromStorage, setAuthMethodToStorage, clearAuthMethodFromStorage } from '@/lib/storage/authmethod';
 
 export default function GoogleCallbackPage() {
   const router = useRouter();
@@ -39,8 +40,8 @@ export default function GoogleCallbackPage() {
           const googleProvider = getProviderByAuthMethodType('google');
           const authMethod = await googleProvider.authenticate();
           
-          // Store authentication method in new storage key
-          localStorage.setItem(AUTH_METHOD_STORAGE_KEY, JSON.stringify(authMethod));
+          // Store authentication method
+          setAuthMethodToStorage(authMethod);
           // Set current auth provider
           localStorage.setItem(CURRENT_AUTH_PROVIDER_KEY, 'google');
           
@@ -49,39 +50,33 @@ export default function GoogleCallbackPage() {
           redirectAfterAuthentication(authMethod)
         } catch (error) {
           console.error('Google authentication failed:', error);
-          localStorage.removeItem(AUTH_METHOD_STORAGE_KEY);
+          clearAuthMethodFromStorage();
         }
       }
     } else {
       // Check for stored Google authentication method
-      const storedAuthMethod = localStorage.getItem(AUTH_METHOD_STORAGE_KEY);
-                               
+      const storedAuthMethod = getAuthMethodFromStorage();
+      
       if (storedAuthMethod) {
         // Check for stored auth method
         log('storedauthmethod')
-        try {
-          const parsedAuthMethod = JSON.parse(storedAuthMethod);
-          setAuthMethod(parsedAuthMethod);
-          
-          // get user email
-          const userEmail = getEmailFromGoogleToken(parsedAuthMethod.accessToken);
-          setEmail(userEmail);
-          
-          // Store user email in localStorage
-          if (userEmail) {
-            try {
-              localStorage.setItem('user', JSON.stringify({ email: userEmail }));
-            } catch (error) {
-              console.error('Failed to save user email to localStorage:', error);
-            }
+        setAuthMethod(storedAuthMethod);
+        
+        // get user email
+        const userEmail = getEmailFromGoogleToken(storedAuthMethod.accessToken);
+        setEmail(userEmail);
+        
+        // Store user email in localStorage
+        if (userEmail) {
+          try {
+            localStorage.setItem('user', JSON.stringify({ email: userEmail }));
+          } catch (error) {
+            console.error('Failed to save user email to localStorage:', error);
           }
-
-          redirectAfterAuthentication(parsedAuthMethod)
-          return
-        } catch (error) {
-          console.error('Failed to parse stored auth method:', error);
-          localStorage.removeItem(AUTH_METHOD_STORAGE_KEY);
         }
+
+        redirectAfterAuthentication(storedAuthMethod)
+        return
       }
       setLoading(false);
     }
@@ -168,7 +163,7 @@ export default function GoogleCallbackPage() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem(AUTH_METHOD_STORAGE_KEY);
+    clearAuthMethodFromStorage();
     localStorage.removeItem(CURRENT_AUTH_PROVIDER_KEY);
     localStorage.removeItem('user');
     setAuthMethod(null);

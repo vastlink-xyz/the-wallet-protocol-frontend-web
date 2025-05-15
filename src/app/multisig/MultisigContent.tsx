@@ -9,6 +9,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { getProviderByAuthMethodType } from '@/lib/lit';
 import { CURRENT_AUTH_PROVIDER_KEY } from '@/lib/lit';
 import { useAuthExpiration } from '@/hooks/useAuthExpiration';
+import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
 
 const AUTH_METHOD_STORAGE_KEY = 'lit-auth-method';
 
@@ -29,14 +30,11 @@ export default function MultisigContent() {
 
   // Initialize by reading authMethod from localStorage
   useEffect(() => {
-    const storedAuthMethod = localStorage.getItem(AUTH_METHOD_STORAGE_KEY);
+    const storedAuthMethod = getAuthMethodFromStorage();
     if (storedAuthMethod) {
-      try {
-        setAuthMethod(JSON.parse(storedAuthMethod));
-      } catch (error) {
-        console.error('Failed to parse stored auth method:', error);
-        localStorage.removeItem(AUTH_METHOD_STORAGE_KEY);
-      }
+      setAuthMethod(storedAuthMethod);
+    } else {
+      localStorage.removeItem(AUTH_METHOD_STORAGE_KEY);
     }
     setLoading(false);
 

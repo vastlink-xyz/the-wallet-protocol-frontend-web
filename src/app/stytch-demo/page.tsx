@@ -8,37 +8,38 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { getUserIdFromToken } from '@/lib/jwt';
+import { getAuthMethodFromStorage, clearAuthMethodFromStorage } from '@/lib/storage/authmethod';
+import { AuthMethod } from '@lit-protocol/types';
+
+interface ExtendedAuthMethod extends AuthMethod {
+  userId?: string;
+}
 
 export default function StytchDemoPage() {
-  const [authMethod, setAuthMethod] = useState<any>(null);
+  const [authMethod, setAuthMethod] = useState<ExtendedAuthMethod | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [phoneNumber, setPhoneNumber] = useState('+');
   const [phoneError, setPhoneError] = useState('');
   
   useEffect(() => {
     // Load auth method from localStorage
-    const storedAuthMethod = localStorage.getItem(AUTH_METHOD_STORAGE_KEY);
+    const storedAuthMethod = getAuthMethodFromStorage() as ExtendedAuthMethod | null;
     if (storedAuthMethod) {
-      try {
-        const parsedAuthMethod = JSON.parse(storedAuthMethod);
-        setAuthMethod(parsedAuthMethod);
-        
-        // Try to extract userId from JWT
-        if (parsedAuthMethod.accessToken) {
-          const extractedUserId = getUserIdFromToken(parsedAuthMethod.accessToken);
-          if (extractedUserId) {
-            setUserId(extractedUserId);
-            log('User ID extracted from JWT:', extractedUserId);
-          } else {
-            // Fallback to the userId stored in the authMethod
-            setUserId(parsedAuthMethod.userId);
-            log('Using userId from authMethod:', parsedAuthMethod.userId);
-          }
+      setAuthMethod(storedAuthMethod);
+      
+      // Try to extract userId from JWT
+      if (storedAuthMethod.accessToken) {
+        const extractedUserId = getUserIdFromToken(storedAuthMethod.accessToken);
+        if (extractedUserId) {
+          setUserId(extractedUserId);
+          log('User ID extracted from JWT:', extractedUserId);
         } else {
-          setUserId(parsedAuthMethod.userId);
+          // Fallback to the userId stored in the authMethod
+          setUserId(storedAuthMethod.userId || null);
+          log('Using userId from authMethod:', storedAuthMethod.userId);
         }
-      } catch (err) {
-        console.error('Failed to parse auth method:', err);
+      } else {
+        setUserId(storedAuthMethod.userId || null);
       }
     }
   }, []);
@@ -118,14 +119,14 @@ export default function StytchDemoPage() {
         <p>Click the button below to test MFA functionality</p>
         
         <StytchMfa 
-          userId={userId || authMethod.userId}
+          userId={userId || authMethod.userId || ''}
           phoneNumber={phoneNumber}
           onSuccess={handleProtectedAction}
         />
         
         <div className="mt-8">
           <Button variant="outline" onClick={() => {
-            localStorage.removeItem(AUTH_METHOD_STORAGE_KEY);
+            clearAuthMethodFromStorage();
             localStorage.removeItem('user');
             window.location.href = '/';
           }}>
