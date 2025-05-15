@@ -6,6 +6,7 @@ import { Loader2 } from 'lucide-react'
 import { formatEthAmount, fetchEthBalance } from '@/lib/utils'
 import { getProviderByAuthMethodType } from '@/lib/lit/providers'
 import { CURRENT_AUTH_PROVIDER_KEY } from '@/lib/lit'
+import { SendEth } from './SendEth'
 
 interface PersonalAssetsProps {
   authMethod: AuthMethod
@@ -97,31 +98,35 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
 
   // Display wallet information
   return (
-    <div className="bg-card p-6 rounded-lg border">
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <div>
-            <span className="font-medium">Email:</span> 
-            <div className="text-sm bg-muted p-2 rounded break-all mt-1">
-              {email}
+    <div className="space-y-6">
+      <div className="bg-card p-6 rounded-lg border">
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <div>
+              <span className="font-medium">Email:</span> 
+              <div className="text-sm bg-muted p-2 rounded break-all mt-1">
+                {email}
+              </div>
             </div>
-          </div>
-          <div>
-            <span className="font-medium">Address:</span> 
-            <div className="text-sm bg-muted p-2 rounded break-all mt-1">
-              {pkp.ethAddress}
+            <div>
+              <span className="font-medium">Address:</span> 
+              <div className="text-sm bg-muted p-2 rounded break-all mt-1">
+                {pkp.ethAddress}
+              </div>
             </div>
-          </div>
-          <div>
-            <span className="font-medium">Sepolia ETH Balance:</span>
-            <div className="text-sm bg-muted p-2 rounded break-all mt-1">
-              {isBalanceLoading ? 
-                <Loader2 className="h-4 w-4 animate-spin inline mr-2" /> : 
-                balance ? `${formatEthAmount(balance)} ETH` : "0 ETH"}
+            <div>
+              <span className="font-medium">Sepolia ETH Balance:</span>
+              <div className="text-sm bg-muted p-2 rounded break-all mt-1">
+                {isBalanceLoading ? 
+                  <Loader2 className="h-4 w-4 animate-spin inline mr-2" /> : 
+                  balance ? `${formatEthAmount(balance)} ETH` : "0 ETH"}
+              </div>
             </div>
           </div>
         </div>
       </div>
+      
+      {/* <SendEth pkp={pkp} authMethod={authMethod} /> */}
     </div>
   )
 } 
