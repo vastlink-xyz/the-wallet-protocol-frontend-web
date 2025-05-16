@@ -10,6 +10,7 @@ import { getProviderByAuthMethodType } from '@/lib/lit';
 import { CURRENT_AUTH_PROVIDER_KEY } from '@/lib/lit';
 import { useAuthExpiration } from '@/hooks/useAuthExpiration';
 import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
+import { isTokenValid } from '@/lib/jwt';
 
 const AUTH_METHOD_STORAGE_KEY = 'lit-auth-method';
 
@@ -30,16 +31,22 @@ export default function MultisigContent() {
 
   // Initialize by reading authMethod from localStorage
   useEffect(() => {
-    const storedAuthMethod = getAuthMethodFromStorage();
-    if (storedAuthMethod) {
-      setAuthMethod(storedAuthMethod);
-    } else {
-      localStorage.removeItem(AUTH_METHOD_STORAGE_KEY);
+    const fn = async () => {
+      const storedAuthMethod = getAuthMethodFromStorage();
+      if (storedAuthMethod) {
+        setAuthMethod(storedAuthMethod);
+        // Check if the auth method is expired when the component mounts
+        const isValid = await isTokenValid(storedAuthMethod)
+        if (!isValid) {
+          handleExpiredAuth()
+        }
+      } else {
+        localStorage.removeItem(AUTH_METHOD_STORAGE_KEY);
+      }
+      setLoading(false);
     }
-    setLoading(false);
 
-    // Check if the auth method is expired when the component mounts
-    handleExpiredAuth()
+    fn();
   }, []);
 
   // Fetch user PKPs from API
