@@ -18,6 +18,12 @@ export interface User {
     tokenId: string
     type: string
   }
+  walletSettings?: {
+    dailyWithdrawLimits: {
+      USD: string
+      ETH: string
+    }
+  }
 }
 
 // Helper to safely extract fields from Mongoose documents
@@ -28,7 +34,8 @@ function extractUserData(doc: any): User | null {
     authMethodId: doc.authMethodId,
     email: doc.email,
     sessionPkp: doc.sessionPkp || undefined,
-    litActionPkp: doc.litActionPkp || undefined
+    litActionPkp: doc.litActionPkp || undefined,
+    walletSettings: doc.walletSettings || undefined
   };
 }
 
@@ -217,5 +224,43 @@ export async function getUserPkps(authMethodId: string): Promise<{sessionPkp?: I
   } catch (error) {
     console.error('Failed to get user PKPs:', error);
     return {};
+  }
+}
+
+export async function updateUserWalletSettings(
+  authMethodId: string,
+  walletSettings: {
+    dailyWithdrawLimits: {
+      ETH: string;
+      USD?: string;
+    }
+  }
+): Promise<User | null> {
+  try {
+    await connectToDatabase();
+    
+    // Ensure the user exists
+    const existingUser = await UserModel.findOne({ authMethodId });
+    if (!existingUser) {
+      console.error(`No user found with authMethodId: ${authMethodId}`);
+      return null;
+    }
+    
+    // Update the wallet settings
+    const update = {
+      walletSettings,
+      updatedAt: new Date()
+    };
+    
+    const updatedUser = await UserModel.findOneAndUpdate(
+      { authMethodId },
+      update,
+      { new: true }
+    ).lean();
+    
+    return extractUserData(updatedUser);
+  } catch (error) {
+    console.error('Failed to update user wallet settings:', error);
+    return null;
   }
 } 

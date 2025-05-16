@@ -95,23 +95,25 @@ export function MFASettingsContent({ isOpen }: MFASettingsContentProps) {
   log('MFASettingsContent: Verified phone found:', verifiedPhone);
 
   return (
-    <div className="space-y-4 p-2">
+    <div className="space-y-4">
       {/* Loading indicator */}
-      {isLoading && (
+      {isLoading ? (
         <div className="flex justify-center items-center p-2">
           <Loader2 className="h-5 w-5 animate-spin" />
         </div>
+      ) : (
+        <>
+          {/* Phone WhatsApp MFA */}
+          <div className="border rounded-md p-4">
+            <MFAPhoneWhatsApp 
+              verifiedPhone={verifiedPhone}
+              sessionJwt={sessionJwt}
+              onSuccess={refreshMFAStatus}
+            />
+          </div>
+        </>
       )}
 
-      {/* Phone WhatsApp MFA */}
-      <h3 className="font-medium text-base mt-6">WhatsApp Authentication</h3>
-      <div className="border rounded-md p-4">
-        <MFAPhoneWhatsApp 
-          verifiedPhone={verifiedPhone}
-          sessionJwt={sessionJwt}
-          onSuccess={refreshMFAStatus}
-        />
-      </div>
     </div>
   );
 } 

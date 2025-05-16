@@ -64,6 +64,15 @@ const UserSchema = new mongoose.Schema({
     tokenId: String,
     type: { type: String, default: 'litAction' }
   },
+  walletSettings: {
+    type: mongoose.Schema.Types.Mixed,
+    default: {
+      dailyWithdrawLimits: {
+        USD: "1000",
+        ETH: "0.001"
+      }
+    }
+  },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });

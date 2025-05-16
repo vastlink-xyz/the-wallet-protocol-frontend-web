@@ -32,7 +32,9 @@ const FormContainer: React.FC<{
   errorMessage: string | null;
   successMessage?: string | null;
 }> = ({ children, errorMessage, successMessage }) => (
-  <div className="py-2">
+  <div className="py-1">
+    <h3 className="font-medium text-base mb-4">WhatsApp Authentication</h3>
+
     {errorMessage && (
       <p className="text-sm text-red-500 p-2 bg-red-50 rounded-md mb-2">Error: {errorMessage}</p>
     )}
