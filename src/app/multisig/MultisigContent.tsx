@@ -122,7 +122,7 @@ export default function MultisigContent() {
                   className="flex items-center text-sm font-medium text-gray-600 hover:text-gray-900 cursor-pointer"
                 >
                   <ArrowLeft className="h-5 w-5 mr-1" />
-                  Back to Team Assets
+                  Back to Team Wallet(s)
                 </button>
               </div>
               <Multisig

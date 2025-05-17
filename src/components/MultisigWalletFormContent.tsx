@@ -346,7 +346,7 @@ export function MultisigWalletFormContent({
       };
       
       // Add log to check threshold value
-      console.log('Creating multisig wallet with threshold:', threshold, 'and signers:', signers.length);
+      console.log('Creating the team wallet with threshold:', threshold, 'and signers:', signers.length);
       console.log('Data to encrypt:', JSON.stringify(dataToEncrypt, null, 2));
 
       // Connect to Lit node if not already connected
@@ -404,7 +404,7 @@ export function MultisigWalletFormContent({
       // Verify signature
       const signatureObj = litActionRes.signatures['create-wallet-signature'];
       if (!signatureObj || !signatureObj.signature) {
-        throw new Error('Failed to create multisig wallet');
+        throw new Error('Failed to create the team wallet');
       }
 
       const dataToEncryptHashSignature = signatureObj.signature;
@@ -462,7 +462,7 @@ export function MultisigWalletFormContent({
         }
       }
     } catch (error) {
-      console.error('Failed to create multisig wallet:', error);
+      console.error('Failed to create the team wallet:', error);
     } finally {
       setIsLoading(false);
     }

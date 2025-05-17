@@ -84,7 +84,7 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
           setHasMultisigWallets(data.data.length > 0)
         }
       } catch (error) {
-        console.error('Failed to fetch multisig wallets:', error)
+        console.error('Failed to fetch team wallets:', error)
       } finally {
         setIsLoading(false)
       }
@@ -118,7 +118,7 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
         <>
           {hasMultisigWallets ? (
             <div className="w-full max-w-5xl">
-              <p className="text-center mb-6 text-lg">You have {wallets.length} team multisig wallet(s)</p>
+              <p className="text-center mb-6 text-lg">You have {wallets.length} team wallet(s)</p>
               <div className="flex flex-col items-center gap-6 w-full">
                 {wallets.map(wallet => (
                   <div key={wallet.id} className="w-full max-w-3xl">
@@ -133,9 +133,8 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
             </div>
           ) : (
             <div className="text-center mb-4">
-              <p>You don&apos;t have any multisig wallets yet.</p>
-              <p className="text-sm text-gray-500 mt-2">Create your first team multisig wallet by clicking the button below.</p>
-              <p className="text-xs text-gray-400 mt-1">Both signers must approve each transaction.</p>
+              <p>You don&apos;t have any team wallets yet.</p>
+              <p className="text-sm text-gray-500 mt-2">Create your first team wallet / multisig wallet by clicking the button below.</p>
             </div>
           )}
         </>
