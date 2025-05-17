@@ -11,7 +11,7 @@ import { log } from '@/lib/utils';
 import { utils } from 'ethers';
 import { getAuthMethodTypeByProviderName, getProviderByAuthMethodType } from './providers';
 import { CURRENT_AUTH_PROVIDER_KEY } from './config';
-import { getUpgradeIpfsId } from './ipfs-id-env';
+import { getPersonalTransactionIpfsId, getUpgradeIpfsId } from './ipfs-id-env';
 import { getPersonalSignIpfsId } from './ipfs-id-env';
 /**
  * Get all PKPs for the user
@@ -83,16 +83,32 @@ export async function mintPersonalPKP({
   }
   
   const personalSignIpfsIdHex = await getPersonalSignIpfsId('hex')
+  const personalTransactionIpfsIdHex = await getPersonalTransactionIpfsId('hex')
   const upgradeIpfsIdHex = await getUpgradeIpfsId('hex')
 
   const authMethodId = await provider.getAuthMethodId(authMethod);
 
   // Set permissions for Lit Action bound PKP
   const options: MintRequestBody = {
-    permittedAuthMethodTypes: [AUTH_METHOD_TYPE.LitAction, AUTH_METHOD_TYPE.LitAction, authMethodType],
-    permittedAuthMethodIds: [personalSignIpfsIdHex, upgradeIpfsIdHex, authMethodId],
-    permittedAuthMethodPubkeys: ['0x', '0x', '0x'],
-    permittedAuthMethodScopes: [[AUTH_METHOD_SCOPE.SignAnything], [AUTH_METHOD_SCOPE.SignAnything], [AUTH_METHOD_SCOPE.NoPermissions]],
+    permittedAuthMethodTypes: [
+      AUTH_METHOD_TYPE.LitAction,
+      AUTH_METHOD_TYPE.LitAction,
+      AUTH_METHOD_TYPE.LitAction,
+      authMethodType
+    ],
+    permittedAuthMethodIds: [
+      personalSignIpfsIdHex,
+      personalTransactionIpfsIdHex,
+      upgradeIpfsIdHex,
+      authMethodId
+    ],
+    permittedAuthMethodPubkeys: ['0x', '0x', '0x', '0x'],
+    permittedAuthMethodScopes: [
+      [AUTH_METHOD_SCOPE.SignAnything],
+      [AUTH_METHOD_SCOPE.SignAnything],
+      [AUTH_METHOD_SCOPE.SignAnything],
+      [AUTH_METHOD_SCOPE.NoPermissions]
+    ],
     addPkpEthAddressAsPermittedAddress: false,
     sendPkpToItself: true,
     keyType: 2 // Standard PKP type
