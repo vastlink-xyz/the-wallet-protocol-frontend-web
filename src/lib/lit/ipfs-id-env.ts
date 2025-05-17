@@ -5,6 +5,7 @@ import { updateWalletSettingsLitActionCode } from "../lit-action-code/update-wal
 import { multisigTransactionLitActionCode } from "../lit-action-code/multisig-transaction.lit"
 import { personalSignLitActionCode } from "../lit-action-code/proposal-sign.lit"
 import { upgradeLitActionCode } from "../lit-action-code/upgrade.lit"
+import { personalTransactionLitActionCode } from "../lit-action-code/personal-transaction.lit"
 
 const updateWalletSettingsIpfsId = 'QmWiXDMMRSSY4rKmSy5ZrXvBYRm8FeY7VdPoyx1hwNjo5Y'
 const updateWalletSettingsIpfsIdHex = '0x12207c77cc36cbed78a0cbad49516cc7bdfe6b7391be0ff8c55f8df69c099e24d31f'
@@ -20,6 +21,9 @@ const multisigTransactionIpfsHex = '0x12207f5817efd9a7bfb3ce12c377d6364315256e83
 
 const personalSignIpfsId = 'QmUUR1QK2DVS9CfD6b5ggBtvH9UTJuirmCBcMAXkrj2P8p'
 const personalSignIpfsIdHex = '0x12205b23467e5ab81313a7ab95027aa6124d864178c12174f77d8d15b92ce98a4a05'
+
+const personalTransactionIpfsId = 'QmbrGJUstihPXqV3eh8vVi75DKDZPYoHUraQDnXfHsYaTo'
+const personalTransactionIpfsIdHex = '0x1220c8be04ad08917a4e9de3293feb98b5f09bd762f72620b4621d6b6643b0c4ab2e'
 
 const upgradeIpfsId = 'QmTdAJGwtd1Ex1akC5zjzQsHTGtPKKj4WnDNQftLsXN6Um'
 const upgradeIpfsIdHex = '0x12204e852f217ab356ea529afc8584ef67340cae7b0cb0e76d8045735537f9323ca6'
@@ -96,6 +100,21 @@ export const getPersonalSignIpfsId = async (outputFormat: "base58" | "hex") => {
       return personalSignIpfsId
     } else {
       return personalSignIpfsIdHex
+    }
+  }
+}
+
+export const getPersonalTransactionIpfsId = async (outputFormat: "base58" | "hex") => {
+  if (process.env.NEXT_PUBLIC_ENV === 'dev') {
+    return await getLitActionIpfsCid({
+      input: personalTransactionLitActionCode,
+      outputFormat: outputFormat
+    })
+  } else {
+    if (outputFormat === "base58") {
+      return personalTransactionIpfsId
+    } else {
+      return personalTransactionIpfsIdHex
     }
   }
 }

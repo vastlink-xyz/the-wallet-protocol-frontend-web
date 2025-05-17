@@ -11,7 +11,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { MFASettingsContent } from './MFASettingsContent';
-import { DailyWithdrawLimit } from './DailyWithdrawLimit';
+import { Input } from "@/components/ui/input";
 import { CURRENT_AUTH_PROVIDER_KEY, getProviderByAuthMethodType } from '@/lib/lit';
 import { toast } from 'react-toastify';
 import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
@@ -22,6 +22,7 @@ export function PersonalWalletSettings() {
   const [isLimitValid, setIsLimitValid] = useState<boolean>(true);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [authMethodId, setAuthMethodId] = useState<string | null>(null);
+  const [limitError, setLimitError] = useState<string>('');
   
   // Get user's authMethodId when component mounts
   useEffect(() => {
@@ -74,10 +75,38 @@ export function PersonalWalletSettings() {
     }
   };
   
-  const handleLimitChange = (limit: string, isValid: boolean) => {
-    console.log('handleLimitChange', limit, isValid);
-    setEthLimit(limit);
-    setIsLimitValid(isValid);
+  const handleLimitChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    
+    // Allow empty value so user can clear the input
+    if (newValue === '') {
+      setLimitError('');
+      setEthLimit(newValue);
+      setIsLimitValid(false);
+      return;
+    }
+    
+    // Validate if input is a valid number
+    const numberRegex = /^(0|[1-9]\d*)(\.\d+)?$/;
+    if (!numberRegex.test(newValue)) {
+      setLimitError('Please enter a valid number');
+      setEthLimit(newValue);
+      setIsLimitValid(false);
+      return;
+    }
+    
+    // Parse to number to ensure validity
+    const numValue = parseFloat(newValue);
+    if (isNaN(numValue) || numValue < 0) {
+      setLimitError('Please enter a number greater than or equal to 0');
+      setEthLimit(newValue);
+      setIsLimitValid(false);
+      return;
+    }
+    
+    setLimitError('');
+    setEthLimit(newValue);
+    setIsLimitValid(true);
   };
   
   const saveSettings = async () => {
@@ -130,10 +159,18 @@ export function PersonalWalletSettings() {
 
         <div>
           <h2 className='font-medium mb-2'>Daily Withdraw Limit</h2>
-          <DailyWithdrawLimit 
-            onLimitChange={handleLimitChange} 
-            value={ethLimit}
-          />
+          <div className="flex flex-col space-y-2">
+            <div className="flex items-center gap-2">
+              <Input 
+                value={ethLimit} 
+                onChange={handleLimitChange} 
+                placeholder="0.001"
+                className="w-32"
+              />
+              <span className="font-medium">ETH</span>
+            </div>
+            {limitError && <p className="text-sm text-red-500">{limitError}</p>}
+          </div>
         </div>
 
         <div>

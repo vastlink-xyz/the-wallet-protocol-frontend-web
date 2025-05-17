@@ -11,6 +11,7 @@ import { AUTH_METHOD_SCOPE, AUTH_METHOD_TYPE, LIT_ABILITY, LIT_NETWORK } from "@
 import { LitPKPResource } from "@lit-protocol/auth-helpers";
 import { PKPEthersWallet } from "@lit-protocol/pkp-ethers";
 import { LitContracts } from "@lit-protocol/contracts-sdk";
+import { getPersonalTransactionIpfsId } from "@/lib/lit/ipfs-id-env";
 
 export function Upgrade({
   authMethod,
@@ -85,6 +86,8 @@ export function Upgrade({
         refreshStytchAccessToken: true,
       });
       log('sessionSigs', sessionSigs)
+
+      const ipfsIdHex = await getPersonalTransactionIpfsId('hex')
       
       const response = await litNodeClient.executeJs({
         code: upgradeLitActionCode,
@@ -93,22 +96,22 @@ export function Upgrade({
           publicKey: actionPkp!.publicKey,
           litDatilNetwork: LIT_NETWORK.DatilDev,
           env: process.env.NEXT_PUBLIC_ENV,
-          authMethodMetadata: {
-            addOrRemove: 'remove',
-            keyType: 2,
-            authMethodType: AUTH_METHOD_TYPE.LitAction,
-            authMethodId: '0x92ae1dbc4ec9fe1eb01549bbaa858e58b8e6ccb69a59ceeca67971ddacaec925',
-            authMethodPubkey: '0x',
-            // permittedScopes: [AUTH_METHOD_SCOPE.NoPermissions],
-          }
           // authMethodMetadata: {
-          //   addOrRemove: 'add',
+          //   addOrRemove: 'remove',
           //   keyType: 2,
           //   authMethodType: AUTH_METHOD_TYPE.LitAction,
-          //   authMethodId: '0x92ae1dbc4ec9fe1eb01549bbaa858e58b8e6ccb69a59ceeca67971ddacaec925',
+          //   authMethodId: ipfsIdHex,
           //   authMethodPubkey: '0x',
-          //   permittedScopes: [AUTH_METHOD_SCOPE.NoPermissions],
+          //   // permittedScopes: [AUTH_METHOD_SCOPE.NoPermissions],
           // }
+          authMethodMetadata: {
+            addOrRemove: 'add',
+            keyType: 2,
+            authMethodType: AUTH_METHOD_TYPE.LitAction,
+            authMethodId: ipfsIdHex,
+            authMethodPubkey: '0x',
+            permittedScopes: [AUTH_METHOD_SCOPE.SignAnything],
+          }
         },
       });
       log('response', response)

@@ -16,9 +16,11 @@ interface PersonalAssetsProps {
 export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
   const [balance, setBalance] = useState<string | null>(null)
   const [isBalanceLoading, setIsBalanceLoading] = useState(false)
-  const [pkp, setPkp] = useState<IRelayPKP | null>(null)
+  const [litActionPkp, setLitActionPkp] = useState<IRelayPKP | null>(null)
+  const [sessionPkp, setSessionPkp] = useState<IRelayPKP | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [email, setEmail] = useState<string | null>(null)
+  const [authMethodId, setAuthMethodId] = useState<string | null>(null)
 
   // Fetch user data
   useEffect(() => {
@@ -34,6 +36,7 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
         }
         const provider = getProviderByAuthMethodType(currentAuthProvider)
         const authMethodId = await provider.getAuthMethodId(authMethod)
+        setAuthMethodId(authMethodId)
         
         // Fetch user's information from database API
         const userResponse = await fetch(`/api/user?authMethodId=${authMethodId}`)
@@ -47,7 +50,10 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
         
         // Use litActionPkp from user data
         if (userData.litActionPkp) {
-          setPkp(userData.litActionPkp)
+          setLitActionPkp(userData.litActionPkp)
+        }
+        if (userData.sessionPkp) {
+          setSessionPkp(userData.sessionPkp)
         }
       } catch (error) {
         console.error("Error fetching data from database:", error)
@@ -62,11 +68,11 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
   // Fetch balance separately
   useEffect(() => {
     const fetchBalanceData = async () => {
-      if (!pkp) return
+      if (!litActionPkp) return
 
       try {
         setIsBalanceLoading(true)
-        const balanceEth = await fetchEthBalance(pkp.ethAddress)
+        const balanceEth = await fetchEthBalance(litActionPkp.ethAddress)
         setBalance(balanceEth)
       } catch (error) {
         console.error("Error fetching Sepolia balance:", error)
@@ -77,7 +83,7 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
     }
 
     fetchBalanceData()
-  }, [pkp])
+  }, [litActionPkp])
 
   if (isLoading) {
     return (
@@ -89,7 +95,7 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
   }
 
   // If no PKP exists yet
-  if (!pkp) {
+  if (!litActionPkp || !sessionPkp) {
     return (
       <div className="bg-card p-6 rounded-lg border text-center">
         <p className="text-muted-foreground">No wallet information available</p>
@@ -112,7 +118,7 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
             <div>
               <span className="font-medium">Address:</span> 
               <div className="text-sm bg-muted p-2 rounded break-all mt-1">
-                {pkp.ethAddress}
+                {litActionPkp.ethAddress}
               </div>
             </div>
             <div>
@@ -127,7 +133,17 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
         </div>
       </div>
       
-      {/* <SendEth pkp={pkp} authMethod={authMethod} /> */}
+      {
+        authMethodId && (
+          <SendEth
+            litActionPkp={litActionPkp}
+            sessionPkp={sessionPkp}
+            authMethod={authMethod}
+            authMethodId={authMethodId}
+          />
+        )
+      }
+
       <PersonalWalletSettings />
     </div>
   )

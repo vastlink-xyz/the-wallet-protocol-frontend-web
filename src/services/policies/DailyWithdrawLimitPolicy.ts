@@ -1,68 +1,103 @@
 import { Policy, TransactionOperationContext } from './Policy';
+import { log } from '@/lib/utils';
+import { formatEther } from 'ethers/lib/utils';
+import Moralis from 'moralis';
+import { EvmChain } from "moralis/common-evm-utils";
+import { initializeMoralis } from '@/lib/moralis';
 
-async function getUserWithdrawalHistoryToday(authMethodId: string): Promise<number> {
-  console.log(`Fetching withdrawal history for user ${authMethodId} for today.`);
-  
-  // kkktodo
-  return Promise.resolve(0);
-}
+async function getUserWithdrawalAmountToday(userData: any): Promise<number> {
+  const address = userData.litActionPkp.ethAddress;
 
-async function getUserDailyWithdrawalLimit({authMethodId}: {authMethodId: string}): Promise<string> {
-  console.log(`Fetching daily withdrawal limit for user ${authMethodId}.`);
   try {
-    // Get user data from the API
-    const response = await fetch(`/api/user?authMethodId=${authMethodId}`);
-    if (!response.ok) {
-      console.error('Failed to fetch user data for withdrawal limits');
-      return "0.001"; // Fallback to default limit
-    }
+    // Initialize Moralis before using it
+    await initializeMoralis();
+
+    const currentTimestamp = Date.now();
+    const yesterdayTimestamp = Date.now() - 24 * 60 * 60 * 1000;
+
+    const response = await Moralis.EvmApi.transaction.getWalletTransactions({
+      "chain": EvmChain.SEPOLIA,
+      "fromDate": new Date(yesterdayTimestamp),
+      "toDate": new Date(currentTimestamp),
+      "order": "DESC",
+      "address": address,
+    });
+
+    // Filter outgoing transactions from the user's address
+    const amounts = response.result
+      .filter((tx: any) => tx.from.equals(address))
+      .map((tx: any) => BigInt(tx.value));
     
-    const userData = await response.json();
+    // Calculate the total amount
+    const totalAmount = amounts.reduce((total: bigint, current: bigint) => total + current, BigInt(0));
     
-    // Access the daily withdraw limits from user settings
-    if (userData.walletSettings?.dailyWithdrawLimits?.['ETH']) {
-      return userData.walletSettings.dailyWithdrawLimits['ETH'];
-    }
-    
-    // Return default if currency not found in settings
-    return "0.001";
-  } catch (error) {
-    console.error('Error fetching user withdrawal limits:', error);
-    return "0.001"; // Fallback to default limit
+    // Convert from Wei to ETH and return as number
+    return parseFloat(formatEther(totalAmount));
+  } catch(err) {
+    console.error('Error getting user withdrawal amount today', err);
+    return 0;
   }
 }
 
+
+async function getUserDailyWithdrawalLimit(userData: any): Promise<string> {
+  // Access the daily withdraw limits directly from userData
+  if (userData.walletSettings?.dailyWithdrawLimits?.['ETH']) {
+    return userData.walletSettings.dailyWithdrawLimits['ETH'];
+  }
+  
+  // Return default if currency not found in settings
+  return "0.001";
+}
+
 // DailyWithdrawLimitPolicy specifically uses TransactionOperationContext
-export class DailyWithdrawLimitPolicy extends Policy<TransactionOperationContext> {
+class DailyWithdrawLimitPolicy extends Policy<TransactionOperationContext> {
   // Constructor is simplified as userId and currency are now part of the context.
   constructor() {
     super();
   }
 
   async shouldTriggerMFA(context: TransactionOperationContext): Promise<boolean> {
-    // context is type-safe as TransactionOperationContext due to generic constraint.
-    if (context.operationType !== 'transaction') {
-        // This policy is only for transaction operations.
-        // While the caller should pass the correct context type, this is a safeguard.
-        console.warn('DailyWithdrawLimitPolicy received a non-transaction context.');
+    try {
+      // Fetch user data once
+      const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/user?authMethodId=${context.authMethodId}`);
+      if (!response.ok) {
+        console.error('Failed to fetch user data');
         return false;
+      }
+      
+      const userData = await response.json();
+      log('userData', userData);
+      
+      // Pass userData to both helper functions
+      const dailyLimitStr = await getUserDailyWithdrawalLimit(userData);
+      const withdrawnToday = await getUserWithdrawalAmountToday(userData);
+      const currentTransactionAmount = context.transactionAmount;
+      
+      // Convert string to number for comparison
+      const dailyLimit = parseFloat(dailyLimitStr);
+      const numericAmount = parseFloat(currentTransactionAmount);
+      
+      log('dailyLimit', dailyLimit);
+      log('withdrawnToday', withdrawnToday);
+      log('currentTransactionAmount', currentTransactionAmount);
+      
+      if ((withdrawnToday + numericAmount) > dailyLimit) {
+        console.log(`MFA triggered: Amount ${numericAmount} ETH + Withdrawn ${withdrawnToday} > Limit ${dailyLimit}`);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error checking withdrawal limits:', error);
+      return false;
     }
-
-    const dailyLimitStr = await getUserDailyWithdrawalLimit({authMethodId: context.authMethodId});
-    const withdrawnToday = await getUserWithdrawalHistoryToday(context.authMethodId);
-    const currentTransactionAmount = context.transactionAmount;
-    
-    // Convert string to number for comparison
-    const dailyLimit = parseFloat(dailyLimitStr);
-
-    if ((withdrawnToday + currentTransactionAmount) > dailyLimit) {
-      console.log(`MFA triggered for user ${context.authMethodId}: Amount ${currentTransactionAmount} ETH + Withdrawn ${withdrawnToday} > Limit ${dailyLimit}`);
-      return true;
-    }
-    return false;
   }
 
   getDescription(): string {
     return `Triggers MFA if the daily withdrawal limit for a transaction is exceeded.`;
   }
 } 
+
+const dailyWithdrawLimitPolicy = new DailyWithdrawLimitPolicy();
+Object.freeze(dailyWithdrawLimitPolicy);
+export { dailyWithdrawLimitPolicy };

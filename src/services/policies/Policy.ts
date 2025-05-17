@@ -3,10 +3,11 @@ export interface BaseOperationContext {
   authMethodId: string;
 }
 
+export type PolicyContextType = 'transaction';
+
 // Context specific to transaction operations
 export interface TransactionOperationContext extends BaseOperationContext {
-  operationType: 'transaction'; // Discriminator for the operation type
-  transactionAmount: number;
+  transactionAmount: string;  // Amount in ETH
 }
 
 // Abstract Policy class using a generic context type TContext
