@@ -7,7 +7,8 @@ export default function LoginForm() {
   return (
     <div className="flex flex-col items-center justify-center min-h-[400px] space-y-8">
       <div className="text-center">
-        <h2 className="text-2xl font-semibold mb-2">Welcome</h2>
+        <br/>
+        <h2 className="text-2xl font-semibold mb-2">Welcome to Vastbase</h2>
         <p className="text-muted-foreground">Sign in to your account to get started</p>
       </div>
 
