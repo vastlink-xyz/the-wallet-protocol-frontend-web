@@ -1,6 +1,7 @@
 // Base interface for all operation contexts
 export interface BaseOperationContext {
-  // authMethodId: string;
+  // This was previously empty, causing a linting error
+  [key: string]: unknown;
 }
 
 export type PolicyContextType = 'transaction' | 'personalWalletMFAUpdate' | 'personalWalletSettingsUpdate';
