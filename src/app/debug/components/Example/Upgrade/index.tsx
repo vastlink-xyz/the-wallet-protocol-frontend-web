@@ -160,6 +160,44 @@ export function Upgrade({
     }
   }
 
+  const handleRemoveLitAction = async () => {
+    if (!litNodeClient.ready) {
+      await litNodeClient.connect();
+    }
+    
+    try {
+      const sessionSigs = await getSessionSigs({
+        pkpPublicKey: sessionPkp!.publicKey,
+        authMethod,
+        refreshStytchAccessToken: true,
+      });
+      log('sessionSigs', sessionSigs)
+      
+      const response = await litNodeClient.executeJs({
+        code: upgradeLitActionCode,
+        sessionSigs,
+        jsParams: {
+          publicKey: actionPkp!.publicKey,
+          litDatilNetwork: LIT_NETWORK.DatilDev,
+          env: process.env.NEXT_PUBLIC_ENV,
+          authMethodMetadata: {
+            addOrRemove: 'remove',
+            keyType: 2,
+            authMethodType: AUTH_METHOD_TYPE.LitAction,
+            authMethodId: '0x1220c8be04ad08917a4e9de3293feb98b5f09bd762f72620b4621d6b6643b0c4ab2e',
+            authMethodPubkey: '0x',
+            // permittedScopes: [AUTH_METHOD_SCOPE.NoPermissions],
+          }
+        },
+      });
+      log('response', response)
+    } catch (error) {
+      console.error("Error upgrading PKP:", error);
+    } finally {
+      setIsUpgrading(false);
+    }
+  }
+
   return (
     <div className="space-y-6 p-4 border rounded-lg">
       <h2 className="text-xl font-semibold">PKP Management</h2>
@@ -189,6 +227,14 @@ export function Upgrade({
         >
           {isUpgrading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Upgrade PKP
+        </Button>
+        <Button 
+          onClick={handleRemoveLitAction} 
+          variant="outline"
+          className="flex-1"
+        >
+          {isUpgrading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          Remove Lit Action
         </Button>
         <Button 
           onClick={handleCheckPermittedAuthmethods} 

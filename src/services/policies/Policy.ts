@@ -1,15 +1,9 @@
 // Base interface for all operation contexts
 export interface BaseOperationContext {
-  authMethodId: string;
+  // authMethodId: string;
 }
 
-export type PolicyContextType = 'transaction';
-
-// Context specific to transaction operations
-export interface TransactionOperationContext extends BaseOperationContext {
-  authMethodId: string;
-  transactionAmount: string;  // Amount in ETH
-}
+export type PolicyContextType = 'transaction' | 'personalWalletMFAUpdate';
 
 // Abstract Policy class using a generic context type TContext
 export abstract class Policy<TContext extends BaseOperationContext> {

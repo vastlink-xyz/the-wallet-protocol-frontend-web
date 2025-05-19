@@ -1,9 +1,15 @@
-import { Policy, TransactionOperationContext } from './Policy';
+import { BaseOperationContext, Policy } from './Policy';
 import { log } from '@/lib/utils';
 import { formatEther } from 'ethers/lib/utils';
 import Moralis from 'moralis';
 import { EvmChain } from "moralis/common-evm-utils";
 import { initializeMoralis } from '@/lib/moralis';
+
+// Context specific to transaction operations
+export interface TransactionOperationContext extends BaseOperationContext {
+  authMethodId: string;
+  transactionAmount: string;  // Amount in ETH
+}
 
 async function getUserWithdrawalAmountToday(userData: any): Promise<number> {
   const address = userData.litActionPkp.ethAddress;

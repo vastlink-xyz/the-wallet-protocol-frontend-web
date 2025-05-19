@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from 'lucide-react';
 import { log } from '@/lib/utils';
+import { MfaOtpDialog } from '@/components/MfaOtpDialog';
 
 // Define StytchPhoneNumber type based on expected API response
 interface StytchPhoneNumber {
@@ -13,7 +14,7 @@ interface StytchPhoneNumber {
 }
 
 // UI state for the MFA phone settings
-type PhoneUiState = 'initial' | 'setup' | 'verify';
+type PhoneUiState = 'initial' | 'setup';
 
 interface MFAPhoneWhatsAppProps {
   // Current phone number information (if exists)
@@ -85,11 +86,19 @@ export function MFAPhoneWhatsApp({
 }: MFAPhoneWhatsAppProps) {
   const [uiState, setUiState] = useState<PhoneUiState>('initial');
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [code, setCode] = useState('');
-  const [currentOtpMethodId, setCurrentOtpMethodId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // State for MfaOtpDialog
+  const [showOtpDialog, setShowOtpDialog] = useState(false);
+  const [otpDialogTitle, setOtpDialogTitle] = useState('Verify Phone Number');
+  const [otpDialogDescription, setOtpDialogDescription] = useState('');
+  const [currentMethod, setCurrentMethod] = useState<{
+    action: 'add' | 'remove';
+    phoneId?: string;
+    methodId?: string;
+  } | null>(null);
 
   // Clear error and success messages
   const resetMessages = () => {
@@ -107,44 +116,80 @@ export function MFAPhoneWhatsApp({
   const handleCancel = () => {
     resetMessages();
     setPhoneNumber('');
-    setCode('');
-    setCurrentOtpMethodId(null);
     setUiState('initial');
   };
 
+  // Handle OTP Dialog close
+  const handleOtpDialogClose = () => {
+    setShowOtpDialog(false);
+    setCurrentMethod(null);
+  };
+
+  // Prepare the OTP dialog state for phone removal verification
+  // This ensures all necessary state is set correctly before showing the OTP dialog
+  const prepareOtpDialogForRemove = () => {
+    if (verifiedPhone && verifiedPhone.phone_number) {
+      setCurrentMethod({
+        action: 'remove',
+        phoneId: verifiedPhone.phone_id,
+      });
+      setOtpDialogTitle('Verify Phone Removal');
+      setOtpDialogDescription(`Please verify your identity to remove ${verifiedPhone.phone_number}`);
+      setShowOtpDialog(true);
+    } else {
+      setError('No phone number to remove.');
+    }
+  };
+
   // Handle phone number removal
-  const handleRemovePhone = async (phoneId: string) => {
+  const handleRemovePhone = async () => {
     resetMessages();
     if (!window.confirm('Are you sure you want to remove this phone number?')) return;
-    setIsLoading(true);
     
     if (!sessionJwt) {
       setError('User session not found.');
-      setIsLoading(false);
       return;
     }
+
+    if (!verifiedPhone) {
+      setError('No phone number to remove.');
+      return;
+    }
+
+    setIsLoading(true);
     
     try {
-      log('MFAPhoneWhatsApp: Removing phone number', phoneId);
+      log('MFAPhoneWhatsApp: Initiating phone number removal', verifiedPhone.phone_id);
       const response = await fetch('/api/mfa/whatsapp/remove', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${sessionJwt}`,
         },
-        body: JSON.stringify({ phone_id: phoneId }),
+        body: JSON.stringify({
+          phone_id: verifiedPhone.phone_id,
+          policyContext: {
+            contextType: 'personalWalletMFAUpdate',
+            mfaType: 'whatsapp',
+            removePhoneNumber: verifiedPhone.phone_number,
+          },
+        }),
       });
       
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to remove phone number');
+        throw new Error(data.error || 'Failed to initiate phone number removal');
       }
       
-      setSuccessMessage('Phone number removed successfully.');
-      log('MFAPhoneWhatsApp: Phone number removed');
+      if (data.requiresMfa) {
+        log('MFAPhoneWhatsApp: MFA required for phone removal');
+        prepareOtpDialogForRemove();
+      } else {
+        // If no MFA required, phone was removed successfully
+        setSuccessMessage('Phone number removed successfully.');
+        onSuccess();
+      }
       
-      // Notify parent component to refresh the MFA status
-      onSuccess();
     } catch (err: any) {
       setError(err.message);
       log('MFAPhoneWhatsApp: Error removing phone number', err);
@@ -153,21 +198,17 @@ export function MFAPhoneWhatsApp({
     }
   };
 
-  // Handle sending OTP code
-  const handleSendOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    resetMessages();
+  // Send OTP handler for MfaOtpDialog
+  const handleSendOtp = async () => {
     if (!sessionJwt) {
-      setError('User session not found.');
-      return;
-    }
-    if (!isValidPhoneNumber(phoneNumber)) {
-      setError('Invalid phone number format. Please use E.164 format, e.g., +12345678900');
-      return;
+      throw new Error('User session not found.');
     }
 
-    setIsLoading(true);
-    try {
+    if (currentMethod?.action === 'add') {
+      if (!isValidPhoneNumber(phoneNumber)) {
+        throw new Error('Invalid phone number format. Please use E.164 format, e.g., +12345678900');
+      }
+
       log('MFAPhoneWhatsApp: Sending OTP to', phoneNumber);
       const response = await fetch('/api/mfa/whatsapp/send-code', {
         method: 'POST',
@@ -185,66 +226,141 @@ export function MFAPhoneWhatsApp({
       }
       
       const data = await response.json();
-      setCurrentOtpMethodId(data.method_id);
-      setUiState('verify');
-      setSuccessMessage('Verification code sent to your phone number.');
+      setCurrentMethod({
+        ...currentMethod,
+        methodId: data.method_id
+      });
       log('MFAPhoneWhatsApp: OTP sent, method_id:', data.method_id);
-    } catch (err: any) {
-      setError(err.message);
-      log('MFAPhoneWhatsApp: Error sending OTP', err);
-    } finally {
-      setIsLoading(false);
+    } else if (currentMethod?.action === 'remove' && verifiedPhone) {
+      log('MFAPhoneWhatsApp: Sending OTP for phone removal verification');
+      // 使用verified_phone的phone_number
+      const response = await fetch('/api/mfa/whatsapp/send-code', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${sessionJwt}`,
+        },
+        body: JSON.stringify({ 
+          phone_number: verifiedPhone.phone_number 
+        }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Failed to send verification OTP: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      setCurrentMethod({
+        ...currentMethod,
+        methodId: data.method_id
+      });
+    } else {
+      throw new Error('Invalid operation or missing phone information');
     }
   };
 
-  // Handle verifying OTP code
-  const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    resetMessages();
-    if (!sessionJwt || !currentOtpMethodId) {
-      setError('Session or OTP details missing.');
-      return;
-    }
-    if (code.length !== 6) {
-      setError('Verification code must be 6 digits.');
-      return;
+  // Verify OTP handler for MfaOtpDialog
+  const handleVerifyOtp = async (otp: string) => {
+    if (!sessionJwt || !currentMethod?.methodId) {
+      throw new Error('Session or OTP details missing.');
     }
 
-    setIsLoading(true);
-    try {
-      log('MFAPhoneWhatsApp: Verifying OTP', { method_id: currentOtpMethodId, code });
+    if (otp.length !== 6) {
+      throw new Error('Verification code must be 6 digits.');
+    }
+
+    if (currentMethod.action === 'add') {
+      log('MFAPhoneWhatsApp: Verifying OTP for adding phone', { method_id: currentMethod.methodId, code: otp });
       const response = await fetch('/api/mfa/whatsapp/verify-code', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${sessionJwt}`,
         },
-        body: JSON.stringify({ method_id: currentOtpMethodId, code }),
+        body: JSON.stringify({ method_id: currentMethod.methodId, code: otp }),
       });
       
       if (!response.ok) {
         const errorData = await response.json();
-        log('MFAPhoneWhatsApp: Error response from API', errorData);
         throw new Error(errorData.error || `Failed to verify OTP: ${response.status}`);
       }
       
       const data = await response.json();
-      log('MFAPhoneWhatsApp: OTP verified successfully, user data:', data.user);
+      log('MFAPhoneWhatsApp: Phone added successfully', data);
+      return data;
+    } else if (currentMethod.action === 'remove') {
+      log('MFAPhoneWhatsApp: Verifying OTP for removing phone', { method_id: currentMethod.methodId, code: otp });
+      const response = await fetch('/api/mfa/whatsapp/remove', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${sessionJwt}`,
+        },
+        body: JSON.stringify({
+          phone_id: currentMethod.phoneId,
+          otp: otp,
+          policyContext: {
+            contextType: 'personalWalletMFAUpdate',
+            mfaType: 'whatsapp',
+            removePhoneNumber: verifiedPhone?.phone_number,
+          },
+        }),
+      });
       
-      // Reset form
-      setPhoneNumber('');
-      setCode('');
-      setCurrentOtpMethodId(null);
-      setUiState('initial');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Failed to remove phone: ${response.status}`);
+      }
       
-      // Notify parent component
-      onSuccess();
-    } catch (err: any) {
-      setError(err.message);
-      log('MFAPhoneWhatsApp: Error verifying OTP', err);
-    } finally {
-      setIsLoading(false);
+      const data = await response.json();
+      log('MFAPhoneWhatsApp: Phone removed successfully', data);
+      return data;
+    } else {
+      throw new Error('Invalid operation');
     }
+  };
+
+  // Handle OTP verification completion
+  const handleOtpVerified = (verificationDetail?: any) => {
+    // Close the dialog
+    setShowOtpDialog(false);
+    
+    // Set success message and reset state
+    if (currentMethod?.action === 'add') {
+      setSuccessMessage('Phone number added successfully.');
+      setPhoneNumber('');
+      setUiState('initial');
+    } else if (currentMethod?.action === 'remove') {
+      setSuccessMessage('Phone number removed successfully.');
+    }
+    
+    // Reset current method
+    setCurrentMethod(null);
+    
+    // Notify parent to refresh MFA status
+    onSuccess();
+  };
+
+  // Function to handle adding a phone number
+  const handleAddPhone = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!sessionJwt) {
+      setError('User session not found.');
+      return;
+    }
+    
+    if (!isValidPhoneNumber(phoneNumber)) {
+      setError('Invalid phone number format. Please use E.164 format, e.g., +12345678900');
+      return;
+    }
+    
+    setCurrentMethod({
+      action: 'add'
+    });
+    setOtpDialogTitle('Verify Phone Number');
+    setOtpDialogDescription(`An OTP will be sent to ${phoneNumber} via WhatsApp.`);
+    setShowOtpDialog(true);
   };
 
   // Validate phone number format
@@ -253,93 +369,91 @@ export function MFAPhoneWhatsApp({
   // Initial state - show current phone (if exists) or add button
   if (uiState === 'initial') {
     return (
-      <FormContainer errorMessage={error} successMessage={successMessage}>
-        {verifiedPhone ? (
-          <div className="bg-muted p-2 rounded-md">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium">{verifiedPhone.phone_number}</p>
-                <p className="text-xs text-muted-foreground">Verified via WhatsApp</p>
+      <>
+        <FormContainer errorMessage={error} successMessage={successMessage}>
+          {verifiedPhone ? (
+            <div className="bg-muted p-2 rounded-md">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium">{verifiedPhone.phone_number}</p>
+                  <p className="text-xs text-muted-foreground">Verified via WhatsApp</p>
+                </div>
+                <Button 
+                  variant="destructive" 
+                  size="sm" 
+                  onClick={handleRemovePhone} 
+                  disabled={isLoading}
+                >
+                  {isLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Remove'}
+                </Button>
               </div>
-              <Button 
-                variant="destructive" 
-                size="sm" 
-                onClick={() => handleRemovePhone(verifiedPhone.phone_id)} 
-                disabled={isLoading}
-              >
-                {isLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Remove'}
-              </Button>
             </div>
-          </div>
-        ) : (
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleAddClick} 
-            className="w-full"
-          >
-            Add Phone Number
-          </Button>
-        )}
-      </FormContainer>
+          ) : (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleAddClick} 
+              className="w-full"
+            >
+              Add Phone Number
+            </Button>
+          )}
+        </FormContainer>
+
+        {/* OTP Dialog */}
+        <MfaOtpDialog 
+          isOpen={showOtpDialog}
+          onClose={handleOtpDialogClose}
+          onOtpVerified={handleOtpVerified}
+          sendOtp={handleSendOtp}
+          verifyOtp={handleVerifyOtp}
+          identifier={currentMethod?.action === 'add' ? phoneNumber : verifiedPhone?.phone_number}
+          title={otpDialogTitle}
+          description={otpDialogDescription}
+        />
+      </>
     );
   }
 
   // Phone setup state - enter phone number
   if (uiState === 'setup') {
     return (
-      <FormContainer errorMessage={error} successMessage={successMessage}>
-        <form onSubmit={handleSendOtp} className="space-y-4">
-          <div>
-            <Label htmlFor="phone-number-input" className="block mb-2">Phone Number (e.g., +12345678900)</Label>
-            <Input 
-              id="phone-number-input" 
-              type="tel" 
-              value={phoneNumber} 
-              onChange={(e) => setPhoneNumber(e.target.value)} 
-              placeholder="+12345678900"
-              disabled={isLoading}
+      <>
+        <FormContainer errorMessage={error} successMessage={successMessage}>
+          <form onSubmit={handleAddPhone} className="space-y-4">
+            <div>
+              <Label htmlFor="phone-number-input" className="block mb-2">Phone Number (e.g., +12345678900)</Label>
+              <Input 
+                id="phone-number-input" 
+                type="tel" 
+                value={phoneNumber} 
+                onChange={(e) => setPhoneNumber(e.target.value)} 
+                placeholder="+12345678900"
+                disabled={isLoading}
+              />
+            </div>
+            <ActionButtons
+              primaryText="Send Code"
+              loadingText="Sending..."
+              isLoading={isLoading}
+              isDisabled={!isValidPhoneNumber(phoneNumber)}
+              onCancel={handleCancel}
             />
-          </div>
-          <ActionButtons
-            primaryText="Send Code"
-            loadingText="Sending..."
-            isLoading={isLoading}
-            isDisabled={!isValidPhoneNumber(phoneNumber)}
-            onCancel={handleCancel}
-          />
-        </form>
-      </FormContainer>
-    );
-  }
+          </form>
+        </FormContainer>
 
-  // Verify code state
-  if (uiState === 'verify') {
-    return (
-      <FormContainer errorMessage={error} successMessage={successMessage}>
-        <form onSubmit={handleVerifyOtp} className="space-y-4">
-          <div>
-            <Label htmlFor="otp-code-input" className="block mb-2">Verification Code</Label>
-            <Input 
-              id="otp-code-input" 
-              type="text" 
-              value={code} 
-              onChange={(e) => setCode(e.target.value)} 
-              placeholder="123456"
-              maxLength={6}
-              disabled={isLoading}
-            />
-          </div>
-          <p className="text-xs text-muted-foreground">A code was sent via WhatsApp to {phoneNumber}</p>
-          <ActionButtons
-            primaryText="Verify Code"
-            loadingText="Verifying..."
-            isLoading={isLoading}
-            isDisabled={code.length !== 6}
-            onCancel={handleCancel}
-          />
-        </form>
-      </FormContainer>
+        {/* OTP Dialog */}
+        <MfaOtpDialog 
+          isOpen={showOtpDialog}
+          onClose={handleOtpDialogClose}
+          onOtpVerified={handleOtpVerified}
+          sendOtp={handleSendOtp}
+          verifyOtp={handleVerifyOtp}
+          identifier={phoneNumber}
+          title={otpDialogTitle}
+          description={otpDialogDescription}
+        />
+      </>
     );
   }
 
