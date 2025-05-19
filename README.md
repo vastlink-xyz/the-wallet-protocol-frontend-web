@@ -20,17 +20,27 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Learn More
+## Deploy on Heroku
+1.  **Login to Heroku:**
+    ```bash
+    heroku login -i
+    ```
 
-To learn more about Next.js, take a look at the following resources:
+2.  **Add Heroku remote:**
+    ```bash
+    git remote add heroku-dev https://git.heroku.com/dev-app-vastbase.git
+    ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3.  **Push to GitHub:**
+    Ensure your latest code is on GitHub.
+    ```bash
+    git push origin feature/litprotocol
+    ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+4.  **Deploy to Heroku:**
+    To deploy `feature/litprotocol` branch to Heroku's `main` branch:
+    ```bash
+    git push heroku-dev feature/litprotocol:main
+    ```
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The application will now build and deploy on Heroku. You can monitor the build progress in your terminal or on the Heroku Dashboard.
