@@ -26,8 +26,16 @@ export function PersonalWalletSettings() {
   const [authMethodId, setAuthMethodId] = useState<string | null>(null);
   const [limitError, setLimitError] = useState<string>('');
 
-  // State for the mock MFA Dialog
-  const [showMockMfaDialog, setShowMockMfaDialog] = useState(false);
+  // State for real MFA Dialog
+  const [showMfaDialog, setShowMfaDialog] = useState(false);
+  const [verifiedPhone, setVerifiedPhone] = useState<string | null>(null);
+  const [methodId, setMethodId] = useState<string | null>(null);
+  const [phoneId, setPhoneId] = useState<string | null>(null);
+  const [pendingSettings, setPendingSettings] = useState<any>(null);
+  
+  // Get user's session JWT
+  const authMethod = getAuthMethodFromStorage();
+  const sessionJwt = authMethod?.accessToken;
   
   useEffect(() => {
     const fetchAuthMethodId = async () => {
@@ -49,7 +57,10 @@ export function PersonalWalletSettings() {
         const id = await provider.getAuthMethodId(authMethod);
         setAuthMethodId(id);
         
-        if (id) await fetchCurrentSettings(id);
+        if (id) {
+          await fetchCurrentSettings(id);
+          await fetchUserPhone();
+        }
       } catch (error) {
         console.error('Error getting auth method ID:', error);
         setAuthMethodId(null);
@@ -59,8 +70,8 @@ export function PersonalWalletSettings() {
     if (isOpen) {
       fetchAuthMethodId();
     } else {
-        // Reset other states if needed when main dialog closes
-        setShowMockMfaDialog(false); // Ensure mock dialog also closes
+      // Reset other states if needed when main dialog closes
+      setShowMfaDialog(false);
     }
   }, [isOpen]);
   
@@ -79,6 +90,34 @@ export function PersonalWalletSettings() {
       }
     } catch (error) {
       console.error('Error fetching current settings:', error);
+    }
+  };
+
+  // Fetch user's phone number for MFA
+  const fetchUserPhone = async () => {
+    if (!sessionJwt) return;
+    
+    try {
+      const response = await fetch('/api/mfa/get-user-phone', {
+        headers: {
+          'Authorization': `Bearer ${sessionJwt}`
+        }
+      });
+      
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to fetch phone number');
+      }
+      
+      const data = await response.json();
+      const phones = data.phones || [];
+      
+      if (phones.length > 0) {
+        setVerifiedPhone(phones[0].phone_number);
+        setPhoneId(phones[0].phone_id);
+      }
+    } catch (error) {
+      console.error('Error fetching user phone:', error);
     }
   };
   
@@ -122,26 +161,41 @@ export function PersonalWalletSettings() {
     setIsSaving(true);
     
     try {
+      // Prepare wallet settings to update
+      const settings = {
+        dailyWithdrawLimits: {
+          ETH: ethLimit
+        }
+      };
+      
+      // Store settings for later use if MFA is required
+      setPendingSettings(settings);
+      
       // Call the API to update wallet settings
       const response = await fetch('/api/user/settings', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${sessionJwt}`
+        },
         body: JSON.stringify({
           authMethodId,
-          walletSettings: {
-            dailyWithdrawLimits: {
-              ETH: ethLimit
-            }
-          }
+          walletSettings: settings
         })
       });
       
-      if (response.ok) {
+      const responseData = await response.json();
+      
+      if (responseData.requiresMfa) {
+        // If MFA is required, show the OTP dialog
+        setShowMfaDialog(true);
+      } else if (response.ok) {
+        // If API returned success and no MFA required, settings were updated
         toast.success("Your wallet settings have been updated successfully.");
         setIsOpen(false);
       } else {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to save settings');
+        // Handle other error cases
+        throw new Error(responseData.error || 'Failed to save settings');
       }
     } catch (error: any) {
       console.error('Error saving wallet settings:', error);
@@ -151,38 +205,74 @@ export function PersonalWalletSettings() {
     }
   };
 
-  // Mock functions for MfaOtpDialog
-  const mockSendOtp = async () => {
-    log('[Mock] Sending OTP...');
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    // Simulate success or failure
-    const success = Math.random() > 0.2; // 80% success rate
-    if (success) {
-        log('[Mock] OTP Sent successfully.');
-        toast.info('[Mock] OTP Sent to +XX XXXXXX1234');
-    } else {
-        log('[Mock] Failed to send OTP.');
-        throw new Error('[Mock] Network error: Failed to send OTP.');
+  // Real send OTP function
+  const handleSendOtp = async () => {
+    if (!sessionJwt || !verifiedPhone) {
+      throw new Error('Session or phone number not found');
     }
+
+    log('Sending OTP to', verifiedPhone);
+    const response = await fetch('/api/mfa/whatsapp/send-code', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${sessionJwt}`,
+      },
+      body: JSON.stringify({ phone_number: verifiedPhone }),
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      log('Error response from API', errorData);
+      throw new Error(errorData.error || `Failed to send OTP: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    setMethodId(data.method_id);
+    log('OTP sent, method_id:', data.method_id);
   };
 
-  const mockVerifyOtp = async (otp: string) => {
-    log('[Mock] Verifying OTP:', otp);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    if (otp === '123456') { // Simulate successful OTP
-      log('[Mock] OTP Verified successfully.');
-      toast.success('[Mock] OTP Verified!');
-      return { success: true, token: 'mock-verification-token' };
-    } else {
-      log('[Mock] Invalid OTP.');
-      throw new Error('[Mock] Invalid OTP. Please try again.');
+  // Real verify OTP function
+  const handleVerifyOtp = async (otp: string) => {
+    if (!sessionJwt || !methodId || !authMethodId || !pendingSettings) {
+      throw new Error('Required data for verification is missing');
     }
+
+    if (otp.length !== 6) {
+      throw new Error('Verification code must be 6 digits');
+    }
+
+    log('Verifying OTP and updating settings', { method_id: methodId, code: otp });
+    const response = await fetch('/api/user/settings', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${sessionJwt}`,
+      },
+      body: JSON.stringify({
+        authMethodId,
+        walletSettings: pendingSettings,
+        otp,
+        phoneId,
+      }),
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || `Failed to update settings: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    log('Settings updated successfully', data);
+    return data;
   };
 
-  const handleMockMfaVerified = (verificationDetail?: any) => {
-    log('[Mock] MFA Verified in parent:', verificationDetail);
-    setShowMockMfaDialog(false); // Close the dialog
-    // Here you would typically proceed with the action that was pending MFA
+  // Handle OTP verification completion
+  const handleOtpVerified = (verificationDetail?: any) => {
+    log('MFA Verified:', verificationDetail);
+    setShowMfaDialog(false);
+    toast.success("Your wallet settings have been updated successfully.");
+    setIsOpen(false); // Close the settings dialog
   };
 
   return (
@@ -222,12 +312,6 @@ export function PersonalWalletSettings() {
 
           <DialogFooter className="pt-4 space-x-2">
             <Button 
-              variant="secondary" 
-              onClick={() => setShowMockMfaDialog(true)}
-            >
-              Test MFA Dialog
-            </Button>
-            <Button 
               onClick={saveSettings} 
               disabled={!isLimitValid || isSaving}
             >
@@ -237,15 +321,16 @@ export function PersonalWalletSettings() {
         </DialogContent>
       </Dialog>
 
-      {/* Render the MfaOtpDialog with mock props */}
+      {/* Real MFA OTP Dialog for wallet settings */}
       <MfaOtpDialog
-        isOpen={showMockMfaDialog}
-        onClose={() => setShowMockMfaDialog(false)}
-        onOtpVerified={handleMockMfaVerified}
-        sendOtp={mockSendOtp}
-        verifyOtp={mockVerifyOtp}
-        identifier="+XX XXXXXX1234" // Mock identifier
-        title="Test MFA Verification"
+        isOpen={showMfaDialog}
+        onClose={() => setShowMfaDialog(false)}
+        onOtpVerified={handleOtpVerified}
+        sendOtp={handleSendOtp}
+        verifyOtp={handleVerifyOtp}
+        identifier={verifiedPhone}
+        title="Verify Settings Change"
+        description="A verification code will be sent to your phone via WhatsApp"
       />
     </>
   );

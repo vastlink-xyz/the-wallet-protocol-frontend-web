@@ -1,12 +1,15 @@
 import { BaseOperationContext, Policy, PolicyContextType } from './Policy';
 import { dailyWithdrawLimitPolicy } from './DailyWithdrawLimitPolicy';
 import { personalWalletMFAUpdatePolicy } from './PersonalWalletMFAUpdatePolicy';
+import { personalWalletSettingsUpdatePolicy } from './PersonalWalletSettingsUpdatePolicy';
+
 class PolicyEnforcer {
   private policiesMap: Map<string, Policy<any>[]> = new Map();
 
   constructor() {
     this.policiesMap.set('transaction', [dailyWithdrawLimitPolicy]);
     this.policiesMap.set('personalWalletMFAUpdate', [personalWalletMFAUpdatePolicy]);
+    this.policiesMap.set('personalWalletSettingsUpdate', [personalWalletSettingsUpdatePolicy]);
   }
 
   /**

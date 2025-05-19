@@ -3,7 +3,7 @@ export interface BaseOperationContext {
   // authMethodId: string;
 }
 
-export type PolicyContextType = 'transaction' | 'personalWalletMFAUpdate';
+export type PolicyContextType = 'transaction' | 'personalWalletMFAUpdate' | 'personalWalletSettingsUpdate';
 
 // Abstract Policy class using a generic context type TContext
 export abstract class Policy<TContext extends BaseOperationContext> {
