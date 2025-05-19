@@ -4,7 +4,7 @@ import { getSessionSigs } from "@/lib/lit/sessionManager";
 import { log } from "@/lib/utils";
 import { getAuthIdByAuthMethod } from "@lit-protocol/lit-auth-client";
 import { AuthMethod, IRelayPKP } from "@lit-protocol/types";
-import { calculateCIDFromString, getLitActionIpfsCid, uploadViaPinata } from "@/lib/lit/get-lit-action-ipfs-cid";
+import { calculateCIDFromString, getLitActionIpfsCid, hexCidToBase58, uploadViaPinata } from "@/lib/lit/get-lit-action-ipfs-cid";
 import { AUTH_METHOD_TYPE } from "@lit-protocol/constants";
 import { ethers } from "ethers";
 import { editAuthmethodLitActionCode } from "@/app/debug/lit-actions/edit-authmethod";
@@ -179,6 +179,12 @@ export function ExecuteLitActionCode({
     }
   }
 
+  const handleHexToBase58 = async () => {
+    const ipfsIdHex = '0x1220c8be04ad08917a4e9de3293feb98b5f09bd762f72620b4621d6b6643b0c4ab2e'
+    const base58Cid = hexCidToBase58(ipfsIdHex);
+    log('base58Cid', base58Cid);
+  }
+
   return (
     <div className="space-y-4">
       {loading ? (
@@ -221,6 +227,13 @@ export function ExecuteLitActionCode({
             className="mt-4"
           >
             Verify Token
+          </Button>
+
+          <Button
+            onClick={handleHexToBase58}
+            className="mt-4"
+          >
+            Hex to Base58
           </Button>
         </>
       )}

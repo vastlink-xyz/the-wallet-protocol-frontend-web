@@ -5,6 +5,7 @@ import { Upgrade } from "./Upgrade";
 import { useState, useEffect, useCallback } from "react";
 import { CURRENT_AUTH_PROVIDER_KEY, getProviderByAuthMethodType } from "@/lib/lit";
 import { log } from "@/lib/utils";
+import { AllUsers } from "./AllUsers";
 
 export function Example({
   authMethod,
@@ -69,5 +70,9 @@ export function Example({
       loading={loading}
     />
     <Upgrade authMethod={authMethod} />
+    <AllUsers 
+      currentUserSessionPkp={sessionPkp}
+      currentUserAuthMethod={authMethod}
+    />
   </div>;
 }

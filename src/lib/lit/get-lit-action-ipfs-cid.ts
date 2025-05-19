@@ -28,6 +28,24 @@ export async function getLitActionIpfsCid({
     }
 }
 
+/**
+ * Convert a hex format IPFS CID to base58 format
+ * @param hexCid - The hex format IPFS CID (with or without 0x prefix)
+ * @returns The base58 format IPFS CID
+ */
+export function hexCidToBase58(hexCid: string): string {
+    // Remove 0x prefix if present
+    const hexWithoutPrefix = hexCid.startsWith('0x') ? hexCid.slice(2) : hexCid;
+    
+    // Convert hex string to buffer
+    const buffer = Buffer.from(hexWithoutPrefix, 'hex');
+    
+    // Convert buffer to base58
+    const base58Cid = ethers.utils.base58.encode(buffer);
+    
+    return base58Cid;
+}
+
 export async function uploadViaPinata(litActionCode: string) {
     const formData = new FormData();
 

@@ -105,6 +105,17 @@ export async function getUserByPkpAddress(ethAddress: string): Promise<{authMeth
   }
 }
 
+export async function getAllUsers(): Promise<User[]> {
+  try {
+    await connectToDatabase();
+    const users = await UserModel.find({}).lean();
+    return users.map(user => extractUserData(user)).filter((user): user is User => user !== null);
+  } catch (error) {
+    console.error('Failed to get all users:', error);
+    return [];
+  }
+}
+
 export async function createUser(authMethodId: string, email: string): Promise<User> {
   try {
     await connectToDatabase();
