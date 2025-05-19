@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 /**
- * Send notification email to a signer about a multisig wallet
+ * Send notification email to a signer about a team wallet
  * @param params The parameters for the notification
  * @returns A promise resolving to a result object
  */

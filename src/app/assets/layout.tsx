@@ -21,7 +21,7 @@ export default function AssetsLayout({
               : 'text-gray-600 hover:bg-white/[0.12] hover:text-gray-700'
           }`}
         >
-          Personal Assets
+          Personal Wallet
         </Link>
         <Link
           href="/assets/team"
@@ -31,7 +31,7 @@ export default function AssetsLayout({
               : 'text-gray-600 hover:bg-white/[0.12] hover:text-gray-700'
           }`}
         >
-          Team Assets
+          Team Wallet(s)
         </Link>
       </div>
       

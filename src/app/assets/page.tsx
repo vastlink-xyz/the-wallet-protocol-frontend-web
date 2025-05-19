@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 export default function AssetsDefaultPage() {
   const router = useRouter()
 
-  // Default redirect to personal assets page
+  // Default redirect to personal wallet page
   useEffect(() => {
     router.replace('/assets/personal')
   }, [router])
