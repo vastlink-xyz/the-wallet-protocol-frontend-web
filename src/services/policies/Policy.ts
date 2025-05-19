@@ -7,6 +7,7 @@ export type PolicyContextType = 'transaction';
 
 // Context specific to transaction operations
 export interface TransactionOperationContext extends BaseOperationContext {
+  authMethodId: string;
   transactionAmount: string;  // Amount in ETH
 }
 

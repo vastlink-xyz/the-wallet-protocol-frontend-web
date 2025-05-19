@@ -99,7 +99,8 @@ const go = async () => {
           },
           body: JSON.stringify({
             authMethodId: authParams.authMethodId,
-            amount: valueInEth,
+            transactionAmount: valueInEth,
+            contextType: 'transaction',
           })
         });
         const data = await response.json();

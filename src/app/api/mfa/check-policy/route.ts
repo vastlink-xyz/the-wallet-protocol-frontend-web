@@ -11,12 +11,11 @@ export async function POST(request: NextRequest) {
     log('Authenticated session in verify-code:', session);
 
     const body = await request.json();
-    const { authMethodId, amount } = body;
+    const { contextType, ...contextParams } = body;
     
     const shouldTriggerMFA = await policyEnforcer.checkPolicies({
-      authMethodId: authMethodId,
-      transactionAmount: amount,
-    }, 'transaction');
+      ...contextParams,
+    }, contextType);
     
     return NextResponse.json({
       requiresMfa: shouldTriggerMFA,
@@ -24,7 +23,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error checking policy:', error);
     return NextResponse.json(
-      { error: 'Failed to check transaction policy' },
+      { error: 'Failed to check policy' },
       { status: 500 }
     );
   }

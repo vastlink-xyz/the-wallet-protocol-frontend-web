@@ -2,6 +2,8 @@
 
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
+import { useAuthExpiration } from '@/hooks/useAuthExpiration'
+import { useEffect } from 'react'
 
 export default function AssetsLayout({
   children,
@@ -9,6 +11,11 @@ export default function AssetsLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
+  const { verifyAuthOrRedirect } = useAuthExpiration()
+
+  useEffect(() => {
+    verifyAuthOrRedirect();
+  }, [])
 
   return (
     <div className="container mx-auto px-4 py-8">      

@@ -1,6 +1,8 @@
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { toast } from 'react-toastify';
+import { isTokenValid } from '@/lib/jwt';
+import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
 
 /**
  * Hook for handling authentication expiration
@@ -19,5 +21,21 @@ export function useAuthExpiration() {
     }, 1500);
   };
   
-  return { handleExpiredAuth };
+  const verifyAuthOrRedirect = async () => {
+    const authMethod = getAuthMethodFromStorage();
+    if (!authMethod) {
+      handleExpiredAuth();
+      return false;
+    }
+    
+    const isValid = await isTokenValid(authMethod);
+    if (!isValid) {
+      handleExpiredAuth();
+      return false;
+    }
+    
+    return true;
+  };
+  
+  return { handleExpiredAuth, verifyAuthOrRedirect };
 } 

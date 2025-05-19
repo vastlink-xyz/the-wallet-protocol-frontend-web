@@ -15,6 +15,8 @@ import { Input } from "@/components/ui/input";
 import { CURRENT_AUTH_PROVIDER_KEY, getProviderByAuthMethodType } from '@/lib/lit';
 import { toast } from 'react-toastify';
 import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
+import { MfaOtpDialog } from '@/components/MfaOtpDialog';
+import { log } from '@/lib/utils';
 
 export function PersonalWalletSettings() {
   const [isOpen, setIsOpen] = useState(false);
@@ -23,8 +25,10 @@ export function PersonalWalletSettings() {
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [authMethodId, setAuthMethodId] = useState<string | null>(null);
   const [limitError, setLimitError] = useState<string>('');
+
+  // State for the mock MFA Dialog
+  const [showMockMfaDialog, setShowMockMfaDialog] = useState(false);
   
-  // Get user's authMethodId when component mounts
   useEffect(() => {
     const fetchAuthMethodId = async () => {
       try {
@@ -45,15 +49,18 @@ export function PersonalWalletSettings() {
         const id = await provider.getAuthMethodId(authMethod);
         setAuthMethodId(id);
         
-        // Fetch current settings
-        await fetchCurrentSettings(id);
+        if (id) await fetchCurrentSettings(id);
       } catch (error) {
         console.error('Error getting auth method ID:', error);
+        setAuthMethodId(null);
       }
     };
     
     if (isOpen) {
       fetchAuthMethodId();
+    } else {
+        // Reset other states if needed when main dialog closes
+        setShowMockMfaDialog(false); // Ensure mock dialog also closes
     }
   }, [isOpen]);
   
@@ -136,19 +143,54 @@ export function PersonalWalletSettings() {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to save settings');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving wallet settings:', error);
-      toast.error("Failed to save wallet settings. Please try again.");
+      toast.error(error.message || "Failed to save wallet settings. Please try again.");
     } finally {
       setIsSaving(false);
     }
   };
 
+  // Mock functions for MfaOtpDialog
+  const mockSendOtp = async () => {
+    log('[Mock] Sending OTP...');
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Simulate success or failure
+    const success = Math.random() > 0.2; // 80% success rate
+    if (success) {
+        log('[Mock] OTP Sent successfully.');
+        toast.info('[Mock] OTP Sent to +XX XXXXXX1234');
+    } else {
+        log('[Mock] Failed to send OTP.');
+        throw new Error('[Mock] Network error: Failed to send OTP.');
+    }
+  };
+
+  const mockVerifyOtp = async (otp: string) => {
+    log('[Mock] Verifying OTP:', otp);
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    if (otp === '123456') { // Simulate successful OTP
+      log('[Mock] OTP Verified successfully.');
+      toast.success('[Mock] OTP Verified!');
+      return { success: true, token: 'mock-verification-token' };
+    } else {
+      log('[Mock] Invalid OTP.');
+      throw new Error('[Mock] Invalid OTP. Please try again.');
+    }
+  };
+
+  const handleMockMfaVerified = (verificationDetail?: any) => {
+    log('[Mock] MFA Verified in parent:', verificationDetail);
+    setShowMockMfaDialog(false); // Close the dialog
+    // Here you would typically proceed with the action that was pending MFA
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline">Wallet Settings</Button>
-      </DialogTrigger>
+    <>
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogTrigger asChild>
+          <Button variant="outline">Wallet Settings</Button>
+        </DialogTrigger>
 
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
@@ -157,36 +199,54 @@ export function PersonalWalletSettings() {
           </DialogDescription>
         </DialogHeader>
 
-        <div>
-          <h2 className='font-medium mb-2'>Daily Withdraw Limit</h2>
-          <div className="flex flex-col space-y-2">
-            <div className="flex items-center gap-2">
-              <Input 
-                value={ethLimit} 
-                onChange={handleLimitChange} 
-                placeholder="0.001"
-                className="w-32"
-              />
-              <span className="font-medium">ETH</span>
+          <div>
+            <h2 className='font-medium mb-2'>Daily Withdraw Limit</h2>
+            <div className="flex flex-col space-y-2">
+              <div className="flex items-center gap-2">
+                <Input 
+                  value={ethLimit} 
+                  onChange={handleLimitChange} 
+                  placeholder="0.001"
+                  className="w-32"
+                />
+                <span className="font-medium">ETH</span>
+              </div>
+              {limitError && <p className="text-sm text-red-500">{limitError}</p>}
             </div>
-            {limitError && <p className="text-sm text-red-500">{limitError}</p>}
           </div>
-        </div>
 
-        <div>
-          <h2 className='font-medium mb-2'>MFA Settings</h2>
-          <MFASettingsContent isOpen={isOpen} />
-        </div>
+          <div>
+            <h2 className='font-medium mb-2'>MFA Settings</h2>
+            <MFASettingsContent isOpen={isOpen} />
+          </div>
 
-        <DialogFooter className="pt-4">
-          <Button 
-            onClick={saveSettings} 
-            disabled={!isLimitValid || isSaving}
-          >
-            {isSaving ? 'Saving...' : 'Save Settings'}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          <DialogFooter className="pt-4 space-x-2">
+            <Button 
+              variant="secondary" 
+              onClick={() => setShowMockMfaDialog(true)}
+            >
+              Test MFA Dialog
+            </Button>
+            <Button 
+              onClick={saveSettings} 
+              disabled={!isLimitValid || isSaving}
+            >
+              {isSaving ? 'Saving...' : 'Save Settings'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Render the MfaOtpDialog with mock props */}
+      <MfaOtpDialog
+        isOpen={showMockMfaDialog}
+        onClose={() => setShowMockMfaDialog(false)}
+        onOtpVerified={handleMockMfaVerified}
+        sendOtp={mockSendOtp}
+        verifyOtp={mockVerifyOtp}
+        identifier="+XX XXXXXX1234" // Mock identifier
+        title="Test MFA Verification"
+      />
+    </>
   );
 }
