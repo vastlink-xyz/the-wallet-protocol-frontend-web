@@ -307,7 +307,10 @@ export function PersonalWalletSettings() {
 
           <div>
             <h2 className='font-medium mb-2'>MFA Settings</h2>
-            <MFASettingsContent isOpen={isOpen} />
+            <MFASettingsContent 
+              isOpen={isOpen} 
+              onPhoneUpdated={fetchUserPhone}
+            />
           </div>
 
           <DialogFooter className="pt-4 space-x-2">

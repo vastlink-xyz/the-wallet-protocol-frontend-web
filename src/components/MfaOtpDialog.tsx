@@ -44,6 +44,7 @@ export function MfaOtpDialog({
   const [isVerifying, setIsVerifying] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [initialSendAttempted, setInitialSendAttempted] = useState(false);
 
   const effectiveDescription = description || `An OTP has been sent to ${identifier || 'your device'}. Please enter it below.`;
 
@@ -62,11 +63,12 @@ export function MfaOtpDialog({
       setOtpSent(false); 
     } finally {
       setIsSendingOtp(false);
+      setInitialSendAttempted(true);
     }
   }, [sendOtp]);
 
   useEffect(() => {
-    if (isOpen && !otpSent && !isSendingOtp) {
+    if (isOpen && !otpSent && !isSendingOtp && !initialSendAttempted) {
       handleSendOtp();
     }
     if (!isOpen) {
@@ -75,8 +77,9 @@ export function MfaOtpDialog({
       setOtpSent(false);
       setIsSendingOtp(false);
       setIsVerifying(false);
+      setInitialSendAttempted(false);
     }
-  }, [isOpen, otpSent, isSendingOtp, handleSendOtp]);
+  }, [isOpen, otpSent, isSendingOtp, handleSendOtp, initialSendAttempted]);
 
   const handleVerify = async () => {
     if (!otp.trim()) {

@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2 } from 'lucide-react';
 import { log } from '@/lib/utils';
 import { MfaOtpDialog } from '@/components/MfaOtpDialog';
+import { toast } from 'react-toastify';
 
 // Define StytchPhoneNumber type based on expected API response
 interface StytchPhoneNumber {
@@ -25,6 +26,9 @@ interface MFAPhoneWhatsAppProps {
   
   // Callback when phone number is successfully added/verified/removed
   onSuccess: () => void;
+
+  // Callback to update parent component's phone state
+  onPhoneUpdated?: () => Promise<void>;
 }
 
 // Common container for all UI states
@@ -82,7 +86,8 @@ const ActionButtons: React.FC<{
 export function MFAPhoneWhatsApp({ 
   verifiedPhone, 
   sessionJwt,
-  onSuccess
+  onSuccess,
+  onPhoneUpdated
 }: MFAPhoneWhatsAppProps) {
   const [uiState, setUiState] = useState<PhoneUiState>('initial');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -331,6 +336,15 @@ export function MFAPhoneWhatsApp({
       setSuccessMessage('Phone number added successfully.');
       setPhoneNumber('');
       setUiState('initial');
+      
+      // Update parent component's phone state if callback exists
+      if (onPhoneUpdated) {
+        onPhoneUpdated().then(() => {
+          toast.success("Phone number verified. You can now modify your settings.");
+        }).catch(err => {
+          log('Error updating phone state:', err);
+        });
+      }
     } else if (currentMethod?.action === 'remove') {
       setSuccessMessage('Phone number removed successfully.');
     }

@@ -20,9 +20,10 @@ const getStytchSessionJwt = (): string | null => {
 
 interface MFASettingsContentProps {
   isOpen: boolean;
+  onPhoneUpdated?: () => Promise<void>;
 }
 
-export function MFASettingsContent({ isOpen }: MFASettingsContentProps) {
+export function MFASettingsContent({ isOpen, onPhoneUpdated }: MFASettingsContentProps) {
   // Main component state
   const [phoneNumbers, setPhoneNumbers] = useState<StytchPhoneNumber[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -109,6 +110,7 @@ export function MFASettingsContent({ isOpen }: MFASettingsContentProps) {
               verifiedPhone={verifiedPhone}
               sessionJwt={sessionJwt}
               onSuccess={refreshMFAStatus}
+              onPhoneUpdated={onPhoneUpdated}
             />
           </div>
         </>
