@@ -56,8 +56,8 @@ async function getUserDailyWithdrawalLimit(userData: any): Promise<string> {
   return "0.001";
 }
 
-// DailyWithdrawLimitPolicy specifically uses TransactionOperationContext
-class DailyWithdrawLimitPolicy extends Policy<TransactionOperationContext> {
+// PersonalWalletDailyWithdrawLimitPolicy specifically uses TransactionOperationContext
+class PersonalWalletDailyWithdrawLimitPolicy extends Policy<TransactionOperationContext> {
   // Constructor is simplified as userId and currency are now part of the context.
   constructor() {
     super();
@@ -104,6 +104,6 @@ class DailyWithdrawLimitPolicy extends Policy<TransactionOperationContext> {
   }
 } 
 
-const dailyWithdrawLimitPolicy = new DailyWithdrawLimitPolicy();
-Object.freeze(dailyWithdrawLimitPolicy);
-export { dailyWithdrawLimitPolicy };
+const personalWalletDailyWithdrawLimitPolicy = new PersonalWalletDailyWithdrawLimitPolicy();
+Object.freeze(personalWalletDailyWithdrawLimitPolicy);
+export { personalWalletDailyWithdrawLimitPolicy };

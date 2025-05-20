@@ -95,7 +95,7 @@ export function AllMultisigWallets({
 
     try {
       setLoading(true);
-      const removeIpfsIdHex = '0x12205b23467e5ab81313a7ab95027aa6124d864178c12174f77d8d15b92ce98a4a05'
+      const removeIpfsIdHex = '0x1220ebb024b29db7e84cab2fc491139363524d2125a65d9294d681571663ebfe562f'
       
       const response = await litNodeClient.executeJs({
         code: upgradeLitActionCode,

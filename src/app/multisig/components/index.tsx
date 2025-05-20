@@ -20,6 +20,7 @@ import { getMultisigTransactionIpfsId, getPersonalSignIpfsId, getUpdateWalletIpf
 import { sendMultisigNotification } from '@/lib/notification'
 import { useAuthExpiration } from '@/hooks/useAuthExpiration'
 import { isTokenValid } from "@/lib/jwt"
+import { MfaOtpDialog } from "@/components/MfaOtpDialog"
 
 // eth sepolia
 const chainInfo = {
@@ -64,9 +65,40 @@ export function Multisig({
   const [executeResult, setExecuteResult] = useState<any>(null)
   const [showWalletSettings, setShowWalletSettings] = useState(false)
 
+  // mfa
+  const [showMfaDialog, setShowMfaDialog] = useState(false);
+  const [currentProposal, setCurrentProposal] = useState<MessageProposal | null>(null)
+  const [verifiedPhone, setVerifiedPhone] = useState<string | null>(null);
+  const [mfaMethodId, setMfaMethodId] = useState<string | null>(null);
+
   useEffect(() => {
     fetchWallets()
+    fetchUserPhone()
   }, [currentPkp])
+
+  const fetchUserPhone = async () => {
+    try {
+      const response = await fetch('/api/mfa/get-user-phone', {
+        headers: {
+          'Authorization': `Bearer ${authMethod.accessToken}`
+        }
+      });
+      
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to fetch phone number');
+      }
+      
+      const data = await response.json();
+      const phones = data.phones || [];
+      
+      if (phones.length > 0) {
+        setVerifiedPhone(phones[0].phone_number);
+      }
+    } catch (error) {
+      console.error('Error fetching user phone:', error);
+    }
+  };
 
   const fetchWallets = async () => {
     try {
@@ -378,7 +410,9 @@ export function Multisig({
       setExecuteResult(null)
       
       // Connect to Lit Network
-      await litNodeClient.connect()
+      if (!litNodeClient.ready) {
+        await litNodeClient.connect()
+      }
 
       log('selected mulsig pkp', selectedMultisigPkp)
       
@@ -568,7 +602,7 @@ export function Multisig({
   };
 
   // Function to execute transaction proposal
-  const executeTransactionProposal = async (proposal: MessageProposal, sessionSigs: any) => {
+  const executeTransactionProposal = async (proposal: MessageProposal, sessionSigs: any, otpCode: string = '') => {
     if (!selectedMultisigPkp || !selectedWallet) return;
 
     log('Executing Lit Action with multisig PKP', {
@@ -599,23 +633,26 @@ export function Multisig({
     };
     
     log('Unsigned transaction:', unsignedTransaction)
-    
-    // Remove '0x' prefix, Lit.Actions.signAndCombineEcdsa requires public key without the '0x' prefix
-    const publicKeyForLit = selectedMultisigPkp.publicKey.replace(/^0x/, '');
 
     const jsParams = {
       message: proposal.message,
       publicKeys: proposal.signatures.map(signer => signer.publicKey),
-      // signatures: proposal.signatures.map(sig => sig.signature),
       proposalId: proposal.id,
       walletId: selectedWalletId,
       requiredSignatures: selectedWallet.threshold,
       publicKey: selectedMultisigPkp.publicKey,
       // 
       sendTransaction: true,
-      publicKeyForLit,
       chain: 'sepolia',
       unsignedTransaction,
+      env: process.env.NEXT_PUBLIC_ENV,
+      authParams: {
+        accessToken: authMethod.accessToken,
+        authMethodId: authMethodId,
+        authMethodType: authMethod.authMethodType,
+      },
+      otp: otpCode,
+      mfaMethodId,
     }
     log('js params', jsParams)
 
@@ -640,6 +677,16 @@ export function Multisig({
     log('Parsed response object:', responseObj);
     
     if (responseObj.isValid) {
+      if (responseObj.requireMFA) {
+        setCurrentProposal(proposal)
+        setShowMfaDialog(true)
+        toast.warning('Daily limit exceeded')
+        return
+      } else if (responseObj.error) {
+        toast.error(responseObj.error)
+        return
+      }
+
       let txHash = null;
       
       // Try to extract transaction hash from different response formats
@@ -688,6 +735,54 @@ export function Multisig({
     } catch (error) {
       console.error('Failed to update wallet balance:', error)
       setWalletBalance('0')
+    }
+  }
+
+  const handleSendOtp = async () => {
+    if (!verifiedPhone) {
+      throw new Error('Session or phone number not found');
+    }
+
+    log('Sending OTP to', verifiedPhone);
+    const response = await fetch('/api/mfa/whatsapp/send-code', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authMethod.accessToken}`,
+      },
+      body: JSON.stringify({ phone_number: verifiedPhone }),
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      log('Error response from API', errorData);
+      throw new Error(errorData.error || `Failed to send OTP: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    setMfaMethodId(data.method_id);
+    log('OTP sent, method_id:', data.method_id);
+  };
+
+  const handleVerifyOtp = async (otp: string) => {
+    return otp
+  };
+
+  const handleOtpVerified = async (otp: string) => {
+    // Close the dialog
+    setShowMfaDialog(false);
+
+    try {
+      setIsLoading(true)
+      const sessionSigs = await getSessionSigsByPkp({authMethod, pkp: sessionPkp, refreshStytchAccessToken: true})
+      if (currentProposal) {
+        log('otp in handleOtpVerified', otp)
+        await executeTransactionProposal(currentProposal, sessionSigs, otp)
+      }
+    } catch (error) {
+      console.error('Error executing transaction:', error)
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -885,6 +980,17 @@ export function Multisig({
           }}
         />
       )}
+
+      <MfaOtpDialog
+        isOpen={showMfaDialog}
+        onClose={() => setShowMfaDialog(false)}
+        onOtpVerified={handleOtpVerified}
+        sendOtp={handleSendOtp}
+        verifyOtp={handleVerifyOtp}
+        identifier={verifiedPhone}
+        title="Verify Transaction"
+        description="A verification code will be sent to your phone via WhatsApp"
+      />
     </div>
   )
 }

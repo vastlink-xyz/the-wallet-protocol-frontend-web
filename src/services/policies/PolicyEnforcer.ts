@@ -1,15 +1,17 @@
 import { BaseOperationContext, Policy, PolicyContextType } from './Policy';
-import { dailyWithdrawLimitPolicy } from './DailyWithdrawLimitPolicy';
+import { personalWalletDailyWithdrawLimitPolicy } from './PersonalWalletDailyWithdrawLimitPolicy';
 import { personalWalletMFAUpdatePolicy } from './PersonalWalletMFAUpdatePolicy';
 import { personalWalletSettingsUpdatePolicy } from './PersonalWalletSettingsUpdatePolicy';
+import { multisigWalletDailyWithdrawLimitPolicy } from './MultisigWalletDailyWithdrawLimitPolicy';
 
 class PolicyEnforcer {
   private policiesMap: Map<string, Policy<any>[]> = new Map();
 
   constructor() {
-    this.policiesMap.set('transaction', [dailyWithdrawLimitPolicy]);
+    this.policiesMap.set('transaction', [personalWalletDailyWithdrawLimitPolicy]);
     this.policiesMap.set('personalWalletMFAUpdate', [personalWalletMFAUpdatePolicy]);
     this.policiesMap.set('personalWalletSettingsUpdate', [personalWalletSettingsUpdatePolicy]);
+    this.policiesMap.set('multisigWalletTransaction', [multisigWalletDailyWithdrawLimitPolicy]);
   }
 
   /**

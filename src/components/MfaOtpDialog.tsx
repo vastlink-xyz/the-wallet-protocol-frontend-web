@@ -55,10 +55,10 @@ export function MfaOtpDialog({
       await sendOtp();
       setOtpSent(true);
       if(isRetry) {
-        log('OTP resent successfully (mock)');
+        log('OTP resent successfully');
       }
     } catch (err: any) {
-      log('Error sending OTP (mock):', err);
+      log('Error sending OTP:', err);
       setError(err.message || 'Failed to send OTP. Please try again.');
       setOtpSent(false); 
     } finally {
@@ -92,7 +92,7 @@ export function MfaOtpDialog({
       const verificationResult = await verifyOtp(otp);
       onOtpVerified(verificationResult);
     } catch (err: any) {
-      log('Error verifying OTP (mock):', err);
+      log('Error verifying OTP:', err);
       setError(err.message || 'Invalid or expired OTP. Please try again.');
     } finally {
       setIsVerifying(false);

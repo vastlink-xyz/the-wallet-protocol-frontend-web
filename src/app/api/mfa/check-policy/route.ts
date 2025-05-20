@@ -1,4 +1,3 @@
-import { dailyWithdrawLimitPolicy } from '@/services/policies/DailyWithdrawLimitPolicy';
 import { NextRequest, NextResponse } from 'next/server';
 import { AuthenticatedSession } from '../../stytch/sessionAuth';
 import { authenticateStytchSession } from '../../stytch/sessionAuth';

@@ -21,7 +21,7 @@ import { personalSignLitActionCode } from "@/lib/lit-action-code/proposal-sign.l
 import { upgradeLitActionCode } from "@/lib/lit-action-code/upgrade.lit";
 import { personalTransactionLitActionCode } from "@/lib/lit-action-code/personal-transaction.lit";
 
-const litActionCode = personalSignLitActionCode
+const litActionCode = multisigTransactionLitActionCode
 
 interface ExecuteLitActionCodeProps {
   authMethod: AuthMethod;
@@ -180,7 +180,7 @@ export function ExecuteLitActionCode({
   }
 
   const handleHexToBase58 = async () => {
-    const ipfsIdHex = '0x1220c8be04ad08917a4e9de3293feb98b5f09bd762f72620b4621d6b6643b0c4ab2e'
+    const ipfsIdHex = '0x122045a6414ec08fded72e25a0dbd48121415c6e8c14dbaa46e466eb08f080e1e45c'
     const base58Cid = hexCidToBase58(ipfsIdHex);
     log('base58Cid', base58Cid);
   }

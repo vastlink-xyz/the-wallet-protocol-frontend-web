@@ -4,7 +4,7 @@ export interface BaseOperationContext {
   [key: string]: unknown;
 }
 
-export type PolicyContextType = 'transaction' | 'personalWalletMFAUpdate' | 'personalWalletSettingsUpdate';
+export type PolicyContextType = 'transaction' | 'personalWalletMFAUpdate' | 'personalWalletSettingsUpdate' | 'multisigWalletTransaction';
 
 // Abstract Policy class using a generic context type TContext
 export abstract class Policy<TContext extends BaseOperationContext> {

@@ -43,47 +43,6 @@ export function SendEth({ litActionPkp, sessionPkp, authMethod, authMethodId }: 
   const isValidAmount = !isNaN(Number(amount)) && Number(amount) > 0
   const canSend = isValidAddress && isValidAmount && !isSending && !showMfa
 
-  const handleCheckPolicy = async () => {
-    if (!canSend || !litActionPkp) return
-    
-    try {
-      setIsSending(true)
-      log('Checking policy for transaction:', { to: recipientAddress, amount })
-
-      const authMethodObj = getAuthMethodFromStorage()
-      const sessionJwt = authMethodObj?.accessToken
-
-      const response = await fetch(`/api/mfa/check-policy`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionJwt}`,
-        },
-        body: JSON.stringify({
-          authMethodId,
-          amount: Number(amount),
-        })
-      })
-      
-      const data = await response.json()
-      log('Policy check result:', data)
-      return
-      
-      if (data.requiresMfa) {
-        // Show MFA flow
-        setShowMfa(true)
-        setIsSending(false)
-      } else {
-        // Execute transaction directly
-        handleExecuteTransaction('')
-      }
-    } catch (error) {
-      console.error('Error checking policy:', error)
-      toast.error('Failed to check transaction policy')
-      setIsSending(false)
-    }
-  }
-
   const handleExecuteTransaction = async (otpCode: string, mfaMethodId?: string) => {
     try {
       setIsSending(true)

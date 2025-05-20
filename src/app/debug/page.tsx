@@ -48,7 +48,6 @@ const pkp = {
 
 export default function DebugPage() {
   const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null);
-  const [currentPkp, setCurrentPkp] = useState<IRelayPKP>(defaultPkp)
 
   // Initialize by reading authMethod from localStorage
   useEffect(() => {
@@ -58,177 +57,12 @@ export default function DebugPage() {
     }
   }, []);
 
-  const handleExecuteLitAction = async () => {
-    if (!authMethod || !currentPkp) {
-      return
-    }
-
-    const sessionSigs = await getSessionSigsByPkp({authMethod, pkp: sessionPKP})
-    log('session sigs', sessionSigs)
-
-    // Remove '0x' prefix, Lit.Actions.signAndCombineEcdsa requires public key without the '0x' prefix
-    const publicKeyForLit = currentPkp.publicKey.replace(/^0x/, '');
-
-    const gasPrice = (await ethersProvider.getGasPrice()).toHexString()
-    const nonce = await ethersProvider.getTransactionCount(currentPkp.ethAddress)
-    log('gas price ', gasPrice, 'nounce', nonce)
-    log('public key', currentPkp.publicKey)
-
-    const unsignedTransaction = {
-      to: '0x56ed57816E32138668ebFf838c9859a583a04c43',
-      value: ethers.utils.parseEther('0.0000001').toHexString(),
-      gasLimit: 21000,
-      gasPrice,
-      nonce,
-      chainId: chainInfo.chainId,
-      data: '0x'
-    };
-
-    const toSign = ethers.utils.arrayify(
-      ethers.utils.keccak256(ethers.utils.serializeTransaction(unsignedTransaction))
-    )
-    // const messageHash = ethers.utils.hashMessage('Hello, world!');
-    // const messageBytes = ethers.utils.arrayify(messageHash);
-
-    const response = await litNodeClient.executeJs({
-      ipfsId: litActionIpfsId,
-      // code: signTransactionLitActionCode,
-      sessionSigs,
-      jsParams: {
-        publicKeyForLit,
-        unsignedTransaction,
-        chain: 'sepolia',
-        sendTransaction: true,
-      }
-    });
-
-    log('Lit Action Response', response)
-  }
-
   const handleGetAllPKPs = async () => {
     if (!authMethod) {
       return
     }
 
     await getPKPs({authMethod})
-  }
-
-  const handleAddLitActionPermission = async () => {
-    try {
-      await litNodeClient.connect();
-
-      if (!currentPkp || !authMethod) {
-        return
-      }
-
-      const sessionSigs = await getSessionSigsByPkp({authMethod, pkp: currentPkp})
-      const pkpWallet = new PKPEthersWallet({
-        controllerSessionSigs: sessionSigs,
-        pkpPubKey: currentPkp.publicKey,
-        litNodeClient: litNodeClient,
-      });
-
-      await pkpWallet.init();
-      log('pkpWallet init')
-
-      const litContracts = new LitContracts({
-        signer: pkpWallet,
-      });
-      await litContracts.connect();
-      log('litcontract conneected')
-
-      await litContracts.addPermittedAction({
-        ipfsId: litActionIpfsId,
-        pkpTokenId: currentPkp.tokenId,
-        authMethodScopes: [AUTH_METHOD_SCOPE.SignAnything],
-      })
-      log('add lit action successfully')
-    } catch (err) {
-      console.error(err);
-    } finally {
-    }
-  }
-
-  const handleLogLitActionCode = async () => {
-    // console.log(signTransactionLitActionCode)
-    // console.log(customLitActionCode)
-  }
-
-  const handleLogPermittedActions = async () => {
-    try {
-      // await litNodeClient.connect();
-
-      if (!currentPkp || !authMethod) {
-        return
-      }
-
-      log('current pkp', currentPkp)
-
-      const sessionSigs = await getSessionSigsByPkp({authMethod, pkp: currentPkp})
-      const pkpWallet = new PKPEthersWallet({
-        controllerSessionSigs: sessionSigs,
-        pkpPubKey: currentPkp.publicKey,
-        litNodeClient: litNodeClient,
-      });
-      
-      await pkpWallet.init();
-      log('pkpWallet init')
-
-      const litContracts = new LitContracts({
-        signer: pkpWallet,
-      });
-      await litContracts.connect();
-      log('litcontract conneected')
-
-      const permittedActions = await litContracts.pkpPermissionsContractUtils.read.getPermittedActions(currentPkp.tokenId)
-      log('permitted actions', permittedActions)
-
-      const permittedAuthMethods = await litContracts.pkpPermissionsContract.read.getPermittedAuthMethods(currentPkp.tokenId)
-      log('permitted authmethods', permittedAuthMethods)
-
-      const litActionIpfsId = await getPersonalSignIpfsId('base58')
-      const res = await litContracts.pkpPermissionsContractUtils.read.isPermittedAction(currentPkp.tokenId, litActionIpfsId)
-      log('res is permitted action', res)
-    } catch (err) {
-      console.error(err);
-    } finally {
-    }
-  }
-
-  const handleSignMessageWithPKP = async () => {
-    try {
-      // await litNodeClient.connect();
-
-      if (!currentPkp || !authMethod) {
-        return
-      }
-
-      log('current pkp', currentPkp)
-
-      const sessionSigs = await getSessionSigsByPkp({authMethod, pkp: currentPkp})
-      const pkpWallet = new PKPEthersWallet({
-        controllerSessionSigs: sessionSigs,
-        pkpPubKey: currentPkp.publicKey,
-        litNodeClient: litNodeClient,
-      });
-
-      await pkpWallet.init();
-      log('pkpWallet init')
-
-      const message = 'hi'
-      
-      const signature = await pkpWallet.signMessage(message);
-
-      // Get the address associated with the signature created by signing the message
-      const recoveredAddr = ethers.utils.verifyMessage(message, signature);
-
-      // Check if the address associated with the signature is the same as the current PKP
-      const verified = currentPkp.ethAddress.toLowerCase() === recoveredAddr.toLowerCase();
-      log('verified', verified)
-    } catch (err) {
-      console.error(err);
-    } finally {
-    }
   }
 
   const handleVerifyToken = async () => {
@@ -244,13 +78,29 @@ export default function DebugPage() {
     log('verify token', data)
   }
 
+  const handleTest = async () => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/mfa/check-policy`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authMethod!.accessToken}`,
+      },
+      body: JSON.stringify({
+        contextType: 'multisigWalletTransaction',
+        walletId: 'd0f6daf6-90f9-4431-b5f9-14106c99670e',
+        transactionAmount: '0.001',
+      }),
+    })
+
+    const data = await res.json()
+    log('check policy', data)
+  }
+
   return (
     <div className="space-y-8 p-4">
       <div className="flex flex-wrap gap-2">
         <Button onClick={handleGetAllPKPs}>All PKPs</Button>
-        <Button onClick={handleExecuteLitAction}>Execute Lit Action</Button>
-        <Button onClick={handleAddLitActionPermission}>Add Lit Action</Button>
-        <Button onClick={handleLogLitActionCode}>Log Lit Action Code</Button>
+        <Button onClick={handleTest}>Test</Button>
       </div>
 
       <div className="border rounded-lg p-6 bg-white">

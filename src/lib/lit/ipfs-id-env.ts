@@ -16,8 +16,8 @@ const createWalletIpfsIdHex = '0x1220794fd99f5f8459c602e869a7af409bd7f3bf92b5d45
 const verifyAuthTokenIpfsId = 'QmNcUQ4jqnnjNue8T5RNekSQ2numbqshSiyXCnZi73QZ1u'
 const verifyAuthTokenIpfsHex = '0x1220040da25a9624a5c139461568874b5f39658a5f9d728c4bc538fb320eb19add6c'
 
-const multisigTransactionIpfsId = 'QmWukQ1Rd6odJywQ2PYq8WmU8pepqDjYx4gb9kWTopDpak'
-const multisigTransactionIpfsHex = '0x12207f5817efd9a7bfb3ce12c377d6364315256e833241106526aa2430964cb5d1d1'
+const multisigTransactionIpfsId = 'QmcUd2f69weSzeSRapdU37QE75EiuwCKk4vEagrmDdAygT'
+const multisigTransactionIpfsHex = '0x1220d20e5d1a3e63cef48a583662d30ea58791b28ce68370d4659b06b1a14611b078'
 
 const personalSignIpfsId = 'QmNriw4V52jaaXQaADWraKxCGoeY7gmmniE7tzyWwZCj3A'
 const personalSignIpfsIdHex = '0x122007b4331ad60377dd5d1bb3b69ffb54e6dbf6ced26c98d80486717bf75925321d'
