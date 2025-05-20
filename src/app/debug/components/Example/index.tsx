@@ -1,11 +1,12 @@
-import { AuthMethod, IRelayPKP } from "@lit-protocol/types";
+import { AuthMethod, IRelayPKP, SessionSigs } from "@lit-protocol/types";
 import { EditAuthmethod } from "./EditAuthmethod";
 import { ExecuteLitActionCode } from "./ExecuteLitActionCode";
 import { Upgrade } from "./Upgrade";
 import { useState, useEffect, useCallback } from "react";
-import { CURRENT_AUTH_PROVIDER_KEY, getProviderByAuthMethodType } from "@/lib/lit";
+import { CURRENT_AUTH_PROVIDER_KEY, getProviderByAuthMethodType, getSessionSigs } from "@/lib/lit";
 import { log } from "@/lib/utils";
 import { AllUsers } from "./AllUsers";
+import { AllMultisigWallets } from "./AllMultisigWallets";
 
 export function Example({
   authMethod,
@@ -15,6 +16,7 @@ export function Example({
   const [sessionPkp, setSessionPkp] = useState<IRelayPKP | null>(null);
   const [actionPkp, setActionPkp] = useState<IRelayPKP | null>(null);
   const [loading, setLoading] = useState(false);
+  const [sessionSigs, setSessionSigs] = useState<SessionSigs | null>(null);
 
   // Fetch user PKPs from API
   const fetchUserPkps = useCallback(async () => {
@@ -56,6 +58,22 @@ export function Example({
     }
   }, [authMethod, fetchUserPkps]);
 
+  // Fetch session signatures
+  useEffect(() => {
+    const fetchSessionSigs = async () => {
+      if (!sessionSigs && sessionPkp && authMethod) {
+        const sigs = await getSessionSigs({
+          pkpPublicKey: sessionPkp.publicKey,
+          authMethod: authMethod,
+          refreshStytchAccessToken: true,
+        });
+        setSessionSigs(sigs);
+      }
+    };
+
+    fetchSessionSigs();
+  }, [sessionPkp, authMethod, sessionSigs]);
+
   return <div className="space-y-8">
     <EditAuthmethod 
       authMethod={authMethod} 
@@ -77,6 +95,12 @@ export function Example({
     <AllUsers 
       currentUserSessionPkp={sessionPkp}
       currentUserAuthMethod={authMethod}
+      sessionSigs={sessionSigs}
+    />
+    <AllMultisigWallets 
+      currentUserSessionPkp={sessionPkp}
+      currentUserAuthMethod={authMethod}
+      sessionSigs={sessionSigs}
     />
   </div>;
 }

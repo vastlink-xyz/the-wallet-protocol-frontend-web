@@ -6,7 +6,6 @@ import type { MultisigWallet, MessageProposal } from '@/app/api/multisig/storage
 import axios from 'axios'
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { executeSignLitAction, mintMultisigPKP } from "../helper"
 import { log, formatEthAmount, fetchEthBalance, getUserEmailFromStorage } from "@/lib/utils"
 import { getSessionSigsByPkp } from "@/lib/lit"
 import { litNodeClient } from "@/lib/lit"

@@ -16,16 +16,17 @@ import { LIT_NETWORK } from '@lit-protocol/constants';
 interface UserProps {
   currentUserSessionPkp: IRelayPKP | null;
   currentUserAuthMethod: AuthMethod | null;
+  sessionSigs: SessionSigs | null;
 }
 
 export function AllUsers({
   currentUserSessionPkp,
   currentUserAuthMethod,
+  sessionSigs,
 }: UserProps) {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [sessionSigs, setSessionSigs] = useState<SessionSigs | null>(null);
   
   useEffect(() => {
     async function fetchUsers() {
@@ -54,22 +55,6 @@ export function AllUsers({
 
     fetchUsers();
   }, []);
-
-  useEffect(() => {
-    const fetchSessionSigs = async () => {
-      if (!sessionSigs && currentUserSessionPkp && currentUserAuthMethod) {
-        const sessionSigs = await getSessionSigs({
-          pkpPublicKey: currentUserSessionPkp!.publicKey,
-          authMethod: currentUserAuthMethod!,
-          refreshStytchAccessToken: true,
-        })
-        setSessionSigs(sessionSigs);
-      }
-    }
-
-    fetchSessionSigs();
-  }, [currentUserSessionPkp]);
-
 
   const handleCheckPermittedLitActions = async (user: User) => {
     try {
