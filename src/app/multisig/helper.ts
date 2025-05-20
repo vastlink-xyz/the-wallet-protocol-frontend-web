@@ -1,9 +1,10 @@
-import { CURRENT_AUTH_PROVIDER_KEY, getAuthMethodTypeByProviderName, getProviderByAuthMethodType, litNodeClient, MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID } from "@/lib/lit";
+import { CURRENT_AUTH_PROVIDER_KEY, getAuthMethodTypeByProviderName, getProviderByAuthMethodType, litNodeClient } from "@/lib/lit";
 import { log } from "@/lib/utils";
 import { AUTH_METHOD_SCOPE, AUTH_METHOD_TYPE } from "@lit-protocol/constants";
 import { AuthMethod, IRelayPKP, MintRequestBody, SessionSigs } from "@lit-protocol/types";
 import { utils } from "ethers";
 import { mintPKP } from "@/lib/lit/pkpManager";
+import { getMultisigTransactionIpfsId } from "@/lib/lit/ipfs-id-env";
 
 
 export async function mintMultisigPKP({
@@ -25,7 +26,7 @@ export async function mintMultisigPKP({
     throw new Error('Provider not available for this auth method');
   }
 
-  const litActionIpfsId = MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID
+  const litActionIpfsId = await getMultisigTransactionIpfsId('base58')
   // Convert IPFS CID to bytes32 format
   const bytes = Buffer.from(utils.base58.decode(litActionIpfsId));
   const litActioinAuthMethodId = `0x${bytes.toString('hex')}`;

@@ -4,7 +4,6 @@ import { AuthMethod, IRelayPKP } from "@lit-protocol/types";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import { SIGN_PROPOSAL_LIT_ACTION_IPFS_ID } from "@/lib/lit/config";
 import { upgradeLitActionCode } from "@/lib/lit-action-code/upgrade.lit";
 import { LitActionResource } from "@lit-protocol/auth-helpers";
 import { AUTH_METHOD_SCOPE, AUTH_METHOD_TYPE, LIT_ABILITY, LIT_NETWORK } from "@lit-protocol/constants";
@@ -15,50 +14,15 @@ import { getPersonalTransactionIpfsId } from "@/lib/lit/ipfs-id-env";
 
 export function Upgrade({
   authMethod,
+  sessionPkp,
+  actionPkp,
 }: {
   authMethod: AuthMethod;
+  sessionPkp: IRelayPKP | null;
+  actionPkp: IRelayPKP | null;
 }) {
-  const [sessionPkp, setSessionPkp] = useState<IRelayPKP | null>(null);
-  const [actionPkp, setActionPkp] = useState<IRelayPKP | null>(null);
   const [isMinting, setIsMinting] = useState(false);
   const [isUpgrading, setIsUpgrading] = useState(false);
-
-  // Fetch user PKPs from API
-  const fetchUserPkps = useCallback(async () => {
-    if (!authMethod) return;
-    
-    try {
-      const currentAuthProvider = localStorage.getItem(CURRENT_AUTH_PROVIDER_KEY);
-      if (!currentAuthProvider) {
-        throw new Error('No current auth provider found');
-      }
-      const provider = getProviderByAuthMethodType(currentAuthProvider);
-      const authMethodId = await provider.getAuthMethodId(authMethod);
-      
-      const response = await fetch(`/api/user/pkp?authMethodId=${authMethodId}`);
-      
-      if (response.ok) {
-        const data = await response.json();
-        if (data.sessionPkp) {
-          setSessionPkp(data.sessionPkp);
-          log('Session PKP loaded:', data.sessionPkp);
-        }
-        if (data.litActionPkp) {
-          setActionPkp(data.litActionPkp);
-          log('Action PKP loaded:', data.litActionPkp);
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching user PKPs:", error);
-    }
-  }, [authMethod]);
-
-  // Initial data fetch when authMethod is available
-  useEffect(() => {
-    if (authMethod) {
-      fetchUserPkps();
-    }
-  }, [authMethod, fetchUserPkps]);
 
   // Handle mint button click
   const handleMint = async () => {

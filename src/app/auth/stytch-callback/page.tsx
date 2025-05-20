@@ -8,7 +8,6 @@ import {
   getProviderByAuthMethodType,
   mintPersonalPKP,
   mintSessionPKP, 
-  SIGN_PROPOSAL_LIT_ACTION_IPFS_ID 
 } from '@/lib/lit';
 import { log } from '@/lib/utils';
 import { AuthMethod, IRelayPKP } from '@lit-protocol/types';

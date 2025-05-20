@@ -1,7 +1,7 @@
 'use client'
 
 import { Button } from "@/components/ui/button"
-import { getPKPs, getSessionSigsByPkp, litNodeClient, mintPKP, SIGN_PROPOSAL_LIT_ACTION_IPFS_ID } from "@/lib/lit"
+import { getPKPs, getSessionSigsByPkp, litNodeClient } from "@/lib/lit"
 import { log } from "@/lib/utils";
 import { AuthMethod, IRelayPKP } from "@lit-protocol/types";
 import { useEffect, useState } from "react";
@@ -11,6 +11,7 @@ import { ethers, utils } from "ethers";
 import { AUTH_METHOD_SCOPE, LIT_CHAINS } from "@lit-protocol/constants";
 import { Example } from "./components/Example";
 import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
+import { getPersonalSignIpfsId } from "@/lib/lit/ipfs-id-env";
 
 // eth sepolia
 const chainInfo = {
@@ -185,7 +186,8 @@ export default function DebugPage() {
       const permittedAuthMethods = await litContracts.pkpPermissionsContract.read.getPermittedAuthMethods(currentPkp.tokenId)
       log('permitted authmethods', permittedAuthMethods)
 
-      const res = await litContracts.pkpPermissionsContractUtils.read.isPermittedAction(currentPkp.tokenId, SIGN_PROPOSAL_LIT_ACTION_IPFS_ID)
+      const litActionIpfsId = await getPersonalSignIpfsId('base58')
+      const res = await litContracts.pkpPermissionsContractUtils.read.isPermittedAction(currentPkp.tokenId, litActionIpfsId)
       log('res is permitted action', res)
     } catch (err) {
       console.error(err);

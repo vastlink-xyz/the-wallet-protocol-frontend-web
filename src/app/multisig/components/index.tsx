@@ -8,17 +8,16 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { executeSignLitAction, mintMultisigPKP } from "../helper"
 import { log, formatEthAmount, fetchEthBalance, getUserEmailFromStorage } from "@/lib/utils"
-import { calculateCIDFromString, CURRENT_AUTH_PROVIDER_KEY, getAuthMethodTypeByProviderName, getSessionSigsByPkp, MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID, SIGN_PROPOSAL_LIT_ACTION_IPFS_ID } from "@/lib/lit"
+import { getSessionSigsByPkp } from "@/lib/lit"
 import { litNodeClient } from "@/lib/lit"
-import { AlertCircle } from "lucide-react"
-import { AUTH_METHOD_TYPE, LIT_CHAINS } from "@lit-protocol/constants"
+import { LIT_CHAINS } from "@lit-protocol/constants"
 import { ethers } from "ethers"
 import { toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import { SignerEmailField } from "@/components/SignerEmailField"
 import { WalletSettings } from "./WalletSettings"
 import { WalletSettingsProposal } from "./WalletSettingsProposal"
-import { getUpdateWalletIpfsId } from "@/lib/lit/ipfs-id-env"
+import { getMultisigTransactionIpfsId, getPersonalSignIpfsId, getUpdateWalletIpfsId } from "@/lib/lit/ipfs-id-env"
 import { sendMultisigNotification } from '@/lib/notification'
 import { useAuthExpiration } from '@/hooks/useAuthExpiration'
 import { isTokenValid } from "@/lib/jwt"
@@ -219,19 +218,33 @@ export function Multisig({
         return
       };
 
-      const litActionIpfsId = SIGN_PROPOSAL_LIT_ACTION_IPFS_ID
-      log('ipfsid', litActionIpfsId)
+      const litActionIpfsId = await getPersonalSignIpfsId('base58')
+      log('litActionIpfsId', litActionIpfsId)
+
+      if (!litNodeClient.ready) {
+        await litNodeClient.connect();
+      }
 
       log('current pkp', currentPkp)
       const sessionSigs = await getSessionSigsByPkp({authMethod, pkp: sessionPkp, refreshStytchAccessToken: true})
       log('session sigs', sessionSigs)
 
-      const signature = await executeSignLitAction({
+      const actionResponse = await litNodeClient.executeJs({
         ipfsId: litActionIpfsId,
         sessionSigs,
-        publicKey: currentPkp.publicKey,
-        message: proposal.message,
-      })
+        jsParams: {
+          message: proposal.message,
+          publicKey: currentPkp.publicKey,
+          env: process.env.NEXT_PUBLIC_ENV,
+          authParams: {
+            accessToken: authMethod.accessToken,
+            authMethodId: authMethodId,
+            authMethodType: authMethod.authMethodType,
+          },
+        }
+      });
+      
+      const signature = actionResponse.signatures.sig.signature;
       log('signature', signature)
 
       // Submit signature to API
@@ -607,7 +620,7 @@ export function Multisig({
     }
     log('js params', jsParams)
 
-    const litActionIpfsId = await MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID
+    const litActionIpfsId = await getMultisigTransactionIpfsId('base58')
     log('ipfsid', litActionIpfsId)
 
     // Execute the Lit Action using the multisig verification

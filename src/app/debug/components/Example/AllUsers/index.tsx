@@ -9,7 +9,7 @@ import { PKPEthersWallet } from '@lit-protocol/pkp-ethers';
 import { log } from '@/lib/utils';
 import { AuthMethod, IRelayPKP, SessionSigs } from '@lit-protocol/types';
 import { User } from '@/app/api/user/storage';
-import { getPersonalTransactionIpfsId } from '@/lib/lit/ipfs-id-env';
+import { getPersonalSignIpfsId, getPersonalTransactionIpfsId } from '@/lib/lit/ipfs-id-env';
 import { upgradeLitActionCode } from '@/lib/lit-action-code/upgrade.lit';
 import { LIT_NETWORK } from '@lit-protocol/constants';
 
@@ -115,7 +115,7 @@ export function AllUsers({
 
     try {
       setLoading(true);
-      const ipfsIdHex = await getPersonalTransactionIpfsId('hex')
+      const ipfsIdHex = await getPersonalSignIpfsId('hex')
       
       const response = await litNodeClient.executeJs({
         code: upgradeLitActionCode,
@@ -150,7 +150,7 @@ export function AllUsers({
 
     try {
       setLoading(true);
-      const removeIpfsIdHex = ''
+      const removeIpfsIdHex = '0x12205b23467e5ab81313a7ab95027aa6124d864178c12174f77d8d15b92ce98a4a05'
       
       const response = await litNodeClient.executeJs({
         code: upgradeLitActionCode,

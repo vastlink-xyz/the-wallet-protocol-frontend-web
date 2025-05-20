@@ -830,32 +830,15 @@ export function MultisigWalletFormContent({
       
       {/* MFA Settings */}
       <div className="space-y-3">
-        <h3 className="text-md font-semibold">MFA Settings (Optional)</h3>
-        <div className="bg-gray-50 p-4 rounded-md space-y-4">
-          <div>
-            <Label htmlFor="phoneNumber">Phone Number for 2FA</Label>
-            <Input
-              id="phoneNumber"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              placeholder="+1 123 456 7890"
-              type="tel"
-              className="mt-1"
-            />
-          </div>
-          
-          <div>
-            <Label htmlFor="dailyLimit">Daily Transfer Limit (USD)</Label>
-            <Input
-              id="dailyLimit"
-              value={dailyLimit}
-              onChange={(e) => setDailyLimit(e.target.value)}
-              placeholder="1000"
-              type="number"
-              className="mt-1"
-            />
-          </div>
-        </div>
+        <h3 className="text-md font-semibold">Daily Transfer Limit (ETH)</h3>
+        <Input
+          id="dailyLimit"
+          value={dailyLimit}
+          onChange={(e) => setDailyLimit(e.target.value)}
+          placeholder="1000"
+          type="number"
+          className="mt-1"
+        />
       </div>
       
       {/* Action Buttons */}

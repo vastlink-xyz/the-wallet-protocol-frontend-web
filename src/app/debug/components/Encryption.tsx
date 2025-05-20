@@ -7,7 +7,6 @@ import { LIT_NETWORK, LIT_ABILITY } from "@lit-protocol/constants";
 import { createSiweMessage, generateAuthSig, LitAccessControlConditionResource, LitActionResource } from "@lit-protocol/auth-helpers";
 import * as ethers from "ethers";
 import { executeSecuredLitAction } from "@/lib/lit/executeLitAction";
-import { MULTISIG_VERIFY_AND_SIGN_LIT_ACTION_IPFS_ID } from "@/lib/lit/config";
 import { log } from "@/lib/utils";
 import { AuthMethod } from "@lit-protocol/types";
 import { litNodeClient } from "@/lib/lit";

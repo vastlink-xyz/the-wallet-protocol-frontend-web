@@ -6,7 +6,6 @@ import {
   CURRENT_AUTH_PROVIDER_KEY,
   GOOGLE_SIGNIN_REDIRECT, 
   getProviderByAuthMethodType,
-  SIGN_PROPOSAL_LIT_ACTION_IPFS_ID, 
   mintSessionPKP,
   mintPersonalPKP
 } from '@/lib/lit';

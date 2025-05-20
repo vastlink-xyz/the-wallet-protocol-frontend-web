@@ -69,7 +69,11 @@ export function Example({
       actionPkp={actionPkp}
       loading={loading}
     />
-    <Upgrade authMethod={authMethod} />
+    <Upgrade 
+      authMethod={authMethod} 
+      sessionPkp={sessionPkp}
+      actionPkp={actionPkp}
+    />
     <AllUsers 
       currentUserSessionPkp={sessionPkp}
       currentUserAuthMethod={authMethod}
