@@ -13,30 +13,39 @@ import { getSessionSigsByPkp } from '@/lib/lit'
 import { AuthMethod } from '@lit-protocol/types'
 import { SignerEmailField } from '@/components/SignerEmailField'
 import { log } from '@/lib/utils'
-import { getAuthMethodFromStorage } from '@/lib/storage'
 import { TransactionMFA } from './TransactionMFA'
 import { personalTransactionLitActionCode } from '@/lib/lit-action-code/personal-transaction.lit'
 import { getPersonalTransactionIpfsId } from '@/lib/lit/ipfs-id-env'
+import { TokenType, SUPPORTED_TOKENS_INFO } from '@/lib/web3/token'
 
 // Create a provider for Sepolia
 const provider = new ethers.providers.JsonRpcProvider(
   LIT_CHAINS['sepolia'].rpcUrls[0]
 )
 
-interface SendEthProps {
+interface SendTokenProps {
   litActionPkp: IRelayPKP;
   sessionPkp: IRelayPKP;
   authMethod: AuthMethod;
   authMethodId: string;
+  tokenType?: TokenType; // Default to ETH if not specified
 }
 
-export function SendEth({ litActionPkp, sessionPkp, authMethod, authMethodId }: SendEthProps) {
+export function SendToken({ 
+  litActionPkp, 
+  sessionPkp, 
+  authMethod, 
+  authMethodId,
+  tokenType = 'ETH' // Default to ETH
+}: SendTokenProps) {
   const [to, setTo] = useState('')
   const [recipientAddress, setRecipientAddress] = useState('')
   const [amount, setAmount] = useState('')
   const [isSending, setIsSending] = useState(false)
   const [showMfa, setShowMfa] = useState(false)
   const { handleExpiredAuth } = useAuthExpiration()
+
+  const tokenInfo = SUPPORTED_TOKENS_INFO[tokenType]
 
   // Validation
   const isValidAddress = recipientAddress && recipientAddress.startsWith('0x') && recipientAddress.length === 42
@@ -77,7 +86,6 @@ export function SendEth({ litActionPkp, sessionPkp, authMethod, authMethodId }: 
 
       // Execute transaction
       const response = await litNodeClient.executeJs({
-        // code: personalTransactionLitActionCode,
         ipfsId,
         sessionSigs,
         jsParams: {
@@ -92,6 +100,7 @@ export function SendEth({ litActionPkp, sessionPkp, authMethod, authMethodId }: 
           },
           otp: otpCode,
           mfaMethodId,
+          tokenType,
         }
       })
 
@@ -106,7 +115,7 @@ export function SendEth({ litActionPkp, sessionPkp, authMethod, authMethodId }: 
       
       if (result.status === 'success') {
         // Show success message with transaction hash
-        toast.success(`Successfully sent ${amount} ETH to ${to}`)
+        toast.success(`Successfully sent ${amount} ${tokenInfo.symbol} to ${to}`)
         
         // Reset form
         setTo('')
@@ -123,14 +132,14 @@ export function SendEth({ litActionPkp, sessionPkp, authMethod, authMethodId }: 
         }
       }
     } catch (error) {
-      console.error('Error sending ETH:', error)
+      console.error(`Error sending ${tokenInfo.symbol}:`, error)
       
       // Check if token expired error
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       if (errorMessage.includes('token expired') || errorMessage.includes('JWT expired')) {
         handleExpiredAuth()
       } else {
-        toast.error(`Failed to send ETH: ${errorMessage}`)
+        toast.error(`Failed to send ${tokenInfo.symbol}: ${errorMessage}`)
       }
     } finally {
       setIsSending(false)
@@ -157,7 +166,8 @@ export function SendEth({ litActionPkp, sessionPkp, authMethod, authMethodId }: 
         onCancel={handleMfaCancel}
         transactionData={{
           to: to,
-          amount: amount
+          amount: amount,
+          tokenSymbol: tokenInfo.symbol
         }}
       />
     )
@@ -165,7 +175,7 @@ export function SendEth({ litActionPkp, sessionPkp, authMethod, authMethodId }: 
 
   return (
     <div className="bg-card p-6 rounded-lg border mt-6">
-      <h3 className="text-lg font-medium mb-4">Send ETH</h3>
+      <h3 className="text-lg font-medium mb-4">Send {tokenInfo.symbol}</h3>
       
       <div className="space-y-4">
         <SignerEmailField
@@ -186,7 +196,7 @@ export function SendEth({ litActionPkp, sessionPkp, authMethod, authMethodId }: 
         />
 
         <div className="space-y-2">
-          <Label htmlFor="amount">Amount (ETH)</Label>
+          <Label htmlFor="amount">Amount ({tokenInfo.symbol})</Label>
           <Input
             id="amount"
             type="number"
@@ -204,7 +214,6 @@ export function SendEth({ litActionPkp, sessionPkp, authMethod, authMethodId }: 
 
         <Button 
           onClick={() => handleExecuteTransaction('')} 
-          // onClick={handleCheckPolicy} 
           disabled={!canSend}
           className="w-full"
         >
@@ -214,7 +223,7 @@ export function SendEth({ litActionPkp, sessionPkp, authMethod, authMethodId }: 
               Sending...
             </>
           ) : (
-            'Send ETH'
+            `Send ${tokenInfo.symbol}`
           )}
         </Button>
       </div>

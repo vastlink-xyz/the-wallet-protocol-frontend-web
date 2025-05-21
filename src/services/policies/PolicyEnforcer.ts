@@ -8,7 +8,7 @@ class PolicyEnforcer {
   private policiesMap: Map<string, Policy<any>[]> = new Map();
 
   constructor() {
-    this.policiesMap.set('transaction', [personalWalletDailyWithdrawLimitPolicy]);
+    this.policiesMap.set('personalWalletTransaction', [personalWalletDailyWithdrawLimitPolicy]);
     this.policiesMap.set('personalWalletMFAUpdate', [personalWalletMFAUpdatePolicy]);
     this.policiesMap.set('personalWalletSettingsUpdate', [personalWalletSettingsUpdatePolicy]);
     this.policiesMap.set('multisigWalletTransaction', [multisigWalletDailyWithdrawLimitPolicy]);

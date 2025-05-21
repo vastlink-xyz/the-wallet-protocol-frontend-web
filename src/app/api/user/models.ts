@@ -68,7 +68,7 @@ const UserSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.Mixed,
     default: {
       dailyWithdrawLimits: {
-        USD: "1000",
+        BTC: "0.001",
         ETH: "0.001"
       }
     }

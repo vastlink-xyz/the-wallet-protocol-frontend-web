@@ -89,6 +89,7 @@ export default function DebugPage() {
         contextType: 'multisigWalletTransaction',
         walletId: 'd0f6daf6-90f9-4431-b5f9-14106c99670e',
         transactionAmount: '0.001',
+        tokenType: 'ETH',
       }),
     })
 

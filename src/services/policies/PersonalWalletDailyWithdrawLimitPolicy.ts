@@ -4,14 +4,16 @@ import { formatEther } from 'ethers/lib/utils';
 import Moralis from 'moralis';
 import { EvmChain } from "moralis/common-evm-utils";
 import { initializeMoralis } from '@/lib/moralis';
+import { SUPPORTED_TOKENS_INFO, TokenType } from '@/lib/web3/token';
 
 // Context specific to transaction operations
 export interface TransactionOperationContext extends BaseOperationContext {
   authMethodId: string;
   transactionAmount: string;  // Amount in ETH
+  tokenType: TokenType;
 }
 
-async function getUserWithdrawalAmountToday(userData: any): Promise<number> {
+async function getUserWithdrawalAmountToday(userData: any, tokenType: TokenType): Promise<number> {
   const address = userData.litActionPkp.ethAddress;
 
   try {
@@ -46,10 +48,12 @@ async function getUserWithdrawalAmountToday(userData: any): Promise<number> {
 }
 
 
-async function getUserDailyWithdrawalLimit(userData: any): Promise<string> {
+async function getUserDailyWithdrawalLimit(userData: any, tokenType: TokenType): Promise<string> {
+  const tokenInfo = SUPPORTED_TOKENS_INFO[tokenType]
+
   // Access the daily withdraw limits directly from userData
-  if (userData.walletSettings?.dailyWithdrawLimits?.['ETH']) {
-    return userData.walletSettings.dailyWithdrawLimits['ETH'];
+  if (userData.walletSettings?.dailyWithdrawLimits?.[tokenInfo.symbol]) {
+    return userData.walletSettings.dailyWithdrawLimits[tokenInfo.symbol];
   }
   
   // Return default if currency not found in settings
@@ -64,6 +68,8 @@ class PersonalWalletDailyWithdrawLimitPolicy extends Policy<TransactionOperation
   }
 
   async shouldTriggerMFA(context: TransactionOperationContext): Promise<boolean> {
+    const tokenInfo = SUPPORTED_TOKENS_INFO[context.tokenType]
+
     try {
       // Fetch user data once
       const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/user?authMethodId=${context.authMethodId}`);
@@ -76,8 +82,8 @@ class PersonalWalletDailyWithdrawLimitPolicy extends Policy<TransactionOperation
       log('userData', userData);
       
       // Pass userData to both helper functions
-      const dailyLimitStr = await getUserDailyWithdrawalLimit(userData);
-      const withdrawnToday = await getUserWithdrawalAmountToday(userData);
+      const dailyLimitStr = await getUserDailyWithdrawalLimit(userData, context.tokenType);
+      const withdrawnToday = await getUserWithdrawalAmountToday(userData, context.tokenType);
       const currentTransactionAmount = context.transactionAmount;
       
       // Convert string to number for comparison
@@ -89,7 +95,7 @@ class PersonalWalletDailyWithdrawLimitPolicy extends Policy<TransactionOperation
       log('currentTransactionAmount', currentTransactionAmount);
       
       if ((withdrawnToday + numericAmount) > dailyLimit) {
-        console.log(`MFA triggered: Amount ${numericAmount} ETH + Withdrawn ${withdrawnToday} > Limit ${dailyLimit}`);
+        console.log(`MFA triggered: Amount ${numericAmount} ${tokenInfo.symbol} + Withdrawn ${withdrawnToday} ${tokenInfo.symbol} > Limit ${dailyLimit} ${tokenInfo.symbol}`);
         return true;
       }
       return false;

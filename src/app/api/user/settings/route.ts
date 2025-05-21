@@ -4,6 +4,8 @@ import { AuthenticatedSession, authenticateStytchSession, getJwtTokenFromRequest
 import { log } from '@/lib/utils';
 import { policyEnforcer } from '@/services/policies/PolicyEnforcer';
 import { stytchClient } from '@/app/api/stytch/client';
+import { SUPPORTED_TOKENS_INFO, TokenType } from '@/lib/web3/token';
+import { StytchError } from 'stytch';
 
 // PATCH /api/user/settings - Update user wallet settings
 export async function PATCH(request: NextRequest) {
@@ -15,7 +17,16 @@ export async function PATCH(request: NextRequest) {
     const sessionJwt = getJwtTokenFromRequest(request);
 
     const body = await request.json();
-    const { authMethodId, walletSettings, otp, phoneId } = body;
+    const { authMethodId, walletSettings, otp, phoneId, tokenType } = body;
+
+    if (!tokenType || !(tokenType in SUPPORTED_TOKENS_INFO)) {
+      return NextResponse.json(
+        { error: 'Invalid or missing tokenType in request body' },
+        { status: 400 }
+      );
+    }
+
+    const tokenInfo = SUPPORTED_TOKENS_INFO[tokenType as TokenType]
 
     if (!authMethodId) {
       return NextResponse.json(
@@ -32,18 +43,18 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Validate ETH limit exists
-    if (walletSettings.dailyWithdrawLimits.ETH === undefined) {
+    if (walletSettings.dailyWithdrawLimits[tokenInfo.symbol] === undefined) {
       return NextResponse.json(
-        { error: 'ETH limit is required in dailyWithdrawLimits' },
+        { error: `${tokenInfo.symbol} limit is required in dailyWithdrawLimits` },
         { status: 400 }
       );
     }
 
-    // Validate ETH limit is a valid string that can be parsed to a number
-    if (typeof walletSettings.dailyWithdrawLimits.ETH !== 'string' || 
-        isNaN(parseFloat(walletSettings.dailyWithdrawLimits.ETH))) {
+    // Validate token limit is a valid string that can be parsed to a number
+    if (typeof walletSettings.dailyWithdrawLimits[tokenInfo.symbol] !== 'string' || 
+        isNaN(parseFloat(walletSettings.dailyWithdrawLimits[tokenInfo.symbol]))) {
       return NextResponse.json(
-        { error: 'ETH limit must be a valid numeric string' },
+        { error: `${tokenInfo.symbol} limit must be a valid numeric string` },
         { status: 400 }
       );
     }
@@ -86,8 +97,15 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json(updatedUser);
   } catch (error) {
     console.error('Error in PATCH /api/user/settings:', error);
+    if (error instanceof StytchError && error.error_message) {
+      return NextResponse.json(
+        { error: error.error_message },
+        { status: 500 }
+      );
+    }
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
     return NextResponse.json(
-      { error: 'An error occurred while updating user wallet settings' },
+      { error: errorMessage },
       { status: 500 }
     );
   }

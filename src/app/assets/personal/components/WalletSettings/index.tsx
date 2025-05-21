@@ -17,8 +17,15 @@ import { toast } from 'react-toastify';
 import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
 import { MfaOtpDialog } from '@/components/MfaOtpDialog';
 import { log } from '@/lib/utils';
+import { SUPPORTED_TOKENS_INFO, TokenType } from '@/lib/web3/token';
 
-export function PersonalWalletSettings() {
+export function PersonalWalletSettings({
+  tokenType
+}: {
+  tokenType: TokenType
+}) {
+  const tokenInfo = SUPPORTED_TOKENS_INFO[tokenType]
+
   const [isOpen, setIsOpen] = useState(false);
   const [ethLimit, setEthLimit] = useState<string>('0.001');
   const [isLimitValid, setIsLimitValid] = useState<boolean>(true);
@@ -79,8 +86,8 @@ export function PersonalWalletSettings() {
       }
       
       const userData = await response.json();
-      if (userData.walletSettings?.dailyWithdrawLimits?.ETH) {
-        setEthLimit(userData.walletSettings.dailyWithdrawLimits.ETH.toString());
+      if (userData.walletSettings?.dailyWithdrawLimits?.[tokenInfo.symbol]) {
+        setEthLimit(userData.walletSettings.dailyWithdrawLimits[tokenInfo.symbol].toString());
       }
     } catch (error) {
       console.error('Error fetching current settings:', error);
@@ -158,7 +165,7 @@ export function PersonalWalletSettings() {
       // Prepare wallet settings to update
       const settings = {
         dailyWithdrawLimits: {
-          ETH: ethLimit
+          [tokenInfo.symbol]: ethLimit
         }
       };
       
@@ -174,7 +181,8 @@ export function PersonalWalletSettings() {
         },
         body: JSON.stringify({
           authMethodId,
-          walletSettings: settings
+          walletSettings: settings,
+          tokenType
         })
       });
       
@@ -248,6 +256,7 @@ export function PersonalWalletSettings() {
         walletSettings: pendingSettings,
         otp,
         phoneId,
+        tokenType,
       }),
     });
     
@@ -293,7 +302,7 @@ export function PersonalWalletSettings() {
                   placeholder="0.001"
                   className="w-32"
                 />
-                <span className="font-medium">ETH</span>
+                <span className="font-medium">{ tokenInfo.symbol }</span>
               </div>
               {limitError && <p className="text-sm text-red-500">{limitError}</p>}
             </div>

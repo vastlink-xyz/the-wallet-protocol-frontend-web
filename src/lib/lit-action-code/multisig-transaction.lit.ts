@@ -183,6 +183,7 @@ const go = async () => {
               walletId,
               transactionAmount: valueInEth,
               contextType: 'multisigWalletTransaction',
+              // kkktodo: add tokenType
             })
           });
           const data = await response.json();

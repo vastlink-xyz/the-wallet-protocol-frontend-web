@@ -96,6 +96,7 @@ const MessageProposalSchema = new mongoose.Schema({
     default: 'transaction' 
   },
   transactionData: {
+    tokenSymbol: String,
     to: String,
     value: String,
     data: String

@@ -5,7 +5,7 @@ import { AuthMethod, IRelayPKP } from '@lit-protocol/types'
 import { Loader2 } from 'lucide-react'
 import { formatEthAmount, fetchEthBalance } from '@/lib/utils'
 import { getProviderByAuthMethodType } from '@/lib/lit/providers'
-import { SendEth } from './SendEth'
+import { SendToken } from './SendToken'
 import { PersonalWalletSettings } from './WalletSettings'
 
 interface PersonalAssetsProps {
@@ -110,6 +110,7 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
                 {email}
               </div>
             </div>
+            {/* kkktodo: add btc */}
             <div>
               <span className="font-medium">Address:</span> 
               <div className="text-sm bg-muted p-2 rounded break-all mt-1">
@@ -127,19 +128,21 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
           </div>
         </div>
       </div>
-      
+      {/* kkktodo: add btc */}
       {
         authMethodId && (
-          <SendEth
+          <SendToken
             litActionPkp={litActionPkp}
             sessionPkp={sessionPkp}
             authMethod={authMethod}
             authMethodId={authMethodId}
+            tokenType="ETH"
           />
         )
       }
 
-      <PersonalWalletSettings />
+      {/* kkktodo: add btc */}
+      <PersonalWalletSettings tokenType="ETH" />
     </div>
   )
 } 

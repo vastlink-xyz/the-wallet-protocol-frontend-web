@@ -21,6 +21,7 @@ interface TransactionMFAProps {
   transactionData: {
     to: string;
     amount: string;
+    tokenSymbol: string;
   };
 }
 
@@ -224,7 +225,7 @@ export function TransactionMFA({ onVerified, onCancel, transactionData }: Transa
           </div>
           <div className="flex justify-between mt-1">
             <span className="text-muted-foreground">Amount:</span>
-            <span>{transactionData.amount} ETH</span>
+            <span>{transactionData.amount} {transactionData.tokenSymbol}</span>
           </div>
         </div>
       </div>

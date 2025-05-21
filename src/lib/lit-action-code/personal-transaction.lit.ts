@@ -7,6 +7,7 @@ declare const env: string
 declare const chain: string
 declare const otp: string
 declare const mfaMethodId: string
+declare const tokenType: string
 
 const go = async () => {
   // verify auth token
@@ -100,7 +101,8 @@ const go = async () => {
           body: JSON.stringify({
             authMethodId: authParams.authMethodId,
             transactionAmount: valueInEth,
-            contextType: 'transaction',
+            tokenType,
+            contextType: 'personalWalletTransaction',
           })
         });
         const data = await response.json();

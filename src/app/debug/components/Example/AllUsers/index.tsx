@@ -100,7 +100,7 @@ export function AllUsers({
 
     try {
       setLoading(true);
-      const ipfsIdHex = await getPersonalSignIpfsId('hex')
+      const ipfsIdHex = await getPersonalTransactionIpfsId('hex')
       
       const response = await litNodeClient.executeJs({
         code: upgradeLitActionCode,
@@ -135,7 +135,7 @@ export function AllUsers({
 
     try {
       setLoading(true);
-      const removeIpfsIdHex = '0x12205b23467e5ab81313a7ab95027aa6124d864178c12174f77d8d15b92ce98a4a05'
+      const removeIpfsIdHex = '0x1220b4ef80b0577b6557305334d28e8f7fac07e83e49f06c79e4d464631fe2d9702b'
       
       const response = await litNodeClient.executeJs({
         code: upgradeLitActionCode,

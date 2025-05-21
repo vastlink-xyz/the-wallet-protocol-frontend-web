@@ -19,10 +19,7 @@ export interface User {
     type: string
   }
   walletSettings?: {
-    dailyWithdrawLimits: {
-      USD: string
-      ETH: string
-    }
+    dailyWithdrawLimits: Record<string, string>
   }
 }
 
@@ -240,12 +237,7 @@ export async function getUserPkps(authMethodId: string): Promise<{sessionPkp?: I
 
 export async function updateUserWalletSettings(
   authMethodId: string,
-  walletSettings: {
-    dailyWithdrawLimits: {
-      ETH: string;
-      USD?: string;
-    }
-  }
+  walletSettings: Partial<User['walletSettings']>
 ): Promise<User | null> {
   try {
     await connectToDatabase();
@@ -257,10 +249,17 @@ export async function updateUserWalletSettings(
       return null;
     }
     
-    // Update the wallet settings
+    // Update the wallet settings using $set with nested fields
     const update = {
-      walletSettings,
-      updatedAt: new Date()
+      $set: {
+        ...(walletSettings?.dailyWithdrawLimits && {
+          'walletSettings.dailyWithdrawLimits': {
+            ...(existingUser.walletSettings?.dailyWithdrawLimits || {}),
+            ...walletSettings.dailyWithdrawLimits
+          }
+        }),
+        updatedAt: new Date()
+      }
     };
     
     const updatedUser = await UserModel.findOneAndUpdate(
