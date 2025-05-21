@@ -11,16 +11,12 @@ import { toast } from 'react-toastify'
 import axios from 'axios'
 import { getUserEmailFromStorage, log } from '@/lib/utils'
 import { 
-  CURRENT_AUTH_PROVIDER_KEY,
-  getAuthMethodTypeByProviderName,
-  getProviderByAuthMethodType,
   getSessionSigsByPkp, 
   litNodeClient, 
   mintPKP
 } from '@/lib/lit'
 import { encryptString } from '@lit-protocol/encryption'
 import { AUTH_METHOD_SCOPE, AUTH_METHOD_TYPE } from '@lit-protocol/constants'
-import { ethers } from 'ethers'
 import { getCreateWalletIpfsId, getMultisigTransactionIpfsId, getUpdateWalletIpfsId, getUpgradeIpfsId } from '@/lib/lit/ipfs-id-env'
 import { sendMultisigNotification } from '@/lib/notification'
 import { useAuthExpiration } from '@/hooks/useAuthExpiration'
@@ -240,11 +236,7 @@ export function MultisigWalletFormContent({
       return;
     }
 
-    const currentAuthProvider = localStorage.getItem(CURRENT_AUTH_PROVIDER_KEY)
-    if (!currentAuthProvider) {
-      throw new Error('No current auth provider found')
-    }
-    const authMethodType = getAuthMethodTypeByProviderName(currentAuthProvider)
+    const authMethodType = authMethod.authMethodType
     
     // Check for unconfirmed new signer
     if (showAddSignerForm && newSignerEmail.trim() !== '') {

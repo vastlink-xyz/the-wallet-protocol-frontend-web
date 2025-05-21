@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { getAuthMethodTypeByProviderName, litNodeClient } from "@/lib/lit/providers";
+import { litNodeClient } from "@/lib/lit/providers";
 import { getSessionSigs } from "@/lib/lit/sessionManager";
 import { log } from "@/lib/utils";
 import { getAuthIdByAuthMethod } from "@lit-protocol/lit-auth-client";
@@ -10,7 +10,6 @@ import { ethers } from "ethers";
 import { editAuthmethodLitActionCode } from "@/app/debug/lit-actions/edit-authmethod";
 import { editAuthmethodForDebugLitActionCode } from "@/app/debug/lit-actions/edit-authmethod-for-debug";
 import { encryptString } from "@lit-protocol/encryption";
-import { CURRENT_AUTH_PROVIDER_KEY } from "@/lib/lit";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { verifyAuthTokenLitActionCode } from "@/lib/lit-action-code/verify-auth-token";
@@ -54,11 +53,7 @@ export function ExecuteLitActionCode({
     log('sessionSigs', sessionSigs);
     
     const authMethodId = await getAuthIdByAuthMethod(authMethod);
-    const currentAuthProvider = localStorage.getItem(CURRENT_AUTH_PROVIDER_KEY)
-    if (!currentAuthProvider) {
-      throw new Error('No current auth provider found')
-    }
-    const authMethodType = getAuthMethodTypeByProviderName(currentAuthProvider)
+    const authMethodType = authMethod.authMethodType
     try {
       const response = await litNodeClient.executeJs({
         code: litActionCode,

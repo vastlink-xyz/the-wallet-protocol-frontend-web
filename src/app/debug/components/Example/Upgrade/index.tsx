@@ -1,4 +1,4 @@
-import { CURRENT_AUTH_PROVIDER_KEY, getLitActionIpfsCid, getProviderByAuthMethodType, getSessionSigs, litNodeClient, mintPersonalPKP } from "@/lib/lit";
+import { getLitActionIpfsCid, getSessionSigs, litNodeClient, mintPersonalPKP } from "@/lib/lit";
 import { log } from "@/lib/utils";
 import { AuthMethod, IRelayPKP } from "@lit-protocol/types";
 import { useCallback, useEffect, useState } from "react";

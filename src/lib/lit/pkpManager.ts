@@ -9,8 +9,7 @@ import {
 } from '@lit-protocol/types';
 import { log } from '@/lib/utils';
 import { utils } from 'ethers';
-import { getAuthMethodTypeByProviderName, getProviderByAuthMethodType } from './providers';
-import { CURRENT_AUTH_PROVIDER_KEY } from './config';
+import { getProviderByAuthMethodType } from './providers';
 import { getPersonalTransactionIpfsId, getUpgradeIpfsId } from './ipfs-id-env';
 import { getPersonalSignIpfsId } from './ipfs-id-env';
 /**
@@ -22,11 +21,7 @@ export async function getPKPs({
 }: {
   authMethod: AuthMethod,
 }): Promise<IRelayPKP[]> {
-  const currentAuthProvider = localStorage.getItem(CURRENT_AUTH_PROVIDER_KEY)
-  if (!currentAuthProvider) {
-    throw new Error('No current auth provider found')
-  }
-  const provider = getProviderByAuthMethodType(currentAuthProvider)
+  const provider = getProviderByAuthMethodType(authMethod.authMethodType)
 
   if (!provider) {
     throw new Error('Provider not available for this auth method');
@@ -42,11 +37,7 @@ export async function getPKPs({
  * @param authMethod Authentication method
  */
 export async function mintSessionPKP(authMethod: AuthMethod): Promise<IRelayPKP> {
-  const currentAuthProvider = localStorage.getItem(CURRENT_AUTH_PROVIDER_KEY)
-  if (!currentAuthProvider) {
-    throw new Error('No current auth provider found')
-  }
-  const provider = getProviderByAuthMethodType(currentAuthProvider)
+  const provider = getProviderByAuthMethodType(authMethod.authMethodType)
     
   if (!provider) {
     throw new Error('Provider not available for this auth method');
@@ -71,12 +62,7 @@ export async function mintPersonalPKP({
   authMethod: AuthMethod,
 }
 ): Promise<IRelayPKP> {
-  const currentAuthProvider = localStorage.getItem(CURRENT_AUTH_PROVIDER_KEY)
-  if (!currentAuthProvider) {
-    throw new Error('No current auth provider found')
-  }
-  const provider = getProviderByAuthMethodType(currentAuthProvider)
-  const authMethodType = getAuthMethodTypeByProviderName(currentAuthProvider)
+  const provider = getProviderByAuthMethodType(authMethod.authMethodType)
     
   if (!provider) {
     throw new Error('Provider not available for this auth method');
@@ -94,7 +80,7 @@ export async function mintPersonalPKP({
       AUTH_METHOD_TYPE.LitAction,
       AUTH_METHOD_TYPE.LitAction,
       AUTH_METHOD_TYPE.LitAction,
-      authMethodType
+      authMethod.authMethodType,
     ],
     permittedAuthMethodIds: [
       personalSignIpfsIdHex,
@@ -130,11 +116,7 @@ export async function mintPKP({
   options: MintRequestBody,
 }
 ): Promise<IRelayPKP> {
-  const currentAuthProvider = localStorage.getItem(CURRENT_AUTH_PROVIDER_KEY)
-  if (!currentAuthProvider) {
-    throw new Error('No current auth provider found')
-  }
-  const provider = getProviderByAuthMethodType(currentAuthProvider)
+  const provider = getProviderByAuthMethodType(authMethod.authMethodType)
 
   // Mint PKP through relay server
   const txHash = await provider.mintPKPThroughRelayer(authMethod, options);

@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { MultisigSetting } from './MultisigSetting'
 import { WalletCard } from './WalletCard'
-import { CURRENT_AUTH_PROVIDER_KEY, getProviderByAuthMethodType } from '@/lib/lit'
+import { getProviderByAuthMethodType } from '@/lib/lit'
 
 interface TeamAssetsProps {
   authMethod: AuthMethod
@@ -40,11 +40,7 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
       try {
         setIsLoading(true)
         // Get user's authMethodId
-        const currentAuthProvider = localStorage.getItem(CURRENT_AUTH_PROVIDER_KEY)
-        if (!currentAuthProvider) {
-          throw new Error('No current auth provider found')
-        }
-        const provider = getProviderByAuthMethodType(currentAuthProvider)
+        const provider = getProviderByAuthMethodType(authMethod.authMethodType)
         const authMethodId = await provider.getAuthMethodId(authMethod)
         setAuthMethodId(authMethodId)
         

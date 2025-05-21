@@ -49,28 +49,14 @@ const stytchEmailOtpProvider = new StytchAuthFactorOtpProvider<'email'>(
  * @param authMethodType Authentication method type ('google', 'stytch', 'apple')
  * @returns The corresponding authentication provider
  */
-export function getProviderByAuthMethodType(authMethodType: string) {
-  switch (authMethodType.toLowerCase()) {
-    case 'google':
+export function getProviderByAuthMethodType(authMethodType: number) {
+  switch (authMethodType) {
+    case AUTH_METHOD_TYPE.GoogleJwt:
       return googleProvider;
-    case 'stytch':
+    case AUTH_METHOD_TYPE.StytchEmailFactorOtp:
       return stytchEmailOtpProvider;
-    // case 'apple':
-    //   return appleProvider;
     default:
       throw new Error(`Unsupported auth method type: ${authMethodType}`);
   }
 }
 
-export function getAuthMethodTypeByProviderName(providerName: string) {
-  switch (providerName.toLowerCase()) {
-    case 'google':
-      return AUTH_METHOD_TYPE.GoogleJwt;
-    case 'stytch':
-      return AUTH_METHOD_TYPE.StytchEmailFactorOtp;
-    // case 'apple':
-    //   return AUTH_METHOD_TYPE.Apple;
-    default:
-      throw new Error(`Unsupported provider name: ${providerName}`);
-  }
-}

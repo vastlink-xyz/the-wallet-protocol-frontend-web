@@ -3,7 +3,7 @@ import { EditAuthmethod } from "./EditAuthmethod";
 import { ExecuteLitActionCode } from "./ExecuteLitActionCode";
 import { Upgrade } from "./Upgrade";
 import { useState, useEffect, useCallback } from "react";
-import { CURRENT_AUTH_PROVIDER_KEY, getProviderByAuthMethodType, getSessionSigs } from "@/lib/lit";
+import { getProviderByAuthMethodType, getSessionSigs } from "@/lib/lit";
 import { log } from "@/lib/utils";
 import { AllUsers } from "./AllUsers";
 import { AllMultisigWallets } from "./AllMultisigWallets";
@@ -24,11 +24,7 @@ export function Example({
     
     try {
       setLoading(true);
-      const currentAuthProvider = localStorage.getItem(CURRENT_AUTH_PROVIDER_KEY);
-      if (!currentAuthProvider) {
-        throw new Error('No current auth provider found');
-      }
-      const provider = getProviderByAuthMethodType(currentAuthProvider);
+      const provider = getProviderByAuthMethodType(authMethod.authMethodType);
       const authMethodId = await provider.getAuthMethodId(authMethod);
       
       const response = await fetch(`/api/user/pkp?authMethodId=${authMethodId}`);

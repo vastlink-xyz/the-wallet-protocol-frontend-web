@@ -11,5 +11,4 @@ export const GOOGLE_SIGNIN_REDIRECT = ORIGIN + '/auth/google-callback';
 export const STYTCH_SIGNIN_REDIRECT = ORIGIN + '/auth/stytch-callback';
 
 // Auth storage keys - each provider has its own storage key
-export const CURRENT_AUTH_PROVIDER_KEY = 'current-auth-provider';
 export const AUTH_METHOD_STORAGE_KEY = 'lit-auth-method'

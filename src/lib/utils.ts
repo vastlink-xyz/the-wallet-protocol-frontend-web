@@ -56,6 +56,10 @@ export async function fetchEthBalance(address: string, chainName: string = 'sepo
   }
 }
 
+export function setUserDataToStorage(user: any) {
+  localStorage.setItem('user', JSON.stringify(user))
+}
+
 /**
  * Get user email from localStorage
  * @returns user email string, throws error if not found

@@ -1,16 +1,15 @@
 import { Button } from "@/components/ui/button";
-import { getAuthMethodTypeByProviderName, getProviderByAuthMethodType, litNodeClient } from "@/lib/lit/providers";
+import { litNodeClient } from "@/lib/lit/providers";
 import { log } from "@/lib/utils";
 import { LitActionResource, LitPKPResource } from "@lit-protocol/auth-helpers";
 import { AUTH_METHOD_SCOPE, AUTH_METHOD_TYPE, LIT_ABILITY, LIT_NETWORK } from "@lit-protocol/constants";
 import { getAuthIdByAuthMethod } from "@lit-protocol/lit-auth-client";
 import { AuthMethod, IRelayPKP } from "@lit-protocol/types";
 import { useState, useEffect } from "react";
-import { CURRENT_AUTH_PROVIDER_KEY, getLitActionIpfsCid, getSessionSigsByPkp, mintPKP, uploadViaPinata } from "@/lib/lit";
+import { getLitActionIpfsCid, getSessionSigsByPkp, mintPKP, uploadViaPinata } from "@/lib/lit";
 import { PKPEthersWallet } from "@lit-protocol/pkp-ethers";
 import { LitContracts } from "@lit-protocol/contracts-sdk";
 import { editAuthmethodForDebugLitActionCode } from "@/app/debug/lit-actions/edit-authmethod-for-debug";
-import { editAuthmethodLitActionCode } from "@/app/debug/lit-actions/edit-authmethod";
 import { Loader2 } from "lucide-react";
 
 interface EditAuthmethodProps {
@@ -46,10 +45,6 @@ export function EditAuthmethod({
     const ipfsIdHex = await permittedIpfsIdFromLitActionCode();
     const ipfsId = await uploadViaPinata(editAuthmethodForDebugLitActionCode);
     log('ipfsId', ipfsId)
-    const currentAuthProvider = localStorage.getItem(CURRENT_AUTH_PROVIDER_KEY)
-    if (!currentAuthProvider) {
-      throw new Error('No current auth provider found')
-    }
     const pkp = await mintPKP({
       authMethod,
       options: {
@@ -101,11 +96,7 @@ export function EditAuthmethod({
       input: editAuthmethodForDebugLitActionCode,
       outputFormat: 'hex',
     })
-    const currentAuthProvider = localStorage.getItem(CURRENT_AUTH_PROVIDER_KEY)
-    if (!currentAuthProvider) {
-      throw new Error('No current auth provider found')
-    }
-    const authMethodType = getAuthMethodTypeByProviderName(currentAuthProvider)
+    const authMethodType = authMethod.authMethodType
     const response = await litNodeClient.executeJs({
       code: editAuthmethodForDebugLitActionCode,
       sessionSigs,
@@ -141,11 +132,7 @@ export function EditAuthmethod({
 
     const sessionSigs = await getSessionSigs();
     log('sessionSigs', sessionSigs)
-    const currentAuthProvider = localStorage.getItem(CURRENT_AUTH_PROVIDER_KEY)
-    if (!currentAuthProvider) {
-      throw new Error('No current auth provider found')
-    }
-    const authMethodType = getAuthMethodTypeByProviderName(currentAuthProvider)
+    const authMethodType = authMethod.authMethodType
     const authMethodId = await getAuthIdByAuthMethod(authMethod)
     const response = await litNodeClient.executeJs({
       code: editAuthmethodForDebugLitActionCode,

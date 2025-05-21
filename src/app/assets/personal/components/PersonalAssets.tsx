@@ -5,7 +5,6 @@ import { AuthMethod, IRelayPKP } from '@lit-protocol/types'
 import { Loader2 } from 'lucide-react'
 import { formatEthAmount, fetchEthBalance } from '@/lib/utils'
 import { getProviderByAuthMethodType } from '@/lib/lit/providers'
-import { CURRENT_AUTH_PROVIDER_KEY } from '@/lib/lit'
 import { SendEth } from './SendEth'
 import { PersonalWalletSettings } from './WalletSettings'
 
@@ -30,11 +29,7 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
       try {
         setIsLoading(true)
         // Get user's authMethodId
-        const currentAuthProvider = localStorage.getItem(CURRENT_AUTH_PROVIDER_KEY)
-        if (!currentAuthProvider) {
-          throw new Error('No current auth provider found')
-        }
-        const provider = getProviderByAuthMethodType(currentAuthProvider)
+        const provider = getProviderByAuthMethodType(authMethod.authMethodType)
         const authMethodId = await provider.getAuthMethodId(authMethod)
         setAuthMethodId(authMethodId)
         

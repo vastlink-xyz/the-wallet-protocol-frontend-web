@@ -27,6 +27,11 @@ export function getAccessTokenFromStorage(): string | null {
   return authMethod?.accessToken || null;
 }
 
+export function getAuthMethodTypeFromStorage() {
+  const authMethod = getAuthMethodFromStorage();
+  return authMethod?.authMethodType || null;
+}
+
 /**
  * Set auth method in localStorage
  * @param authMethod The auth method object to store

@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   AUTH_METHOD_STORAGE_KEY,
-  CURRENT_AUTH_PROVIDER_KEY,
   getProviderByAuthMethodType,
   mintPersonalPKP,
   mintSessionPKP, 
@@ -13,6 +12,7 @@ import { log } from '@/lib/utils';
 import { AuthMethod, IRelayPKP } from '@lit-protocol/types';
 import axios from 'axios';
 import { getUserIdFromToken } from '@/lib/jwt';
+import { AUTH_METHOD_TYPE } from '@lit-protocol/constants';
 
 export default function StytchCallbackPage() {
   const router = useRouter();
@@ -73,7 +73,7 @@ export default function StytchCallbackPage() {
       if (!authMethod) throw new Error('No auth method provided');
       
       // Get the Stytch provider
-      const stytchProvider = getProviderByAuthMethodType('stytch');
+      const stytchProvider = getProviderByAuthMethodType(AUTH_METHOD_TYPE.StytchEmailFactorOtp);
       
       // Get auth method ID
       const authMethodId = await stytchProvider.getAuthMethodId(authMethod);
@@ -87,9 +87,6 @@ export default function StytchCallbackPage() {
         // If user has no PKPs, create them automatically
         await handleMintPkp(authMethod);
       }
-      
-      // Store current auth provider
-      localStorage.setItem(CURRENT_AUTH_PROVIDER_KEY, 'stytch');
       
       // Redirect to assets page
       router.push('/assets/personal');
@@ -174,7 +171,7 @@ export default function StytchCallbackPage() {
   const handleMintPkp = async (authMethod: AuthMethod) => {
     try {
       // Get the Stytch provider
-      const stytchProvider = getProviderByAuthMethodType('stytch');
+      const stytchProvider = getProviderByAuthMethodType(AUTH_METHOD_TYPE.StytchEmailFactorOtp);
 
       // Step 1: Get auth method ID
       const authMethodId = await stytchProvider.getAuthMethodId(authMethod);

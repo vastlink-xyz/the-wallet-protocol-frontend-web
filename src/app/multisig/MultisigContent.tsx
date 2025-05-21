@@ -7,7 +7,6 @@ import { Multisig } from './components';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { getProviderByAuthMethodType } from '@/lib/lit';
-import { CURRENT_AUTH_PROVIDER_KEY } from '@/lib/lit';
 import { useAuthExpiration } from '@/hooks/useAuthExpiration';
 import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
 import { isTokenValid } from '@/lib/jwt';
@@ -55,11 +54,7 @@ export default function MultisigContent() {
     
     try {
       setFetchingData(true);
-      const currentAuthProvider = localStorage.getItem(CURRENT_AUTH_PROVIDER_KEY)
-      if (!currentAuthProvider) {
-        throw new Error('No current auth provider found')
-      }
-      const provider = getProviderByAuthMethodType(currentAuthProvider)
+      const provider = getProviderByAuthMethodType(authMethod.authMethodType)
       const authMethodId = await provider.getAuthMethodId(authMethod);
       setAuthMethodId(authMethodId);
       

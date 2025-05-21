@@ -3,11 +3,12 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { getProviderByAuthMethodType } from '@/lib/lit';
+import { AUTH_METHOD_TYPE } from '@lit-protocol/constants';
 import { GoogleProvider } from '@lit-protocol/lit-auth-client';
 
 export default function Social() {
   async function handleGoogleLogin() {
-    const provider = getProviderByAuthMethodType('google') as GoogleProvider
+    const provider = getProviderByAuthMethodType(AUTH_METHOD_TYPE.GoogleJwt) as GoogleProvider
     await provider.signIn();
   }
 

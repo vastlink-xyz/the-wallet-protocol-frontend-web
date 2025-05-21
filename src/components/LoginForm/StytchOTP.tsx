@@ -1,11 +1,9 @@
 import { useState } from 'react';
 import { 
-  AUTH_METHOD_STORAGE_KEY,
-  CURRENT_AUTH_PROVIDER_KEY,
   STYTCH_SIGNIN_REDIRECT,
   getProviderByAuthMethodType,
 } from '@/lib/lit';
-import { log } from '@/lib/utils';
+import { log, setUserDataToStorage } from '@/lib/utils';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -13,6 +11,7 @@ import { useRouter } from 'next/navigation';
 import { Mail } from 'lucide-react';
 import axios from 'axios';
 import { setAuthMethodToStorage } from '@/lib/storage/authmethod';
+import { AUTH_METHOD_TYPE } from '@lit-protocol/constants';
 
 type OtpStep = 'submit' | 'verify';
 
@@ -60,7 +59,7 @@ const StytchOTP = () => {
       });
       
       // Use the session JWT and user ID to authenticate with Lit Protocol
-      const authMethod = await getProviderByAuthMethodType('stytch')?.authenticate({
+      const authMethod = await getProviderByAuthMethodType(AUTH_METHOD_TYPE.StytchEmailFactorOtp)?.authenticate({
         accessToken: data.session_jwt,
         userId: data.user_id,
       });
@@ -69,10 +68,8 @@ const StytchOTP = () => {
       
       // Store Stytch authentication method
       setAuthMethodToStorage(authMethod);
-      // Set current auth provider
-      localStorage.setItem(CURRENT_AUTH_PROVIDER_KEY, 'stytch');
 
-      localStorage.setItem('user', JSON.stringify({ email }));
+      setUserDataToStorage({ email });
       
       // Redirect to Stytch callback page
       router.push(STYTCH_SIGNIN_REDIRECT.replace(window.location.origin, ''));

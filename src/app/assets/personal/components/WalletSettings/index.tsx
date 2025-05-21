@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { MFASettingsContent } from './MFASettingsContent';
 import { Input } from "@/components/ui/input";
-import { CURRENT_AUTH_PROVIDER_KEY, getProviderByAuthMethodType } from '@/lib/lit';
+import { getProviderByAuthMethodType } from '@/lib/lit';
 import { toast } from 'react-toastify';
 import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
 import { MfaOtpDialog } from '@/components/MfaOtpDialog';
@@ -47,13 +47,7 @@ export function PersonalWalletSettings() {
           return;
         }
         
-        const currentAuthProvider = localStorage.getItem(CURRENT_AUTH_PROVIDER_KEY);
-        if (!currentAuthProvider) {
-          console.error('No current auth provider found');
-          return;
-        }
-        
-        const provider = getProviderByAuthMethodType(currentAuthProvider);
+        const provider = getProviderByAuthMethodType(authMethod.authMethodType);
         const id = await provider.getAuthMethodId(authMethod);
         setAuthMethodId(id);
         
