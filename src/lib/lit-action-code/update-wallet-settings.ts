@@ -243,8 +243,10 @@ const _litActionCode = async () => {
     //   ],
     //   "threshold": 1,
     //   "mfaSettings": {
-    //     "phoneNumber": "123",
-    //     "dailyLimit": "1"
+    //     "dailyLimits": {
+    //       "ETH": "1.0",
+    //       "BTC": "0.1"
+    //     }
     //   }
     // }
 
@@ -325,9 +327,15 @@ const _litActionCode = async () => {
 
     // Check if mfaSettings have changed (if they exist)
     if (parsedProposalMessage.mfaSettings && parsedDecryptedData.mfaSettings) {
-      const mfaChanged =
-        parsedProposalMessage.mfaSettings.phoneNumber !== parsedDecryptedData.mfaSettings.phoneNumber ||
-        parsedProposalMessage.mfaSettings.dailyLimit !== parsedDecryptedData.mfaSettings.dailyLimit;
+      // Compare dailyLimits objects
+      const oldLimits = parsedDecryptedData.mfaSettings.dailyLimits || {};
+      const newLimits = parsedProposalMessage.mfaSettings.dailyLimits || {};
+      
+      // Convert to strings for comparison
+      const oldLimitsStr = JSON.stringify(oldLimits);
+      const newLimitsStr = JSON.stringify(newLimits);
+      
+      const mfaChanged = oldLimitsStr !== newLimitsStr;
       changes.mfaSettingsChanged = mfaChanged;
     }
     console.log('Changes detected:', changes);

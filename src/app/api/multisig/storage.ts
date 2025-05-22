@@ -1,5 +1,19 @@
 import { IRelayPKP } from '@lit-protocol/types'
 import { connectToDatabase, MultisigWalletModel, MessageProposalModel } from './models'
+import { TokenType } from '@/lib/web3/token'
+
+// MFA settings interface
+export interface MFASettings {
+  dailyLimits: Record<TokenType, string>;
+}
+
+// Multisig wallet metadata interface
+export interface MultisigWalletMetadata {
+  accessControlConditions: any; // Lit Protocol access control conditions
+  mfaSettings: MFASettings;
+  name?: string; // Optional, as name also exists as a top-level field
+  [key: string]: any; // Preserve extensibility
+}
 
 export interface MultisigWallet {
   id: string
@@ -14,7 +28,7 @@ export interface MultisigWallet {
   ciphertext: string     // Encrypted data
   dataToEncryptHash: string // Hash of the data that was encrypted
   dataToEncryptHashSignature: string // Signature of the dataToEncryptHash
-  metadata: Record<string, any> // Additional metadata as JSON
+  metadata: MultisigWalletMetadata // More specific type instead of Record<string, any>
   name: string          // Wallet name
 }
 
@@ -43,10 +57,7 @@ export interface MessageProposal {
       authMethodId?: string
     }[]
     threshold?: number
-    mfaSettings?: {
-      phoneNumber?: string
-      dailyLimit?: string
-    }
+    mfaSettings?: MFASettings
     name?: string       // Wallet name
     originalState?: any  // Original wallet state before changes
     changeDescription?: string  // Description of changes for display

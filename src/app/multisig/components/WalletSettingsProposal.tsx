@@ -1,4 +1,6 @@
-import type { MessageProposal, MultisigWallet } from '@/app/api/multisig/storage'
+import type { MessageProposal, MFASettings, MultisigWallet } from '@/app/api/multisig/storage'
+import { log } from '@/lib/utils';
+import { TokenType } from '@/lib/web3/token'
 
 // extend settingsData type to include originalState and changeDescription
 interface ExtendedSettingsData {
@@ -9,10 +11,7 @@ interface ExtendedSettingsData {
     authMethodId?: string;
   }[];
   threshold?: number;
-  mfaSettings?: {
-    phoneNumber?: string;
-    dailyLimit?: string;
-  };
+  mfaSettings?: MFASettings;
   name?: string;
   originalState?: any; // original wallet state
   changeDescription?: string; // change description
@@ -32,6 +31,7 @@ export function WalletSettingsProposal({ proposal, selectedWallet }: WalletSetti
   
   // Get original state from proposal or use selectedWallet as fallback
   const originalState = settingsData.originalState || selectedWallet;
+  log('originalState', originalState)
   
   // Prepare descriptions of changes
   const descriptions = [];
@@ -76,19 +76,27 @@ export function WalletSettingsProposal({ proposal, selectedWallet }: WalletSetti
   
   // Check for MFA setting changes
   const mfaChanges: string[] = [];
-  if (settingsData.mfaSettings && originalState) {
-    const walletMfaSettings = (originalState as any).mfaSettings || {};
+  log('settingsData.mfaSettings', settingsData.mfaSettings)
+  if (settingsData.mfaSettings?.dailyLimits && originalState?.mfaSettings?.dailyLimits) {
+    const newLimits = settingsData.mfaSettings.dailyLimits;
+    const oldLimits = originalState.mfaSettings.dailyLimits;
     
-    if (settingsData.mfaSettings.phoneNumber !== walletMfaSettings.phoneNumber) {
-      mfaChanges.push('Phone Number');
-    }
-    if (settingsData.mfaSettings.dailyLimit !== walletMfaSettings.dailyLimit) {
-      mfaChanges.push('Daily Limit');
-    }
+    // Check which tokens have different limits
+    const tokenTypes = Object.keys(newLimits).concat(
+      Object.keys(oldLimits).filter(key => !Object.keys(newLimits).includes(key))
+    );
     
-    if (mfaChanges.length > 0) {
-      descriptions.push(`Update MFA settings (${mfaChanges.join(', ')})`);
-    }
+    // For each token type, check if the limit has changed
+    tokenTypes.forEach(token => {
+      const typedToken = token as TokenType;
+      if (newLimits[typedToken] !== oldLimits[typedToken]) {
+        mfaChanges.push(`${token} Daily Limit`);
+      }
+    });
+  }
+  
+  if (mfaChanges.length > 0) {
+    descriptions.push(`Update daily limits (${mfaChanges.join(', ')})`);
   }
   
   // Handle case when proposal is completed but changes are not detected

@@ -10,7 +10,7 @@ import { AUTH_METHOD_SCOPE, AUTH_METHOD_TYPE, LIT_ABILITY, LIT_NETWORK } from "@
 import { LitPKPResource } from "@lit-protocol/auth-helpers";
 import { PKPEthersWallet } from "@lit-protocol/pkp-ethers";
 import { LitContracts } from "@lit-protocol/contracts-sdk";
-import { getPersonalTransactionIpfsId } from "@/lib/lit/ipfs-id-env";
+import { getPersonalTransactionIpfsId, getUpdateWalletIpfsId } from "@/lib/lit/ipfs-id-env";
 
 export function Upgrade({
   authMethod,
@@ -51,7 +51,7 @@ export function Upgrade({
       });
       log('sessionSigs', sessionSigs)
 
-      const ipfsIdHex = await getPersonalTransactionIpfsId('hex')
+      const ipfsIdHex = await getUpdateWalletIpfsId('hex')
       
       const response = await litNodeClient.executeJs({
         code: upgradeLitActionCode,
@@ -148,7 +148,7 @@ export function Upgrade({
             addOrRemove: 'remove',
             keyType: 2,
             authMethodType: AUTH_METHOD_TYPE.LitAction,
-            authMethodId: '0x1220c8be04ad08917a4e9de3293feb98b5f09bd762f72620b4621d6b6643b0c4ab2e',
+            authMethodId: '0x12207c77cc36cbed78a0cbad49516cc7bdfe6b7391be0ff8c55f8df69c099e24d31f',
             authMethodPubkey: '0x',
             // permittedScopes: [AUTH_METHOD_SCOPE.NoPermissions],
           }

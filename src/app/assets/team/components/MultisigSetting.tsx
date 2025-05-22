@@ -37,22 +37,22 @@ export function MultisigSetting({
         
         {/* Scrollable content area */}
         <div className="p-6 overflow-y-auto">
-        <p className="text-sm text-gray-500 mb-4">A team wallet requires approval from multiple signers to execute any transaction.</p>
-        
+          <p className="text-sm text-gray-500 mb-4">A team wallet requires approval from multiple signers to execute any transaction.</p>
+          
           <MultisigWalletFormContent
             mode="create"
-          authMethod={authMethod}
-          userPkp={userPkp}
-          sessionPkp={sessionPkp}
-          authMethodId={authMethodId}
+            authMethod={authMethod}
+            userPkp={userPkp}
+            sessionPkp={sessionPkp}
+            authMethodId={authMethodId}
             onCancel={onClose}
-          onSuccess={() => {
-            if (onSuccess) {
-              onSuccess();
-            }
-            onClose();
-          }}
-        />
+            onSuccess={() => {
+              if (onSuccess) {
+                onSuccess();
+              }
+              onClose();
+            }}
+          />
         </div>
       </div>
     </div>

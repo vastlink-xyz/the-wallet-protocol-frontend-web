@@ -70,7 +70,21 @@ const MultisigWalletSchema = new mongoose.Schema({
   ciphertext: { type: String, required: true },
   dataToEncryptHash: { type: String, required: true },
   dataToEncryptHashSignature: { type: String, required: true },
-  metadata: { type: mongoose.Schema.Types.Mixed, required: true },
+  metadata: { 
+    type: {
+      // Lit Protocol access control conditions
+      accessControlConditions: mongoose.Schema.Types.Mixed,
+      // MFA settings for wallet operations
+      mfaSettings: {
+        // Daily transaction limits for different token types
+        dailyLimits: { type: Map, of: String, default: new Map() }
+      },
+      // Additional fields for future extensibility
+      _additional: { type: mongoose.Schema.Types.Mixed, default: {} }
+    }, 
+    required: true,
+    _id: false
+  },
   name: { type: String, required: true }
 }, { timestamps: true });
 
@@ -102,7 +116,15 @@ const MessageProposalSchema = new mongoose.Schema({
     data: String
   },
   settingsData: {
-    type: mongoose.Schema.Types.Mixed,
+    signers: [SignerSchema],
+    threshold: Number,
+    mfaSettings: {
+      // Daily transaction limits for different token types
+      dailyLimits: { type: Map, of: String }
+    },
+    name: String,
+    originalState: mongoose.Schema.Types.Mixed,
+    changeDescription: String
   },
   txHash: String
 }, { timestamps: true });

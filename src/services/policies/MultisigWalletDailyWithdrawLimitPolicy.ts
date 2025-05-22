@@ -5,14 +5,17 @@ import Moralis from 'moralis';
 import { EvmChain } from "moralis/common-evm-utils";
 import { initializeMoralis } from '@/lib/moralis';
 import { MultisigWallet } from '@/app/api/multisig/storage';
+import { TokenType } from '@/lib/web3/token';
 
 // Context specific to transaction operations
 export interface MultisigWalletTransactionOperationContext extends BaseOperationContext {
   walletId: string;
   transactionAmount: string;  // Amount in ETH
+  tokenType?: TokenType;      // Type of token being transferred
 }
 
-async function getUserWithdrawalAmountToday(walletData: MultisigWallet): Promise<number> {
+// kkktodo: add support for other token types
+async function getUserWithdrawalAmountToday(walletData: MultisigWallet, tokenType: TokenType): Promise<number> {
   try {
     const address = walletData.pkp.ethAddress;
     // Initialize Moralis before using it
@@ -21,6 +24,8 @@ async function getUserWithdrawalAmountToday(walletData: MultisigWallet): Promise
     const currentTimestamp = Date.now();
     const yesterdayTimestamp = Date.now() - 24 * 60 * 60 * 1000;
 
+    // Current implementation only supports ETH
+    // Future: Extend this to support other token types
     const response = await Moralis.EvmApi.transaction.getWalletTransactions({
       "chain": EvmChain.SEPOLIA,
       "fromDate": new Date(yesterdayTimestamp),
@@ -46,19 +51,18 @@ async function getUserWithdrawalAmountToday(walletData: MultisigWallet): Promise
 }
 
 
-async function getUserDailyWithdrawalLimit(walletData: MultisigWallet): Promise<string> {
-  // Access the daily withdraw limits directly from userData
-  if (walletData.metadata.mfaSettings?.dailyLimit) {
-    return walletData.metadata.mfaSettings.dailyLimit;
+async function getUserDailyWithdrawalLimit(walletData: MultisigWallet, tokenType: TokenType = 'ETH'): Promise<string> {
+  // New structure: Access token specific daily limits
+  if (walletData.metadata.mfaSettings?.dailyLimits?.[tokenType]) {
+    return walletData.metadata.mfaSettings.dailyLimits[tokenType];
   }
   
   // Return default if currency not found in settings
   return "0.001";
 }
 
-// PersonalWalletDailyWithdrawLimitPolicy specifically uses TransactionOperationContext
+// MultisigWalletDailyWithdrawLimitPolicy handles transaction limits
 class MultisigWalletDailyWithdrawLimitPolicy extends Policy<MultisigWalletTransactionOperationContext> {
-  // Constructor is simplified as userId and currency are now part of the context.
   constructor() {
     super();
   }
@@ -70,21 +74,25 @@ class MultisigWalletDailyWithdrawLimitPolicy extends Policy<MultisigWalletTransa
       const response = await fetch(apiUrl).then((response) => response.json());
       const walletData = response.data
 
-      // Pass userData to both helper functions
-      const dailyLimitStr = await getUserDailyWithdrawalLimit(walletData);
-      const withdrawnToday = await getUserWithdrawalAmountToday(walletData);
+      // Get token type from context or default to ETH
+      const tokenType = context.tokenType; // kkktodo: add params
+
+      // Get daily limit and currently withdrawn amount
+      const dailyLimitStr = await getUserDailyWithdrawalLimit(walletData, tokenType);
+      const withdrawnToday = await getUserWithdrawalAmountToday(walletData, tokenType);
       const currentTransactionAmount = context.transactionAmount;
       
       // Convert string to number for comparison
       const dailyLimit = parseFloat(dailyLimitStr);
       const numericAmount = parseFloat(currentTransactionAmount);
       
+      log('tokenType', tokenType);
       log('dailyLimit', dailyLimit);
       log('withdrawnToday', withdrawnToday);
       log('currentTransactionAmount', currentTransactionAmount);
       
       if ((withdrawnToday + numericAmount) > dailyLimit) {
-        console.log(`MFA triggered: Amount ${numericAmount} ETH + Withdrawn ${withdrawnToday} > Limit ${dailyLimit}`);
+        console.log(`MFA triggered: Amount ${numericAmount} ${tokenType} + Withdrawn ${withdrawnToday} > Limit ${dailyLimit}`);
         return true;
       }
       return false;
@@ -97,7 +105,7 @@ class MultisigWalletDailyWithdrawLimitPolicy extends Policy<MultisigWalletTransa
   getDescription(): string {
     return `Triggers MFA if the daily withdrawal limit for a multisig wallet transaction is exceeded.`;
   }
-} 
+}
 
 const multisigWalletDailyWithdrawLimitPolicy = new MultisigWalletDailyWithdrawLimitPolicy();
 Object.freeze(multisigWalletDailyWithdrawLimitPolicy);

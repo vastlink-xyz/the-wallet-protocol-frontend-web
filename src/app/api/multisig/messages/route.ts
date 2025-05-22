@@ -86,19 +86,19 @@ export async function POST(request: NextRequest) {
           }
         } else {
           // Send transaction notifications (original behavior)
-        for (const signer of signers) {
-          if (signer.email) {
-            await sendMultisigNotification({
-              to: signer.email,
-              proposalId: proposalId,
+          for (const signer of signers) {
+            if (signer.email) {
+              await sendMultisigNotification({
+                to: signer.email,
+                proposalId: proposalId,
                 recipientAddress: transactionData?.to || 'N/A',
                 amount: transactionData?.value || '0',
                 walletLink,
                 notificationType: 'transaction'
               });
+              }
             }
           }
-        }
       } catch (emailError) {
         console.error('Failed to send email notifications:', emailError)
         // Continue with the response even if email sending fails

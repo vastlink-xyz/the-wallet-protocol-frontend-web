@@ -5,7 +5,7 @@ import { formatEthAmount } from '@/lib/utils';
 import { AuthMethod, IRelayPKP, SessionSigs } from "@lit-protocol/types";
 import { AUTH_METHOD_TYPE, AUTH_METHOD_SCOPE, LIT_NETWORK } from "@lit-protocol/constants";
 import { litNodeClient } from "@/lib/lit";
-import { getMultisigTransactionIpfsId, getPersonalSignIpfsId } from "@/lib/lit/ipfs-id-env";
+import { getMultisigTransactionIpfsId, getPersonalSignIpfsId, getUpdateWalletIpfsId } from "@/lib/lit/ipfs-id-env";
 import { upgradeLitActionCode } from "@/lib/lit-action-code/upgrade.lit";
 import { log } from "@/lib/utils";
 import { LitContracts } from '@lit-protocol/contracts-sdk';
@@ -61,7 +61,7 @@ export function AllMultisigWallets({
 
     try {
       setLoading(true);
-      const ipfsIdHex = await getMultisigTransactionIpfsId('hex')
+      const ipfsIdHex = await getUpdateWalletIpfsId('hex')
       
       const response = await litNodeClient.executeJs({
         code: upgradeLitActionCode,
@@ -95,7 +95,7 @@ export function AllMultisigWallets({
 
     try {
       setLoading(true);
-      const removeIpfsIdHex = '0x1220ebb024b29db7e84cab2fc491139363524d2125a65d9294d681571663ebfe562f'
+      const removeIpfsIdHex = '0x12207c77cc36cbed78a0cbad49516cc7bdfe6b7391be0ff8c55f8df69c099e24d31f'
       
       const response = await litNodeClient.executeJs({
         code: upgradeLitActionCode,

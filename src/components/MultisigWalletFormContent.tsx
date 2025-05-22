@@ -21,6 +21,8 @@ import { getCreateWalletIpfsId, getMultisigTransactionIpfsId, getUpdateWalletIpf
 import { sendMultisigNotification } from '@/lib/notification'
 import { useAuthExpiration } from '@/hooks/useAuthExpiration'
 import { isTokenValid } from '@/lib/jwt'
+import { TokenType, SUPPORTED_TOKEN_SYMBOLS } from '@/lib/web3/token'
+import { MFASettings, MultisigWalletMetadata } from '@/app/api/multisig/storage'
 
 interface MultisigWalletFormContentProps {
   mode: 'create' | 'edit'
@@ -112,15 +114,17 @@ export function MultisigWalletFormContent({
       ? wallet?.threshold 
       : 1
   )
-  const [phoneNumber, setPhoneNumber] = useState(
-    mode === 'edit' 
-      ? wallet?.metadata?.mfaSettings?.phoneNumber || '' 
-      : ''
-  )
-  const [dailyLimit, setDailyLimit] = useState(
-    mode === 'edit' 
-      ? wallet?.metadata?.mfaSettings?.dailyLimit || '' 
-      : ''
+  
+  // Create default dailyLimits object
+  const defaultDailyLimits = {} as Record<TokenType, string>;
+  SUPPORTED_TOKEN_SYMBOLS.forEach(token => {
+    defaultDailyLimits[token] = '0.001';
+  });
+  
+  const [dailyLimits, setDailyLimits] = useState<Record<TokenType, string>>(
+    mode === 'edit'
+      ? {...defaultDailyLimits, ...(wallet?.metadata?.mfaSettings?.dailyLimits || {})}
+      : defaultDailyLimits
   )
   const [walletName, setWalletName] = useState(
     mode === 'edit'
@@ -227,7 +231,14 @@ export function MultisigWalletFormContent({
       
       fetchWalletCount();
     }
-  }, [mode, userPkp, walletName]);
+  }, [mode, userPkp]);
+
+  const handleDailyLimitChange = (token: TokenType, value: string) => {
+    setDailyLimits(prev => ({
+      ...prev,
+      [token]: value
+    }));
+  };
 
   // Create new multisig wallet (create mode)
   const handleCreateMultisigWallet = async () => {
@@ -329,9 +340,8 @@ export function MultisigWalletFormContent({
       log('multisig pkp', multisigPkp);
 
       // Prepare MFA settings and wallet data
-      const mfaSettings = {
-        phoneNumber: phoneNumber,
-        dailyLimit: dailyLimit
+      const mfaSettings: MFASettings = {
+        dailyLimits: dailyLimits
       };
 
       // Prepare data to encrypt for new wallet
@@ -407,7 +417,7 @@ export function MultisigWalletFormContent({
       log('dataToEncryptHashSignature', dataToEncryptHashSignature);
 
       // Prepare metadata
-      const metadata = {
+      const metadata: MultisigWalletMetadata = {
         accessControlConditions,
         mfaSettings,
         name: walletName
@@ -445,12 +455,10 @@ export function MultisigWalletFormContent({
           walletLink
         ).catch(error => {
           console.error('Failed to send notification emails:', error);
-          // Continue with the process even if email sending fails
         });
         
         // Clear form
-        setPhoneNumber('');
-        setDailyLimit('');
+        setDailyLimits({} as Record<TokenType, string>);
         
         // Call success callback
         if (onSuccess) {
@@ -480,7 +488,7 @@ export function MultisigWalletFormContent({
       
       setIsLoading(true);
       
-      // Verify Google token before proceeding
+      // Verify access token before proceeding
       if (!authMethod || !authMethod.accessToken) {
         toast.error('Authentication information is missing');
         setIsLoading(false);
@@ -536,14 +544,12 @@ export function MultisigWalletFormContent({
       // Check if MFA settings have changed
       const currentMfa = wallet.metadata?.mfaSettings || {};
       const mfaChanged = 
-        currentMfa.phoneNumber !== phoneNumber ||
-        currentMfa.dailyLimit !== dailyLimit;
+        JSON.stringify(currentMfa.dailyLimits) !== JSON.stringify(dailyLimits);
         
       if (mfaChanged) {
         settingsData.mfaSettings = {
-          phoneNumber,
-          dailyLimit
-        };
+          dailyLimits
+        } as MFASettings;
       }
       
       // Store a summary of changes for display after proposal completion
@@ -826,15 +832,28 @@ export function MultisigWalletFormContent({
       
       {/* MFA Settings */}
       <div className="space-y-3">
-        <h3 className="text-md font-semibold">Daily Transfer Limit (ETH)</h3>
-        <Input
-          id="dailyLimit"
-          value={dailyLimit}
-          onChange={(e) => setDailyLimit(e.target.value)}
-          placeholder="1000"
-          type="number"
-          className="mt-1"
-        />
+        <h3 className="text-md font-semibold">Daily Transfer Limits</h3>
+        <div className="space-y-3 bg-gray-50 p-4 rounded-md">
+          {SUPPORTED_TOKEN_SYMBOLS.map((token) => (
+            <div key={token} className="flex flex-col space-y-1">
+              <Label htmlFor={`dailyLimit-${token}`}>Daily {token} Limit</Label>
+              <div className="flex items-center">
+                <Input
+                  id={`dailyLimit-${token}`}
+                  value={dailyLimits[token] || '0.001'}
+                  onChange={(e) => handleDailyLimitChange(token, e.target.value)}
+                  placeholder="0.00"
+                  type="number"
+                  min="0"
+                  step="0.001"
+                />
+                <span className="ml-2 text-gray-600 font-medium">
+                  {token}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
       
       {/* Action Buttons */}

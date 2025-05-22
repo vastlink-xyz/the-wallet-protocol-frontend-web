@@ -8,6 +8,9 @@ import { log } from "@/lib/utils";
 import { AllUsers } from "./AllUsers";
 import { AllMultisigWallets } from "./AllMultisigWallets";
 
+// Define tab options
+type DebugTab = 'edit-authmethod' | 'execute-lit-action' | 'upgrade' | 'all-users' | 'all-wallets';
+
 export function Example({
   authMethod,
 }: {
@@ -17,6 +20,8 @@ export function Example({
   const [actionPkp, setActionPkp] = useState<IRelayPKP | null>(null);
   const [loading, setLoading] = useState(false);
   const [sessionSigs, setSessionSigs] = useState<SessionSigs | null>(null);
+  // Add state for active tab
+  const [activeTab, setActiveTab] = useState<DebugTab>('edit-authmethod');
 
   // Fetch user PKPs from API
   const fetchUserPkps = useCallback(async () => {
@@ -70,33 +75,117 @@ export function Example({
     fetchSessionSigs();
   }, [sessionPkp, authMethod, sessionSigs]);
 
-  return <div className="space-y-8">
-    <EditAuthmethod 
-      authMethod={authMethod} 
-      sessionPkp={sessionPkp}
-      actionPkp={actionPkp}
-      loading={loading}
-    />
-    <ExecuteLitActionCode 
-      authMethod={authMethod} 
-      sessionPkp={sessionPkp}
-      actionPkp={actionPkp}
-      loading={loading}
-    />
-    <Upgrade 
-      authMethod={authMethod} 
-      sessionPkp={sessionPkp}
-      actionPkp={actionPkp}
-    />
-    <AllUsers 
-      currentUserSessionPkp={sessionPkp}
-      currentUserAuthMethod={authMethod}
-      sessionSigs={sessionSigs}
-    />
-    <AllMultisigWallets 
-      currentUserSessionPkp={sessionPkp}
-      currentUserAuthMethod={authMethod}
-      sessionSigs={sessionSigs}
-    />
-  </div>;
+  // Render tab buttons
+  const renderTabButtons = () => {
+    return (
+      <div className="flex flex-wrap gap-2 mb-6">
+        <TabButton 
+          label="Edit Auth Method" 
+          isActive={activeTab === 'edit-authmethod'} 
+          onClick={() => setActiveTab('edit-authmethod')} 
+        />
+        <TabButton 
+          label="Execute Lit Action" 
+          isActive={activeTab === 'execute-lit-action'} 
+          onClick={() => setActiveTab('execute-lit-action')} 
+        />
+        <TabButton 
+          label="Upgrade" 
+          isActive={activeTab === 'upgrade'} 
+          onClick={() => setActiveTab('upgrade')} 
+        />
+        <TabButton 
+          label="All Users" 
+          isActive={activeTab === 'all-users'} 
+          onClick={() => setActiveTab('all-users')} 
+        />
+        <TabButton 
+          label="All Wallets" 
+          isActive={activeTab === 'all-wallets'} 
+          onClick={() => setActiveTab('all-wallets')} 
+        />
+      </div>
+    );
+  };
+
+  // Render active component based on selected tab
+  const renderActiveComponent = () => {
+    switch (activeTab) {
+      case 'edit-authmethod':
+        return (
+          <EditAuthmethod 
+            authMethod={authMethod} 
+            sessionPkp={sessionPkp}
+            actionPkp={actionPkp}
+            loading={loading}
+          />
+        );
+      case 'execute-lit-action':
+        return (
+          <ExecuteLitActionCode 
+            authMethod={authMethod} 
+            sessionPkp={sessionPkp}
+            actionPkp={actionPkp}
+            loading={loading}
+          />
+        );
+      case 'upgrade':
+        return (
+          <Upgrade 
+            authMethod={authMethod} 
+            sessionPkp={sessionPkp}
+            actionPkp={actionPkp}
+          />
+        );
+      case 'all-users':
+        return (
+          <AllUsers 
+            currentUserSessionPkp={sessionPkp}
+            currentUserAuthMethod={authMethod}
+            sessionSigs={sessionSigs}
+          />
+        );
+      case 'all-wallets':
+        return (
+          <AllMultisigWallets 
+            currentUserSessionPkp={sessionPkp}
+            currentUserAuthMethod={authMethod}
+            sessionSigs={sessionSigs}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      {renderTabButtons()}
+      {renderActiveComponent()}
+    </div>
+  );
+}
+
+// TabButton component for navigation
+function TabButton({ 
+  label, 
+  isActive, 
+  onClick 
+}: { 
+  label: string; 
+  isActive: boolean; 
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`px-4 py-2 rounded-md font-medium transition-colors ${
+        isActive 
+          ? 'bg-blue-500 text-white' 
+          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+      }`}
+    >
+      {label}
+    </button>
+  );
 }

@@ -423,19 +423,6 @@ export function Multisig({
       const isWalletSettingsProposal = proposal.type === 'walletSettings';
       let settingsData = proposal.settingsData;
       
-      // kkktodo: remove this
-      // Backward compatibility for older proposals
-      if (!isWalletSettingsProposal && !settingsData) {
-        try {
-          const proposalData = JSON.parse(proposal.message);
-          if (proposalData.type === 'walletSettings' && proposalData.changes) {
-            settingsData = proposalData.changes;
-          }
-        } catch (e) {
-          // Ignore parsing errors
-        }
-      }
-      
       if (isWalletSettingsProposal && settingsData) {
         // Handle wallet settings change
         await executeWalletSettingsProposal(proposal, settingsData, sessionSigs);
