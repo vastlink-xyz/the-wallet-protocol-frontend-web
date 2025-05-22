@@ -12,7 +12,7 @@ declare const publicKeys: string[]
 declare const requiredSignatures: number
 declare const publicKey: string
 declare const sendTransaction: boolean
-
+declare const tokenType: string
 declare const otp: string
 declare const mfaMethodId: string
 
@@ -183,7 +183,7 @@ const go = async () => {
               walletId,
               transactionAmount: valueInEth,
               contextType: 'multisigWalletTransaction',
-              // kkktodo: add tokenType
+              tokenType,
             })
           });
           const data = await response.json();

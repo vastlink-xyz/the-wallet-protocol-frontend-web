@@ -11,7 +11,7 @@ import { TokenType } from '@/lib/web3/token';
 export interface MultisigWalletTransactionOperationContext extends BaseOperationContext {
   walletId: string;
   transactionAmount: string;  // Amount in ETH
-  tokenType?: TokenType;      // Type of token being transferred
+  tokenType: TokenType;      // Type of token being transferred
 }
 
 // kkktodo: add support for other token types
@@ -75,7 +75,7 @@ class MultisigWalletDailyWithdrawLimitPolicy extends Policy<MultisigWalletTransa
       const walletData = response.data
 
       // Get token type from context or default to ETH
-      const tokenType = context.tokenType; // kkktodo: add params
+      const tokenType = context.tokenType;
 
       // Get daily limit and currently withdrawn amount
       const dailyLimitStr = await getUserDailyWithdrawalLimit(walletData, tokenType);

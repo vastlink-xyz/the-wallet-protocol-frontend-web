@@ -32,6 +32,7 @@ const ethersProvider = new ethers.providers.JsonRpcProvider(
   chainInfo.rpcUrl
 );
 
+// kkktodo: add tokenType
 export function Multisig({
   currentPkp,
   sessionPkp,
@@ -196,8 +197,9 @@ export function Multisig({
   };
 
   const handleCreateProposal = async () => {
-    if (!selectedWalletId || !recipientAddress || !amount) return;
-    
+    if (!selectedWalletId || !recipientAddress || !amount) {
+      return
+    };
     
     try {
       setIsCreatingProposal(true)
@@ -398,7 +400,6 @@ export function Multisig({
       console.error('Missing multisig wallet information or auth method')
       return
     }
-    
     
     try {
       setIsLoading(true)
@@ -640,6 +641,7 @@ export function Multisig({
       },
       otp: otpCode,
       mfaMethodId,
+      tokenType: 'ETH',
     }
     log('js params', jsParams)
 
