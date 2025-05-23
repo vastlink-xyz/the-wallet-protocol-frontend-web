@@ -8,6 +8,7 @@ import { LitActionResource, LitPKPResource } from '@lit-protocol/auth-helpers';
 import { AUTH_METHOD_TYPE, LIT_ABILITY } from '@lit-protocol/constants';
 import { litNodeClient } from './providers';
 import { getNewStytchAccessToken } from '../jwt';
+import { log } from '../utils';
 
 /**
  * Generate session signatures
@@ -69,8 +70,10 @@ export const getSessionSigsByPkp = async ({
   }
 
   if (authMethod.authMethodType === AUTH_METHOD_TYPE.StytchEmailFactorOtp && refreshStytchAccessToken) {
+    log('refresh stytch access token start')
     const newAccessToken = await getNewStytchAccessToken(authMethod.accessToken);
     authMethod.accessToken = newAccessToken;
+    log('refresh stytch access token end')
   }
 
   const sessionSigs = await litNodeClient.getPkpSessionSigs({

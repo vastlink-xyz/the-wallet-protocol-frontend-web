@@ -64,7 +64,8 @@ export async function GET(request: NextRequest) {
       data: {
         authMethodId: user.authMethodId,
         email: user.email,
-        pkp: pkpData
+        pkp: pkpData,
+        addresses: user.addresses
       }
     });
   } catch (error) {

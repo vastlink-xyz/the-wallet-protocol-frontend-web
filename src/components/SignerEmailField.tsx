@@ -4,6 +4,8 @@ import { Input } from '@/components/ui/input'
 import { Loader2, AlertCircle, Copy, Check } from 'lucide-react'
 import axios from 'axios'
 import { ethers } from 'ethers'
+import { TokenType } from '@/lib/web3/token'
+import { UserAddresses } from '@/app/api/user/storage'
 
 // Helper functions to validate input formats
 const isValidEmail = (email: string): boolean => {
@@ -32,14 +34,14 @@ interface SignerEmailFieldProps {
   // Whether to automatically query address after input
   lookupOnChange?: boolean
   
-  // Explicit ETH address (if provided, no lookup will be performed)
+  // Explicit address (if provided, no lookup will be performed)
   address?: string
   
   // Callback when address information changes
   onAddressFound?: (addressData: {
-    ethAddress: string
     publicKey: string
     authMethodId?: string
+    addresses?: UserAddresses
   } | null) => void
 
   // Explicit input type (email or address)
@@ -47,6 +49,9 @@ interface SignerEmailFieldProps {
 
   // Custom className for the root element
   className?: string
+
+  // Token type to determine which address to display and retrieve
+  tokenType?: TokenType
 }
 
 export function SignerEmailField({
@@ -57,32 +62,61 @@ export function SignerEmailField({
   address,
   onAddressFound,
   inputType,
-  className
+  className,
+  tokenType = 'ETH' // Default to ETH for backward compatibility
 }: SignerEmailFieldProps) {
   // State management
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [addressInfo, setAddressInfo] = useState<{
-    ethAddress: string
     publicKey: string
     authMethodId?: string
-  } | null>(address ? { ethAddress: address, publicKey: '' } : null)
+    addresses: UserAddresses
+  } | null>(address ? { 
+    publicKey: '',
+    addresses: { 
+      eth: tokenType.toLowerCase() === 'eth' ? address : '', 
+      btc: tokenType.toLowerCase() === 'btc' ? address : '' 
+    } 
+  } : null)
   const [internalInputType, setInternalInputType] = useState<'email' | 'address' | null>(inputType || null)
   const [copied, setCopied] = useState(false)
 
   // If address prop changes, update the state
   useEffect(() => {
     if (address) {
-      const addressData = { ethAddress: address, publicKey: '' };
+      const addressData = { 
+        publicKey: '',
+        addresses: { 
+          eth: tokenType.toLowerCase() === 'eth' ? address : '', 
+          btc: tokenType.toLowerCase() === 'btc' ? address : '' 
+        } 
+      };
+      
       setAddressInfo(addressData);
       if (onAddressFound) onAddressFound(addressData);
     }
-  }, [address, onAddressFound])
+  }, [address, onAddressFound, tokenType])
 
   // If props.inputType changes, update internal state
   useEffect(() => {
     setInternalInputType(inputType || null);
   }, [inputType])
+
+  // Function to validate an address based on token type
+  const isValidAddress = (value: string, type: TokenType): boolean => {
+    // Add validation for different address types
+    switch(type.toLowerCase()) {
+      case 'eth':
+        return ethers.utils.isAddress(value);
+      case 'btc':
+        // Basic BTC address validation - could be enhanced
+        return /^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$|^(bc1|tb1)[a-zA-HJ-NP-Z0-9]{25,89}$/.test(value);
+      default:
+        // For unknown types, return false or implement custom validation
+        return false;
+    }
+  }
 
   // Query address when input changes and auto-lookup is enabled
   useEffect(() => {
@@ -91,17 +125,26 @@ export function SignerEmailField({
     
     if (lookupOnChange && input.value) {
       const debounceTimer = setTimeout(() => {
-        // Check if input is a valid email or ETH address
+        // Check if input is a valid email or address for the current token type
         if (isValidEmail(input.value)) {
           setInternalInputType('email');
           fetchAddressByEmail(input.value);
-        } else if (ethers.utils.isAddress(input.value)) {
-          // If it's a valid ETH address, use it directly
+        } else if (isValidAddress(input.value, tokenType)) {
+          // If it's a valid address for the current token type, use it directly
           setInternalInputType('address');
-          const newAddressInfo = {
-            ethAddress: input.value,
-            publicKey: '',
+          
+          // Create an addresses object with the input value for the current token type
+          const addresses: UserAddresses = {
+            eth: '',
+            btc: ''
           };
+          addresses[tokenType.toLowerCase()] = input.value;
+          
+          const newAddressInfo = {
+            publicKey: '',
+            addresses
+          };
+          
           setAddressInfo(newAddressInfo);
           if (onAddressFound) onAddressFound(newAddressInfo);
           setError(null);
@@ -109,7 +152,7 @@ export function SignerEmailField({
           // Clear data if input is not valid but has substantial content
           setInternalInputType(null);
           setAddressInfo(null);
-          setError('Enter a valid email or Ethereum address');
+          setError(`Enter a valid email or ${tokenType} address`);
           if (onAddressFound) onAddressFound(null);
         }
       }, 500) // 500ms debounce
@@ -122,7 +165,7 @@ export function SignerEmailField({
       setError(null);
       if (onAddressFound) onAddressFound(null);
     }
-  }, [input.value, lookupOnChange, address, onAddressFound])
+  }, [input.value, lookupOnChange, address, onAddressFound, tokenType])
 
   // Query address information corresponding to email
   const fetchAddressByEmail = async (email: string) => {
@@ -143,11 +186,12 @@ export function SignerEmailField({
       const response = await axios.get(`/api/user/email?email=${encodeURIComponent(email)}`)
       
       if (response.data.success) {
-        const { authMethodId, pkp } = response.data.data
+        const { authMethodId, pkp, addresses } = response.data.data
+        
         const newAddressInfo = {
-          ethAddress: pkp.ethAddress,
           publicKey: pkp.publicKey,
-          authMethodId
+          authMethodId,
+          addresses
         }
         
         setAddressInfo(newAddressInfo)
@@ -176,13 +220,22 @@ export function SignerEmailField({
       if (isValidEmail(input.value)) {
         setInternalInputType('email');
         fetchAddressByEmail(input.value);
-      } else if (ethers.utils.isAddress(input.value)) {
-        // If it's a valid ETH address, use it directly
+      } else if (isValidAddress(input.value, tokenType)) {
+        // If it's a valid address for the current token type, use it directly
         setInternalInputType('address');
-        const newAddressInfo = {
-          ethAddress: input.value,
-          publicKey: '',
+        
+        // Create an addresses object with the input value for the current token type
+        const addresses: UserAddresses = {
+          eth: '',
+          btc: ''
         };
+        addresses[tokenType.toLowerCase()] = input.value;
+        
+        const newAddressInfo = {
+          publicKey: '',
+          addresses
+        };
+        
         setAddressInfo(newAddressInfo);
         if (onAddressFound) onAddressFound(newAddressInfo);
         setError(null);
@@ -205,6 +258,15 @@ export function SignerEmailField({
     }
   };
 
+  // Get the appropriate address to display based on tokenType
+  const getDisplayAddress = (): string => {
+    if (!addressInfo?.addresses) return '';
+    
+    // Get address for current token type (lowercase for case-insensitive matching)
+    const tokenKey = tokenType.toLowerCase();
+    return addressInfo.addresses[tokenKey] || '';
+  };
+
   return (
     <div className={`space-y-2 ${className || ''}`}>
       <Label htmlFor={input.id || 'recipient-field'} className="text-base font-semibold">
@@ -217,7 +279,7 @@ export function SignerEmailField({
           value={input.value}
           onChange={(e) => input.onChange(e.target.value)}
           onBlur={handleBlur}
-          placeholder={input.placeholder || "Enter email address or ETH address (0x...)"}
+          placeholder={input.placeholder || `Enter email address or ${tokenType} address`}
           disabled={disabled || isLoading}
           className={`${disabled ? "bg-gray-50 text-black font-semibold" : ""} ${error ? "border-red-300" : ""} ${input.className || ""}`}
           autoComplete={input.autoComplete}
@@ -242,9 +304,9 @@ export function SignerEmailField({
       {internalInputType === 'email' && addressInfo && (
         <div className="mt-1.5">
           <div className="text-xs text-gray-500 break-all font-mono flex items-center">
-            <span>{addressInfo.ethAddress}</span>
+            <span>{getDisplayAddress()}</span>
             <div 
-              onClick={() => copyToClipboard(addressInfo.ethAddress)}
+              onClick={() => copyToClipboard(getDisplayAddress())}
               className="ml-1 p-1 cursor-pointer"
               aria-label="Copy address"
             >

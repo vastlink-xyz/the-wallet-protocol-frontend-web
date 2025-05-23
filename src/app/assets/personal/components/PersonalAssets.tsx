@@ -3,10 +3,11 @@
 import { useState, useEffect } from 'react'
 import { AuthMethod, IRelayPKP } from '@lit-protocol/types'
 import { Loader2 } from 'lucide-react'
-import { formatEthAmount, fetchEthBalance } from '@/lib/utils'
+import { formatEthAmount, fetchEthBalance, log } from '@/lib/utils'
 import { getProviderByAuthMethodType } from '@/lib/lit/providers'
 import { SendToken } from './SendToken'
 import { PersonalWalletSettings } from './WalletSettings'
+import { getBtcAddressByPublicKey, fetchBtcBalance } from '@/lib/web3/btc'
 
 interface PersonalAssetsProps {
   authMethod: AuthMethod
@@ -20,6 +21,9 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [email, setEmail] = useState<string | null>(null)
   const [authMethodId, setAuthMethodId] = useState<string | null>(null)
+  const [btcAddress, setBtcAddress] = useState<string | null>(null)
+  const [btcBalance, setBtcBalance] = useState<number | null>(null)
+  const [isBtcLoading, setIsBtcLoading] = useState(false)
 
   // Fetch user data
   useEffect(() => {
@@ -49,6 +53,12 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
         }
         if (userData.sessionPkp) {
           setSessionPkp(userData.sessionPkp)
+          // Generate BTC address
+          const publicKey = userData.litActionPkp.publicKey
+          const address = getBtcAddressByPublicKey(publicKey)
+          if (address) {
+            setBtcAddress(address)
+          }
         }
       } catch (error) {
         console.error("Error fetching data from database:", error)
@@ -60,7 +70,26 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
     fetchUserData()
   }, [authMethod])
 
-  // Fetch balance separately
+  // Fetch BTC balance when address is available
+  useEffect(() => {
+    const loadBtcBalance = async () => {
+      if (!btcAddress) return
+      
+      try {
+        setIsBtcLoading(true)
+        const balance = await fetchBtcBalance(btcAddress)
+        setBtcBalance(balance || 0)
+      } catch (error) {
+        console.error("Error loading BTC balance:", error)
+      } finally {
+        setIsBtcLoading(false)
+      }
+    }
+    
+    loadBtcBalance()
+  }, [btcAddress])
+
+  // Fetch ETH balance separately
   useEffect(() => {
     const fetchBalanceData = async () => {
       if (!litActionPkp) return
@@ -110,9 +139,8 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
                 {email}
               </div>
             </div>
-            {/* kkktodo: add btc */}
             <div>
-              <span className="font-medium">Address:</span> 
+              <span className="font-medium">ETH Address:</span> 
               <div className="text-sm bg-muted p-2 rounded break-all mt-1">
                 {litActionPkp.ethAddress}
               </div>
@@ -125,6 +153,20 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
                   balance ? `${formatEthAmount(balance)} ETH` : "0 ETH"}
               </div>
             </div>
+            <div>
+              <span className="font-medium">BTC Address (Testnet):</span> 
+              <div className="text-sm bg-muted p-2 rounded break-all mt-1">
+                {btcAddress || (sessionPkp ? "Generating address..." : "Not available")}
+              </div>
+            </div>
+            <div>
+              <span className="font-medium">Bitcoin Balance:</span>
+              <div className="text-sm bg-muted p-2 rounded break-all mt-1">
+                {isBtcLoading ? 
+                  <Loader2 className="h-4 w-4 animate-spin inline mr-2" /> : 
+                  btcBalance ? `${btcBalance.toFixed(8)} BTC` : "0 BTC"}
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -135,8 +177,8 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
             litActionPkp={litActionPkp}
             sessionPkp={sessionPkp}
             authMethod={authMethod}
+            btcAddress={btcAddress || ''}
             authMethodId={authMethodId}
-            tokenType="ETH"
           />
         )
       }

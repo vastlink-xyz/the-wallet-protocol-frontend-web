@@ -59,7 +59,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Create new user
-    const newUser = await createUser(authMethodId, email);
+    const newUser = await createUser({
+      authMethodId,
+      email,
+    });
     return NextResponse.json(newUser, { status: 201 });
   } catch (error) {
     console.error('Error in POST /api/user:', error);

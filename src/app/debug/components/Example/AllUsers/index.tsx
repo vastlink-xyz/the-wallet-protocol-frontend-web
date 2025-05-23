@@ -135,7 +135,7 @@ export function AllUsers({
 
     try {
       setLoading(true);
-      const removeIpfsIdHex = '0x1220b4ef80b0577b6557305334d28e8f7fac07e83e49f06c79e4d464631fe2d9702b'
+      const removeIpfsIdHex = '0x1220908c1bc4ebdc9323e1c443d41374187f64e21ffd924ad28d3c1ab9ae59f18720'
       
       const response = await litNodeClient.executeJs({
         code: upgradeLitActionCode,

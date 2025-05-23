@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -17,18 +17,23 @@ import { TransactionMFA } from './TransactionMFA'
 import { personalTransactionLitActionCode } from '@/lib/lit-action-code/personal-transaction.lit'
 import { getPersonalTransactionIpfsId } from '@/lib/lit/ipfs-id-env'
 import { TokenType, SUPPORTED_TOKENS_INFO } from '@/lib/web3/token'
-
-// Create a provider for Sepolia
-const provider = new ethers.providers.JsonRpcProvider(
-  LIT_CHAINS['sepolia'].rpcUrls[0]
-)
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { broadcastTransactionByTokenType, getToSignTransactionByTokenType } from '@/lib/web3/transaction'
 
 interface SendTokenProps {
   litActionPkp: IRelayPKP;
   sessionPkp: IRelayPKP;
   authMethod: AuthMethod;
   authMethodId: string;
-  tokenType?: TokenType; // Default to ETH if not specified
+  btcAddress: string;
 }
 
 export function SendToken({ 
@@ -36,7 +41,7 @@ export function SendToken({
   sessionPkp, 
   authMethod, 
   authMethodId,
-  tokenType = 'ETH' // Default to ETH
+  btcAddress,
 }: SendTokenProps) {
   const [to, setTo] = useState('')
   const [recipientAddress, setRecipientAddress] = useState('')
@@ -44,32 +49,51 @@ export function SendToken({
   const [isSending, setIsSending] = useState(false)
   const [showMfa, setShowMfa] = useState(false)
   const { handleExpiredAuth } = useAuthExpiration()
+  const [tokenType, setTokenType] = useState<TokenType>('ETH')
+  const [tokenInfo, setTokenInfo] = useState(SUPPORTED_TOKENS_INFO[tokenType])
 
-  const tokenInfo = SUPPORTED_TOKENS_INFO[tokenType]
+  // Update tokenInfo when tokenType changes
+  useEffect(() => {
+    setTokenInfo(SUPPORTED_TOKENS_INFO[tokenType])
+  }, [tokenType])
+
+  const isValidAmount = useMemo(() => {
+    return !isNaN(Number(amount)) && Number(amount) > 0
+  }, [amount])
 
   // Validation
-  const isValidAddress = recipientAddress && recipientAddress.startsWith('0x') && recipientAddress.length === 42
-  const isValidAmount = !isNaN(Number(amount)) && Number(amount) > 0
-  const canSend = isValidAddress && isValidAmount && !isSending && !showMfa
+  const canSend = useMemo(() => {
+    const isValidEthAddress = recipientAddress && recipientAddress.startsWith('0x') && recipientAddress.length === 42
+    const isValidBtcAddress = recipientAddress
+
+    return (isValidEthAddress || isValidBtcAddress) && isValidAmount && !isSending && !showMfa
+  }, [recipientAddress, isValidAmount, isSending, showMfa])
+
+  const sendAddress = useMemo(() => {
+    if (tokenType === 'ETH') {
+      return litActionPkp.ethAddress
+    } else if (tokenType === 'BTC') {
+      return btcAddress
+    }
+
+    return ''
+  }, [tokenType, litActionPkp.ethAddress, btcAddress])
 
   const handleExecuteTransaction = async (otpCode: string, mfaMethodId?: string) => {
     try {
       setIsSending(true)
 
-      // Get nonce
-      const nonce = await provider.getTransactionCount(litActionPkp.ethAddress)
-      
-      // Get gas price
-      const gasPrice = await provider.getGasPrice()
+      const txData = await getToSignTransactionByTokenType({
+        tokenType,
+        options: {
+          sendAddress,
+          recipientAddress,
+          amount,
+        },
+      })
 
-      // Create the transaction object
-      const txData = {
-        to: recipientAddress,
-        value: ethers.utils.parseEther(amount).toHexString(),
-        gasPrice: gasPrice.toHexString(),
-        gasLimit: 21000, // Standard gas limit for ETH transfer
-        nonce,
-        chainId: LIT_CHAINS['sepolia'].chainId,
+      if (!txData) {
+        throw new Error('Failed to get transaction data')
       }
 
       if (!litNodeClient.ready) {
@@ -89,7 +113,8 @@ export function SendToken({
         ipfsId,
         sessionSigs,
         jsParams: {
-          unsignedTransaction: txData,
+          toSignTransaction: txData.toSign,
+          transactionAmount: amount,
           publicKey: litActionPkp.publicKey,
           env: process.env.NEXT_PUBLIC_ENV,
           chain: 'sepolia',
@@ -114,6 +139,22 @@ export function SendToken({
       log('result parse', result)
       
       if (result.status === 'success') {
+        let sig: any
+        if (tokenType === 'ETH') {
+          sig = JSON.parse(result.sig)
+        } else {
+          sig = response.signatures.btcSignatures
+        }
+        const txReceipt = await broadcastTransactionByTokenType({
+          tokenType,
+          options: {
+            ...txData,
+            sig,
+            publicKey: litActionPkp.publicKey,
+          },
+        })
+
+        log('txReceipt', txReceipt)
         // Show success message with transaction hash
         toast.success(`Successfully sent ${amount} ${tokenInfo.symbol} to ${to}`)
         
@@ -136,7 +177,7 @@ export function SendToken({
       
       // Check if token expired error
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      if (errorMessage.includes('token expired') || errorMessage.includes('JWT expired')) {
+      if (errorMessage.includes('token expired') || errorMessage.includes('JWT expired') || errorMessage.includes('Failed to verify token')) {
         handleExpiredAuth()
       } else {
         toast.error(`Failed to send ${tokenInfo.symbol}: ${errorMessage}`)
@@ -175,24 +216,44 @@ export function SendToken({
 
   return (
     <div className="bg-card p-6 rounded-lg border mt-6">
-      <h3 className="text-lg font-medium mb-4">Send {tokenInfo.symbol}</h3>
+      <h3 className="text-lg font-medium mb-4">Send</h3>
       
       <div className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="token-type">Select Token</Label>
+          <Select 
+            value={tokenType} 
+            onValueChange={(value) => setTokenType(value as TokenType)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select a token" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value="ETH">Ethereum (ETH)</SelectItem>
+                <SelectItem value="BTC">Bitcoin (BTC)</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
+
         <SignerEmailField
           label="Recipient"
           input={{
             value: to,
             onChange: (value) => setTo(value),
-            placeholder: "Email address or 0x...",
+            placeholder: `Email address or ${tokenInfo.symbol} address`,
             id: "recipient"
           }}
           onAddressFound={(addressData) => {
             if (addressData) {
-              setRecipientAddress(addressData.ethAddress);
+              const tokenKey = tokenType.toLowerCase();
+              setRecipientAddress(addressData.addresses?.[tokenKey] || '');
             } else {
               setRecipientAddress('');
             }
           }}
+          tokenType={tokenType}
         />
 
         <div className="space-y-2">
@@ -204,7 +265,6 @@ export function SendToken({
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             min="0"
-            step="0.000001"
             className={amount && !isValidAmount ? 'border-red-500' : ''}
           />
           {amount && !isValidAmount && (

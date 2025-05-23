@@ -23,12 +23,8 @@ export default function PersonalAssetsPage() {
     setLoading(false)
   }, [router])
 
-  if (loading) {
+  if (loading || !authMethod) {
     return <div className="flex items-center justify-center">Loading...</div>
-  }
-
-  if (!authMethod) {
-    return null // No need to render anything, will be redirected
   }
 
   return <PersonalAssets authMethod={authMethod} />

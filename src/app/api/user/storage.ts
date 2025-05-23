@@ -1,6 +1,13 @@
 import { IRelayPKP } from '@lit-protocol/types'
 import { connectToDatabase, UserModel } from './models'
 import crypto from 'crypto'
+import { getBtcAddressByPublicKey } from '@/lib/web3/btc'
+
+export interface UserAddresses {
+  eth: string
+  btc: string
+  [key: string]: string
+}
 
 export interface User {
   id: string
@@ -21,6 +28,7 @@ export interface User {
   walletSettings?: {
     dailyWithdrawLimits: Record<string, string>
   }
+  addresses: UserAddresses
 }
 
 // Helper to safely extract fields from Mongoose documents
@@ -32,7 +40,8 @@ function extractUserData(doc: any): User | null {
     email: doc.email,
     sessionPkp: doc.sessionPkp || undefined,
     litActionPkp: doc.litActionPkp || undefined,
-    walletSettings: doc.walletSettings || undefined
+    walletSettings: doc.walletSettings || undefined,
+    addresses: doc.addresses || undefined
   };
 }
 
@@ -113,7 +122,15 @@ export async function getAllUsers(): Promise<User[]> {
   }
 }
 
-export async function createUser(authMethodId: string, email: string): Promise<User> {
+export async function createUser({
+  authMethodId,
+  email,
+  addresses
+}: {
+  authMethodId: string,
+  email: string,
+  addresses?: UserAddresses
+}): Promise<User> {
   try {
     await connectToDatabase();
     
@@ -123,7 +140,8 @@ export async function createUser(authMethodId: string, email: string): Promise<U
     const userData = {
       id,
       authMethodId,
-      email
+      email,
+      addresses,
     };
     
     const newUser = await UserModel.create(userData);
@@ -156,7 +174,11 @@ export async function addPkpToUser(
       if (!email) {
         throw new Error('Email is required to create a new user');
       }
-      const newUser = await createUser(authMethodId, email);
+
+      const ethAddress = pkp.ethAddress || ''
+      const btcAddress = getBtcAddressByPublicKey(pkp.publicKey) || ''
+
+      const newUser = await createUser({ authMethodId, email, addresses: { eth: ethAddress, btc: btcAddress } });
       
       // Prepare update based on PKP type
       const updateField = pkpType === PKPType.Session ? 'sessionPkp' : 'litActionPkp';
@@ -190,7 +212,14 @@ export async function addPkpToUser(
         type: pkpType
       },
       updatedAt: new Date()
-    };
+    } as any;
+
+    if (pkpType === PKPType.LitAction) {
+      update.addresses = {
+        eth: pkp.ethAddress,
+        btc: getBtcAddressByPublicKey(pkp.publicKey) || ''
+      }
+    }
     
     const updatedUser = await UserModel.findOneAndUpdate(
       { authMethodId },

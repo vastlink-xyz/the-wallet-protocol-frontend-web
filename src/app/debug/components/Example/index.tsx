@@ -7,9 +7,10 @@ import { getProviderByAuthMethodType, getSessionSigs } from "@/lib/lit";
 import { log } from "@/lib/utils";
 import { AllUsers } from "./AllUsers";
 import { AllMultisigWallets } from "./AllMultisigWallets";
+import { BtcDemo } from "./BtcDemo";
 
 // Define tab options
-type DebugTab = 'edit-authmethod' | 'execute-lit-action' | 'upgrade' | 'all-users' | 'all-wallets';
+type DebugTab = 'edit-authmethod' | 'execute-lit-action' | 'upgrade' | 'all-users' | 'all-wallets' | 'btc-demo';
 
 export function Example({
   authMethod,
@@ -21,7 +22,7 @@ export function Example({
   const [loading, setLoading] = useState(false);
   const [sessionSigs, setSessionSigs] = useState<SessionSigs | null>(null);
   // Add state for active tab
-  const [activeTab, setActiveTab] = useState<DebugTab>('edit-authmethod');
+  const [activeTab, setActiveTab] = useState<DebugTab>('btc-demo');
 
   // Fetch user PKPs from API
   const fetchUserPkps = useCallback(async () => {
@@ -104,6 +105,11 @@ export function Example({
           isActive={activeTab === 'all-wallets'} 
           onClick={() => setActiveTab('all-wallets')} 
         />
+        <TabButton 
+          label="BTC Demo" 
+          isActive={activeTab === 'btc-demo'} 
+          onClick={() => setActiveTab('btc-demo')} 
+        />
       </div>
     );
   };
@@ -150,6 +156,15 @@ export function Example({
           <AllMultisigWallets 
             currentUserSessionPkp={sessionPkp}
             currentUserAuthMethod={authMethod}
+            sessionSigs={sessionSigs}
+          />
+        );
+      case 'btc-demo':
+        return (
+          <BtcDemo 
+            authMethod={authMethod}
+            sessionPkp={sessionPkp}
+            litactionPkp={actionPkp}
             sessionSigs={sessionSigs}
           />
         );

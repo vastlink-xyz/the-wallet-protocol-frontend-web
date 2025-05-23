@@ -51,15 +51,3 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-
-// Helper function to get user from authMethodId
-async function getUserFromAuthMethodId(authMethodId: string) {
-  try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/user?authMethodId=${authMethodId}`);
-    if (!response.ok) return null;
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching user by authMethodId:', error);
-    return null;
-  }
-} 

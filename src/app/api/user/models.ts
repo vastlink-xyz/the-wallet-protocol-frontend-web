@@ -74,7 +74,11 @@ const UserSchema = new mongoose.Schema({
     }
   },
   createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
+  updatedAt: { type: Date, default: Date.now },
+  addresses: {
+    eth: { type: String },
+    btc: { type: String },
+  },
 });
 
 // Export models

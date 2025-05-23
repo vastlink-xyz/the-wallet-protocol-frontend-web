@@ -1,15 +1,18 @@
 declare const ethers: any
 
 declare const publicKey: string
-declare const unsignedTransaction: any
+declare const toSignTransaction: any
 declare const authParams: any
 declare const env: string
 declare const chain: string
 declare const otp: string
 declare const mfaMethodId: string
 declare const tokenType: string
+declare const transactionAmount: string // unit is ETH or BTC
 
 const go = async () => {
+  const publicKeyForLit = publicKey.replace(/^0x/, '');
+
   // verify auth token
   const res = await Lit.Actions.call({
     ipfsId: 'QmNcUQ4jqnnjNue8T5RNekSQ2numbqshSiyXCnZi73QZ1u',
@@ -40,9 +43,6 @@ const go = async () => {
     default:
       throw new Error(`Invalid Base URL`);
   }
-
-  const valueInWei = ethers.BigNumber.from(unsignedTransaction.value);
-  const valueInEth = ethers.utils.formatEther(valueInWei);
 
   if (otp) {
     // Verify OTP
@@ -100,7 +100,7 @@ const go = async () => {
           },
           body: JSON.stringify({
             authMethodId: authParams.authMethodId,
-            transactionAmount: valueInEth,
+            transactionAmount,
             tokenType,
             contextType: 'personalWalletTransaction',
           })
@@ -125,60 +125,37 @@ const go = async () => {
   }
 
   try {
-    const publicKeyForLit = publicKey.replace(/^0x/, '');
-
-    const toSign = ethers.utils.arrayify(
-      ethers.utils.keccak256(ethers.utils.serializeTransaction(unsignedTransaction))
-    )
+    if (tokenType === 'ETH') {
+      const sig = await Lit.Actions.signAndCombineEcdsa({
+        toSign: toSignTransaction,
+        publicKey: publicKeyForLit,
+        sigName: 'transfer-tx',
+      }) as any;
+    
+      console.log("sig is", sig);
   
-    const sig = await Lit.Actions.signAndCombineEcdsa({
-      toSign,
-      publicKey: publicKeyForLit,
-      sigName: 'transfer-tx',
-    }) as any;
+      Lit.Actions.setResponse({
+        response: JSON.stringify({
+          status: 'success',
+          isValid: true,
+          sig,
+        }),
+      });
+    } else {
+      const sig = await Lit.Actions.signEcdsa({
+        toSign: toSignTransaction,
+        publicKey,
+        sigName: 'btcSignatures',
+      }) as any;
   
-    console.log("sig is", sig);
-  
-    const signedAndSerializedTx = ethers.utils.serializeTransaction(
-      unsignedTransaction,
-      ethers.utils.joinSignature({
-          r: '0x' + JSON.parse(sig).r.substring(2),
-          s: '0x' + JSON.parse(sig).s,
-          v: JSON.parse(sig).v,
-      })
-    );
-  
-    const rpcProvider = new ethers.providers.JsonRpcProvider(
-      await Lit.Actions.getRpcUrl({
-        chain,
-      })
-    );
-
-    const sendTxResponse = await Lit.Actions.runOnce(
-      { waitForResponse: true, name: 'sendTxSender' },
-      async () => {
-        try {
-          const txReceipt = await rpcProvider.sendTransaction(signedAndSerializedTx);
-          return JSON.stringify({
-            status: 'success',
-            txReceipt
-          });
-        } catch (error: unknown) {
-          return JSON.stringify({
-            status: 'error',
-            details: [(error as Error).message || JSON.stringify(error)]
-          });
-        }
-      }
-    );
-
-    Lit.Actions.setResponse({
-      response: JSON.stringify({
-        status: 'success',
-        isValid: true,
-        sendTxResponse,
-      }),
-    });
+      Lit.Actions.setResponse({
+        response: JSON.stringify({
+          status: 'success',
+          isValid: true,
+          sig,
+        }),
+      });
+    }
   } catch(error) {
     Lit.Actions.setResponse({
       response: JSON.stringify({
