@@ -127,7 +127,7 @@ export const broadcastTransactionByTokenType = async ({
     const { sig, publicKey, tx } = options
     let r = Buffer.from(sig.r, "hex");
     let s = Buffer.from(sig.s, "hex");
-    let rBN = new BN(r);
+    const rBN = new BN(r);
     let sBN = new BN(s);
     
     const secp256k1 = new EC("secp256k1");

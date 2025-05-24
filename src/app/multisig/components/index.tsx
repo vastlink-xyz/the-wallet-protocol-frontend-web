@@ -441,7 +441,7 @@ export function Multisig({
       
       // Check if this is a wallet settings change proposal
       const isWalletSettingsProposal = proposal.type === 'walletSettings';
-      let settingsData = proposal.settingsData;
+      const settingsData = proposal.settingsData;
       
       if (isWalletSettingsProposal && settingsData) {
         // Handle wallet settings change
