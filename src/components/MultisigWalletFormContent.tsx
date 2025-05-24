@@ -750,7 +750,7 @@ export function MultisigWalletFormContent({
               }}
               onAddressFound={(addressData) => {
                 if (addressData) {
-                  setNewSignerAddress(addressData.ethAddress);
+                  setNewSignerAddress(addressData.addresses?.eth || '');
                   setNewSignerPublicKey(addressData.publicKey || '');
                   setSignerAuthMethodId(addressData.authMethodId || '');
                 } else {
