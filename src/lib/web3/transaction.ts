@@ -68,10 +68,26 @@ export const getToSignTransactionByTokenType = async ({
       tx.addInput(Buffer.from(utxo.txid, "hex").reverse(), utxo.vout);
       const network = bitcoinjs.networks.testnet;
       
+      const utxoValue = utxo.value;
+      const amountSats = Math.floor(Number(amount) * 100000000);
+      const minimumFee = 1000; // Assuming a minimum fee of 0.0001 BTC
+      
+      // Calculate change amount
+      const changeAmount = utxoValue - amountSats - minimumFee;
+      
+      // Add output for the amount to be sent
       tx.addOutput(
         bitcoinjs.address.toOutputScript(recipientAddress!, network),
-        Math.floor(Number(amount) * 100000000),
+        amountSats
       );
+      
+      // If there's change, add it back to the sender
+      if (changeAmount > 546) { // 546 sats is the "dust limit" in Bitcoin
+        tx.addOutput(
+          bitcoinjs.address.toOutputScript(sendAddress, network),
+          changeAmount
+        );
+      }
       
       const scriptPubKeyBuffer = Buffer.from(scriptPubKey, "hex");
       const sighash = tx.hashForSignature(

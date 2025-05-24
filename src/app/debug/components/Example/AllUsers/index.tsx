@@ -12,6 +12,7 @@ import { User } from '@/app/api/user/storage';
 import { getPersonalSignIpfsId, getPersonalTransactionIpfsId } from '@/lib/lit/ipfs-id-env';
 import { upgradeLitActionCode } from '@/lib/lit-action-code/upgrade.lit';
 import { LIT_NETWORK } from '@lit-protocol/constants';
+import { getBtcAddressByPublicKey } from '@/lib/web3/btc';
 
 interface UserProps {
   currentUserSessionPkp: IRelayPKP | null;
@@ -162,7 +163,11 @@ export function AllUsers({
     }
   };
 
-
+  const handleLogBtcAddress = async (user: User) => {
+    const btcAddress = getBtcAddressByPublicKey(user.litActionPkp!.publicKey)
+    log('ethAddress', user.litActionPkp!.ethAddress)
+    log('btcAddress', btcAddress)
+  }
 
   return (
     <div className="p-4">
@@ -185,6 +190,14 @@ export function AllUsers({
                 <div className="flex items-center justify-between">
                   <span className="font-medium">{user.email}</span>
                   <div className="flex space-x-2">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      disabled={loading}
+                      onClick={() => handleLogBtcAddress(user)}
+                    >
+                      btc address
+                    </Button>
                     <Button 
                       size="sm" 
                       variant="outline"

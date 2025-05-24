@@ -53,12 +53,7 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
         }
         if (userData.sessionPkp) {
           setSessionPkp(userData.sessionPkp)
-          // Generate BTC address
-          const publicKey = userData.litActionPkp.publicKey
-          const address = getBtcAddressByPublicKey(publicKey)
-          if (address) {
-            setBtcAddress(address)
-          }
+          setBtcAddress(userData.addresses?.btc)
         }
       } catch (error) {
         console.error("Error fetching data from database:", error)
@@ -183,8 +178,8 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
         )
       }
 
-      {/* kkktodo: add btc */}
-      <PersonalWalletSettings tokenType="ETH" />
+      {/* Wallet Settings */}
+      <PersonalWalletSettings />
     </div>
   )
 } 

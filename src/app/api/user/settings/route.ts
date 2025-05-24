@@ -4,7 +4,7 @@ import { AuthenticatedSession, authenticateStytchSession, getJwtTokenFromRequest
 import { log } from '@/lib/utils';
 import { policyEnforcer } from '@/services/policies/PolicyEnforcer';
 import { stytchClient } from '@/app/api/stytch/client';
-import { SUPPORTED_TOKENS_INFO, TokenType } from '@/lib/web3/token';
+import { SUPPORTED_TOKENS_INFO, TokenType, SUPPORTED_TOKEN_SYMBOLS } from '@/lib/web3/token';
 import { StytchError } from 'stytch';
 
 // PATCH /api/user/settings - Update user wallet settings
@@ -17,16 +17,7 @@ export async function PATCH(request: NextRequest) {
     const sessionJwt = getJwtTokenFromRequest(request);
 
     const body = await request.json();
-    const { authMethodId, walletSettings, otp, phoneId, tokenType } = body;
-
-    if (!tokenType || !(tokenType in SUPPORTED_TOKENS_INFO)) {
-      return NextResponse.json(
-        { error: 'Invalid or missing tokenType in request body' },
-        { status: 400 }
-      );
-    }
-
-    const tokenInfo = SUPPORTED_TOKENS_INFO[tokenType as TokenType]
+    const { authMethodId, walletSettings, otp, phoneId } = body;
 
     if (!authMethodId) {
       return NextResponse.json(
@@ -42,21 +33,26 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    // Validate ETH limit exists
-    if (walletSettings.dailyWithdrawLimits[tokenInfo.symbol] === undefined) {
-      return NextResponse.json(
-        { error: `${tokenInfo.symbol} limit is required in dailyWithdrawLimits` },
-        { status: 400 }
-      );
-    }
+    // Validate limits for all supported tokens
+    for (const symbol of SUPPORTED_TOKEN_SYMBOLS) {
+      const tokenInfo = SUPPORTED_TOKENS_INFO[symbol];
+      
+      // Check if the token limit exists
+      if (walletSettings.dailyWithdrawLimits[tokenInfo.symbol] === undefined) {
+        return NextResponse.json(
+          { error: `${tokenInfo.symbol} limit is required in dailyWithdrawLimits` },
+          { status: 400 }
+        );
+      }
 
-    // Validate token limit is a valid string that can be parsed to a number
-    if (typeof walletSettings.dailyWithdrawLimits[tokenInfo.symbol] !== 'string' || 
-        isNaN(parseFloat(walletSettings.dailyWithdrawLimits[tokenInfo.symbol]))) {
-      return NextResponse.json(
-        { error: `${tokenInfo.symbol} limit must be a valid numeric string` },
-        { status: 400 }
-      );
+      // Validate token limit is a valid string that can be parsed to a number
+      if (typeof walletSettings.dailyWithdrawLimits[tokenInfo.symbol] !== 'string' || 
+          isNaN(parseFloat(walletSettings.dailyWithdrawLimits[tokenInfo.symbol]))) {
+        return NextResponse.json(
+          { error: `${tokenInfo.symbol} limit must be a valid numeric string` },
+          { status: 400 }
+        );
+      }
     }
 
     // Check if we have an OTP and need to authenticate it

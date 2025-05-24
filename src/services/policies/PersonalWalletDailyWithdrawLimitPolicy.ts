@@ -5,6 +5,7 @@ import Moralis from 'moralis';
 import { EvmChain } from "moralis/common-evm-utils";
 import { initializeMoralis } from '@/lib/moralis';
 import { SUPPORTED_TOKENS_INFO, TokenType } from '@/lib/web3/token';
+import { fetchBtc24HourOutflow } from '@/lib/web3/btc';
 
 // Context specific to transaction operations
 export interface TransactionOperationContext extends BaseOperationContext {
@@ -14,6 +15,12 @@ export interface TransactionOperationContext extends BaseOperationContext {
 }
 
 async function getUserWithdrawalAmountToday(userData: any, tokenType: TokenType): Promise<number> {
+  if (tokenType === 'BTC') {
+    const address = userData.addresses.btc;
+    const outflow = await fetchBtc24HourOutflow(address);
+    return outflow;
+  }
+
   const address = userData.litActionPkp.ethAddress;
 
   try {

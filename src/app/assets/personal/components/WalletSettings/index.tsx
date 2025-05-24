@@ -17,21 +17,22 @@ import { toast } from 'react-toastify';
 import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
 import { MfaOtpDialog } from '@/components/MfaOtpDialog';
 import { log } from '@/lib/utils';
-import { SUPPORTED_TOKENS_INFO, TokenType } from '@/lib/web3/token';
+import { SUPPORTED_TOKENS_INFO, TokenType, SUPPORTED_TOKEN_SYMBOLS } from '@/lib/web3/token';
 
-export function PersonalWalletSettings({
-  tokenType
-}: {
-  tokenType: TokenType
-}) {
-  const tokenInfo = SUPPORTED_TOKENS_INFO[tokenType]
-
+export function PersonalWalletSettings() {
   const [isOpen, setIsOpen] = useState(false);
-  const [ethLimit, setEthLimit] = useState<string>('0.001');
+  const [tokenLimits, setTokenLimits] = useState<Record<TokenType, string>>(() => {
+    // Initialize with default values for all tokens
+    const defaults: Partial<Record<TokenType, string>> = {};
+    SUPPORTED_TOKEN_SYMBOLS.forEach(symbol => {
+      defaults[symbol] = '0.001';
+    });
+    return defaults as Record<TokenType, string>;
+  });
+  const [limitErrors, setLimitErrors] = useState<Record<TokenType, string>>({} as Record<TokenType, string>);
   const [isLimitValid, setIsLimitValid] = useState<boolean>(true);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [authMethodId, setAuthMethodId] = useState<string | null>(null);
-  const [limitError, setLimitError] = useState<string>('');
 
   // State for real MFA Dialog
   const [showMfaDialog, setShowMfaDialog] = useState(false);
@@ -86,9 +87,16 @@ export function PersonalWalletSettings({
       }
       
       const userData = await response.json();
-      if (userData.walletSettings?.dailyWithdrawLimits?.[tokenInfo.symbol]) {
-        setEthLimit(userData.walletSettings.dailyWithdrawLimits[tokenInfo.symbol].toString());
-      }
+      const newLimits = { ...tokenLimits };
+      
+      // Update limits for each token if they exist in the user settings
+      SUPPORTED_TOKEN_SYMBOLS.forEach(symbol => {
+        if (userData.walletSettings?.dailyWithdrawLimits?.[SUPPORTED_TOKENS_INFO[symbol].symbol]) {
+          newLimits[symbol] = userData.walletSettings.dailyWithdrawLimits[SUPPORTED_TOKENS_INFO[symbol].symbol].toString();
+        }
+      });
+      
+      setTokenLimits(newLimits);
     } catch (error) {
       console.error('Error fetching current settings:', error);
     }
@@ -122,38 +130,57 @@ export function PersonalWalletSettings({
     }
   };
   
-  const handleLimitChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
+  const handleLimitChange = (tokenType: TokenType, value: string) => {
+    const newValue = value;
+    const newLimits = { ...tokenLimits };
+    const newErrors = { ...limitErrors };
     
     // Allow empty value so user can clear the input
     if (newValue === '') {
-      setLimitError('');
-      setEthLimit(newValue);
-      setIsLimitValid(false);
+      newErrors[tokenType] = '';
+      newLimits[tokenType] = newValue;
+      setTokenLimits(newLimits);
+      setLimitErrors(newErrors);
+      validateAllLimits(newLimits, newErrors);
       return;
     }
     
     // Validate if input is a valid number
     const numberRegex = /^(0|[1-9]\d*)(\.\d+)?$/;
     if (!numberRegex.test(newValue)) {
-      setLimitError('Please enter a valid number');
-      setEthLimit(newValue);
-      setIsLimitValid(false);
+      newErrors[tokenType] = 'Please enter a valid number';
+      newLimits[tokenType] = newValue;
+      setTokenLimits(newLimits);
+      setLimitErrors(newErrors);
+      validateAllLimits(newLimits, newErrors);
       return;
     }
     
     // Parse to number to ensure validity
     const numValue = parseFloat(newValue);
     if (isNaN(numValue) || numValue < 0) {
-      setLimitError('Please enter a number greater than or equal to 0');
-      setEthLimit(newValue);
-      setIsLimitValid(false);
+      newErrors[tokenType] = 'Please enter a number greater than or equal to 0';
+      newLimits[tokenType] = newValue;
+      setTokenLimits(newLimits);
+      setLimitErrors(newErrors);
+      validateAllLimits(newLimits, newErrors);
       return;
     }
     
-    setLimitError('');
-    setEthLimit(newValue);
-    setIsLimitValid(true);
+    newErrors[tokenType] = '';
+    newLimits[tokenType] = newValue;
+    setTokenLimits(newLimits);
+    setLimitErrors(newErrors);
+    validateAllLimits(newLimits, newErrors);
+  };
+  
+  // Validate all limits and set overall validity
+  const validateAllLimits = (limits: Record<TokenType, string>, errors: Record<TokenType, string>) => {
+    // Check if any field has an error or is empty
+    const hasError = Object.values(errors).some(error => error !== '');
+    const hasEmptyField = Object.values(limits).some(limit => limit === '');
+    
+    setIsLimitValid(!hasError && !hasEmptyField);
   };
   
   const saveSettings = async () => {
@@ -163,10 +190,15 @@ export function PersonalWalletSettings({
     
     try {
       // Prepare wallet settings to update
+      const dailyWithdrawLimits: Record<string, string> = {};
+      
+      // Add limits for each token
+      SUPPORTED_TOKEN_SYMBOLS.forEach(symbol => {
+        dailyWithdrawLimits[SUPPORTED_TOKENS_INFO[symbol].symbol] = tokenLimits[symbol];
+      });
+      
       const settings = {
-        dailyWithdrawLimits: {
-          [tokenInfo.symbol]: ethLimit
-        }
+        dailyWithdrawLimits
       };
       
       // Store settings for later use if MFA is required
@@ -182,7 +214,6 @@ export function PersonalWalletSettings({
         body: JSON.stringify({
           authMethodId,
           walletSettings: settings,
-          tokenType
         })
       });
       
@@ -256,7 +287,6 @@ export function PersonalWalletSettings({
         walletSettings: pendingSettings,
         otp,
         phoneId,
-        tokenType,
       }),
     });
     
@@ -289,22 +319,31 @@ export function PersonalWalletSettings({
         <DialogHeader>
           <DialogTitle>Wallet Settings</DialogTitle>
           <DialogDescription>
+            Configure daily withdrawal limits for each supported currency
           </DialogDescription>
         </DialogHeader>
 
           <div>
-            <h2 className='font-medium mb-2'>Daily Withdraw Limit</h2>
-            <div className="flex flex-col space-y-2">
-              <div className="flex items-center gap-2">
-                <Input 
-                  value={ethLimit} 
-                  onChange={handleLimitChange} 
-                  placeholder="0.001"
-                  className="w-32"
-                />
-                <span className="font-medium">{ tokenInfo.symbol }</span>
-              </div>
-              {limitError && <p className="text-sm text-red-500">{limitError}</p>}
+            <h2 className='font-medium mb-2'>Daily Withdraw Limits</h2>
+            <div className="flex flex-col space-y-4">
+              {SUPPORTED_TOKEN_SYMBOLS.map(symbol => {
+                const tokenInfo = SUPPORTED_TOKENS_INFO[symbol];
+                return (
+                  <div key={symbol} className="flex flex-col space-y-2">
+                    <label className="text-sm font-medium">{tokenInfo.name} ({tokenInfo.symbol})</label>
+                    <div className="flex items-center gap-2">
+                      <Input 
+                        value={tokenLimits[symbol]} 
+                        onChange={(e) => handleLimitChange(symbol, e.target.value)} 
+                        placeholder="0.001"
+                        className="w-32"
+                      />
+                      <span className="font-medium">{tokenInfo.symbol}</span>
+                    </div>
+                    {limitErrors[symbol] && <p className="text-sm text-red-500">{limitErrors[symbol]}</p>}
+                  </div>
+                );
+              })}
             </div>
           </div>
 

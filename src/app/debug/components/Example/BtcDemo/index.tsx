@@ -9,6 +9,7 @@ import * as ecc from "@bitcoin-js/tiny-secp256k1-asmjs";
 import elliptic from "elliptic";
 import * as bip66 from "bip66";
 import BN from "bn.js";
+import { fetchBtc24HourOutflow } from "@/lib/web3/btc";
 // btc dependencies
 
 // Testnet transaction broadcast URL
@@ -98,8 +99,21 @@ export function BtcDemo({ authMethod, sessionPkp, litactionPkp, sessionSigs }: B
       }
       
       const utxo = utxos[0];
-      // const amountToSend = BigInt(utxo.value - 500); // Subtract miner fee
-      const amountToSend = 1000;
+      
+      // Use the actual UTXO value
+      const utxoValue = utxo.value;
+      // Amount to send (in satoshis)
+      const amountToSend = 10000; // 0.0001 BTC = 10000 satoshis
+      // Set a reasonable miner fee
+      const minimumFee = 1000; // 0.00001 BTC = 1000 satoshis
+      
+      // Calculate change amount
+      const changeAmount = utxoValue - amountToSend - minimumFee;
+      
+      // Check if balance is sufficient
+      if (changeAmount < 0) {
+        throw new Error(`Insufficient funds. UTXO value: ${utxoValue / 100000000} BTC, trying to send: ${amountToSend / 100000000} BTC plus fees`);
+      }
       
       const utxoTxResponse = await fetch(`https://mempool.space/testnet/api/tx/${utxo.txid}`);
       const utxoTxDetails = await utxoTxResponse.json();
@@ -112,10 +126,20 @@ export function BtcDemo({ authMethod, sessionPkp, litactionPkp, sessionSigs }: B
       
       tx.addInput(Buffer.from(utxo.txid, "hex").reverse(), utxo.vout);
       const network = bitcoinjs.networks.testnet;
+      
+      // add output for the amount to be sent
       tx.addOutput(
         bitcoinjs.address.toOutputScript(toAddress!, network),
-        Number(amountToSend)
+        amountToSend
       );
+      
+      // if there's change, add it back to the sender
+      if (changeAmount > 546) { // 546 sats is the "dust limit" in Bitcoin
+        tx.addOutput(
+          bitcoinjs.address.toOutputScript(btcAddress, network),
+          changeAmount
+        );
+      }
       
       const scriptPubKeyBuffer = Buffer.from(scriptPubKey, "hex");
       const sighash = tx.hashForSignature(
@@ -236,6 +260,12 @@ export function BtcDemo({ authMethod, sessionPkp, litactionPkp, sessionSigs }: B
     }
   };
 
+  const handleFetch24HourOutflow = async () => {
+    if (!btcAddress) return;
+    const outflow = await fetchBtc24HourOutflow(btcAddress);
+    log('24 Hour Outflow', outflow);
+  }
+
   return (
     <div>
       <h3>BTC Demo</h3>
@@ -254,6 +284,13 @@ export function BtcDemo({ authMethod, sessionPkp, litactionPkp, sessionSigs }: B
       >
         {isSending ? "Sending..." : "Send Transaction"}
       </Button>
+
+      <Button
+        onClick={handleFetch24HourOutflow}
+      >
+        24 Hour Outflow
+      </Button>
+
       {status && <p className="mt-2">{status}</p>}
       {txResult && <p className="mt-2">{txResult}</p>}
     </div>

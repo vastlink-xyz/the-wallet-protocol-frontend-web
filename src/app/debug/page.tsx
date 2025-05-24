@@ -12,6 +12,7 @@ import { AUTH_METHOD_SCOPE, LIT_CHAINS } from "@lit-protocol/constants";
 import { Example } from "./components/Example";
 import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
 import { getPersonalSignIpfsId } from "@/lib/lit/ipfs-id-env";
+import { getBtcAddressByPublicKey } from "@/lib/web3/btc";
 
 // eth sepolia
 const chainInfo = {
@@ -79,22 +80,24 @@ export default function DebugPage() {
   }
 
   const handleTest = async () => {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/mfa/check-policy`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authMethod!.accessToken}`,
-      },
-      body: JSON.stringify({
-        contextType: 'multisigWalletTransaction',
-        walletId: 'd0f6daf6-90f9-4431-b5f9-14106c99670e',
-        transactionAmount: '0.001',
-        tokenType: 'ETH',
-      }),
-    })
+    const btcAddress = getBtcAddressByPublicKey('0x0440640467367f471ce6daabeb9a971a35609ef2f414ddcac20fda0104aca31db8762bb9c9011029626212403e7b7d3789299d288509f982a18d55fb06d30395cc')
+    log('btcAddress', btcAddress)
+    // const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/mfa/check-policy`, {
+    //   method: 'POST',
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     'Authorization': `Bearer ${authMethod!.accessToken}`,
+    //   },
+    //   body: JSON.stringify({
+    //     contextType: 'multisigWalletTransaction',
+    //     walletId: 'd0f6daf6-90f9-4431-b5f9-14106c99670e',
+    //     transactionAmount: '0.001',
+    //     tokenType: 'ETH',
+    //   }),
+    // })
 
-    const data = await res.json()
-    log('check policy', data)
+    // const data = await res.json()
+    // log('check policy', data)
   }
 
   return (
