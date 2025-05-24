@@ -165,7 +165,7 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
           </div>
         </div>
       </div>
-      {/* kkktodo: add btc */}
+
       {
         authMethodId && (
           <SendToken

@@ -21,6 +21,10 @@ import { sendMultisigNotification } from '@/lib/notification'
 import { useAuthExpiration } from '@/hooks/useAuthExpiration'
 import { isTokenValid } from "@/lib/jwt"
 import { MfaOtpDialog } from "@/components/MfaOtpDialog"
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectGroup, SelectItem } from "@/components/ui/select"
+import { TokenType, SUPPORTED_TOKENS_INFO } from "@/lib/web3/token"
+import { broadcastTransactionByTokenType, getToSignTransactionByTokenType } from "@/lib/web3/transaction"
+import { fetchBtcBalance } from "@/lib/web3/btc"
 
 // eth sepolia
 const chainInfo = {
@@ -32,7 +36,6 @@ const ethersProvider = new ethers.providers.JsonRpcProvider(
   chainInfo.rpcUrl
 );
 
-// kkktodo: add tokenType
 export function Multisig({
   currentPkp,
   sessionPkp,
@@ -71,6 +74,18 @@ export function Multisig({
   const [currentProposal, setCurrentProposal] = useState<MessageProposal | null>(null)
   const [verifiedPhone, setVerifiedPhone] = useState<string | null>(null);
   const [mfaMethodId, setMfaMethodId] = useState<string | null>(null);
+
+  const [tokenType, setTokenType] = useState<TokenType>('ETH');
+  const [tokenInfo, setTokenInfo] = useState(SUPPORTED_TOKENS_INFO[tokenType]);
+
+  // BTC balance
+  const [btcWalletBalance, setBtcWalletBalance] = useState<string | null>(null);
+  const [isBtcBalanceLoading, setIsBtcBalanceLoading] = useState(false);
+
+  // Update tokenInfo when tokenType changes
+  useEffect(() => {
+    setTokenInfo(SUPPORTED_TOKENS_INFO[tokenType]);
+  }, [tokenType]);
 
   useEffect(() => {
     fetchWallets()
@@ -160,11 +175,13 @@ export function Multisig({
         
         // Fetch wallet balance using the global utility
         updateWalletBalance(wallet.pkp.ethAddress)
+        updateBtcWalletBalance(wallet.addresses.btc)
       }
     } else {
       setSelectedWallet(null)
       setSelectedMultisigPkp(null)
       setWalletBalance('0')
+      setBtcWalletBalance('0')
     }
   }, [selectedWalletId, wallets])
 
@@ -211,7 +228,8 @@ export function Multisig({
       const txData = {
         to: recipientAddress,
         value: amount,
-        data: data || '0x'
+        data: data || '0x',
+        tokenType: tokenType
       }
       
       const response = await axios.post('/api/multisig/messages', {
@@ -329,7 +347,7 @@ export function Multisig({
   const hasUserSigned = (proposal: MessageProposal) => {
     return proposal.signatures.some(sig => sig.signer === currentPkp.ethAddress)
   }
-  
+
   const getTransactionDetails = (proposal: MessageProposal) => {
     try {
       // If this is a wallet settings modification proposal
@@ -374,7 +392,7 @@ export function Multisig({
         return {
           to: 'Wallet Settings',
           value: '0',
-          data: descriptions.join(', ')
+          data: descriptions.join(', '),
         };
       }
       
@@ -390,6 +408,7 @@ export function Multisig({
         to: 'Unable to parse transaction details',
         value: '0',
         data: proposal.message,
+        tokenType: 'ETH'
       };
     }
   };
@@ -606,21 +625,22 @@ export function Multisig({
     const txDetails = getTransactionDetails(proposal)
     log('Transaction details:', txDetails)
 
-    const gasPrice = (await ethersProvider.getGasPrice()).toHexString()
-    const nonce = await ethersProvider.getTransactionCount(selectedMultisigPkp.ethAddress)
-    log('gas price ', gasPrice, 'nounce', nonce)
+    const tokenType = txDetails.tokenType
+    const sendAddress = tokenType === 'ETH' ? selectedMultisigPkp.ethAddress : selectedWallet.addresses.btc
+    const txData = await getToSignTransactionByTokenType({
+      tokenType,
+      options: {
+        sendAddress,
+        recipientAddress: txDetails.to,
+        amount: txDetails.value,
+      },
+    })
 
-    const unsignedTransaction = {
-      to: txDetails.to,
-      value: ethers.utils.parseEther(txDetails.value).toHexString(),
-      gasLimit: 21000,
-      gasPrice,
-      nonce,
-      chainId: chainInfo.chainId,
-      data: '0x'
-    };
-    
-    log('Unsigned transaction:', unsignedTransaction)
+    log('txData', txData)
+
+    if (!txData) {
+      throw new Error('Failed to get transaction data')
+    }
 
     const jsParams = {
       message: proposal.message,
@@ -632,7 +652,8 @@ export function Multisig({
       // 
       sendTransaction: true,
       chain: 'sepolia',
-      unsignedTransaction,
+      toSignTransaction: txData.toSign,
+      transactionAmount: txDetails.value,
       env: process.env.NEXT_PUBLIC_ENV,
       authParams: {
         accessToken: authMethod.accessToken,
@@ -641,7 +662,7 @@ export function Multisig({
       },
       otp: otpCode,
       mfaMethodId,
-      tokenType: 'ETH',
+      tokenType: proposal.transactionData?.tokenType,
     }
     log('js params', jsParams)
 
@@ -659,46 +680,49 @@ export function Multisig({
     setExecuteResult(response)
     
     // Update the proposal status to completed if verification was successful
-    const responseObj = typeof response.response === 'string' 
+    const result = typeof response.response === 'string' 
       ? JSON.parse(response.response) 
       : response.response;
     
-    log('Parsed response object:', responseObj);
+    log('Parsed response object:', result);
     
-    if (responseObj.isValid) {
-      if (responseObj.requireMFA) {
+    if (result.isValid) {
+      if (result.requireMFA) {
         setCurrentProposal(proposal)
         setShowMfaDialog(true)
         toast.warning('Daily limit exceeded')
         return
-      } else if (responseObj.error) {
-        toast.error(responseObj.error)
+      } else if (result.error) {
+        toast.error(result.error)
         return
       }
-
-      let txHash = null;
       
+      let txHash = null
       // Try to extract transaction hash from different response formats
-      if (responseObj.sendTxResponse) {
+      if (result.status === 'success') {
         try {
-          const sendTxObj = typeof responseObj.sendTxResponse === 'string'
-            ? JSON.parse(responseObj.sendTxResponse)
-            : responseObj.sendTxResponse;
-            
-          if (sendTxObj.status === 'success' && sendTxObj.txReceipt && sendTxObj.txReceipt.hash) {
-            txHash = sendTxObj.txReceipt.hash;
-            log('Transaction hash from receipt:', txHash);
-            
-            // Add txHash to execution result
-            setExecuteResult({
-              proposalId: proposal.id,
-              txHash: txHash
-            });
-            
-            toast.success(`Transaction completed with hash ${txHash.substring(0, 10)}...${txHash.substring(txHash.length - 8)}`);
+          let sig: any
+          if (tokenType === 'ETH') {
+            sig = JSON.parse(result.sig)
           } else {
-            toast.error('Transaction failed')
+            sig = response.signatures.btcSignatures
           }
+          const txReceipt = await broadcastTransactionByTokenType({
+            tokenType,
+            options: {
+              ...txData,
+              sig,
+              publicKey: selectedMultisigPkp.publicKey,
+            },
+          })
+          txHash = txReceipt
+          log('txReceipt', txReceipt)
+          setExecuteResult({
+            proposalId: proposal.id,
+            txHash
+          });
+          
+          toast.success(`Transaction completed`);
         } catch (e) {
           console.error('Error parsing sendTxResponse:', e);
         }
@@ -724,6 +748,20 @@ export function Multisig({
     } catch (error) {
       console.error('Failed to update wallet balance:', error)
       setWalletBalance('0')
+    }
+  }
+
+  // Helper to update BTC wallet balance
+  const updateBtcWalletBalance = async (address: string) => {
+    try {
+      setIsBtcBalanceLoading(true)
+      const balance = await fetchBtcBalance(address)
+      setBtcWalletBalance(balance ? balance.toFixed(8) : '0')
+    } catch (error) {
+      console.error('Failed to update BTC wallet balance:', error)
+      setBtcWalletBalance('0')
+    } finally {
+      setIsBtcBalanceLoading(false)
     }
   }
 
@@ -801,14 +839,33 @@ export function Multisig({
                   <div className="text-sm font-medium">Wallet Name:</div>
                   <div className="text-sm ml-2 font-semibold">{wallet.name || "Unnamed Wallet"}</div>
                 </div>
+                
+                {/* ETH Address and Balance */}
                 <div>
-                  <div className="text-sm font-medium">PKP Address:</div>
-                  <div className="text-sm ml-2">{wallet.pkp.ethAddress}</div>
+                  <div className="text-sm font-medium">ETH Address:</div>
+                  <div className="text-sm ml-2 break-all">{wallet.addresses.eth}</div>
                 </div>
                 <div>
-                  <div className="text-sm font-medium">Balance:</div>
-                  <div className="text-sm ml-2">{walletBalance} ETH</div>
+                  <div className="text-sm font-medium">ETH Balance:</div>
+                  <div className="text-sm ml-2">
+                    {walletBalance} ETH
+                  </div>
                 </div>
+                
+                {/* BTC Address and Balance */}
+                <div>
+                  <div className="text-sm font-medium">BTC Address (Testnet):</div>
+                  <div className="text-sm ml-2 break-all">{wallet.addresses.btc}</div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium">BTC Balance:</div>
+                  <div className="text-sm ml-2">
+                    {isBtcBalanceLoading ? 
+                      <Loader2 className="h-4 w-4 animate-spin inline mr-2" /> : 
+                      btcWalletBalance ? `${btcWalletBalance} BTC` : "0 BTC"}
+                  </div>
+                </div>
+                
                 <div>
                   <div className="text-sm font-medium">PKP Public Key:</div>
                   <div className="text-sm ml-2 break-all">{wallet.pkp.publicKey}</div>
@@ -839,20 +896,43 @@ export function Multisig({
           </div>
 
           <h2 className="text-lg font-semibold mb-4">Transaction Proposals</h2>
+
+          <div className="space-y-2">
+            <Label htmlFor="token-type">Select Token</Label>
+            <Select 
+              value={tokenType} 
+              onValueChange={(value) => setTokenType(value as TokenType)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a token" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem value="ETH">Ethereum (ETH)</SelectItem>
+                  <SelectItem value="BTC">Bitcoin (BTC)</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
           
           {/* Create new transaction proposal */}
           <div className="mb-6 space-y-4">
             <SignerEmailField 
               label="Recipient"
+              tokenType={tokenType}
               input={{
                 value: recipientEmail,
                 onChange: (value) => setRecipientEmail(value),
-                placeholder: "Enter recipient's email or ETH address",
+                placeholder: "Enter recipient's email or address",
                 id: "recipient"
               }}
               onAddressFound={(addressData) => {
                 if (addressData) {
-                  setRecipientAddress(addressData.ethAddress);
+                  if (tokenType === 'ETH') {
+                    setRecipientAddress(addressData.addresses?.eth || '');
+                  } else if (tokenType === 'BTC') {
+                    setRecipientAddress(addressData.addresses?.btc || '');
+                  }
                 } else {
                   setRecipientAddress('');
                 }
@@ -860,14 +940,14 @@ export function Multisig({
             />
             
             <div className="space-y-2">
-              <Label htmlFor="amount">Amount (ETH)</Label>
+              <Label htmlFor="amount">Amount ({tokenInfo.symbol})</Label>
               <Input
                 id="amount"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="Enter transaction amount"
                 type="number"
-                step="0.0001"
+                step={tokenInfo.chainType === 'EVM' ? "0.0001" : "0.00000001"}
               />
             </div>
             
@@ -895,7 +975,10 @@ export function Multisig({
                     ) : (
                       <>
                     <div><span className="font-medium">Recipient:</span> {txDetails.to}</div>
-                    <div><span className="font-medium">Amount:</span> {formatEthAmount(txDetails.value)} ETH</div>
+                    {
+                      txDetails.tokenType &&
+                      <div><span className="font-medium">Amount:</span> {formatEthAmount(txDetails.value)} {SUPPORTED_TOKENS_INFO[txDetails.tokenType as TokenType].symbol}</div>
+                    }
                     {txDetails.data && txDetails.data !== '0x' && (
                       <div><span className="font-medium">Data:</span> {txDetails.data}</div>
                         )}

@@ -93,6 +93,7 @@ export async function POST(request: NextRequest) {
                 proposalId: proposalId,
                 recipientAddress: transactionData?.to || 'N/A',
                 amount: transactionData?.value || '0',
+                tokenType: transactionData?.tokenType,
                 walletLink,
                 notificationType: 'transaction'
               });
@@ -162,6 +163,7 @@ async function sendMultisigNotification({
   proposalId,
   recipientAddress,
   amount,
+  tokenType,
   walletLink,
   notificationType
 }: {
@@ -169,6 +171,7 @@ async function sendMultisigNotification({
   proposalId: string
   recipientAddress: string
   amount: string
+  tokenType: string
   walletLink: string
   notificationType: string
 }) {
@@ -178,6 +181,7 @@ async function sendMultisigNotification({
       proposalId,
       recipientAddress,
       amount,
+      tokenType,
       walletLink,
       notificationType
     })

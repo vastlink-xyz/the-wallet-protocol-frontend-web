@@ -4,6 +4,7 @@ import { randomUUID } from 'crypto'
 import { getUserByPkpAddress, getUser } from '../user/storage'
 import { log } from '@/lib/utils'
 import { ethers } from 'ethers'
+import { getBtcAddressByPublicKey } from '@/lib/web3/btc'
 
 export async function GET(request: NextRequest) {
   try {
@@ -99,6 +100,16 @@ export async function POST(request: NextRequest) {
     console.log('Received threshold value:', body.threshold, 'Type:', typeof body.threshold);
     console.log('Using threshold value:', threshold, 'Type:', typeof threshold);
     
+    // Generate wallet addresses from the multisig PKP public key
+    let addresses = body.addresses;
+    if (!addresses && body.multisigPkp && body.multisigPkp.publicKey) {
+      const ethAddress = body.multisigPkp.ethAddress
+      const btcAddress = getBtcAddressByPublicKey(body.multisigPkp.publicKey);
+      addresses = { eth: ethAddress, btc: btcAddress };
+    } else if (!addresses) {
+      addresses = { eth: '', btc: '' }; // Default empty values if no PKP or addresses provided
+    }
+    
     const wallet = {
       id: randomUUID(),
       pkp: body.multisigPkp,
@@ -108,7 +119,8 @@ export async function POST(request: NextRequest) {
       dataToEncryptHash: body.dataToEncryptHash,
       dataToEncryptHashSignature: body.dataToEncryptHashSignature,
       metadata: body.metadata,
-      name: body.name // Save wallet name from request
+      name: body.name, // Save wallet name from request
+      addresses: addresses
     }
 
     log('Creating multisig wallet with:', {

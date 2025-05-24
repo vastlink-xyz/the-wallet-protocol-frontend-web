@@ -20,7 +20,7 @@ import { personalSignLitActionCode } from "@/lib/lit-action-code/proposal-sign.l
 import { upgradeLitActionCode } from "@/lib/lit-action-code/upgrade.lit";
 import { personalTransactionLitActionCode } from "@/lib/lit-action-code/personal-transaction.lit";
 
-const litActionCode = personalTransactionLitActionCode
+const litActionCode = multisigTransactionLitActionCode
 
 interface ExecuteLitActionCodeProps {
   authMethod: AuthMethod;

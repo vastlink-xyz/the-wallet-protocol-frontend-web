@@ -122,7 +122,7 @@ export const broadcastTransactionByTokenType = async ({
     );
 
     const txReceipt = await rpcProvider.sendTransaction(signedAndSerializedTx);
-    return txReceipt
+    return txReceipt.hash
   } else if (tokenType === 'BTC') {
     const { sig, publicKey, tx } = options
     let r = Buffer.from(sig.r, "hex");

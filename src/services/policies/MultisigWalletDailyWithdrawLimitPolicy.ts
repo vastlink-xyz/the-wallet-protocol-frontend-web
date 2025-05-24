@@ -6,6 +6,7 @@ import { EvmChain } from "moralis/common-evm-utils";
 import { initializeMoralis } from '@/lib/moralis';
 import { MultisigWallet } from '@/app/api/multisig/storage';
 import { TokenType } from '@/lib/web3/token';
+import { fetchBtc24HourOutflow } from '@/lib/web3/btc';
 
 // Context specific to transaction operations
 export interface MultisigWalletTransactionOperationContext extends BaseOperationContext {
@@ -14,8 +15,13 @@ export interface MultisigWalletTransactionOperationContext extends BaseOperation
   tokenType: TokenType;      // Type of token being transferred
 }
 
-// kkktodo: add support for other token types
 async function getUserWithdrawalAmountToday(walletData: MultisigWallet, tokenType: TokenType): Promise<number> {
+  if (tokenType === 'BTC') {
+    const address = walletData.addresses.btc;
+    const outflow = await fetchBtc24HourOutflow(address);
+    return outflow;
+  }
+
   try {
     const address = walletData.pkp.ethAddress;
     // Initialize Moralis before using it

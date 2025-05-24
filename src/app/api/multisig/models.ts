@@ -70,6 +70,10 @@ const MultisigWalletSchema = new mongoose.Schema({
   ciphertext: { type: String, required: true },
   dataToEncryptHash: { type: String, required: true },
   dataToEncryptHashSignature: { type: String, required: true },
+  addresses: {
+    eth: { type: String },
+    btc: { type: String },
+  },
   metadata: { 
     type: {
       // Lit Protocol access control conditions
@@ -110,7 +114,7 @@ const MessageProposalSchema = new mongoose.Schema({
     default: 'transaction' 
   },
   transactionData: {
-    tokenSymbol: String,
+    tokenType: String,
     to: String,
     value: String,
     data: String

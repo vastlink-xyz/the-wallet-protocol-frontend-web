@@ -2,6 +2,12 @@ import { IRelayPKP } from '@lit-protocol/types'
 import { connectToDatabase, MultisigWalletModel, MessageProposalModel } from './models'
 import { TokenType } from '@/lib/web3/token'
 
+export interface MultisigWalletAddresses {
+  eth: string
+  btc: string
+  [key: string]: string
+}
+
 // MFA settings interface
 export interface MFASettings {
   dailyLimits: Record<TokenType, string>;
@@ -30,6 +36,7 @@ export interface MultisigWallet {
   dataToEncryptHashSignature: string // Signature of the dataToEncryptHash
   metadata: MultisigWalletMetadata // More specific type instead of Record<string, any>
   name: string          // Wallet name
+  addresses: MultisigWalletAddresses
 }
 
 export interface MessageProposal {
@@ -45,6 +52,7 @@ export interface MessageProposal {
   }[]
   type?: 'transaction' | 'walletSettings'  // Proposal type
   transactionData?: {   // Transaction data for blockchain transactions
+    tokenType: TokenType
     to: string
     value: string
     data: string
@@ -78,7 +86,8 @@ export async function getWallets(): Promise<MultisigWallet[]> {
       dataToEncryptHash: wallet.dataToEncryptHash,
       dataToEncryptHashSignature: wallet.dataToEncryptHashSignature,
       metadata: wallet.metadata,
-      name: wallet.name
+      name: wallet.name,
+      addresses: wallet.addresses
     }));
   } catch (error) {
     console.error('Failed to get wallets:', error);
@@ -179,7 +188,8 @@ export async function getWalletById(walletId: string): Promise<MultisigWallet | 
       dataToEncryptHash: typedWallet.dataToEncryptHash,
       dataToEncryptHashSignature: typedWallet.dataToEncryptHashSignature,
       metadata: typedWallet.metadata,
-      name: typedWallet.name
+      name: typedWallet.name,
+      addresses: typedWallet.addresses
     };
   } catch (error) {
     console.error('Failed to get wallet by ID:', error);
