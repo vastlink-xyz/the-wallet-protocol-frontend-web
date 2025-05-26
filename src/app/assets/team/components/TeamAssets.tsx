@@ -1,30 +1,21 @@
 'use client'
 
 import { AuthMethod, IRelayPKP } from '@lit-protocol/types'
-import { Plus } from 'lucide-react'
+import { Plus, Settings } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { MultisigSetting } from './MultisigSetting'
-import { WalletCard } from './WalletCard'
 import { getProviderByAuthMethodType } from '@/lib/lit'
+import { WalletCard } from '../../components/WalletCard'
+import { MultisigWallet } from '@/app/api/multisig/storage'
+import { useRouter } from 'next/navigation'
 
 interface TeamAssetsProps {
   authMethod: AuthMethod
 }
 
-// Multisig wallet type definition
-interface MultisigWallet {
-  id: string
-  pkp: IRelayPKP
-  signers: {
-    ethAddress: string
-    publicKey: string
-    email: string
-  }[]
-  threshold: number
-}
-
 export default function TeamAssets({ authMethod }: TeamAssetsProps) {
+  const router = useRouter()
   const [isLoading, setIsLoading] = useState(true)
   const [hasMultisigWallets, setHasMultisigWallets] = useState(false)
   const [wallets, setWallets] = useState<MultisigWallet[]>([])
@@ -106,6 +97,14 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
     }
   }
 
+  const handleWalletSettingsClick = (walletId: string) => {
+    router.push(`/multisig?walletId=${walletId}`)
+  }
+
+  const handleSendClick = (walletId: string) => {
+    router.push(`/multisig?walletId=${walletId}`)
+  }
+
   return (
     <div className="p-4 flex flex-col items-center gap-4 w-full">
       {isLoading ? (
@@ -117,11 +116,16 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
               <p className="text-center mb-6 text-lg">You have {wallets.length} team wallet(s)</p>
               <div className="flex flex-col items-center gap-6 w-full">
                 {wallets.map(wallet => (
-                  <div key={wallet.id} className="w-full max-w-3xl">
+                  <div key={wallet.id} className="w-full max-w-3xl mb-6">
                     <WalletCard
-                      id={wallet.id}
-                      signers={wallet.signers}
-                      pkp={wallet.pkp}
+                      avatars={wallet.signers.map(signer => ({ email: signer.email }))}
+                      walletName={wallet.name}
+                      onSendClick={() => handleSendClick(wallet.id)}
+                      onWalletSettingsClick={() => handleWalletSettingsClick(wallet.id)}
+                      onReceiveClick={() => {}}
+                      onTxHistoryClick={() => {}}
+                      btcAddress={wallet.addresses.btc}
+                      ethAddress={wallet.addresses.eth}
                     />
                   </div>
                 ))}

@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { IRelayPKP } from '@lit-protocol/types'
 import { Loader2, Copy, Check } from 'lucide-react'
-import { formatEthAmount, fetchEthBalance } from '@/lib/utils'
+import { formatEthAmount } from '@/lib/utils'
 import axios from 'axios'
+import { fetchEthBalance } from '@/lib/web3/eth'
 
 interface WalletCardProps {
   id: string

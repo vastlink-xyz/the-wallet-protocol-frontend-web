@@ -18,6 +18,7 @@ import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
 import { MfaOtpDialog } from '@/components/MfaOtpDialog';
 import { log } from '@/lib/utils';
 import { SUPPORTED_TOKENS_INFO, TokenType, SUPPORTED_TOKEN_SYMBOLS } from '@/lib/web3/token';
+import { Settings } from 'lucide-react';
 
 export function PersonalWalletSettings() {
   const [isOpen, setIsOpen] = useState(false);
@@ -312,7 +313,7 @@ export function PersonalWalletSettings() {
     <>
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>
-          <Button variant="outline">Wallet Settings</Button>
+          <Settings size={16} />
         </DialogTrigger>
 
       <DialogContent className="sm:max-w-md">

@@ -6,7 +6,7 @@ import type { MultisigWallet, MessageProposal } from '@/app/api/multisig/storage
 import axios from 'axios'
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { log, formatEthAmount, fetchEthBalance, getUserEmailFromStorage } from "@/lib/utils"
+import { log, formatEthAmount, getUserEmailFromStorage } from "@/lib/utils"
 import { getSessionSigsByPkp } from "@/lib/lit"
 import { litNodeClient } from "@/lib/lit"
 import { LIT_CHAINS } from "@lit-protocol/constants"
@@ -25,6 +25,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectGroup, SelectI
 import { TokenType, SUPPORTED_TOKENS_INFO } from "@/lib/web3/token"
 import { broadcastTransactionByTokenType, getToSignTransactionByTokenType } from "@/lib/web3/transaction"
 import { fetchBtcBalance } from "@/lib/web3/btc"
+import { fetchEthBalance } from "@/lib/web3/eth"
 
 // eth sepolia
 const chainInfo = {

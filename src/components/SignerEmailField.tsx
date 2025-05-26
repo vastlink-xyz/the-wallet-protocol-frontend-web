@@ -110,8 +110,7 @@ export function SignerEmailField({
       case 'eth':
         return ethers.utils.isAddress(value);
       case 'btc':
-        // Basic BTC address validation - could be enhanced
-        return /^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$|^(bc1|tb1)[a-zA-HJ-NP-Z0-9]{25,89}$/.test(value);
+        return true
       default:
         // For unknown types, return false or implement custom validation
         return false;
@@ -148,12 +147,6 @@ export function SignerEmailField({
           setAddressInfo(newAddressInfo);
           if (onAddressFound) onAddressFound(newAddressInfo);
           setError(null);
-        } else if (input.value.length > 5) {
-          // Clear data if input is not valid but has substantial content
-          setInternalInputType(null);
-          setAddressInfo(null);
-          setError(`Enter a valid email or ${tokenType} address`);
-          if (onAddressFound) onAddressFound(null);
         }
       }, 500) // 500ms debounce
       

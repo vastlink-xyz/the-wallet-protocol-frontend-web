@@ -34,6 +34,7 @@ interface SendTokenProps {
   authMethod: AuthMethod;
   authMethodId: string;
   btcAddress: string;
+  onClose: () => void;
 }
 
 export function SendToken({ 
@@ -42,6 +43,7 @@ export function SendToken({
   authMethod, 
   authMethodId,
   btcAddress,
+  onClose,
 }: SendTokenProps) {
   const [to, setTo] = useState('')
   const [recipientAddress, setRecipientAddress] = useState('')
@@ -162,6 +164,7 @@ export function SendToken({
         setTo('')
         setAmount('')
         setRecipientAddress('')
+        onClose()
       } else {
         if (result.requireMFA) {
           // Show MFA flow
@@ -215,78 +218,74 @@ export function SendToken({
   }
 
   return (
-    <div className="bg-card p-6 rounded-lg border mt-6">
-      <h3 className="text-lg font-medium mb-4">Send</h3>
-      
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="token-type">Select Token</Label>
-          <Select 
-            value={tokenType} 
-            onValueChange={(value) => setTokenType(value as TokenType)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select a token" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectItem value="ETH">Ethereum (ETH)</SelectItem>
-                <SelectItem value="BTC">Bitcoin (BTC)</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <SignerEmailField
-          label="Recipient"
-          input={{
-            value: to,
-            onChange: (value) => setTo(value),
-            placeholder: `Email address or ${tokenInfo.symbol} address`,
-            id: "recipient"
-          }}
-          onAddressFound={(addressData) => {
-            if (addressData) {
-              const tokenKey = tokenType.toLowerCase();
-              setRecipientAddress(addressData.addresses?.[tokenKey] || '');
-            } else {
-              setRecipientAddress('');
-            }
-          }}
-          tokenType={tokenType}
-        />
-
-        <div className="space-y-2">
-          <Label htmlFor="amount">Amount ({tokenInfo.symbol})</Label>
-          <Input
-            id="amount"
-            type="number"
-            placeholder="0.01"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            min="0"
-            className={amount && !isValidAmount ? 'border-red-500' : ''}
-          />
-          {amount && !isValidAmount && (
-            <p className="text-red-500 text-xs">Please enter a valid amount</p>
-          )}
-        </div>
-
-        <Button 
-          onClick={() => handleExecuteTransaction('')} 
-          disabled={!canSend}
-          className="w-full"
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="token-type">Select Token</Label>
+        <Select 
+          value={tokenType} 
+          onValueChange={(value) => setTokenType(value as TokenType)}
         >
-          {isSending ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Sending...
-            </>
-          ) : (
-            `Send ${tokenInfo.symbol}`
-          )}
-        </Button>
+          <SelectTrigger>
+            <SelectValue placeholder="Select a token" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectItem value="ETH">Ethereum (ETH)</SelectItem>
+              <SelectItem value="BTC">Bitcoin (BTC)</SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
       </div>
+
+      <SignerEmailField
+        label="Recipient"
+        input={{
+          value: to,
+          onChange: (value) => setTo(value),
+          placeholder: `Email address or ${tokenInfo.symbol} address`,
+          id: "recipient"
+        }}
+        onAddressFound={(addressData) => {
+          if (addressData) {
+            const tokenKey = tokenType.toLowerCase();
+            setRecipientAddress(addressData.addresses?.[tokenKey] || '');
+          } else {
+            setRecipientAddress('');
+          }
+        }}
+        tokenType={tokenType}
+      />
+
+      <div className="space-y-2">
+        <Label htmlFor="amount">Amount ({tokenInfo.symbol})</Label>
+        <Input
+          id="amount"
+          type="number"
+          placeholder="0.01"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          min="0"
+          className={amount && !isValidAmount ? 'border-red-500' : ''}
+        />
+        {amount && !isValidAmount && (
+          <p className="text-red-500 text-xs">Please enter a valid amount</p>
+        )}
+      </div>
+
+      <Button 
+        onClick={() => handleExecuteTransaction('')} 
+        disabled={!canSend}
+        className="w-full"
+      >
+        {isSending ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Sending...
+          </>
+        ) : (
+          `Send ${tokenInfo.symbol}`
+        )}
+      </Button>
     </div>
   )
 } 

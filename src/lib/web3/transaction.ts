@@ -2,11 +2,11 @@ import { ethers } from "ethers";
 import { TokenType } from "./token";
 import { LIT_CHAINS } from "@lit-protocol/constants";
 import * as bitcoinjs from "bitcoinjs-lib";
-import { log } from "@lit-protocol/lit-auth-client/src/lib/utils";
 import BN from "bn.js";
 import elliptic from "elliptic";
 import * as ecc from "@bitcoin-js/tiny-secp256k1-asmjs";
 import * as bip66 from "bip66";
+import { log } from "../utils";
 
 const rpcUrl = LIT_CHAINS['sepolia']?.rpcUrls[0];
 const rpcProvider = new ethers.providers.JsonRpcProvider(rpcUrl);
@@ -56,7 +56,8 @@ export const getToSignTransactionByTokenType = async ({
     const response = await fetch(`https://mempool.space/testnet/api/address/${sendAddress}/utxo`);
     const utxos = await response.json();
     log('utxos', utxos)
-    const utxo = utxos[0];
+    // Sort utxos by value in descending order and pick the first one
+    const utxo = utxos.sort((a: any, b: any) => b.value - a.value)[0];
 
     const utxoTxResponse = await fetch(`https://mempool.space/testnet/api/tx/${utxo.txid}`);
     const utxoTxDetails = await utxoTxResponse.json();

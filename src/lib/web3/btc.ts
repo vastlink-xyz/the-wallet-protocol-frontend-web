@@ -16,17 +16,42 @@ export const getBtcAddressByPublicKey = (publicKey: string) => {
   }
 }
 
-export const fetchBtcBalance = async (btcAddress: string) => {
+export const fetchBtcBalance = async (btcAddress: string): Promise<number> => {
+  // Try Mempool.space API first
   try {
-    // Using BlockCypher API for testnet
-    const response = await fetch(`https://api.blockcypher.com/v1/btc/test3/addrs/${btcAddress}/balance`);
+    const response = await fetch(`https://mempool.space/testnet/api/address/${btcAddress}`);
+    if (!response.ok) {
+      if (response.status === 404) {
+        console.log(`Address ${btcAddress} not found on Mempool.space or has no transactions.`);
+        return 0; 
+      }
+      throw new Error(`Mempool.space API returned ${response.status}: ${response.statusText}`);
+    }
     const data = await response.json();
-    
-    // BlockCypher returns balance in satoshis, converting to BTC (1 BTC = 100,000,000 satoshis)
-    const balanceInBtc = data.final_balance / 100000000;
-    return balanceInBtc;
-  } catch (error) {
-    console.error("Error fetching BTC balance:", error);
+    const balance = data.chain_stats.funded_txo_sum - data.chain_stats.spent_txo_sum;
+    return balance / 100000000; // Convert satoshis to BTC
+  } catch (mempoolError) {
+    console.warn("Mempool.space API failed, falling back to BlockCypher:", mempoolError);
+
+    // If Mempool.space fails, fallback to BlockCypher API (only try once)
+    try {
+      const response = await fetch(`https://api.blockcypher.com/v1/btc/test3/addrs/${btcAddress}/balance`);
+      
+      if (response.status === 404) {
+          console.log(`Address ${btcAddress} not found on BlockCypher or has no transactions.`);
+          return 0; 
+      }
+      if (!response.ok) {
+        // For BlockCypher's 429 error, we don't handle retry here, just treat it as a failure
+        throw new Error(`BlockCypher API returned ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      return data.final_balance / 100000000; // Convert satoshis to BTC
+    } catch (blockCypherError) {
+      console.error("BlockCypher API also failed:", blockCypherError);
+      return 0; // If BlockCypher also fails, return 0
+    }
   }
 };
 
