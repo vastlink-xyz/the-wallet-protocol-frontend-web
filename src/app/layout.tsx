@@ -18,6 +18,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Vastbase (powered by Vastlink)",
   description: "A next generation multisig wallet for teams",
+  icons: {
+    icon: '/Vastbase_logo.svg',
+    apple: '/Vastbase_logo.svg',
+  },
 };
 
 export default function RootLayout({

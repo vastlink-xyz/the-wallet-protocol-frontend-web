@@ -2,14 +2,19 @@
 
 import StytchOTP from './StytchOTP';
 import Social from './Social';
+import Image from 'next/image';
 
 export default function LoginForm() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[400px] space-y-8">
-      <div className="text-center">
-        <br/>
-        <h2 className="text-2xl font-semibold mb-2">Welcome to Vastbase</h2>
-        <p className="text-muted-foreground">Sign in to your account to get started</p>
+    <div className="flex flex-col items-center justify-center min-h-[400px] mb-6">
+      <div className="flex justify-center">
+        <Image 
+          src="/Vastbase_logo.svg" 
+          alt="Vastbase Logo" 
+          width={235} 
+          height={161.5} 
+          priority
+        />
       </div>
 
       <div className="w-full max-w-md grid grid-cols-1 gap-8">
