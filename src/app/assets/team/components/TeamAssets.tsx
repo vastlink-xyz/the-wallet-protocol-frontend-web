@@ -98,11 +98,11 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
   }
 
   const handleWalletSettingsClick = (walletId: string) => {
-    router.push(`/multisig?walletId=${walletId}`)
+    window.open(`/multisig?walletId=${walletId}`, '_blank')
   }
 
   const handleSendClick = (walletId: string) => {
-    router.push(`/multisig?walletId=${walletId}`)
+    window.open(`/multisig?walletId=${walletId}`, '_blank')
   }
 
   return (
