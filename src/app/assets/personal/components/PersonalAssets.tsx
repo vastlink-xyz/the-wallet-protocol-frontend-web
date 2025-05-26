@@ -108,7 +108,7 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
     return (
       <div className="bg-card p-6 rounded-lg border text-center">
         <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
-        <p>Loading wallet information...</p>
+        <p>Loading personal wallet...</p>
       </div>
     )
   }

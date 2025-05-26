@@ -109,7 +109,7 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
   return (
     <div className="p-4 flex flex-col items-center gap-4 w-full">
       {isLoading ? (
-        <p>Loading wallet information...</p>
+        <p>Loading team wallets...</p>
       ) : (
         <>
           {hasMultisigWallets ? (

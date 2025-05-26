@@ -83,7 +83,7 @@ const StytchOTP = () => {
 
   return (
     <Card className="w-full">
-      <h3 className="text-lg font-medium mb-4 text-center">Email Login</h3>
+      <h2 className="text-lg font-medium mb-4 text-center">Login</h2>
       {step === 'submit' && (
         <div className="space-y-4">
           <CardHeader>
@@ -123,7 +123,7 @@ const StytchOTP = () => {
                 {loading ? "Sending..." : (
                   <>
                     <Mail className="h-4 w-4" />
-                    Send code
+                    Send verification code
                   </>
                 )}
               </Button>
