@@ -238,7 +238,6 @@ export function MFAPhoneWhatsApp({
       log('MFAPhoneWhatsApp: OTP sent, method_id:', data.method_id);
     } else if (currentMethod?.action === 'remove' && verifiedPhone) {
       log('MFAPhoneWhatsApp: Sending OTP for phone removal verification');
-      // 使用verified_phone的phone_number
       const response = await fetch('/api/mfa/whatsapp/send-code', {
         method: 'POST',
         headers: {

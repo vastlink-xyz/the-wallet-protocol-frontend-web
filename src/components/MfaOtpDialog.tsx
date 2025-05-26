@@ -9,8 +9,9 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { log } from '@/lib/utils'; // Assuming you have a log utility
+import { toast } from 'react-toastify';
 
 interface MfaOtpDialogProps {
   isOpen: boolean;
@@ -43,23 +44,22 @@ export function MfaOtpDialog({
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [initialSendAttempted, setInitialSendAttempted] = useState(false);
 
   const effectiveDescription = description || `An OTP has been sent to ${identifier || 'your device'}. Please enter it below.`;
 
   const handleSendOtp = useCallback(async (isRetry = false) => {
     setIsSendingOtp(true);
-    setError(null);
     try {
       await sendOtp();
       setOtpSent(true);
       if(isRetry) {
+        toast.success('OTP resent successfully');
         log('OTP resent successfully');
       }
     } catch (err: any) {
       log('Error sending OTP:', err);
-      setError(err.message || 'Failed to send OTP. Please try again.');
+      toast.error(err.message || 'Failed to send OTP. Please try again.');
       setOtpSent(false); 
     } finally {
       setIsSendingOtp(false);
@@ -73,7 +73,6 @@ export function MfaOtpDialog({
     }
     if (!isOpen) {
       setOtp('');
-      setError(null);
       setOtpSent(false);
       setIsSendingOtp(false);
       setIsVerifying(false);
@@ -83,17 +82,16 @@ export function MfaOtpDialog({
 
   const handleVerify = async () => {
     if (!otp.trim()) {
-      setError('Please enter the OTP.');
+      toast.error('Please enter the OTP.');
       return;
     }
     setIsVerifying(true);
-    setError(null);
     try {
       const verificationResult = await verifyOtp(otp);
       onOtpVerified(verificationResult);
     } catch (err: any) {
       log('Error verifying OTP:', err);
-      setError(err.message || 'Invalid or expired OTP. Please try again.');
+      toast.error(err.message || 'Invalid or expired OTP. Please try again.');
     } finally {
       setIsVerifying(false);
     }
@@ -107,9 +105,9 @@ export function MfaOtpDialog({
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           {otpSent && <DialogDescription>{effectiveDescription}</DialogDescription>}
-          {!otpSent && !isLoading && error && (
-            <DialogDescription className="text-red-500">
-              Error sending OTP. Ready to retry.
+          {!otpSent && !isLoading && (
+            <DialogDescription>
+              Ready to send OTP.
             </DialogDescription>
           )}
            {!otpSent && isLoading && (
@@ -118,13 +116,6 @@ export function MfaOtpDialog({
             </DialogDescription>
           )}
         </DialogHeader>
-
-        {error && (
-          <div className="flex items-center gap-2 p-3 bg-red-50 text-red-600 text-sm rounded-md my-2">
-            <AlertCircle className="h-5 w-5 flex-shrink-0" />
-            <p>{error}</p>
-          </div>
-        )}
 
         {otpSent && (
           <div className="space-y-4 py-2">
@@ -152,7 +143,7 @@ export function MfaOtpDialog({
               {isSendingOtp && !isVerifying ? actionInProgressText : retryText}
             </Button>
           )}
-          {!otpSent && !isLoading && error && (
+          {!otpSent && !isLoading && (
              <Button
               onClick={() => handleSendOtp(false)}
               disabled={isLoading}

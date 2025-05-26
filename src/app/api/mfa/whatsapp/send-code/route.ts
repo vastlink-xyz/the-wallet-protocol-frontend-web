@@ -48,8 +48,11 @@ export async function POST(req: NextRequest) {
       errorMessage = 'Authentication failed';
       statusCode = 401;
     } else if (error.error_message) {
-        errorMessage = error.error_message;
-        statusCode = error.status_code || 500;
+      errorMessage = error.error_message;
+      if (error.error_type && error.error_type === 'too_many_unverified_factors') {
+        errorMessage = 'Too many verification attempts. Please try again after some time.';
+      }
+      statusCode = error.status_code || 500;
     }
 
     return NextResponse.json({ error: errorMessage }, { status: statusCode });
