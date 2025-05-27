@@ -1,6 +1,7 @@
 import { ArrowDownCircle, Send, History, Settings } from "lucide-react"
 import { getAvatarColor, getInitials } from "./helpers"
 import { TokenAssets } from "./TokenAssets"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface WalletCardProps {
   avatars: {
@@ -46,7 +47,16 @@ export function WalletCard({
         <h3 className="font-medium text-xl">{walletName}</h3>
 
         <div className="text-gray-500">
-          {WalletSettings || <Settings className="cursor-pointer" onClick={onWalletSettingsClick} size={16} />}
+          {WalletSettings || (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Settings className="cursor-pointer" onClick={onWalletSettingsClick} size={16} />
+              </TooltipTrigger>
+              <TooltipContent>
+                Settings
+              </TooltipContent>
+            </Tooltip>
+          )}
         </div>
       </header>
       

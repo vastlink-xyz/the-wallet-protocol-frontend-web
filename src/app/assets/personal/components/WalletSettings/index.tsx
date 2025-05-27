@@ -19,6 +19,7 @@ import { MfaOtpDialog } from '@/components/MfaOtpDialog';
 import { log } from '@/lib/utils';
 import { SUPPORTED_TOKENS_INFO, TokenType, SUPPORTED_TOKEN_SYMBOLS } from '@/lib/web3/token';
 import { Settings } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 export function PersonalWalletSettings() {
   const [isOpen, setIsOpen] = useState(false);
@@ -313,7 +314,14 @@ export function PersonalWalletSettings() {
     <>
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>
-          <Settings size={16} />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Settings onClick={() => setIsOpen(true)} className="cursor-pointer" size={16} />
+            </TooltipTrigger>
+            <TooltipContent>
+              Settings
+            </TooltipContent>
+          </Tooltip>
         </DialogTrigger>
 
       <DialogContent className="sm:max-w-md">
@@ -324,60 +332,60 @@ export function PersonalWalletSettings() {
           </DialogDescription>
         </DialogHeader>
 
-          <div>
-            <h2 className='font-medium mb-2'>Daily Withdraw Limits</h2>
-            <div className="flex flex-col space-y-4">
-              {SUPPORTED_TOKEN_SYMBOLS.map(symbol => {
-                const tokenInfo = SUPPORTED_TOKENS_INFO[symbol];
-                return (
-                  <div key={symbol} className="flex flex-col space-y-2">
-                    <label className="text-sm font-medium">{tokenInfo.name} ({tokenInfo.symbol})</label>
-                    <div className="flex items-center gap-2">
-                      <Input 
-                        value={tokenLimits[symbol]} 
-                        onChange={(e) => handleLimitChange(symbol, e.target.value)} 
-                        placeholder="0.001"
-                        className="w-32"
-                      />
-                      <span className="font-medium">{tokenInfo.symbol}</span>
-                    </div>
-                    {limitErrors[symbol] && <p className="text-sm text-red-500">{limitErrors[symbol]}</p>}
+        <div>
+          <h2 className='font-medium mb-2'>Daily Withdraw Limits</h2>
+          <div className="flex flex-col space-y-4">
+            {SUPPORTED_TOKEN_SYMBOLS.map(symbol => {
+              const tokenInfo = SUPPORTED_TOKENS_INFO[symbol];
+              return (
+                <div key={symbol} className="flex flex-col space-y-2">
+                  <label className="text-sm font-medium">{tokenInfo.name} ({tokenInfo.symbol})</label>
+                  <div className="flex items-center gap-2">
+                    <Input 
+                      value={tokenLimits[symbol]} 
+                      onChange={(e) => handleLimitChange(symbol, e.target.value)} 
+                      placeholder="0.001"
+                      className="w-32"
+                    />
+                    <span className="font-medium">{tokenInfo.symbol}</span>
                   </div>
-                );
-              })}
-            </div>
+                  {limitErrors[symbol] && <p className="text-sm text-red-500">{limitErrors[symbol]}</p>}
+                </div>
+              );
+            })}
           </div>
+        </div>
 
-          <div>
-            <h2 className='font-medium mb-2'>MFA Settings</h2>
-            <MFASettingsContent 
-              isOpen={isOpen} 
-              onPhoneUpdated={fetchUserPhone}
-            />
-          </div>
+        <div>
+          <h2 className='font-medium mb-2'>MFA Settings</h2>
+          <MFASettingsContent 
+            isOpen={isOpen} 
+            onPhoneUpdated={fetchUserPhone}
+          />
+        </div>
 
-          <DialogFooter className="pt-4 space-x-2">
-            <Button 
-              onClick={saveSettings} 
-              disabled={!isLimitValid || isSaving}
-            >
-              {isSaving ? 'Saving...' : 'Save Settings'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        <DialogFooter className="pt-4 space-x-2">
+          <Button 
+            onClick={saveSettings} 
+            disabled={!isLimitValid || isSaving}
+          >
+            {isSaving ? 'Saving...' : 'Save Settings'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
 
-      {/* Real MFA OTP Dialog for wallet settings */}
-      <MfaOtpDialog
-        isOpen={showMfaDialog}
-        onClose={() => setShowMfaDialog(false)}
-        onOtpVerified={handleOtpVerified}
-        sendOtp={handleSendOtp}
-        verifyOtp={handleVerifyOtp}
-        identifier={verifiedPhone}
-        title="Verify Settings Change"
-        description="A verification code will be sent to your phone via WhatsApp"
-      />
+    {/* Real MFA OTP Dialog for wallet settings */}
+    <MfaOtpDialog
+      isOpen={showMfaDialog}
+      onClose={() => setShowMfaDialog(false)}
+      onOtpVerified={handleOtpVerified}
+      sendOtp={handleSendOtp}
+      verifyOtp={handleVerifyOtp}
+      identifier={verifiedPhone}
+      title="Verify Settings Change"
+      description="A verification code will be sent to your phone via WhatsApp"
+    />
     </>
   );
 }

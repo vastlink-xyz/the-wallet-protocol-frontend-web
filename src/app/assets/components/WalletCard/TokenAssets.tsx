@@ -2,7 +2,7 @@ import { CopyAddress } from "@/components/ui/CopyAddress"
 import { fetchBtcBalance } from "@/lib/web3/btc"
 import { fetchEthBalance } from "@/lib/web3/eth"
 import { SUPPORTED_TOKENS_INFO, TokenType } from "@/lib/web3/token"
-import { Loader2 } from "lucide-react"
+import { Loader2, RefreshCcw } from "lucide-react"
 import { useEffect, useState } from "react"
 
 export type TokenData = {
@@ -95,7 +95,7 @@ export function TokenAssets({ btcAddress, ethAddress }: TokenAssetsProps) {
             <img 
               src={token.iconUrl} 
               alt={token.symbol} 
-              className="w-5 h-5 rounded-full" 
+              className="w-8 h-8 rounded-full mt-4" 
             />
             <div className="flex flex-col relative">
               <span className="font-medium text-gray-700">{token.symbol}</span>
@@ -110,7 +110,13 @@ export function TokenAssets({ btcAddress, ethAddress }: TokenAssetsProps) {
             {token.loading ? (
               <Loader2 className="h-4 w-4 animate-spin inline mr-2" />
             ) : (
-              <span className="font-medium">{token.balance}</span>
+              <div className="flex items-center">
+                <span className="font-medium text-xl">{token.balance}</span>
+                <RefreshCcw 
+                  className="h-4 w-4 ml-2 cursor-pointer text-gray-500 hover:text-gray-700" 
+                  onClick={() => loadTokenBalance(token)}
+                />
+              </div>
             )}
           </div>
         </div>
