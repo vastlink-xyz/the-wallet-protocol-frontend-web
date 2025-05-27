@@ -28,7 +28,7 @@ export function WalletCard({
   onWalletSettingsClick,
 }: WalletCardProps) {
   return (
-    <div className="bg-white rounded-lg border p-6 shadow-sm relative w-[800px] mx-auto">
+    <div className="bg-white rounded-lg border p-6 shadow-sm relative max-w-[800px] mx-auto">
       <header className="flex items-center justify-between">
         <div className="flex -space-x-3">
           {avatars.map((avatar, index) => (

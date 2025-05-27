@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { useAuthExpiration } from '@/hooks/useAuthExpiration'
 import { useEffect } from 'react'
+import { User, Users } from 'lucide-react'
 
 export default function AssetsLayout({
   children,
@@ -28,7 +29,10 @@ export default function AssetsLayout({
               : 'text-gray-600 hover:bg-white/[0.12] hover:text-gray-700'
           }`}
         >
-          Personal Wallet
+          <div className="flex items-center justify-center gap-2">
+            <User className="w-4 h-4" />
+            Personal Wallet
+          </div>
         </Link>
         <Link
           href="/assets/team"
@@ -38,7 +42,10 @@ export default function AssetsLayout({
               : 'text-gray-600 hover:bg-white/[0.12] hover:text-gray-700'
           }`}
         >
-          Team Wallet(s)
+          <div className="flex items-center justify-center gap-2">
+            <Users className="w-4 h-4" />
+            Team Wallet(s)
+          </div>
         </Link>
       </div>
       
