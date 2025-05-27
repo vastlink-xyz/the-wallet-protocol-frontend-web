@@ -1,6 +1,7 @@
 import { CopyAddress } from "@/components/ui/CopyAddress"
 import { fetchBtcBalance } from "@/lib/web3/btc"
 import { fetchEthBalance } from "@/lib/web3/eth"
+import { formatBalance } from "@/lib/web3/format"
 import { SUPPORTED_TOKENS_INFO, TokenType } from "@/lib/web3/token"
 import { Loader2, RefreshCcw } from "lucide-react"
 import { useEffect, useState } from "react"
@@ -55,9 +56,11 @@ export function TokenAssets({ btcAddress, ethAddress }: TokenAssetsProps) {
       if (token.symbol === 'BTC') {
         // fetchBtcBalance accepts string type address
         balance = (await fetchBtcBalance(token.address))?.toString() || '0';
+        balance = formatBalance(balance)
       } else if (token.symbol === 'ETH') {
         // fetchEthBalance returns string type directly
         balance = await fetchEthBalance(token.address) || '0';
+        balance = formatBalance(balance)
       } else {
         throw new Error(`Unsupported token symbol: ${token.symbol}`);
       }
