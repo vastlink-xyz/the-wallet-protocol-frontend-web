@@ -1,3 +1,4 @@
+import { CopyAddress } from "@/components/ui/CopyAddress"
 import { fetchBtcBalance } from "@/lib/web3/btc"
 import { fetchEthBalance } from "@/lib/web3/eth"
 import { SUPPORTED_TOKENS_INFO, TokenType } from "@/lib/web3/token"
@@ -98,7 +99,11 @@ export function TokenAssets({ btcAddress, ethAddress }: TokenAssetsProps) {
             />
             <div className="flex flex-col relative">
               <span className="font-medium text-gray-700">{token.symbol}</span>
-              <span className="absolute -bottom-4 left-0 text-xs text-gray-500">{token.address}</span>
+              <CopyAddress
+                textToCopy={token.address}
+                className="absolute -bottom-4 left-0 text-xs text-gray-500"
+                iconSize={12}
+              />
             </div>
           </div>
           <div>

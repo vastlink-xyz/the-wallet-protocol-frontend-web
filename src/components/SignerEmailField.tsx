@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
-import { Loader2, AlertCircle, Copy, Check } from 'lucide-react'
+import { Loader2, AlertCircle } from 'lucide-react'
 import axios from 'axios'
 import { ethers } from 'ethers'
 import { TokenType } from '@/lib/web3/token'
 import { UserAddresses } from '@/app/api/user/storage'
+import { CopyAddress } from './ui/CopyAddress'
 
 // Helper functions to validate input formats
 const isValidEmail = (email: string): boolean => {
@@ -80,7 +81,6 @@ export function SignerEmailField({
     } 
   } : null)
   const [internalInputType, setInternalInputType] = useState<'email' | 'address' | null>(inputType || null)
-  const [copied, setCopied] = useState(false)
 
   // If address prop changes, update the state
   useEffect(() => {
@@ -236,21 +236,6 @@ export function SignerEmailField({
     }
   }
 
-  // Function to copy address to clipboard
-  const copyToClipboard = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      
-      // Reset copied state after 2 seconds
-      setTimeout(() => {
-        setCopied(false);
-      }, 2000);
-    } catch (err) {
-      console.error('Failed to copy text: ', err);
-    }
-  };
-
   // Get the appropriate address to display based on tokenType
   const getDisplayAddress = (): string => {
     if (!addressInfo?.addresses) return '';
@@ -297,18 +282,7 @@ export function SignerEmailField({
       {internalInputType === 'email' && addressInfo && (
         <div className="mt-1.5">
           <div className="text-xs text-gray-500 break-all font-mono flex items-center">
-            <span>{getDisplayAddress()}</span>
-            <div 
-              onClick={() => copyToClipboard(getDisplayAddress())}
-              className="ml-1 p-1 cursor-pointer"
-              aria-label="Copy address"
-            >
-              {copied ? (
-                <Check className="h-3 w-3 text-green-500" />
-              ) : (
-                <Copy className="h-3 w-3" />
-              )}
-            </div>
+            <CopyAddress textToCopy={getDisplayAddress()} className="ml-1" iconSize={12} />
           </div>
         </div>
       )}

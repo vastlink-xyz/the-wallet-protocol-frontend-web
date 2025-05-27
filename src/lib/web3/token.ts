@@ -8,19 +8,19 @@ export interface TokenInfo {
 }
 
 export const SUPPORTED_TOKENS_INFO = {
-  ETH: {
-    symbol: 'ETH',
-    name: 'Ethereum',
-    decimals: 18,
-    chainType: 'EVM',
-    iconUrl: 'https://assets.coingecko.com/coins/images/279/large/ethereum.png?1696501625',
-  },
   BTC: {
     symbol: 'BTC',
     name: 'Bitcoin',
     decimals: 8,
     chainType: 'UTXO',
-    iconUrl: 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png?1696501625',
+    iconUrl: '/cryptocurrency/btc.png',
+  },
+  ETH: {
+    symbol: 'ETH',
+    name: 'Ethereum',
+    decimals: 18,
+    chainType: 'EVM',
+    iconUrl: '/cryptocurrency/eth.png',
   },
   // SOL: {
   //   symbol: 'SOL',
