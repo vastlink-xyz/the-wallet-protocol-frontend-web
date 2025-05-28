@@ -7,23 +7,55 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import Image from 'next/image'
+import { estimateSwap } from '@/lib/swap/estimateSwap'
 
 // 支持的代币列表
+// 图标从 https://thorchain.org/ 找
+// 支持的交易池从：https://runescan.io/zh-CN/pools 找
 const SUPPORTED_TOKENS = [
-    {
-        symbol: 'BTC',
-        name: 'Bitcoin',
-        icon: '/cryptocurrency/btc.png',
-        network: 'Bitcoin'
-    },
+    // {
+    //     symbol: 'BTC',
+    //     name: 'Bitcoin',
+    //     icon: '/cryptocurrency/btc.png',
+    //     network: 'Bitcoin',
+    //     xchain_asset: 'BTC.BTC',
+    //     decimals: 8,
+    // },
     {
         symbol: 'ETH',
         name: 'Ethereum',
         icon: '/cryptocurrency/eth.png',
-        network: 'Ethereum'
+        network: 'Ethereum',
+        xchain_asset: 'ETH.ETH',
+        decimals: 18,
     },
-    // 可以扩展更多代币
-]
+    {
+        symbol: 'USDT',
+        name: 'USDT (Ethereum)',
+        icon: '/cryptocurrency/usdt.svg',
+        network: 'Ethereum',
+        xchain_asset: 'ETH.USDT-0XDAC17F958D2EE523A2206206994597C13D831EC7',
+        decimals: 6,
+    },
+    {
+        symbol: 'BNB',
+        name: 'BNB (BSC)',
+        icon: '/cryptocurrency/bnb.svg',
+        network: 'BSC',
+        xchain_asset: 'BSC.BNB',
+        decimals: 18,
+    },
+    {
+        symbol: 'USDT',
+        name: 'USDT (BSC)',
+        icon: '/cryptocurrency/usdt.svg',
+        network: 'BSC',
+        xchain_asset: 'BSC.USDT-0X55D398326F99059FF775485246999027B3197955',
+        decimals: 6,
+    },
+];
+
+const TEMP_ADDRESS = '0x7e727520B29773e7F23a8665649197aAf064CeF1'; // 临时目标地址，实际应该用户输入
 
 export default function SwapPage() {
     const [fromToken, setFromToken] = useState(SUPPORTED_TOKENS[0])
@@ -33,35 +65,76 @@ export default function SwapPage() {
     const [exchangeRate, setExchangeRate] = useState<number | null>(null)
     const [isLoading, setIsLoading] = useState(false)
     const [isCalculating, setIsCalculating] = useState(false)
+    const [swapFees, setSwapFees] = useState<{
+        outboundFee: string
+        affiliateFee: string
+    } | null>(null)
+    const [slippageBps, setSlippageBps] = useState<number | null>(null)
 
     // 计算目标资产数量
     const calculateToAmount = async (amount: string) => {
         if (!amount || parseFloat(amount) <= 0) {
             setToAmount('')
             setExchangeRate(null)
+            setSwapFees(null)
+            setSlippageBps(null)
             return
         }
 
         setIsCalculating(true)
         try {
-            // TODO: 调用 THORChain API 获取实际汇率
-            // 这里先用模拟数据
-            await new Promise(resolve => setTimeout(resolve, 500)) // 模拟API调用
+            // 使用 THORChain API 获取实际汇率和估算
+            const estimate = await estimateSwap(
+                parseFloat(amount),
+                fromToken.decimals,
+                fromToken.xchain_asset,
+                toToken.xchain_asset,
+                TEMP_ADDRESS
+            )
 
-            let rate = 1
-            if (fromToken.symbol === 'BTC' && toToken.symbol === 'ETH') {
-                rate = 15.5 // 1 BTC = 15.5 ETH (示例汇率)
-            } else if (fromToken.symbol === 'ETH' && toToken.symbol === 'BTC') {
-                rate = 0.065 // 1 ETH = 0.065 BTC (示例汇率)
+            if (estimate && estimate.txEstimate) {
+                console.log('Swap estimate received:', estimate);
+                // 从估算结果中提取目标资产数量
+                const netOutputAmount = estimate.txEstimate.netOutput.assetAmount.amount().toNumber()
+                const netOutputDecimals = estimate.txEstimate.netOutput.assetAmount.decimal
+                const toAssetAmount = netOutputAmount;
+                
+                console.log('Net output amount:', netOutputAmount, 'Decimals:', netOutputDecimals, toAssetAmount);
+                // 计算汇率
+                const rate = toAssetAmount / parseFloat(amount)
+                
+                setToAmount(toAssetAmount.toString())
+                setExchangeRate(rate)
+                
+                // 设置费用信息
+                setSwapFees({
+                    outboundFee: estimate.txEstimate.totalFees.outboundFee.formatedAssetString(),
+                    affiliateFee: estimate.txEstimate.totalFees.affiliateFee.formatedAssetString()
+                })
+                
+                // 设置滑点信息
+                setSlippageBps(estimate.txEstimate.slipBasisPoints)
+                
+                console.log('Swap estimate:', {
+                    input: amount + ' ' + fromToken.symbol,
+                    output: toAssetAmount + ' ' + toToken.symbol,
+                    rate: rate,
+                    fees: estimate.txEstimate.totalFees,
+                    slippage: estimate.txEstimate.slipBasisPoints + ' bps'
+                })
+            } else {
+                console.error('Failed to get swap estimate')
+                setToAmount('')
+                setExchangeRate(null)
+                setSwapFees(null)
+                setSlippageBps(null)
             }
-
-            const calculatedAmount = (parseFloat(amount) * rate).toString()
-            setToAmount(calculatedAmount)
-            setExchangeRate(rate)
         } catch (error) {
             console.error('Failed to calculate exchange rate:', error)
             setToAmount('')
             setExchangeRate(null)
+            setSwapFees(null)
+            setSlippageBps(null)
         } finally {
             setIsCalculating(false)
         }
@@ -74,6 +147,8 @@ export default function SwapPage() {
         if (!value || parseFloat(value) <= 0) {
             setToAmount('')
             setExchangeRate(null)
+            setSwapFees(null)
+            setSlippageBps(null)
         }
     }
 
@@ -171,7 +246,7 @@ export default function SwapPage() {
                                     </SelectTrigger>
                                     <SelectContent>
                                         {SUPPORTED_TOKENS.map((token) => (
-                                            <SelectItem key={token.symbol} value={token.symbol}>
+                                            <SelectItem key={token.xchain_asset} value={token.xchain_asset}>
                                                 <div className="flex items-center gap-2">
                                                     <Image
                                                         src={token.icon}
@@ -250,7 +325,7 @@ export default function SwapPage() {
                                     </SelectTrigger>
                                     <SelectContent>
                                         {SUPPORTED_TOKENS.map((token) => (
-                                            <SelectItem key={token.symbol} value={token.symbol}>
+                                            <SelectItem key={token.xchain_asset} value={token.xchain_asset}>
                                                 <div className="flex items-center gap-2">
                                                     <Image
                                                         src={token.icon}
@@ -300,17 +375,32 @@ export default function SwapPage() {
                                         </Button>
                                     </div>
                                 </div>
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-muted-foreground">预计费用</span>
-                                    <span>~0.001 ETH</span>
-                                </div>
+                                {swapFees && (
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-muted-foreground">网络费用</span>
+                                        <span>{swapFees.outboundFee}</span>
+                                    </div>
+                                )}
+                                {swapFees && swapFees.affiliateFee !== '0' && (
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-muted-foreground">联盟费用</span>
+                                        <span>{swapFees.affiliateFee}</span>
+                                    </div>
+                                )}
+                                {slippageBps !== null && (
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-muted-foreground">预估滑点</span>
+                                        <span>{(slippageBps / 100).toFixed(2)}%</span>
+                                    </div>
+                                )}
                                 <div className="flex justify-between text-sm">
                                     <span className="text-muted-foreground">最小接收</span>
-                                    <span>{(parseFloat(toAmount) * 0.995).toFixed(6)} {toToken.symbol}</span>
-                                </div>
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-muted-foreground">滑点容忍度</span>
-                                    <span>0.5%</span>
+                                    <span>
+                                        {slippageBps !== null 
+                                            ? (parseFloat(toAmount) * (1 - slippageBps / 10000)).toFixed(6)
+                                            : (parseFloat(toAmount) * 0.995).toFixed(6)
+                                        } {toToken.symbol}
+                                    </span>
                                 </div>
                             </div>
                         )}
