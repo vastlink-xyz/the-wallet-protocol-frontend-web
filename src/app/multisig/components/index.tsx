@@ -26,6 +26,7 @@ import { TokenType, SUPPORTED_TOKENS_INFO } from "@/lib/web3/token"
 import { broadcastTransactionByTokenType, getToSignTransactionByTokenType } from "@/lib/web3/transaction"
 import { fetchBtcBalance } from "@/lib/web3/btc"
 import { fetchEthBalance } from "@/lib/web3/eth"
+import { SelectToken } from "@/components/SelectToken"
 
 // eth sepolia
 const chainInfo = {
@@ -900,20 +901,10 @@ export function Multisig({
 
           <div className="space-y-2">
             <Label htmlFor="token-type">Select Token</Label>
-            <Select 
-              value={tokenType} 
-              onValueChange={(value) => setTokenType(value as TokenType)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select a token" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectItem value="ETH">Ethereum (ETH)</SelectItem>
-                  <SelectItem value="BTC">Bitcoin (BTC)</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
+            <SelectToken 
+              onSelect={(value) => setTokenType(value)}
+              defaultValue={tokenType}
+            />
           </div>
           
           {/* Create new transaction proposal */}

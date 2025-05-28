@@ -37,5 +37,10 @@ export const SUPPORTED_TOKENS_INFO = {
   // }
 } as const;
 
+/**
+ * SUPPORTED_TOKENS_INFO as an array for easier iteration and mapping
+ */
+export const SUPPORTED_TOKENS_ARRAY = Object.values(SUPPORTED_TOKENS_INFO);
+
 export type TokenType = keyof typeof SUPPORTED_TOKENS_INFO;
 export const SUPPORTED_TOKEN_SYMBOLS = Object.keys(SUPPORTED_TOKENS_INFO) as TokenType[]; 

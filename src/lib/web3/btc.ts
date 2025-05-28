@@ -117,3 +117,75 @@ export const fetchBtc24HourOutflow = async (btcAddress: string) => {
     return 0;
   }
 };
+
+/**
+ * Fetch BTC transaction history with pagination support
+ * @param btcAddress - The BTC address to fetch transaction history for
+ * @param limit - Number of transactions to return (default: 25)
+ * @param lastTxid - Last transaction ID for pagination (get transactions after this ID)
+ * @returns Transaction array and pagination information
+ */
+export const fetchBtcTransactionHistory = async (
+  btcAddress: string, 
+  limit: number = 25, 
+  lastTxid?: string
+) => {
+  // Try Mempool.space API first through our proxy
+  try {
+    // Build URL with pagination parameters if provided
+    let apiUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/btc/mempool?address=${btcAddress}&endpoint=txs`;
+    if (lastTxid) {
+      apiUrl += `&last_seen=${lastTxid}`;
+    }
+    if (limit) {
+      apiUrl += `&limit=${limit}`;
+    }
+    
+    const response = await fetch(apiUrl);
+    if (!response.ok) {
+      throw new Error(`API returned ${response.status}: ${response.statusText}`);
+    }
+    const transactions = await response.json();
+    
+    // Return transactions and info needed for pagination
+    const lastTx = transactions.length > 0 ? transactions[transactions.length - 1].txid : null;
+    return {
+      transactions,
+      hasMore: transactions.length === limit,
+      lastTxid: lastTx
+    };
+  } catch (mempoolError) {
+    console.warn("Mempool.space API failed for transaction history, falling back to BlockCypher:", mempoolError);
+
+    // If Mempool.space fails, fallback to BlockCypher API
+    try {
+      // Build URL with pagination parameters
+      let apiUrl = `https://api.blockcypher.com/v1/btc/test3/addrs/${btcAddress}/full?limit=${limit}`;
+      if (lastTxid) {
+        apiUrl += `&after=${lastTxid}`;
+      }
+      
+      const response = await fetch(apiUrl);
+      
+      if (!response.ok) {
+        throw new Error(`BlockCypher API returned ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      const txs = data.txs || [];
+      
+      return {
+        transactions: txs,
+        hasMore: txs.length === limit && txs.length > 0,
+        lastTxid: txs.length > 0 ? txs[txs.length - 1].hash : null
+      };
+    } catch (blockCypherError) {
+      console.error("BlockCypher API also failed for transaction history:", blockCypherError);
+      return {
+        transactions: [],
+        hasMore: false,
+        lastTxid: null
+      };
+    }
+  }
+};

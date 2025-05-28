@@ -17,16 +17,8 @@ import { TransactionMFA } from './TransactionMFA'
 import { personalTransactionLitActionCode } from '@/lib/lit-action-code/personal-transaction.lit'
 import { getPersonalTransactionIpfsId } from '@/lib/lit/ipfs-id-env'
 import { TokenType, SUPPORTED_TOKENS_INFO } from '@/lib/web3/token'
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { broadcastTransactionByTokenType, getToSignTransactionByTokenType } from '@/lib/web3/transaction'
+import { SelectToken } from "@/components/SelectToken"
 
 interface SendTokenProps {
   litActionPkp: IRelayPKP;
@@ -221,20 +213,10 @@ export function SendToken({
     <div className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="token-type">Select Token</Label>
-        <Select 
-          value={tokenType} 
-          onValueChange={(value) => setTokenType(value as TokenType)}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select a token" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectItem value="ETH">Ethereum (ETH)</SelectItem>
-              <SelectItem value="BTC">Bitcoin (BTC)</SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
+        <SelectToken
+          onSelect={(value) => setTokenType(value)}
+          defaultValue={tokenType}
+        />
       </div>
 
       <SignerEmailField

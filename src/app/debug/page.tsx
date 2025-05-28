@@ -13,39 +13,8 @@ import { Example } from "./components/Example";
 import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
 import { getPersonalSignIpfsId } from "@/lib/lit/ipfs-id-env";
 import { getBtcAddressByPublicKey } from "@/lib/web3/btc";
-
-// eth sepolia
-const chainInfo = {
-  rpcUrl: LIT_CHAINS['sepolia'].rpcUrls[0],
-  chainId: LIT_CHAINS['sepolia'].chainId,
-}
-
-const ethersProvider = new ethers.providers.JsonRpcProvider(
-  chainInfo.rpcUrl
-);
-
-const litActionIpfsId = 'QmYUmDxzM3d2jwKnoLrwdy2iwhnRMpudQXnpgQE4eTk16a'
-
-const AUTH_METHOD_STORAGE_KEY = 'lit-auth-method';
-
-const defaultPkp = {
-  "tokenId": "0xc290c87ee94f5871054de74c73ca2f6d306684141162269f3271b6346b8c42ce",
-  "publicKey": "0x0461eccec567d90b6061484f9cf520308a3fa872b74f241c3f99f556ba35a22018bbfb088be071771463da55c005d7ce7203e8bef3ad6455d850448a5def41b2cb",
-  "ethAddress": "0xD98F5f7D086A720109cDb8922C0416FF96e73eA0"
-}
-
-const sessionPKP = {
-  "ethAddress" : "0xd027F558d7ae10E673816adb5CdCc23be7814C0e",
-  "publicKey" : "0x04042e218a8729f011641a78da1939ab72299ebb70a0ba750645468311694ad1f24787945ebb91fe24caa76717203546748e89d4c589fe76bfa9e1fbd55f118eb0",
-  "tokenId" : "0xb7aaf498c4d450855f7a3cccc900b24b348f0e108d5d5a7ba9072e9403f6ff4e",
-}
-
-const pkp = {
-  "ethAddress": "0x1b1E49900c11d29f13b8f02385cb8408D9b81535",
-  "publicKey": "0x047d61e857d17bf4200304ffd6ff509c1c4cf4dfe42aea1a7601720778bd387b89ef4569ca3dd014fb1ca003f2f129c58a09b622630af2260cf0b76ada2f512748",
-  "tokenId": "0x6f53bfb409fdad55d9ee324c06a0eb941cf0e6499ab420327202efd7005a7edd",
-}
-
+import { fetchEthTransactionHistory } from "@/lib/web3/eth";
+import { SUPPORTED_TOKENS_ARRAY } from "@/lib/web3/token";
 
 export default function DebugPage() {
   const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null);
@@ -80,31 +49,19 @@ export default function DebugPage() {
   }
 
   const handleTest = async () => {
-    const btcAddress = getBtcAddressByPublicKey('0x0440640467367f471ce6daabeb9a971a35609ef2f414ddcac20fda0104aca31db8762bb9c9011029626212403e7b7d3789299d288509f982a18d55fb06d30395cc')
-    log('btcAddress', btcAddress)
-    // const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/mfa/check-policy`, {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'Authorization': `Bearer ${authMethod!.accessToken}`,
-    //   },
-    //   body: JSON.stringify({
-    //     contextType: 'multisigWalletTransaction',
-    //     walletId: 'd0f6daf6-90f9-4431-b5f9-14106c99670e',
-    //     transactionAmount: '0.001',
-    //     tokenType: 'ETH',
-    //   }),
-    // })
+    const a = SUPPORTED_TOKENS_ARRAY
+    log('a', a)
+  }
 
-    // const data = await res.json()
-    // log('check policy', data)
+  const handleFetchEthTransactionHistory = async () => {
+    const transactions = await fetchEthTransactionHistory('0x22ef809BD8D22853A9Be578aFA4B01Ea3D1f39ad', 1, 10)
+    log('transactions', transactions)
   }
 
   return (
     <div className="space-y-8 p-4">
       <div className="flex flex-wrap gap-2">
         <Button onClick={handleGetAllPKPs}>All PKPs</Button>
-        <Button onClick={handleTest}>Test</Button>
       </div>
 
       <div className="border rounded-lg p-6 bg-white">
@@ -114,6 +71,8 @@ export default function DebugPage() {
       </div>
 
       <Button onClick={handleVerifyToken}>Verify token</Button>
+      <Button onClick={handleFetchEthTransactionHistory}>Fetch ETH transaction history</Button>
+      <Button onClick={handleTest}>Test</Button>
     </div>
   );
 }
