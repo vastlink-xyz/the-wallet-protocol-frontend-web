@@ -10,7 +10,6 @@ export async function GET(req: NextRequest) {
 
     // Fetch user information from Stytch to get phone numbers
     const userResponse = await stytchClient.users.get({ user_id: session.user_id });
-    log('User data:', userResponse);
 
     // Extract verified phone numbers
     const verifiedPhones = userResponse.phone_numbers?.filter(phone => phone.verified) || [];
