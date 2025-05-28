@@ -3,8 +3,11 @@
 import { AuthMethod, IRelayPKP } from '@lit-protocol/types'
 import { X } from 'lucide-react'
 import { MultisigWalletFormContent } from '@/components/MultisigWalletFormContent'
+import { MultisigWallet } from '@/app/api/multisig/storage'
 
 interface MultisigSettingProps {
+  mode: 'create' | 'edit'
+  wallet?: MultisigWallet
   authMethod: AuthMethod
   userPkp: IRelayPKP
   sessionPkp: IRelayPKP
@@ -14,6 +17,8 @@ interface MultisigSettingProps {
 }
 
 export function MultisigSetting({ 
+  mode,
+  wallet,
   authMethod, 
   userPkp, 
   sessionPkp,
@@ -40,7 +45,8 @@ export function MultisigSetting({
           <p className="text-sm text-gray-500 mb-4">A team wallet requires approval from multiple signers to execute any transaction.</p>
           
           <MultisigWalletFormContent
-            mode="create"
+            mode={mode}
+            wallet={wallet}
             authMethod={authMethod}
             userPkp={userPkp}
             sessionPkp={sessionPkp}

@@ -24,6 +24,8 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
   const [sessionPkp, setSessionPKP] = useState<IRelayPKP | null>(null)
   const [showMultisigSetting, setShowMultisigSetting] = useState(false)
   const [authMethodId, setAuthMethodId] = useState<string>('')
+  const [mode, setMode] = useState<'create' | 'edit'>('create')
+  const [selectedWallet, setSelectedWallet] = useState<MultisigWallet | undefined>()
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -98,8 +100,10 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
     }
   }
 
-  const handleWalletSettingsClick = (walletId: string) => {
-    window.open(`/multisig?walletId=${walletId}`, '_blank')
+  const handleWalletSettingsClick = (wallet: MultisigWallet) => {
+    setSelectedWallet(wallet)
+    setMode('edit')
+    setShowMultisigSetting(true)
   }
 
   const handleSendClick = (walletId: string) => {
@@ -122,7 +126,7 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
                       avatars={wallet.signers.map(signer => ({ email: signer.email }))}
                       walletName={wallet.name}
                       onSendClick={() => handleSendClick(wallet.id)}
-                      onWalletSettingsClick={() => handleWalletSettingsClick(wallet.id)}
+                      onWalletSettingsClick={() => handleWalletSettingsClick(wallet)}
                       onReceiveClick={() => {}}
                       onDetailsClick={() => {}}
                       btcAddress={wallet.addresses.btc}
@@ -164,6 +168,8 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
 
       {(showMultisigSetting && userPkp && sessionPkp) && (
         <MultisigSetting
+          mode={mode}
+          wallet={selectedWallet}
           authMethod={authMethod}
           userPkp={userPkp}
           sessionPkp={sessionPkp}

@@ -9,34 +9,20 @@ import { Label } from "@/components/ui/label"
 import { log, formatEthAmount, getUserEmailFromStorage } from "@/lib/utils"
 import { getSessionSigsByPkp } from "@/lib/lit"
 import { litNodeClient } from "@/lib/lit"
-import { LIT_CHAINS } from "@lit-protocol/constants"
-import { ethers } from "ethers"
 import { toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import { SignerEmailField } from "@/components/SignerEmailField"
-import { WalletSettings } from "./WalletSettings"
 import { WalletSettingsProposal } from "./WalletSettingsProposal"
 import { getMultisigTransactionIpfsId, getPersonalSignIpfsId, getUpdateWalletIpfsId } from "@/lib/lit/ipfs-id-env"
 import { sendMultisigNotification } from '@/lib/notification'
 import { useAuthExpiration } from '@/hooks/useAuthExpiration'
 import { isTokenValid } from "@/lib/jwt"
 import { MfaOtpDialog } from "@/components/MfaOtpDialog"
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectGroup, SelectItem } from "@/components/ui/select"
 import { TokenType, SUPPORTED_TOKENS_INFO } from "@/lib/web3/token"
 import { broadcastTransactionByTokenType, getToSignTransactionByTokenType } from "@/lib/web3/transaction"
 import { fetchBtcBalance } from "@/lib/web3/btc"
 import { fetchEthBalance } from "@/lib/web3/eth"
 import { SelectToken } from "@/components/SelectToken"
-
-// eth sepolia
-const chainInfo = {
-  rpcUrl: LIT_CHAINS['sepolia'].rpcUrls[0],
-  chainId: LIT_CHAINS['sepolia'].chainId,
-}
-
-const ethersProvider = new ethers.providers.JsonRpcProvider(
-  chainInfo.rpcUrl
-);
 
 export function Multisig({
   currentPkp,
@@ -69,7 +55,6 @@ export function Multisig({
   const [signer2PublicKey, setSigner2PublicKey] = useState('')
   const [signer2GoogleAuthMethodId, setSigner2GoogleAuthMethodId] = useState('')
   const [executeResult, setExecuteResult] = useState<any>(null)
-  const [showWalletSettings, setShowWalletSettings] = useState(false)
 
   // mfa
   const [showMfaDialog, setShowMfaDialog] = useState(false);
@@ -822,15 +807,6 @@ export function Multisig({
           {/* header */}
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-medium">Team Wallet Details</h3>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowWalletSettings(true)}
-              className="flex items-center gap-1"
-            >
-              <Settings className="h-4 w-4" />
-              Wallet Settings
-            </Button>
           </div>
           
           {/* Display selected wallet's PKP info */}
@@ -1028,21 +1004,6 @@ export function Multisig({
             })}
           </div>
         </div>
-      )}
-      
-      {/* WalletSettings Modal */}
-      {showWalletSettings && selectedWallet && (
-        <WalletSettings
-          wallet={selectedWallet}
-          currentPkp={currentPkp}
-          authMethod={authMethod}
-          authMethodId={authMethodId}
-          onClose={() => setShowWalletSettings(false)}
-          onSuccess={() => {
-            fetchWallets();
-            fetchProposals();
-          }}
-        />
       )}
 
       <MfaOtpDialog

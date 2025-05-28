@@ -22,7 +22,7 @@ import { sendMultisigNotification } from '@/lib/notification'
 import { useAuthExpiration } from '@/hooks/useAuthExpiration'
 import { isTokenValid } from '@/lib/jwt'
 import { TokenType, SUPPORTED_TOKEN_SYMBOLS } from '@/lib/web3/token'
-import { MFASettings, MultisigWalletMetadata } from '@/app/api/multisig/storage'
+import { MFASettings, MultisigWallet, MultisigWalletMetadata } from '@/app/api/multisig/storage'
 
 interface MultisigWalletFormContentProps {
   mode: 'create' | 'edit'
@@ -30,7 +30,7 @@ interface MultisigWalletFormContentProps {
   userPkp: IRelayPKP
   sessionPkp?: IRelayPKP
   authMethodId: string
-  wallet?: any // Only needed for edit mode
+  wallet?: MultisigWallet // Only needed for edit mode
   onCancel?: () => void
   onSuccess?: () => void
 }
@@ -111,7 +111,7 @@ export function MultisigWalletFormContent({
   )
   const [threshold, setThreshold] = useState(
     mode === 'edit' 
-      ? wallet?.threshold 
+      ? wallet?.threshold || 1
       : 1
   )
   
@@ -474,6 +474,10 @@ export function MultisigWalletFormContent({
 
   // Update existing multisig wallet (edit mode)
   const handleUpdateWalletSettings = async () => {
+    if (!wallet) {
+      return
+    }
+
     try {
       // Check for unconfirmed new signer
       if (showAddSignerForm && newSignerEmail.trim() !== '') {
@@ -608,6 +612,10 @@ export function MultisigWalletFormContent({
 
   // Dedicated function for handling wallet name updates only
   const handleUpdateWalletName = async () => {
+    if (!wallet) {
+      return
+    }
+
     try {
       setIsLoading(true);
       
