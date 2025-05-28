@@ -4,8 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from 'lucide-react';
 import { log } from '@/lib/utils';
-import { MfaOtpDialog } from '@/components/MfaOtpDialog';
 import { toast } from 'react-toastify';
+import { MFAOtpDialog } from '@/components/Transaction/MFAOtpDialog';
 
 // Define StytchPhoneNumber type based on expected API response
 interface StytchPhoneNumber {
@@ -292,6 +292,8 @@ export function MFAPhoneWhatsApp({
       
       const data = await response.json();
       log('MFAPhoneWhatsApp: Phone added successfully', data);
+
+      handleOtpVerified()
       return data;
     } else if (currentMethod.action === 'remove') {
       log('MFAPhoneWhatsApp: Verifying OTP for removing phone', { method_id: currentMethod.methodId, code: otp });
@@ -319,6 +321,7 @@ export function MFAPhoneWhatsApp({
       
       const data = await response.json();
       log('MFAPhoneWhatsApp: Phone removed successfully', data);
+      handleOtpVerified()
       return data;
     } else {
       throw new Error('Invalid operation');
@@ -326,7 +329,7 @@ export function MFAPhoneWhatsApp({
   };
 
   // Handle OTP verification completion
-  const handleOtpVerified = (verificationDetail?: any) => {
+  const handleOtpVerified = () => {
     // Close the dialog
     setShowOtpDialog(false);
     
@@ -414,12 +417,11 @@ export function MFAPhoneWhatsApp({
         </FormContainer>
 
         {/* OTP Dialog */}
-        <MfaOtpDialog 
+        <MFAOtpDialog 
           isOpen={showOtpDialog}
           onClose={handleOtpDialogClose}
-          onOtpVerified={handleOtpVerified}
+          onOtpVerify={handleVerifyOtp}
           sendOtp={handleSendOtp}
-          verifyOtp={handleVerifyOtp}
           identifier={currentMethod?.action === 'add' ? phoneNumber : verifiedPhone?.phone_number}
           title={otpDialogTitle}
           description={otpDialogDescription}
@@ -456,12 +458,11 @@ export function MFAPhoneWhatsApp({
         </FormContainer>
 
         {/* OTP Dialog */}
-        <MfaOtpDialog 
+        <MFAOtpDialog 
           isOpen={showOtpDialog}
           onClose={handleOtpDialogClose}
-          onOtpVerified={handleOtpVerified}
+          onOtpVerify={handleVerifyOtp}
           sendOtp={handleSendOtp}
-          verifyOtp={handleVerifyOtp}
           identifier={phoneNumber}
           title={otpDialogTitle}
           description={otpDialogDescription}
