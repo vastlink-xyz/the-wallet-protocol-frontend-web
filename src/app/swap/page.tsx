@@ -1,13 +1,19 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ArrowDownUp, Settings, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { CopyAddress } from '@/components/ui/CopyAddress'
 import Image from 'next/image'
 import { estimateSwap } from '@/lib/swap/estimateSwap'
+import { useRouter } from 'next/navigation'
+import { getAuthMethodFromStorage } from '@/lib/storage/authmethod'
+import { AuthMethod, IRelayPKP } from '@lit-protocol/types'
+import { getProviderByAuthMethodType } from '@/lib/lit/providers'
+import { fetchEthBalance } from "@/lib/web3/eth"
 
 // 支持的代币列表
 // 图标从 https://thorchain.org/ 找
@@ -71,6 +77,105 @@ export default function SwapPage() {
     } | null>(null)
     const [slippageBps, setSlippageBps] = useState<number | null>(null)
 
+    const router = useRouter()
+    const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null)
+    const [authMethodId, setAuthMethodId] = useState<string | null>(null)
+    const [email, setEmail] = useState<string | null>(null)
+    const [litActionPkp, setLitActionPkp] = useState<IRelayPKP | null>(null)
+    const [sessionPkp, setSessionPkp] = useState<IRelayPKP | null>(null)
+    const [btcAddress, setBtcAddress] = useState<string | null>(null)
+    const [ethAddress, setEthAddress] = useState<string | null>(null)
+    const [ethWalletBalance, setEthWalletBalance] = useState<string>('0')
+
+    // Check if user is logged in
+    useEffect(() => {
+        console.log('SwapPage useEffect triggered')
+        const fetchUserData = async () => {
+            if (!authMethod) return
+
+            try {
+                setIsLoading(true)
+                // Get user's authMethodId
+                const provider = getProviderByAuthMethodType(authMethod.authMethodType)
+                const authMethodId = await provider.getAuthMethodId(authMethod)
+                setAuthMethodId(authMethodId)
+
+                // Fetch user's information from database API
+                const userResponse = await fetch(`/api/user?authMethodId=${authMethodId}`)
+
+                if (!userResponse.ok) {
+                    throw new Error('Failed to fetch user information from database')
+                }
+
+                const userData = await userResponse.json()
+                console.log('Fetched user data:', userData)
+                setEmail(userData.email)
+
+                // Use litActionPkp from user data
+                if (userData.litActionPkp) {
+                    setLitActionPkp(userData.litActionPkp)
+                }
+                if (userData.sessionPkp) {
+                    setSessionPkp(userData.sessionPkp)
+                    setBtcAddress(userData.addresses?.btc)
+                    setEthAddress(userData.addresses?.eth)
+                }
+            } catch (error) {
+                console.error("Error fetching data from database:", error)
+            } finally {
+                setIsLoading(false)
+            }
+        }
+
+        const storedAuthMethod = getAuthMethodFromStorage()
+        console.log('Stored auth method:', storedAuthMethod)
+        if (storedAuthMethod) {
+            setAuthMethod(storedAuthMethod)
+
+            fetchUserData();
+        } else {
+            // Redirect to homepage if not logged in
+            router.push('/')
+        }
+    }, [router])
+
+    const updateWalletBalance = async (address: string) => {
+        try {
+            const balance = await fetchEthBalance(address)
+            console.log('Fetched ETH wallet balance:', balance)
+            setEthWalletBalance(balance)
+        } catch (error) {
+            console.error('Failed to update wallet balance:', error)
+            setEthWalletBalance('0')
+        }
+    }
+
+    useEffect(() => {
+        if (!ethAddress) return
+        // 更新以太坊钱包余额
+        updateWalletBalance(ethAddress)
+    }, [ethAddress])
+
+    // 获取当前选中代币的余额和地址信息
+    const getTokenBalanceInfo = (token: typeof SUPPORTED_TOKENS[0]) => {
+        // 根据代币的网络和类型返回对应的余额和地址
+        console.log('getTokenBalanceInfo called for token:', token);
+        if (token.network === 'Ethereum') {
+            return {
+                balance: token.symbol === 'ETH' ? parseFloat(ethWalletBalance).toFixed(4) : 'Unknown',
+                address: ethAddress || 'N/A',
+                hasData: !!ethAddress
+            }
+        }
+        // 这里可以扩展其他网络的余额和地址获取逻辑
+        // 比如 BSC、Bitcoin 等
+        return {
+            balance: 'Unknown',
+            address: 'N/A',
+            hasData: false
+        }
+    }
+
     // 计算目标资产数量
     const calculateToAmount = async (amount: string) => {
         if (!amount || parseFloat(amount) <= 0) {
@@ -98,23 +203,23 @@ export default function SwapPage() {
                 const netOutputAmount = estimate.txEstimate.netOutput.assetAmount.amount().toNumber()
                 const netOutputDecimals = estimate.txEstimate.netOutput.assetAmount.decimal
                 const toAssetAmount = netOutputAmount;
-                
+
                 console.log('Net output amount:', netOutputAmount, 'Decimals:', netOutputDecimals, toAssetAmount);
                 // 计算汇率
                 const rate = toAssetAmount / parseFloat(amount)
-                
+
                 setToAmount(toAssetAmount.toString())
                 setExchangeRate(rate)
-                
+
                 // 设置费用信息
                 setSwapFees({
                     outboundFee: estimate.txEstimate.totalFees.outboundFee.formatedAssetString(),
                     affiliateFee: estimate.txEstimate.totalFees.affiliateFee.formatedAssetString()
                 })
-                
+
                 // 设置滑点信息
                 setSlippageBps(estimate.txEstimate.slipBasisPoints)
-                
+
                 console.log('Swap estimate:', {
                     input: amount + ' ' + fromToken.symbol,
                     output: toAssetAmount + ' ' + toToken.symbol,
@@ -218,9 +323,9 @@ export default function SwapPage() {
                             <label className="text-sm font-medium">从</label>
                             <div className="flex gap-2">
                                 <Select
-                                    value={fromToken.symbol}
+                                    value={fromToken.xchain_asset}
                                     onValueChange={(value) => {
-                                        const token = SUPPORTED_TOKENS.find(t => t.symbol === value)
+                                        const token = SUPPORTED_TOKENS.find(t => t.xchain_asset === value)
                                         if (token) {
                                             setFromToken(token)
                                             // 如果有输入金额，重新计算
@@ -275,8 +380,19 @@ export default function SwapPage() {
                                     className="flex-1"
                                 />
                             </div>
-                            <div className="text-xs text-muted-foreground">
-                                余额: 0.00 {fromToken.symbol}
+                            <div className="space-y-1">
+                                <div className="text-xs text-muted-foreground">
+                                    余额: {ethWalletBalance} {fromToken.symbol}
+                                </div>
+                                {ethAddress && (
+                                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                        <span>地址:</span>
+                                        <CopyAddress 
+                                            textToCopy={ethAddress} 
+                                            className="text-xs"
+                                        />
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -297,9 +413,9 @@ export default function SwapPage() {
                             <label className="text-sm font-medium">到</label>
                             <div className="flex gap-2">
                                 <Select
-                                    value={toToken.symbol}
+                                    value={toToken.xchain_asset}
                                     onValueChange={(value) => {
-                                        const token = SUPPORTED_TOKENS.find(t => t.symbol === value)
+                                        const token = SUPPORTED_TOKENS.find(t => t.xchain_asset === value)
                                         if (token) {
                                             setToToken(token)
                                             // 如果有输入金额，重新计算
@@ -352,8 +468,19 @@ export default function SwapPage() {
                                     className="flex-1 bg-muted/50"
                                 />
                             </div>
-                            <div className="text-xs text-muted-foreground">
-                                余额: 0.00 {toToken.symbol}
+                            <div className="space-y-1">
+                                <div className="text-xs text-muted-foreground">
+                                    余额: {getTokenBalanceInfo(toToken).balance} {toToken.symbol}
+                                </div>
+                                {getTokenBalanceInfo(toToken).hasData && (
+                                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                        <span>{toToken.network} 地址:</span>
+                                        <CopyAddress 
+                                            textToCopy={getTokenBalanceInfo(toToken).address} 
+                                            className="text-xs"
+                                        />
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -364,9 +491,9 @@ export default function SwapPage() {
                                     <span className="text-muted-foreground">汇率</span>
                                     <div className="flex items-center gap-2">
                                         <span>1 {fromToken.symbol} = {exchangeRate.toFixed(6)} {toToken.symbol}</span>
-                                        <Button 
-                                            variant="ghost" 
-                                            size="icon" 
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
                                             className="h-6 w-6"
                                             onClick={() => calculateToAmount(fromAmount)}
                                             disabled={isCalculating}
@@ -396,7 +523,7 @@ export default function SwapPage() {
                                 <div className="flex justify-between text-sm">
                                     <span className="text-muted-foreground">最小接收</span>
                                     <span>
-                                        {slippageBps !== null 
+                                        {slippageBps !== null
                                             ? (parseFloat(toAmount) * (1 - slippageBps / 10000)).toFixed(6)
                                             : (parseFloat(toAmount) * 0.995).toFixed(6)
                                         } {toToken.symbol}
