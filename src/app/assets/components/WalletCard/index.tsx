@@ -2,6 +2,7 @@ import { ArrowDownCircle, Send, History, Settings } from "lucide-react"
 import { getAvatarColor, getInitials } from "./helpers"
 import { TokenAssets } from "./TokenAssets"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { FileText } from "lucide-react"
 
 interface WalletCardProps {
   avatars: {
@@ -11,7 +12,7 @@ interface WalletCardProps {
   WalletSettings?: React.ReactNode
   onSendClick: () => void
   onReceiveClick: () => void
-  onTxHistoryClick: () => void
+  onDetailsClick: () => void
   btcAddress: string
   ethAddress: string
   onWalletSettingsClick?: () => void
@@ -23,7 +24,7 @@ export function WalletCard({
   WalletSettings,
   onSendClick,
   onReceiveClick,
-  onTxHistoryClick,
+  onDetailsClick,
   btcAddress,
   ethAddress,
   onWalletSettingsClick,
@@ -80,11 +81,11 @@ export function WalletCard({
           Receive
         </button>
         <button 
-          onClick={onTxHistoryClick} 
+          onClick={onDetailsClick} 
           className="flex flex-col items-center justify-center p-2 bg-gray-50 hover:bg-gray-100 rounded-md text-sm font-medium text-gray-700 cursor-pointer"
         >
-          <History size={18} className="mb-1"/>
-          Tx history
+          <FileText size={18} className="mb-1"/>
+          Details
         </button>
       </div>  
     </div>

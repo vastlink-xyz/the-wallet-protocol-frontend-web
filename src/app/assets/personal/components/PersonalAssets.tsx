@@ -119,7 +119,7 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
             WalletSettings={<PersonalWalletSettings />}
             onSendClick={handleSendClick}
             onReceiveClick={() => {}}
-            onTxHistoryClick={() => {}}
+            onDetailsClick={() => {}}
             btcAddress={btcAddress}
             ethAddress={litActionPkp.ethAddress}
           />

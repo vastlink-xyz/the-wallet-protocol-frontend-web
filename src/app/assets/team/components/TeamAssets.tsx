@@ -124,7 +124,7 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
                       onSendClick={() => handleSendClick(wallet.id)}
                       onWalletSettingsClick={() => handleWalletSettingsClick(wallet.id)}
                       onReceiveClick={() => {}}
-                      onTxHistoryClick={() => {}}
+                      onDetailsClick={() => {}}
                       btcAddress={wallet.addresses.btc}
                       ethAddress={wallet.addresses.eth}
                     />
