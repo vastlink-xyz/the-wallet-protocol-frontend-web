@@ -2,18 +2,30 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { MultisigWallet } from "@/app/api/multisig/storage";
-import { IRelayPKP } from "@lit-protocol/types";
+import { IRelayPKP, AuthMethod } from "@lit-protocol/types";
+import { getAuthMethodFromStorage } from "@/lib/storage/authmethod";
+import { getProviderByAuthMethodType } from '@/lib/lit';
 
 interface WalletContextType {
   wallet: MultisigWallet | null;
-  pkp: IRelayPKP | null;
+  userPkp: IRelayPKP | null;
+  sessionPkp: IRelayPKP | null;
+  authMethod: AuthMethod | null;
+  authMethodId: string | null;
+  walletPkp: IRelayPKP | null;
   isLoading: boolean;
+  userPhone: string | null;
 }
 
 const WalletContext = createContext<WalletContextType>({
   wallet: null,
-  pkp: null,
-  isLoading: true
+  userPkp: null,
+  sessionPkp: null,
+  authMethod: null,
+  authMethodId: null,
+  walletPkp: null,
+  isLoading: true,
+  userPhone: null
 });
 
 export function useWallet() {
@@ -28,36 +40,118 @@ export function WalletProvider({
   walletId: string 
 }) {
   const [wallet, setWallet] = useState<MultisigWallet | null>(null);
-  const [pkp, setPkp] = useState<IRelayPKP | null>(null);
+  const [walletPkp, setWalletPkp] = useState<IRelayPKP | null>(null);
+  const [userPkp, setUserPkp] = useState<IRelayPKP | null>(null);
+  const [sessionPkp, setSessionPkp] = useState<IRelayPKP | null>(null);
+  const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null);
+  const [authMethodId, setAuthMethodId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [userPhone, setUserPhone] = useState<string | null>(null);
 
   useEffect(() => {
-    async function fetchWalletData() {
+    async function initializeData() {
+      setIsLoading(true);
+      
       try {
-        setIsLoading(true);
-        const response = await fetch(`/api/multisig?id=${walletId}`);
-        const data = await response.json();
+        // Step 1: Get auth method from localStorage (this step must be executed first)
+        const storedAuthMethod = getAuthMethodFromStorage();
+        setAuthMethod(storedAuthMethod);
         
-        if (data.success) {
-          setWallet(data.data);
-          setPkp(data.data.pkp);
-        } else {
-          console.error("Failed to fetch wallet data:", data.message);
+        if (!storedAuthMethod) {
+          setIsLoading(false);
+          return;
         }
+        
+        // Step 2: Get authMethodId (this step must be executed after getting authMethod)
+        const provider = getProviderByAuthMethodType(storedAuthMethod.authMethodType);
+        const currentAuthMethodId = await provider.getAuthMethodId(storedAuthMethod);
+        setAuthMethodId(currentAuthMethodId);
+        
+        // Step 3: Use Promise.all to fetch remaining data in parallel
+        await Promise.all([
+          // Fetch wallet data
+          (async () => {
+            if (!walletId) return;
+            
+            try {
+              const walletResponse = await fetch(`/api/multisig?id=${walletId}`);
+              const walletData = await walletResponse.json();
+              
+              if (walletData.success) {
+                setWallet(walletData.data);
+                setWalletPkp(walletData.data.pkp);
+              } else {
+                console.error("Failed to fetch wallet data:", walletData.message);
+              }
+            } catch (error) {
+              console.error("Error fetching wallet data:", error);
+            }
+          })(),
+          
+          // Fetch user phone number
+          (async () => {
+            try {
+              const phoneResponse = await fetch('/api/mfa/get-user-phone', {
+                headers: {
+                  'Authorization': `Bearer ${storedAuthMethod.accessToken}`
+                }
+              });
+              
+              if (phoneResponse.ok) {
+                const phoneData = await phoneResponse.json();
+                const phones = phoneData.phones || [];
+                
+                if (phones.length > 0) {
+                  setUserPhone(phones[0].phone_number);
+                }
+              }
+            } catch (error) {
+              console.error('Error fetching user phone:', error);
+            }
+          })(),
+          
+          // Fetch user data and session PKP
+          (async () => {
+            if (!currentAuthMethodId) return;
+            
+            try {
+              const userResponse = await fetch(`/api/user?authMethodId=${currentAuthMethodId}`);
+              
+              if (userResponse.ok) {
+                const userData = await userResponse.json();
+                if (userData.sessionPkp) {
+                  setUserPkp(userData.litActionPkp);
+                  setSessionPkp(userData.sessionPkp);
+                }
+              } else {
+                console.error("Failed to fetch user information");
+              }
+            } catch (error) {
+              console.error("Error fetching user data:", error);
+            }
+          })()
+        ]);
       } catch (error) {
-        console.error("Error fetching wallet data:", error);
+        console.error("Error initializing wallet data:", error);
       } finally {
         setIsLoading(false);
       }
     }
-
-    if (walletId) {
-      fetchWalletData();
-    }
+    
+    initializeData();
   }, [walletId]);
 
   return (
-    <WalletContext.Provider value={{ wallet, pkp, isLoading }}>
+    <WalletContext.Provider value={{ 
+      wallet, 
+      userPkp, 
+      sessionPkp, 
+      authMethod, 
+      authMethodId, 
+      walletPkp, 
+      isLoading, 
+      userPhone 
+    }}>
       {children}
     </WalletContext.Provider>
   );

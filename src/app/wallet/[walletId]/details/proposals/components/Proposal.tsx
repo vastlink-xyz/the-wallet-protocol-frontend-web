@@ -2,22 +2,22 @@ import { MessageProposal, MultisigWallet } from "@/app/api/multisig/storage"
 import { WalletSettingsProposal } from "./WalletSettingsProposal"
 import { Button } from "@/components/ui/button"
 import { Loader2 } from "lucide-react"
-import { getTransactionDetails } from "../utils/proposal";
+import { getTransactionDetails, hasUserSigned } from "../utils/proposal";
 import { formatEthAmount } from "@/lib/utils";
 import { SUPPORTED_TOKENS_INFO, TokenType } from "@/lib/web3/token";
+import { IRelayPKP } from "@lit-protocol/types";
 
 interface ProposalProps {
   proposal: MessageProposal;
   selectedWallet: MultisigWallet;
-  executeResult: any;
   handleSignProposal: (proposal: MessageProposal) => void;
   executeMultisigLitAction: (proposal: MessageProposal) => void;
-  hasUserSigned: (proposal: MessageProposal) => boolean;
+  userPkp: IRelayPKP;
   isSigningProposal: boolean;
   isLoading: boolean;
 }
 
-export function Proposal({ proposal, selectedWallet, executeResult, handleSignProposal, executeMultisigLitAction, hasUserSigned, isSigningProposal, isLoading }: ProposalProps) {
+export function Proposal({ proposal, selectedWallet, handleSignProposal, executeMultisigLitAction, userPkp, isSigningProposal, isLoading }: ProposalProps) {
   const txDetails = getTransactionDetails(proposal, selectedWallet);
 
   return <div key={proposal.id} className="p-4 bg-gray-50 rounded-lg">
@@ -49,7 +49,7 @@ export function Proposal({ proposal, selectedWallet, executeResult, handleSignPr
     </div>
 
     <div className="flex flex-wrap gap-2 mt-2">
-      {proposal.status === 'pending' && !hasUserSigned(proposal) && (
+      {proposal.status === 'pending' && !hasUserSigned(proposal, userPkp) && (
         <Button
           onClick={() => handleSignProposal(proposal)}
           disabled={isSigningProposal}
@@ -59,7 +59,7 @@ export function Proposal({ proposal, selectedWallet, executeResult, handleSignPr
         </Button>
       )}
 
-      {hasUserSigned(proposal) && (
+      {hasUserSigned(proposal, userPkp) && (
         <div className="text-sm text-green-600 flex items-center">
           You have signed this transaction
         </div>
@@ -77,14 +77,5 @@ export function Proposal({ proposal, selectedWallet, executeResult, handleSignPr
           </Button>
         )}
     </div>
-
-    {executeResult && proposal.id === executeResult.proposalId && (
-      <div className="mt-4 p-3 bg-gray-100 rounded text-sm">
-        <div className="font-medium mb-1">Execution Result:</div>
-        <pre className="whitespace-pre-wrap break-all">
-          {JSON.stringify(executeResult, null, 2)}
-        </pre>
-      </div>
-    )}
   </div>
 }

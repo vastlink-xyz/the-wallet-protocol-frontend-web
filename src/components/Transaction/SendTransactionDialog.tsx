@@ -1,5 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { Button } from "../ui/button";
 import { SignerEmailField } from "../SignerEmailField";
 import { SUPPORTED_TOKENS_INFO, TokenType } from "@/lib/web3/token";
@@ -142,6 +142,15 @@ export function SendTransactionDialog({
     }
   }
 
+  const handleAddressFound = useCallback((addressData: any) => {
+    if (addressData) {
+      const tokenKey = tokenType.toLowerCase();
+      setRecipientAddress(addressData.addresses?.[tokenKey] || '');
+    } else {
+      setRecipientAddress('');
+    }
+  }, [tokenType]);
+
   // Display MFA component
   if (showMfa && mfaPhoneNumber) {
     return (
@@ -180,14 +189,7 @@ export function SendTransactionDialog({
               placeholder: `Email address or ${tokenInfo.symbol} address`,
               id: "recipient"
             }}
-            onAddressFound={(addressData) => {
-              if (addressData) {
-                const tokenKey = tokenType.toLowerCase();
-                setRecipientAddress(addressData.addresses?.[tokenKey] || '');
-              } else {
-                setRecipientAddress('');
-              }
-            }}
+            onAddressFound={handleAddressFound}
             tokenType={tokenType}
           />
 

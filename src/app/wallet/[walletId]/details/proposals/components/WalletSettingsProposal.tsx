@@ -31,7 +31,6 @@ export function WalletSettingsProposal({ proposal, selectedWallet }: WalletSetti
   
   // Get original state from proposal or use selectedWallet as fallback
   const originalState = settingsData.originalState || selectedWallet;
-  log('originalState', originalState)
   
   // Prepare descriptions of changes
   const descriptions = [];
@@ -76,7 +75,6 @@ export function WalletSettingsProposal({ proposal, selectedWallet }: WalletSetti
   
   // Check for MFA setting changes
   const mfaChanges: string[] = [];
-  log('settingsData.mfaSettings', settingsData.mfaSettings)
   if (settingsData.mfaSettings?.dailyLimits && originalState?.mfaSettings?.dailyLimits) {
     const newLimits = settingsData.mfaSettings.dailyLimits;
     const oldLimits = originalState.mfaSettings.dailyLimits;

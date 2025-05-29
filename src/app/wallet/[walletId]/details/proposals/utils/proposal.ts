@@ -1,7 +1,10 @@
 import { MessageProposal, MultisigWallet } from "@/app/api/multisig/storage";
+import { sendMultisigNotification } from "@/lib/notification";
+import { getUserEmailFromStorage } from "@/lib/utils";
+import { IRelayPKP } from "@lit-protocol/types";
 import axios from "axios";
 
-export const getTransactionDetails = (proposal: MessageProposal, selectedWallet: MultisigWallet) => {
+export const getTransactionDetails = (proposal: MessageProposal, wallet: MultisigWallet) => {
   try {
     // If this is a wallet settings modification proposal
     if (proposal.type === 'walletSettings') {
@@ -13,7 +16,7 @@ export const getTransactionDetails = (proposal: MessageProposal, selectedWallet:
       }
       
       if (settingsData.signers) {
-        const originalSigners = selectedWallet?.signers || [];
+        const originalSigners = wallet?.signers || [];
         const newSigners = settingsData.signers.filter((s: any) => 
           !originalSigners.some((os: any) => os.ethAddress === s.ethAddress)
         );
@@ -68,4 +71,64 @@ export const getTransactionDetails = (proposal: MessageProposal, selectedWallet:
 export const fetchProposals = async (walletId: string) => {
   const { data } = await axios.get(`/api/multisig/messages?walletId=${walletId}`)
   return data.data
+}
+
+export const fetchUpdatedWallet = async (walletId: string) => {
+  try {
+    const response = await axios.get(`/api/multisig?id=${walletId}`);
+    if (response.data.success) {
+      return response.data.data;
+    }
+    return null;
+  } catch (error) {
+    console.error('Failed to fetch updated wallet:', error);
+    return null;
+  }
+};
+    
+  // Function to send notifications to new signers after wallet settings update
+export const sendNotificationsToNewSigners = async (originalWallet: MultisigWallet, updatedWallet: MultisigWallet) => {
+  try {
+    // Get original signers
+    const originalSigners = originalWallet.signers || [];
+    
+    // Find new signers (signers in updated wallet that were not in original wallet)
+    const newSigners = updatedWallet.signers.filter((newSigner: any) => 
+      !originalSigners.some((originalSigner: any) => 
+        originalSigner.ethAddress === newSigner.ethAddress
+      )
+    );
+    
+    // Send email notifications to new signers if any
+    if (newSigners.length > 0) {
+      // Get current user's email
+      const currentUserEmail = getUserEmailFromStorage()
+      
+      // Build wallet link
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
+      const walletLink = appUrl;
+      
+      // Send notifications to each new signer
+      await Promise.all(newSigners.map(async (signer: any) => {
+        await sendMultisigNotification({
+          to: signer.email,
+          walletLink,
+          notificationType: 'multisig-wallet-added',
+          currentUserEmail,
+          walletAddress: updatedWallet.pkp.ethAddress,
+          threshold: updatedWallet.threshold,
+          signersCount: updatedWallet.signers.length
+        });
+      }));
+    }
+    
+    return newSigners.length > 0;
+  } catch (error) {
+    console.error('Error sending notifications to new signers:', error);
+    return false;
+  }
+};
+
+export const hasUserSigned = (proposal: MessageProposal, userPkp: IRelayPKP) => {
+  return proposal.signatures.some(sig => sig.signer === userPkp.ethAddress)
 }

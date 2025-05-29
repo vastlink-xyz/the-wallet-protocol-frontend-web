@@ -935,10 +935,9 @@ export function Multisig({
                   key={proposal.id}
                   proposal={proposal}
                   selectedWallet={selectedWallet}
-                  executeResult={null}
                   handleSignProposal={handleSignProposal}
                   executeMultisigLitAction={executeMultisigLitAction}
-                  hasUserSigned={hasUserSigned}
+                  userPkp={currentPkp}
                   isSigningProposal={isSigningProposal}
                   isLoading={isLoading}
                 />

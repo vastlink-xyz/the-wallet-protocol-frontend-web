@@ -10,7 +10,7 @@ export default function WalletDetailsRedirectPage() {
 
   useEffect(() => {
     if (walletId) {
-      router.replace(`/wallet/${walletId}/details/transactions`);
+      router.replace(`/wallet/${walletId}/details/proposals`);
     }
   }, [walletId, router]);
 

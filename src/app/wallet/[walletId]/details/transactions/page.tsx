@@ -3,7 +3,7 @@
 import { useWallet } from "../context/WalletContext";
 
 export default function TransactionHistoryPage() {
-  const { wallet, pkp, isLoading } = useWallet();
+  const { wallet, isLoading } = useWallet();
   
   if (isLoading) {
     return <div className="mt-4">Loading wallet data...</div>;
