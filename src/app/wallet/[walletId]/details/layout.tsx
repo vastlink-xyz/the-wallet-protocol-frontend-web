@@ -1,15 +1,31 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useParams } from "next/navigation";
-import { History, FileText } from "lucide-react";
+import { usePathname, useParams, useRouter } from "next/navigation";
+import { History, FileText, ArrowLeft, Wallet } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { WalletProvider, useWallet } from "./context/WalletContext";
+
+// Inner component that can use the wallet context
+function WalletName() {
+  const { wallet, isLoading } = useWallet();
+  
+  if (isLoading || !wallet) return null;
+  
+  return (
+    <div className="flex items-center text-gray-600 text-lg font-medium mb-6">
+      <Wallet className="h-5 w-5 mr-2" />
+      {wallet.name || "Unnamed Wallet"}
+    </div>
+  );
+}
 
 export default function WalletDetailsLayoutClient({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const router = useRouter();
   const pathname = usePathname();
   const params = useParams();
   const walletId = params.walletId as string;
@@ -28,29 +44,39 @@ export default function WalletDetailsLayoutClient({
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <h1 className="text-2xl font-bold mb-4">Wallet Details</h1>
-      <p className="text-gray-500 mb-6">
-        Showing details for wallet ID: {walletId}
-      </p>
-      
-      <Tabs value={getActiveTab()} className="mb-6">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="transactions" asChild>
-            <Link href={`/wallet/${walletId}/details/transactions`}>
-              <History className="w-4 h-4 mr-2" />
-              Transaction History
-            </Link>
-          </TabsTrigger>
-          <TabsTrigger value="proposals" asChild>
-            <Link href={`/wallet/${walletId}/details/proposals`}>
-              <FileText className="w-4 h-4 mr-2" />
-              Proposals
-            </Link>
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
-      {children}
-    </div>
+    <WalletProvider walletId={walletId}>
+      <div className="container mx-auto py-8">
+        <div className="mb-4 flex items-center justify-between">
+          <h1 className="text-2xl font-bold">Wallet Details</h1>
+          <button 
+            onClick={() => router.push('/assets/team')}
+            className="flex items-center text-sm font-medium text-gray-600 hover:text-gray-900 cursor-pointer"
+          >
+            <ArrowLeft className="h-5 w-5 mr-1" />
+            Back to Team Wallet(s)
+          </button>
+        </div>
+
+        <WalletName />
+        
+        <Tabs value={getActiveTab()} className="mb-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="transactions" asChild>
+              <Link href={`/wallet/${walletId}/details/transactions`}>
+                <History className="w-4 h-4 mr-2" />
+                Transaction History
+              </Link>
+            </TabsTrigger>
+            <TabsTrigger value="proposals" asChild>
+              <Link href={`/wallet/${walletId}/details/proposals`}>
+                <FileText className="w-4 h-4 mr-2" />
+                Proposals
+              </Link>
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+        {children}
+      </div>
+    </WalletProvider>
   );
 } 

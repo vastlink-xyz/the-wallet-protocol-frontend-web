@@ -12,18 +12,17 @@ import { litNodeClient } from "@/lib/lit"
 import { toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import { SignerEmailField } from "@/components/SignerEmailField"
-import { WalletSettingsProposal } from "./WalletSettingsProposal"
 import { getMultisigTransactionIpfsId, getPersonalSignIpfsId, getUpdateWalletIpfsId } from "@/lib/lit/ipfs-id-env"
 import { sendMultisigNotification } from '@/lib/notification'
 import { useAuthExpiration } from '@/hooks/useAuthExpiration'
 import { isTokenValid } from "@/lib/jwt"
-import { MfaOtpDialog } from "@/components/MfaOtpDialog"
 import { TokenType, SUPPORTED_TOKENS_INFO } from "@/lib/web3/token"
 import { broadcastTransactionByTokenType, getToSignTransactionByTokenType } from "@/lib/web3/transaction"
 import { fetchBtcBalance } from "@/lib/web3/btc"
 import { fetchEthBalance } from "@/lib/web3/eth"
 import { SelectToken } from "@/components/SelectToken"
-import { Proposal } from "@/app/wallet/[walletId]/details/components/Proposal"
+import { Proposal } from "@/app/wallet/[walletId]/details/proposals/components/Proposal"
+import { MFAOtpDialog } from "@/components/Transaction/MFAOtpDialog"
 
 export function Multisig({
   currentPkp,
@@ -779,11 +778,7 @@ export function Multisig({
     log('OTP sent, method_id:', data.method_id);
   };
 
-  const handleVerifyOtp = async (otp: string) => {
-    return otp
-  };
-
-  const handleOtpVerified = async (otp: string) => {
+  const handleOtpVerify = async (otp: string) => {
     // Close the dialog
     setShowMfaDialog(false);
 
@@ -941,11 +936,11 @@ export function Multisig({
                   proposal={proposal}
                   selectedWallet={selectedWallet}
                   executeResult={null}
-                  handleSignProposal={() => { }}
-                  executeMultisigLitAction={() => { }}
-                  hasUserSigned={() => false}
-                  isSigningProposal={false}
-                  isLoading={false}
+                  handleSignProposal={handleSignProposal}
+                  executeMultisigLitAction={executeMultisigLitAction}
+                  hasUserSigned={hasUserSigned}
+                  isSigningProposal={isSigningProposal}
+                  isLoading={isLoading}
                 />
               );
             })}
@@ -953,12 +948,11 @@ export function Multisig({
         </div>
       )}
 
-      <MfaOtpDialog
+      <MFAOtpDialog
         isOpen={showMfaDialog}
         onClose={() => setShowMfaDialog(false)}
-        onOtpVerified={handleOtpVerified}
+        onOtpVerify={handleOtpVerify}
         sendOtp={handleSendOtp}
-        verifyOtp={handleVerifyOtp}
         identifier={verifiedPhone}
         title="Verify Transaction"
         description="A verification code will be sent to your phone via WhatsApp"

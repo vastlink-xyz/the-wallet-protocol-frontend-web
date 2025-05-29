@@ -1,63 +1,72 @@
 "use client";
 
 import { MessageProposal } from "@/app/api/multisig/storage";
-import { useState, useEffect, use } from "react";
+import { useState, useEffect } from "react";
 import { Proposal } from "./components/Proposal";
-import { MultisigWallet } from "@/app/api/multisig/storage";
 import { fetchProposals } from "./utils/proposal";
-import { IRelayPKP } from "@lit-protocol/types";
+import { useWallet } from "../context/WalletContext";
+import { useParams } from "next/navigation";
 
-interface ProposalsPageProps {
-  params: Promise<{
-    walletId: string;
-  }>;
-}
-
-export default function ProposalsPage({ params }: ProposalsPageProps) {
-  const unwrappedParams = use(params);
-  const { walletId } = unwrappedParams;
+export default function ProposalsPage() {
+  // Get walletId from params
+  const params = useParams();
+  const walletId = params.walletId as string;
+  
+  // Get wallet data from context
+  const { wallet, isLoading: isWalletLoading } = useWallet();
+  
+  // Local state for proposals
   const [proposals, setProposals] = useState<MessageProposal[]>([]);
-  const [selectedWallet, setSelectedWallet] = useState<MultisigWallet | null>(
-    null
-  );
+  const [isLoadingProposals, setIsLoadingProposals] = useState(true);
 
+  // Fetch proposals for this wallet
   useEffect(() => {
-    const fetchData = async () => {
-      const fetchedProposals = await fetchProposals(walletId);
-      setProposals(fetchedProposals);
-
+    async function getProposals() {
       try {
-        const response = await fetch(`/api/multisig?id=${walletId}`);
-        const data = await response.json();
-        if (data.success) {
-          setSelectedWallet(data.data);
-        }
+        setIsLoadingProposals(true);
+        const fetchedProposals = await fetchProposals(walletId);
+        setProposals(fetchedProposals);
       } catch (error) {
-        console.error("Failed to fetch wallet:", error);
+        console.error("Failed to fetch proposals:", error);
+      } finally {
+        setIsLoadingProposals(false);
       }
-    };
-    fetchData();
+    }
+    
+    if (walletId) {
+      getProposals();
+    }
   }, [walletId]);
 
-  if (!selectedWallet) {
-    return <div>Loading...</div>;
+  // Show loading state if wallet or proposals are still loading
+  if (isWalletLoading || isLoadingProposals) {
+    return <div>Loading proposals...</div>;
+  }
+
+  // If wallet is not available, show an error
+  if (!wallet) {
+    return <div>Wallet not found</div>;
   }
 
   return (
     <div className="mt-4 space-y-4">
-      {proposals.map((proposal) => (
-        <Proposal
-          key={proposal.id}
-          proposal={proposal}
-          selectedWallet={selectedWallet}
-          executeResult={null}
-          handleSignProposal={() => {}}
-          executeMultisigLitAction={() => {}}
-          hasUserSigned={() => false}
-          isSigningProposal={false}
-          isLoading={false}
-        />
-      ))}
+      {proposals.length === 0 ? (
+        <p>No proposals found for this wallet.</p>
+      ) : (
+        proposals.map((proposal) => (
+          <Proposal
+            key={proposal.id}
+            proposal={proposal}
+            selectedWallet={wallet}
+            executeResult={null}
+            handleSignProposal={() => {}}
+            executeMultisigLitAction={() => {}}
+            hasUserSigned={() => false}
+            isSigningProposal={false}
+            isLoading={false}
+          />
+        ))
+      )}
     </div>
   );
 } 

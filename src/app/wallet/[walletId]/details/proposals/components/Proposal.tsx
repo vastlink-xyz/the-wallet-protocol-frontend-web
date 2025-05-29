@@ -1,5 +1,5 @@
 import { MessageProposal, MultisigWallet } from "@/app/api/multisig/storage"
-import { WalletSettingsProposal } from "@/app/multisig/components/WalletSettingsProposal"
+import { WalletSettingsProposal } from "./WalletSettingsProposal"
 import { Button } from "@/components/ui/button"
 import { Loader2 } from "lucide-react"
 import { getTransactionDetails } from "../utils/proposal";
