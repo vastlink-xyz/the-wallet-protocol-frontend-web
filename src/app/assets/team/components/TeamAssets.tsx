@@ -110,6 +110,10 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
     window.open(`/multisig?walletId=${walletId}`, '_blank')
   }
 
+  const handleDetailsClick = (walletId: string) => {
+    window.open(`/wallet/${walletId}/details`, '_blank')
+  }
+
   return (
     <div className="p-4 flex flex-col items-center gap-4 w-full">
       {isLoading ? (
@@ -128,7 +132,7 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
                       onSendClick={() => handleSendClick(wallet.id)}
                       onWalletSettingsClick={() => handleWalletSettingsClick(wallet)}
                       onReceiveClick={() => {}}
-                      onDetailsClick={() => {}}
+                      onDetailsClick={() => handleDetailsClick(wallet.id)}
                       btcAddress={wallet.addresses.btc}
                       ethAddress={wallet.addresses.eth}
                     />
