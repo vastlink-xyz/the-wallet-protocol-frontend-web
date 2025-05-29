@@ -27,8 +27,8 @@ interface SendTransactionDialogProps {
   showMfa: boolean
   onSendTransaction: (state: SendTransactionDialogState) => Promise<void>
   isSending: boolean
-  onMFACancel: () => void
-  onMFAVerify: (state: SendTransactionDialogState) => Promise<void>
+  onMFACancel?: () => void
+  onMFAVerify?: (state: SendTransactionDialogState) => Promise<void>
   onDialogOpenChange: (open: boolean) => void
 }
 
@@ -137,7 +137,9 @@ export function SendTransactionDialog({
   };
 
   const handleOtpVerify = async (otp: string) => {
-    await onMFAVerify({ to, recipientAddress, amount, tokenType, mfaMethodId, mfaPhoneNumber, otpCode: otp })
+    if (onMFAVerify) {
+      await onMFAVerify({ to, recipientAddress, amount, tokenType, mfaMethodId, mfaPhoneNumber, otpCode: otp })
+    }
   }
 
   // Display MFA component
@@ -145,7 +147,7 @@ export function SendTransactionDialog({
     return (
       <MFAOtpDialog
         isOpen={showMfa}
-        onClose={onMFACancel}
+        onClose={onMFACancel || (() => {})}
         onOtpVerify={handleOtpVerify}
         sendOtp={handleSendOtp}
         identifier={mfaPhoneNumber}

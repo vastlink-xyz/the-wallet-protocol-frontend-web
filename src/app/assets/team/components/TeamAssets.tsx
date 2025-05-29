@@ -10,6 +10,8 @@ import { WalletCard } from '../../components/WalletCard'
 import { MultisigWallet } from '@/app/api/multisig/storage'
 import { useRouter } from 'next/navigation'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { SendTransactionDialog, SendTransactionDialogState } from '@/components/Transaction/SendTransactionDialog'
+import { toast } from 'react-toastify'
 
 interface TeamAssetsProps {
   authMethod: AuthMethod
@@ -26,6 +28,9 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
   const [authMethodId, setAuthMethodId] = useState<string>('')
   const [mode, setMode] = useState<'create' | 'edit'>('create')
   const [selectedWallet, setSelectedWallet] = useState<MultisigWallet | undefined>()
+
+  const [showSendDialog, setShowSendDialog] = useState(false)
+  const [isSending, setIsSending] = useState(false)
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -106,12 +111,48 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
     setShowMultisigSetting(true)
   }
 
-  const handleSendClick = (walletId: string) => {
-    window.open(`/multisig?walletId=${walletId}`, '_blank')
+  const handleSendClick = (wallet: MultisigWallet) => {
+    setSelectedWallet(wallet)
+    setShowSendDialog(true)
   }
 
   const handleDetailsClick = (walletId: string) => {
     window.open(`/wallet/${walletId}/details`, '_blank')
+  }
+
+  const handleExecuteTransaction = async (state: SendTransactionDialogState) => {
+    const { to, recipientAddress, amount, tokenType } = state
+    if (!selectedWallet) {
+      return
+    }
+    
+    try {
+      setIsSending(true)
+      const txData = {
+        to: recipientAddress,
+        value: amount,
+        data: '0x',
+        tokenType: tokenType
+      }
+      
+      const response = await axios.post('/api/multisig/messages', {
+        walletId: selectedWallet?.id,
+        createdBy: userPkp?.ethAddress,
+        message: JSON.stringify(txData),
+        transactionData: txData,
+        sendEmail: true,
+        signers: selectedWallet?.signers
+      })
+
+      if (response.data.success) {
+        setShowSendDialog(false)
+        toast.success('Transaction proposal created successfully. Please go to the wallet details page to sign the proposal.')
+      }
+    } catch (error) {
+      console.error('Failed to create proposal:', error)
+    } finally {
+      setIsSending(false)
+    }
   }
 
   return (
@@ -129,7 +170,7 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
                     <WalletCard
                       avatars={wallet.signers.map(signer => ({ email: signer.email }))}
                       walletName={wallet.name}
-                      onSendClick={() => handleSendClick(wallet.id)}
+                      onSendClick={() => handleSendClick(wallet)}
                       onWalletSettingsClick={() => handleWalletSettingsClick(wallet)}
                       onReceiveClick={() => {}}
                       onDetailsClick={() => handleDetailsClick(wallet.id)}
@@ -182,6 +223,15 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
           onSuccess={handleRefreshWallets}
         />
       )}
+
+      <SendTransactionDialog
+        authMethod={authMethod}
+        showSendDialog={showSendDialog}
+        showMfa={false}
+        onSendTransaction={handleExecuteTransaction}
+        isSending={isSending}
+        onDialogOpenChange={setShowSendDialog}
+      />
     </div>
   )
 } 
