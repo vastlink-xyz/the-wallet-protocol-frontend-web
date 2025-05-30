@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input'
 import { Loader2, AlertCircle } from 'lucide-react'
 import axios from 'axios'
 import { ethers } from 'ethers'
-import { TokenType } from '@/lib/web3/token'
+import { SUPPORTED_TOKENS_INFO, TokenType } from '@/lib/web3/token'
 import { UserAddresses } from '@/app/api/user/storage'
 import { CopyAddress } from './ui/CopyAddress'
 
@@ -76,8 +76,8 @@ export function SignerEmailField({
   } | null>(address ? { 
     publicKey: '',
     addresses: { 
-      eth: tokenType.toLowerCase() === 'eth' ? address : '', 
-      btc: tokenType.toLowerCase() === 'btc' ? address : '' 
+      eth: SUPPORTED_TOKENS_INFO[tokenType].addressKey === 'eth' ? address : '', 
+      btc: SUPPORTED_TOKENS_INFO[tokenType].addressKey === 'btc' ? address : '' 
     } 
   } : null)
   const [internalInputType, setInternalInputType] = useState<'email' | 'address' | null>(inputType || null)
@@ -88,8 +88,8 @@ export function SignerEmailField({
       const addressData = { 
         publicKey: '',
         addresses: { 
-          eth: tokenType.toLowerCase() === 'eth' ? address : '', 
-          btc: tokenType.toLowerCase() === 'btc' ? address : '' 
+          eth: SUPPORTED_TOKENS_INFO[tokenType].addressKey === 'eth' ? address : '', 
+          btc: SUPPORTED_TOKENS_INFO[tokenType].addressKey === 'btc' ? address : '' 
         } 
       };
       
@@ -106,7 +106,7 @@ export function SignerEmailField({
   // Function to validate an address based on token type
   const isValidAddress = (value: string, type: TokenType): boolean => {
     // Add validation for different address types
-    switch(type.toLowerCase()) {
+    switch(SUPPORTED_TOKENS_INFO[type].addressKey) {
       case 'eth':
         return ethers.utils.isAddress(value);
       case 'btc':
@@ -137,7 +137,7 @@ export function SignerEmailField({
             eth: '',
             btc: ''
           };
-          addresses[tokenType.toLowerCase()] = input.value;
+          addresses[SUPPORTED_TOKENS_INFO[tokenType].addressKey] = input.value;
           
           const newAddressInfo = {
             publicKey: '',
@@ -222,7 +222,7 @@ export function SignerEmailField({
           eth: '',
           btc: ''
         };
-        addresses[tokenType.toLowerCase()] = input.value;
+        addresses[SUPPORTED_TOKENS_INFO[tokenType].addressKey] = input.value;
         
         const newAddressInfo = {
           publicKey: '',
@@ -241,8 +241,7 @@ export function SignerEmailField({
     if (!addressInfo?.addresses) return '';
     
     // Get address for current token type (lowercase for case-insensitive matching)
-    const tokenKey = tokenType.toLowerCase();
-    return addressInfo.addresses[tokenKey] || '';
+    return addressInfo.addresses[SUPPORTED_TOKENS_INFO[tokenType].addressKey] || '';
   };
 
   return (

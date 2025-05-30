@@ -144,7 +144,7 @@ export function SendTransactionDialog({
 
   const handleAddressFound = useCallback((addressData: any) => {
     if (addressData) {
-      const tokenKey = tokenType.toLowerCase();
+      const tokenKey = SUPPORTED_TOKENS_INFO[tokenType].addressKey;
       setRecipientAddress(addressData.addresses?.[tokenKey] || '');
     } else {
       setRecipientAddress('');

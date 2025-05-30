@@ -14,6 +14,8 @@ export const SUPPORTED_TOKENS_INFO = {
     decimals: 8,
     chainType: 'UTXO',
     iconUrl: '/cryptocurrency/btc.png',
+    contractAddress: '',
+    addressKey: 'btc',
   },
   ETH: {
     symbol: 'ETH',
@@ -21,6 +23,8 @@ export const SUPPORTED_TOKENS_INFO = {
     decimals: 18,
     chainType: 'EVM',
     iconUrl: '/cryptocurrency/eth.png',
+    contractAddress: '',
+    addressKey: 'eth',
   },
   // SOL: {
   //   symbol: 'SOL',
@@ -28,13 +32,15 @@ export const SUPPORTED_TOKENS_INFO = {
   //   decimals: 9,
   //   chainType: 'Solana',
   // },
-  // USDT: { // (ERC-20 on Ethereum)
-  //   symbol: 'USDT',
-  //   name: 'Tether (ERC-20)',
-  //   decimals: 6,
-  //   chainType: 'EVM',
-  //   contractAddress: ''
-  // }
+  USDT: { // (ERC-20 on sepolia)
+    symbol: 'USDT',
+    name: 'Tether (ERC-20)',
+    decimals: 6,
+    chainType: 'EVM',
+    iconUrl: '/cryptocurrency/usdt.png',
+    contractAddress: '0xaA8E23Fb1079EA71e0a56F48a2aA51851D8433D0',
+    addressKey: 'eth',
+  }
 } as const;
 
 /**

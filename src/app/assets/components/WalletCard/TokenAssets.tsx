@@ -1,6 +1,6 @@
 import { CopyAddress } from "@/components/ui/CopyAddress"
 import { fetchBtcBalance } from "@/lib/web3/btc"
-import { fetchEthBalance } from "@/lib/web3/eth"
+import { fetchERC20TokenBalance, fetchEthBalance } from "@/lib/web3/eth"
 import { formatBalance } from "@/lib/web3/format"
 import { SUPPORTED_TOKENS_INFO, TokenType } from "@/lib/web3/token"
 import { Loader2, RefreshCcw } from "lucide-react"
@@ -12,6 +12,9 @@ export type TokenData = {
   balance: string
   address: string
   loading: boolean
+  chainType: string
+  contractAddress?: string
+  decimals: number
 }
 
 interface TokenAssetsProps {
@@ -24,6 +27,7 @@ const supportedTokens = Object.values(SUPPORTED_TOKENS_INFO)
 const addressByTokenSymbol = (tokenSymbol: TokenType, btcAddress: string, ethAddress: string) => {
   if (tokenSymbol === 'BTC') return btcAddress
   if (tokenSymbol === 'ETH') return ethAddress
+  if (tokenSymbol === 'USDT') return ethAddress
   return ''
 }
 
@@ -38,6 +42,9 @@ export function TokenAssets({ btcAddress, ethAddress }: TokenAssetsProps) {
       symbol: token.symbol,
       balance: '0',
       address: addressByTokenSymbol(token.symbol, btcAddress, ethAddress),
+      chainType: token.chainType,
+      contractAddress: token.contractAddress,
+      decimals: token.decimals,
       loading: false // Set to false initially, will be set to true when loading starts
     })))
   }, [btcAddress, ethAddress])
@@ -56,14 +63,17 @@ export function TokenAssets({ btcAddress, ethAddress }: TokenAssetsProps) {
       if (token.symbol === 'BTC') {
         // fetchBtcBalance accepts string type address
         balance = (await fetchBtcBalance(token.address))?.toString() || '0';
-        balance = formatBalance(balance)
       } else if (token.symbol === 'ETH') {
         // fetchEthBalance returns string type directly
         balance = await fetchEthBalance(token.address) || '0';
-        balance = formatBalance(balance)
-      } else {
-        throw new Error(`Unsupported token symbol: ${token.symbol}`);
+      } else if (token.chainType === 'EVM' && token.contractAddress) {
+        balance = await fetchERC20TokenBalance({
+          address: token.address,
+          tokenAddress: token.contractAddress,
+          decimals: token.decimals
+        })
       }
+      balance = formatBalance(balance)
       
       // Update balance and set loading to false
       setTokenDataList(prev => 

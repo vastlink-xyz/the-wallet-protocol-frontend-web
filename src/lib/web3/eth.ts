@@ -1,6 +1,7 @@
 import { ethers } from "ethers"
 import { LIT_CHAINS } from "@lit-protocol/constants"
 import { log } from "../utils";
+import { ERC20_ABI } from "@/constants/abis/erc20";
 
 /**
  * Fetch ETH balance for an address
@@ -78,4 +79,25 @@ export const fetchEthTransactionHistory = async (
       limit: limit
     };
   }
+}
+
+export const fetchERC20TokenBalance = async ({
+  address,
+  tokenAddress,
+  chainName = 'sepolia',
+  decimals,
+}: {
+  address: string
+  tokenAddress: string
+  chainName?: string
+  decimals?: number
+}) => {
+  const rpcUrl = LIT_CHAINS[chainName as keyof typeof LIT_CHAINS]?.rpcUrls[0];
+  if (!rpcUrl) {
+    throw new Error(`Chain ${chainName} not found in LIT_CHAINS`);
+  }
+  const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
+  const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, provider);
+  const balance = await tokenContract.balanceOf(address)
+  return ethers.utils.formatUnits(balance, decimals)
 }
