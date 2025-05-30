@@ -122,7 +122,7 @@ export const getToSignTransactionByTokenType = async ({
     const amountInWei = ethers.utils.parseUnits(amount, decimals);
     
     const iface = new ethers.utils.Interface(ERC20_ABI);
-    const data = iface.encodeFunctionData("transfer", [tokenInfo.contractAddress, amountInWei]);
+    const data = iface.encodeFunctionData("transfer", [recipientAddress, amountInWei]);
     
     const gasPrice = await rpcProvider.getGasPrice()
     const nonce = await rpcProvider.getTransactionCount(sendAddress)
