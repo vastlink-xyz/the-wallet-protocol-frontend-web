@@ -13,17 +13,3 @@ export function middleware(req: NextRequest) {
   // Otherwise continue with the request
   return NextResponse.next();
 }
-
-// Filter out paths that don't need redirection
-export const config = {
-  matcher: [
-    /*
-     * Match all request paths except:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico, sitemap.xml, robots.txt (metadata files)
-     */
-    '/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)',
-  ],
-};
