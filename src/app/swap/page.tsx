@@ -478,15 +478,15 @@ export default function SwapPage() {
             <div className="space-y-6">
                 {/* 页面标题 */}
                 <div className="text-center">
-                    <h1 className="text-3xl font-bold">代币交换</h1>
-                    <p className="text-muted-foreground mt-2">使用 THORChain 进行跨链代币交换</p>
+                    <h1 className="text-3xl font-bold">Token Swap</h1>
+                    <p className="text-muted-foreground mt-2">Using THORChain for cross-chain token swaps</p>
                 </div>
 
                 {/* 主交换界面 */}
                 <Card>
                     <CardHeader className="pb-4">
                         <div className="flex items-center justify-between">
-                            <CardTitle>交换</CardTitle>
+                            <CardTitle>Swap</CardTitle>
                             <Button variant="ghost" size="icon">
                                 <Settings className="h-4 w-4" />
                             </Button>
@@ -496,7 +496,7 @@ export default function SwapPage() {
                     <CardContent className="space-y-4">
                         {/* 源代币选择 */}
                         <div className="space-y-2">
-                            <label className="text-sm font-medium">从</label>
+                            <label className="text-sm font-medium">From</label>
                             <div className="flex gap-2">
                                 <Select
                                     value={fromToken.xchain_asset}
@@ -558,13 +558,13 @@ export default function SwapPage() {
                             </div>
                             <div className="space-y-1">
                                 <div className="text-xs text-muted-foreground">
-                                    余额: {ethWalletBalance} {fromToken.symbol}
+                                    Balance: {ethWalletBalance} {fromToken.symbol}
                                 </div>
                                 {ethAddress && (
                                     <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                        <span>地址:</span>
-                                        <CopyAddress 
-                                            textToCopy={ethAddress} 
+                                        <span>Address:</span>
+                                        <CopyAddress
+                                            textToCopy={ethAddress}
                                             className="text-xs"
                                         />
                                     </div>
@@ -586,7 +586,7 @@ export default function SwapPage() {
 
                         {/* 目标代币选择 */}
                         <div className="space-y-2">
-                            <label className="text-sm font-medium">到</label>
+                            <label className="text-sm font-medium">To</label>
                             <div className="flex gap-2">
                                 <Select
                                     value={toToken.xchain_asset}
@@ -638,7 +638,7 @@ export default function SwapPage() {
 
                                 <Input
                                     placeholder="0.0"
-                                    value={isCalculating ? '计算中...' : toAmount}
+                                    value={isCalculating ? 'Calculating...' : toAmount}
                                     readOnly
                                     type="text"
                                     className="flex-1 bg-muted/50"
@@ -648,16 +648,16 @@ export default function SwapPage() {
 
                         {/* 目标地址输入 */}
                         <div className="space-y-2">
-                            <label className="text-sm font-medium">目标地址</label>
+                            <label className="text-sm font-medium">To Address</label>
                             <Input
-                                placeholder="输入目标地址或使用默认地址"
+                                placeholder="Enter target address or use default"
                                 value={destAddress}
                                 onChange={(e) => setDestAddress(e.target.value)}
                                 type="text"
                                 className="w-full font-mono text-sm"
                             />
                             <div className="text-xs text-muted-foreground">
-                                代币将转入此地址。默认为您的钱包地址。
+                                The token will be sent to this address. Defaults to your wallet address.
                             </div>
                         </div>
 
@@ -665,7 +665,7 @@ export default function SwapPage() {
                         {fromAmount && toAmount && exchangeRate && (
                             <div className="bg-muted/50 rounded-lg p-3 space-y-2">
                                 <div className="flex justify-between items-center text-sm">
-                                    <span className="text-muted-foreground">汇率</span>
+                                    <span className="text-muted-foreground">Exchange Rate</span>
                                     <div className="flex items-center gap-2">
                                         <span>1 {fromToken.symbol} = {exchangeRate.toFixed(6)} {toToken.symbol}</span>
                                         <Button
@@ -681,24 +681,24 @@ export default function SwapPage() {
                                 </div>
                                 {swapFees && (
                                     <div className="flex justify-between text-sm">
-                                        <span className="text-muted-foreground">网络费用</span>
+                                        <span className="text-muted-foreground">Network Fee</span>
                                         <span>{swapFees.outboundFee}</span>
                                     </div>
                                 )}
                                 {swapFees && swapFees.affiliateFee !== '0' && (
                                     <div className="flex justify-between text-sm">
-                                        <span className="text-muted-foreground">联盟费用</span>
+                                        <span className="text-muted-foreground">Affiliate Fee</span>
                                         <span>{swapFees.affiliateFee}</span>
                                     </div>
                                 )}
                                 {slippageBps !== null && (
                                     <div className="flex justify-between text-sm">
-                                        <span className="text-muted-foreground">预估滑点</span>
+                                        <span className="text-muted-foreground">Estimated Slippage</span>
                                         <span>{(slippageBps / 100).toFixed(2)}%</span>
                                     </div>
                                 )}
                                 <div className="flex justify-between text-sm">
-                                    <span className="text-muted-foreground">最小接收</span>
+                                    <span className="text-muted-foreground">Minimum Received</span>
                                     <span>
                                         {slippageBps !== null
                                             ? (parseFloat(toAmount) * (1 - slippageBps / 10000)).toFixed(6)
@@ -714,7 +714,7 @@ export default function SwapPage() {
                             className="w-full"
                             size="lg"
                         >
-                            {isLoading ? '交换中...' : isCalculating ? '计算中...' : '交换'}
+                            {isLoading ? 'Swapping...' : isCalculating ? 'Calculating...' : 'Swap'}
                         </Button>
                     </CardContent>
                 </Card>
@@ -722,14 +722,14 @@ export default function SwapPage() {
                 {/* 交换历史或其他信息 */}
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-lg">交换说明</CardTitle>
+                        <CardTitle className="text-lg">Swap Instructions</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="text-sm text-muted-foreground space-y-2">
-                            <p>• 使用 THORChain 技术实现跨链代币交换</p>
-                            <p>• 支持 Bitcoin、Ethereum 等主流区块链</p>
-                            <p>• 无需中心化交易所，资产完全由您控制</p>
-                            <p>• 交换过程可能需要几分钟完成</p>
+                            <p>• Using THORChain technology for cross-chain token swaps</p>
+                            <p>• Supports major blockchains like Bitcoin and Ethereum</p>
+                            <p>• No centralized exchange required, you have full control over your assets</p>
+                            <p>• The swap process may take a few minutes to complete</p>
                         </div>
                     </CardContent>
                 </Card>
