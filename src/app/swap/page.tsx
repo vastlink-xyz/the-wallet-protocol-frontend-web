@@ -9,11 +9,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { CopyAddress } from '@/components/ui/CopyAddress'
 import Image from 'next/image'
 import { estimateSwap } from '@/lib/swap/estimateSwap'
+import { prepareEvmTx } from '@/lib/swap/prepareTx'
 import { useRouter } from 'next/navigation'
 import { getAuthMethodFromStorage } from '@/lib/storage/authmethod'
 import { AuthMethod, IRelayPKP } from '@lit-protocol/types'
 import { getProviderByAuthMethodType } from '@/lib/lit/providers'
 import { fetchEthBalance } from "@/lib/web3/eth"
+import { broadcastTransactionByTokenType } from "@/lib/web3/transaction"
+import { getPersonalTransactionIpfsId } from '@/lib/lit/ipfs-id-env'
+import { litNodeClient, getSessionSigsByPkp } from '@/lib/lit'
 
 // 支持的代币列表
 // 图标从 https://thorchain.org/ 找
@@ -89,10 +93,24 @@ export default function SwapPage() {
 
     // Check if user is logged in
     useEffect(() => {
-        console.log('SwapPage useEffect triggered')
+        
+
+        const storedAuthMethod = getAuthMethodFromStorage()
+        console.log('Stored auth method:', storedAuthMethod)
+        if (storedAuthMethod) {
+            setAuthMethod(storedAuthMethod)
+
+            
+        } else {
+            // Redirect to homepage if not logged in
+            router.push('/')
+        }
+    }, [router])
+
+    useEffect(() => {
         const fetchUserData = async () => {
             if (!authMethod) return
-
+            console.log('in fetchUserData with authMethod:', authMethod)
             try {
                 setIsLoading(true)
                 // Get user's authMethodId
@@ -119,6 +137,9 @@ export default function SwapPage() {
                     setSessionPkp(userData.sessionPkp)
                     setBtcAddress(userData.addresses?.btc)
                     setEthAddress(userData.addresses?.eth)
+
+                    const balance = await fetchEthBalance(userData.addresses?.eth)
+                    setEthWalletBalance(balance)
                 }
             } catch (error) {
                 console.error("Error fetching data from database:", error)
@@ -126,18 +147,8 @@ export default function SwapPage() {
                 setIsLoading(false)
             }
         }
-
-        const storedAuthMethod = getAuthMethodFromStorage()
-        console.log('Stored auth method:', storedAuthMethod)
-        if (storedAuthMethod) {
-            setAuthMethod(storedAuthMethod)
-
-            fetchUserData();
-        } else {
-            // Redirect to homepage if not logged in
-            router.push('/')
-        }
-    }, [router])
+        fetchUserData();
+    }, [authMethod]);
 
     const updateWalletBalance = async (address: string) => {
         try {
@@ -159,7 +170,7 @@ export default function SwapPage() {
     // 获取当前选中代币的余额和地址信息
     const getTokenBalanceInfo = (token: typeof SUPPORTED_TOKENS[0]) => {
         // 根据代币的网络和类型返回对应的余额和地址
-        console.log('getTokenBalanceInfo called for token:', token);
+        // console.log('getTokenBalanceInfo called for token:', token);
         if (token.network === 'Ethereum') {
             return {
                 balance: token.symbol === 'ETH' ? parseFloat(ethWalletBalance).toFixed(4) : 'Unknown',
@@ -278,20 +289,172 @@ export default function SwapPage() {
 
     // 处理交换操作
     const handleSwap = async () => {
-        if (!fromAmount || !toAmount || !exchangeRate) {
+        if (!fromAmount || !toAmount || !ethAddress) {
+            console.log('Swap failed: Missing required fields', fromAmount, toAmount, ethAddress)
             alert('请输入有效的交换金额')
             return
         }
 
         setIsLoading(true)
         try {
-            // TODO: 实现 xchainjs + thorchain 交换逻辑
-            console.log('Swapping:', fromAmount, fromToken.symbol, 'to', toAmount, toToken.symbol, 'at rate:', exchangeRate)
-            await new Promise(resolve => setTimeout(resolve, 2000)) // 模拟交换过程
-            alert('交换成功！') // 临时提示，实际应该使用 toast
+            console.log('Starting swap process:', fromAmount, fromToken.symbol, 'to', toAmount, toToken.symbol)
+            
+            // 1. 首先获取最新的交换估算信息（包含交易详情）
+            const swapEstimate = await estimateSwap(
+                parseFloat(fromAmount),
+                fromToken.decimals,
+                fromToken.xchain_asset,
+                toToken.xchain_asset,
+                ethAddress // 使用用户的实际地址作为目标地址
+            )
+
+            if (!swapEstimate) {
+                throw new Error('无法获取交换估算信息')
+            }
+
+            console.log('Swap estimate for transaction:', swapEstimate)
+
+            // 2. 从估算结果中提取交易详情
+            const txDetails = swapEstimate
+            const toAddress = txDetails.toAddress // THORChain 的入站地址
+            const memo = txDetails.memo // THORChain memo
+            const amount = fromAmount // 发送金额
+
+            console.log('Transaction details:', {
+                toAddress,
+                memo,
+                amount,
+                fromToken: fromToken.symbol
+            })
+
+            // 3. 准备 EVM 交易（仅支持以太坊网络的代币）
+            if (fromToken.network === 'Ethereum') {
+                // 使用 prepareEvmTx 构造未签名交易
+                // THORChain 上所有 ERC20 资产的交换都通过原生 ETH 转账实现
+                const unsignedTx = await prepareEvmTx({
+                    sender: ethAddress,
+                    recipient: toAddress,
+                    amount: amount,
+                    network: 'mainnet' as any // 需要根据实际网络调整
+                })
+
+                console.log('Prepared unsigned transaction:', unsignedTx)
+
+                // 4. 使用 LIT Protocol 对交易进行签名
+                if (sessionPkp && litActionPkp && authMethod && authMethodId) {
+                    console.log('准备使用 LIT Protocol 签名交易...')
+
+                    // 确保 LIT 节点客户端已连接
+                    if (!litNodeClient.ready) {
+                        await litNodeClient.connect()
+                    }
+
+                    // 获取会话签名
+                    const sessionSigs = await getSessionSigsByPkp({
+                        authMethod, 
+                        pkp: sessionPkp,
+                        refreshStytchAccessToken: true,
+                    })
+
+                    // 获取 IPFS ID
+                    // const ipfsId = await getPersonalTransactionIpfsId('base58')
+                    
+                    // 发交易必须要经过 MFA，所以我们先触发一次发短信
+                    // const mfaResponse = await fetch('/api/mfa/whatsapp/send-code', {
+                    // method: 'POST',
+                    // headers: {
+                    //     'Content-Type': 'application/json',
+                    //     'Authorization': `Bearer ${authMethod.accessToken}`
+                    // },
+                    // body: JSON.stringify({ 
+                    //     phone_number: "+8613693554167"
+                    // })
+                    // });
+
+                    // if (!mfaResponse.ok) {
+                    //     const data = await mfaResponse.json();
+                    //     throw new Error(data.error || 'Failed to send OTP');
+                    // }
+
+                    // const data = await mfaResponse.json();
+                    // console.log('mfa response', data);
+
+                    // 这里应该暂停，要等手机接收验证短信再去签名交易
+                    // 执行交易签名
+                    
+                    // 将 hex 字符串转换为 Uint8Array
+                    const hexString = unsignedTx.rawUnsignedTx.startsWith('0x') 
+                        ? unsignedTx.rawUnsignedTx.slice(2) 
+                        : unsignedTx.rawUnsignedTx;
+                    const toSignTransactionBytes = new Uint8Array(
+                        hexString.match(/.{1,2}/g)?.map(byte => parseInt(byte, 16)) || []
+                    );
+                    
+                    const response = await litNodeClient.executeJs({
+                        ipfsId: "QmNriw4V52jaaXQaADWraKxCGoeY7gmmniE7tzyWwZCj3A", // 不需要MFA的
+                        sessionSigs,
+                        jsParams: {
+                            toSignTransaction: toSignTransactionBytes,
+                            transactionAmount: amount,
+                            publicKey: litActionPkp.publicKey,
+                            env: process.env.NEXT_PUBLIC_ENV,
+                            chain: 'sepolia',
+                            authParams: {
+                                accessToken: authMethod.accessToken,
+                                authMethodId: authMethodId,
+                                authMethodType: authMethod.authMethodType,
+                            },
+                            otp: '', // 交换操作通常不需要 OTP，除非超过每日限额
+                            // mfaMethodId: 'phone-number-test-7c1d1108-9afb-470a-9585-bf57620209e0',
+                            mfaMethodId: undefined,
+                            tokenType: 'ETH',
+                        }
+                    })
+
+                    console.log('LIT签名响应:', response)
+
+                    // 处理响应
+                    const result = typeof response.response === 'string' 
+                        ? JSON.parse(response.response) 
+                        : response.response;
+
+                    console.log('解析后的结果:', result)
+                    
+                    if (result.status === 'success') {
+                        // 解析签名
+                        const sig = JSON.parse(result.sig)
+                        
+                        // 6. 广播已签名的交易
+                        const txReceipt = await broadcastTransactionByTokenType({
+                            tokenType: 'ETH',
+                            options: {
+                                unsignedTransaction: unsignedTx,
+                                sig,
+                                publicKey: litActionPkp.publicKey,
+                            },
+                        })
+
+                        console.log('交易广播结果:', txReceipt)
+                        
+                        alert(`交换成功！交易哈希: ${txReceipt}`)
+                    } else {
+                        if (result.requireMFA) {
+                            // 如果需要 MFA，这里可以添加 MFA 流程
+                            alert('该交易需要多重身份验证，请联系管理员')
+                        } else {
+                            throw new Error(result.error || '交易签名失败')
+                        }
+                    }
+                } else {
+                    throw new Error('缺少必要的认证信息，无法签名交易')
+                }
+            } else {
+                throw new Error(`暂不支持 ${fromToken.network} 网络的交易`)
+            }
+            
         } catch (error) {
             console.error('Swap failed:', error)
-            alert('交换失败，请重试')
+            alert(`交换失败：${error instanceof Error ? error.message : '未知错误'}`)
         } finally {
             setIsLoading(false)
         }
