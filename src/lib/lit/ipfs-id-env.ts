@@ -22,8 +22,8 @@ const multisigTransactionIpfsHex = '0x122047cc66eb01bbc7cfa0962e29a104633dd47c97
 const personalSignIpfsId = 'QmNriw4V52jaaXQaADWraKxCGoeY7gmmniE7tzyWwZCj3A'
 const personalSignIpfsIdHex = '0x122007b4331ad60377dd5d1bb3b69ffb54e6dbf6ced26c98d80486717bf75925321d'
 
-const personalTransactionIpfsId = 'QmZJBc6ZcwFnEJ5y9jXsY5DtVM7aHpqXaH8THxFHp8Abmv'
-const personalTransactionIpfsIdHex = '0x1220a2cebf97e823200b976ab5fc7ec245d71da28a45171d190efba87adff889f62d'
+const personalTransactionIpfsId = 'QmVhzmG12mfzwVM2YZ2Rj5R71Kc4GwcZA3g7tFizskACKK'
+const personalTransactionIpfsIdHex = '0x12206d79ae56b8483352d4021cb77d647c140e3134cf596001aea124b86145e909ca'
 
 const upgradeIpfsId = 'QmTdAJGwtd1Ex1akC5zjzQsHTGtPKKj4WnDNQftLsXN6Um'
 const upgradeIpfsIdHex = '0x12204e852f217ab356ea529afc8584ef67340cae7b0cb0e76d8045735537f9323ca6'

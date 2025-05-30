@@ -4,7 +4,7 @@ declare const publicKey: string
 declare const toSignTransaction: any
 declare const authParams: any
 declare const env: string
-declare const chain: string
+declare const chainType: string
 declare const otp: string
 declare const mfaMethodId: string
 declare const tokenType: string
@@ -125,7 +125,7 @@ const go = async () => {
   }
 
   try {
-    if (tokenType === 'ETH') {
+    if (chainType === 'EVM') {
       const sig = await Lit.Actions.signAndCombineEcdsa({
         toSign: toSignTransaction,
         publicKey: publicKeyForLit,

@@ -14,6 +14,9 @@ import { upgradeLitActionCode } from '@/lib/lit-action-code/upgrade.lit';
 import { LIT_NETWORK } from '@lit-protocol/constants';
 import { getBtcAddressByPublicKey } from '@/lib/web3/btc';
 
+const upgradeIpfsHexFn = getPersonalTransactionIpfsId
+const removeIpfsIdHex = '0x1220a2cebf97e823200b976ab5fc7ec245d71da28a45171d190efba87adff889f62d'
+
 interface UserProps {
   currentUserSessionPkp: IRelayPKP | null;
   currentUserAuthMethod: AuthMethod | null;
@@ -101,7 +104,7 @@ export function AllUsers({
 
     try {
       setLoading(true);
-      const ipfsIdHex = await getPersonalTransactionIpfsId('hex')
+      const ipfsIdHex = await upgradeIpfsHexFn('hex')
       
       const response = await litNodeClient.executeJs({
         code: upgradeLitActionCode,
@@ -136,7 +139,6 @@ export function AllUsers({
 
     try {
       setLoading(true);
-      const removeIpfsIdHex = '0x1220b4ef80b0577b6557305334d28e8f7fac07e83e49f06c79e4d464631fe2d9702b'
       
       const response = await litNodeClient.executeJs({
         code: upgradeLitActionCode,

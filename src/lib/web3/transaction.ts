@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { TokenType } from "./token";
+import { SUPPORTED_TOKENS_INFO, TokenType } from "./token";
 import { LIT_CHAINS } from "@lit-protocol/constants";
 import * as bitcoinjs from "bitcoinjs-lib";
 import BN from "bn.js";
@@ -7,6 +7,7 @@ import elliptic from "elliptic";
 import * as ecc from "@bitcoin-js/tiny-secp256k1-asmjs";
 import * as bip66 from "bip66";
 import { log } from "../utils";
+import { ERC20_ABI } from "@/constants/abis/erc20";
 
 const rpcUrl = LIT_CHAINS['sepolia']?.rpcUrls[0];
 const rpcProvider = new ethers.providers.JsonRpcProvider(rpcUrl);
@@ -22,8 +23,9 @@ export const getToSignTransactionByTokenType = async ({
   tokenType: TokenType;
   options: any;
 }) => {
+  const { sendAddress, recipientAddress, amount } = options
+  const tokenInfo = SUPPORTED_TOKENS_INFO[tokenType]
   if (tokenType === 'ETH') {
-    const { sendAddress, recipientAddress, amount } = options
     // Get nonce
     const nonce = await rpcProvider.getTransactionCount(sendAddress)
         
@@ -49,10 +51,6 @@ export const getToSignTransactionByTokenType = async ({
       unsignedTransaction: txData,
     }
   } else if (tokenType === 'BTC') {
-    const { sendAddress, recipientAddress, amount } = options
-    console.log('sendAddress', sendAddress)
-    console.log('recipientAddress', recipientAddress)
-    console.log('amount', amount)
     const response = await fetch(`https://mempool.space/testnet/api/address/${sendAddress}/utxo`);
     const utxos = await response.json();
     log('utxos', utxos)
@@ -101,6 +99,38 @@ export const getToSignTransactionByTokenType = async ({
         toSign: sighash,
         tx,
       }
+  } else if (tokenInfo.chainType === 'EVM' && tokenInfo.contractAddress) {
+    const rpcUrl = LIT_CHAINS[tokenInfo.chainName as keyof typeof LIT_CHAINS]?.rpcUrls[0];
+    const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
+    const tokenContract = new ethers.Contract(tokenInfo.contractAddress, ERC20_ABI, provider);
+    
+    const decimals = await tokenContract.decimals();
+    const amountInWei = ethers.utils.parseUnits(amount, decimals);
+    
+    const iface = new ethers.utils.Interface(ERC20_ABI);
+    const data = iface.encodeFunctionData("transfer", [tokenInfo.contractAddress, amountInWei]);
+    
+    const gasPrice = await rpcProvider.getGasPrice()
+    const nonce = await rpcProvider.getTransactionCount(sendAddress)
+    
+    const txData = {
+      to: tokenInfo.contractAddress,
+      value: "0x0",
+      data,
+      chainId: LIT_CHAINS['sepolia'].chainId,
+      gasPrice: gasPrice.toHexString(),
+      gasLimit: ethers.utils.hexlify(100000),
+      nonce,
+    };
+
+    const toSign = ethers.utils.arrayify(
+      ethers.utils.keccak256(ethers.utils.serializeTransaction(txData))
+    )
+    
+    return {
+      toSign,
+      unsignedTransaction: txData,
+    }
   }
 }
 
@@ -111,7 +141,7 @@ export const broadcastTransactionByTokenType = async ({
   tokenType: TokenType;
   options: any;
 }) => {
-  if (tokenType === 'ETH') {
+  if (SUPPORTED_TOKENS_INFO[tokenType].chainType === 'EVM') {
     const { unsignedTransaction, sig } = options
     const signedAndSerializedTx = ethers.utils.serializeTransaction(
       unsignedTransaction,

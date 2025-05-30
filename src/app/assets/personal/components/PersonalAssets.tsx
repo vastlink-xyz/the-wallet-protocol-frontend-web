@@ -90,6 +90,8 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
       return litActionPkp?.ethAddress
     } else if (tokenType === 'BTC') {
       return btcAddress || ''
+    } else if (SUPPORTED_TOKENS_INFO[tokenType].chainType === 'EVM') {
+      return litActionPkp?.ethAddress
     }
   }
 
@@ -119,6 +121,7 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
           amount,
         },
       })
+      log('txData', txData)
 
       if (!txData) {
         throw new Error('Failed to get transaction data')
@@ -145,7 +148,7 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
           transactionAmount: amount,
           publicKey: litActionPkp.publicKey,
           env: process.env.NEXT_PUBLIC_ENV,
-          chain: 'sepolia',
+          chainType: SUPPORTED_TOKENS_INFO[tokenType].chainType,
           authParams: {
             accessToken: authMethod.accessToken,
             authMethodId: authMethodId,
@@ -168,7 +171,7 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
       
       if (result.status === 'success') {
         let sig: any
-        if (tokenType === 'ETH') {
+        if (SUPPORTED_TOKENS_INFO[tokenType].chainType === 'EVM') {
           sig = JSON.parse(result.sig)
         } else {
           sig = response.signatures.btcSignatures
