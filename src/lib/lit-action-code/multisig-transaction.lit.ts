@@ -5,7 +5,7 @@ declare const proposalId: string
 declare const walletId: string
 declare const toSignTransaction: any
 declare const transactionAmount: string // unit is ETH or BTC
-declare const chain: string
+declare const chainType: string
 declare const env: string
 declare const authParams: any
 
@@ -206,7 +206,7 @@ const go = async () => {
     }
 
     try {
-      if (tokenType === 'ETH') {
+      if (chainType === 'EVM') {
         const sig = await Lit.Actions.signAndCombineEcdsa({
           toSign: toSignTransaction,
           publicKey: publicKeyForLit,

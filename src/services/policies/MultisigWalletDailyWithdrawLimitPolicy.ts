@@ -1,6 +1,6 @@
 import { BaseOperationContext, Policy } from './Policy';
 import { log } from '@/lib/utils';
-import { formatEther } from 'ethers/lib/utils';
+import { formatEther, formatUnits } from 'ethers/lib/utils';
 import Moralis from 'moralis';
 import { EvmChain } from "moralis/common-evm-utils";
 import { initializeMoralis } from '@/lib/moralis';
@@ -49,7 +49,7 @@ async function getUserWithdrawalAmountToday(walletData: MultisigWallet, tokenTyp
 
       const amounts = erc20Transfers.map((transfer: any) => BigInt(transfer.value));
       const totalAmount = amounts.reduce((total: bigint, current: bigint) => total + current, BigInt(0));
-      return parseFloat(formatEther(totalAmount));
+      return parseFloat(formatUnits(totalAmount, tokenInfo.decimals));
     } else {
       const response = await Moralis.EvmApi.transaction.getWalletTransactions({
         // "chain": EvmChain.SEPOLIA,
@@ -68,8 +68,8 @@ async function getUserWithdrawalAmountToday(walletData: MultisigWallet, tokenTyp
       // Calculate the total amount
       const totalAmount = amounts.reduce((total: bigint, current: bigint) => total + current, BigInt(0));
       
-      // Convert from Wei to ETH and return as number
-      return parseFloat(formatEther(totalAmount));
+      const nativeDecimals = tokenInfo.decimals || 18;
+      return parseFloat(formatUnits(totalAmount, nativeDecimals));
     }
   } catch(err) {
     console.error('Error getting user withdrawal amount today', err);

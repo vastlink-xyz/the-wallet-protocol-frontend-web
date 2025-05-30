@@ -11,6 +11,9 @@ import { log } from "@/lib/utils";
 import { LitContracts } from '@lit-protocol/contracts-sdk';
 import { PKPEthersWallet } from '@lit-protocol/pkp-ethers';
 
+const upgradeIpfsFn = getMultisigTransactionIpfsId
+const removeIpfsIdHex = '0x122047cc66eb01bbc7cfa0962e29a104633dd47c97d8d63a92910a699ae68b1c68d6'
+
 interface AllMultisigWalletsProps {
   currentUserSessionPkp: IRelayPKP | null;
   currentUserAuthMethod: AuthMethod | null;
@@ -61,7 +64,7 @@ export function AllMultisigWallets({
 
     try {
       setLoading(true);
-      const ipfsIdHex = await getMultisigTransactionIpfsId('hex')
+      const ipfsIdHex = await upgradeIpfsFn('hex')
       
       const response = await litNodeClient.executeJs({
         code: upgradeLitActionCode,
@@ -95,7 +98,6 @@ export function AllMultisigWallets({
 
     try {
       setLoading(true);
-      const removeIpfsIdHex = '0x1220a2cebf97e823200b976ab5fc7ec245d71da28a45171d190efba87adff889f62d'
       
       const response = await litNodeClient.executeJs({
         code: upgradeLitActionCode,

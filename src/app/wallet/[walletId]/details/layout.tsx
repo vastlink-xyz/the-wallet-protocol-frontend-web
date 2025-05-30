@@ -31,11 +31,10 @@ export default function WalletDetailsLayoutClient({
   const walletId = params.walletId as string;
 
   const getActiveTab = () => {
-    if (pathname === `/wallet/${walletId}/details/proposals`) {
-      return "proposals";
+    if (pathname === `/wallet/${walletId}/details/transactions`) {
+      return "transactions";
     }
-    // Defaults to "transactions" for `/wallet/[walletId]/details` or `/wallet/[walletId]/details/transactions`
-    return "transactions"; 
+    return "proposals"; 
   };
 
   // This check ensures walletId is available before rendering links

@@ -21,7 +21,7 @@ import { getCreateWalletIpfsId, getMultisigTransactionIpfsId, getUpdateWalletIpf
 import { sendMultisigNotification } from '@/lib/notification'
 import { useAuthExpiration } from '@/hooks/useAuthExpiration'
 import { isTokenValid } from '@/lib/jwt'
-import { TokenType, SUPPORTED_TOKEN_SYMBOLS } from '@/lib/web3/token'
+import { TokenType, SUPPORTED_TOKEN_SYMBOLS, SUPPORTED_TOKENS_INFO } from '@/lib/web3/token'
 import { MFASettings, MultisigWallet, MultisigWalletMetadata } from '@/app/api/multisig/storage'
 
 interface MultisigWalletFormContentProps {
@@ -118,7 +118,7 @@ export function MultisigWalletFormContent({
   // Create default dailyLimits object
   const defaultDailyLimits = {} as Record<TokenType, string>;
   SUPPORTED_TOKEN_SYMBOLS.forEach(token => {
-    defaultDailyLimits[token] = '0.001';
+    defaultDailyLimits[token] = SUPPORTED_TOKENS_INFO[token].defaultWithdrawLimit;
   });
   
   const [dailyLimits, setDailyLimits] = useState<Record<TokenType, string>>(
@@ -848,12 +848,11 @@ export function MultisigWalletFormContent({
               <div className="flex items-center">
                 <Input
                   id={`dailyLimit-${token}`}
-                  value={dailyLimits[token] || '0.001'}
+                  value={dailyLimits[token]}
                   onChange={(e) => handleDailyLimitChange(token, e.target.value)}
-                  placeholder="0.00"
+                  placeholder={SUPPORTED_TOKENS_INFO[token].defaultWithdrawLimit}
                   type="number"
                   min="0"
-                  step="0.001"
                 />
                 <span className="ml-2 text-gray-600 font-medium">
                   {token}

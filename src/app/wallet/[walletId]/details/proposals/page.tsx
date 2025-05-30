@@ -15,6 +15,7 @@ import { toast } from "react-toastify";
 import { useAuthExpiration } from "@/hooks/useAuthExpiration";
 import { broadcastTransactionByTokenType, getToSignTransactionByTokenType } from "@/lib/web3/transaction";
 import { MFAOtpDialog } from "@/components/Transaction/MFAOtpDialog";
+import { SUPPORTED_TOKENS_INFO, TokenType } from "@/lib/web3/token";
 
 export default function ProposalsPage() {
   // Get walletId from params
@@ -56,6 +57,16 @@ export default function ProposalsPage() {
       getProposals();
     }
   }, [walletId]);
+
+  const sendAddressByTokenType = (tokenType: TokenType) => {
+    if (tokenType === 'ETH') {
+      return walletPkp?.ethAddress
+    } else if (tokenType === 'BTC') {
+      return wallet?.addresses.btc || ''
+    } else if (SUPPORTED_TOKENS_INFO[tokenType].chainType === 'EVM') {
+      return walletPkp?.ethAddress
+    }
+  }
 
   // Function to execute wallet settings change proposal
   const executeWalletSettingsProposal = async (proposal: MessageProposal, settingsData: any, sessionSigs: any) => {
@@ -153,12 +164,11 @@ export default function ProposalsPage() {
     const txDetails = getTransactionDetails(proposal, wallet)
     log('Transaction details:', txDetails)
 
-    const tokenType = txDetails.tokenType
-    const sendAddress = tokenType === 'ETH' ? walletPkp.ethAddress : wallet.addresses.btc
+    const tokenType = txDetails.tokenType as TokenType
     const txData = await getToSignTransactionByTokenType({
       tokenType,
       options: {
-        sendAddress,
+        sendAddress: sendAddressByTokenType(tokenType),
         recipientAddress: txDetails.to,
         amount: txDetails.value,
       },
@@ -179,7 +189,7 @@ export default function ProposalsPage() {
       publicKey: walletPkp.publicKey,
       // 
       sendTransaction: true,
-      chain: 'sepolia',
+      chainType: SUPPORTED_TOKENS_INFO[tokenType].chainType,
       toSignTransaction: txData.toSign,
       transactionAmount: txDetails.value,
       env: process.env.NEXT_PUBLIC_ENV,
@@ -229,7 +239,7 @@ export default function ProposalsPage() {
       if (result.status === 'success') {
         try {
           let sig: any
-          if (tokenType === 'ETH') {
+          if (SUPPORTED_TOKENS_INFO[tokenType].chainType === 'EVM') {
             sig = JSON.parse(result.sig)
           } else {
             sig = response.signatures.btcSignatures
