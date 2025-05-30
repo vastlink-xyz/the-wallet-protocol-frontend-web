@@ -18,6 +18,7 @@ import { broadcastTransactionByTokenType, getToSignTransactionByTokenType } from
 import { getPersonalTransactionIpfsId } from '@/lib/lit/ipfs-id-env'
 import { litNodeClient, getSessionSigsByPkp } from '@/lib/lit'
 import { ethers } from 'ethers'
+import { toast } from 'react-toastify'
 
 // 支持的代币列表
 // 图标从 https://thorchain.org/ 找
@@ -90,6 +91,7 @@ export default function SwapPage() {
     const [btcAddress, setBtcAddress] = useState<string | null>(null)
     const [ethAddress, setEthAddress] = useState<string | null>(null)
     const [ethWalletBalance, setEthWalletBalance] = useState<string>('0')
+    const [destAddress, setDestAddress] = useState<string>('') // 目标地址输入
 
     // MFA state
       const [mfaMethodId, setMfaMethodId] = useState<string | null>(null);
@@ -172,6 +174,13 @@ export default function SwapPage() {
         updateWalletBalance(ethAddress)
     }, [ethAddress])
 
+    // 设置默认目标地址为用户自己的地址
+    useEffect(() => {
+        if (ethAddress && !destAddress) {
+            setDestAddress(ethAddress)
+        }
+    }, [ethAddress, destAddress])
+
     // 获取当前选中代币的余额和地址信息
     const getTokenBalanceInfo = (token: typeof SUPPORTED_TOKENS[0]) => {
         // 根据代币的网络和类型返回对应的余额和地址
@@ -200,9 +209,7 @@ export default function SwapPage() {
             setSwapFees(null)
             setSlippageBps(null)
             return
-        }
-
-        setIsCalculating(true)
+        }        setIsCalculating(true)
         try {
             // 使用 THORChain API 获取实际汇率和估算
             const estimate = await estimateSwap(
@@ -210,7 +217,7 @@ export default function SwapPage() {
                 fromToken.decimals,
                 fromToken.xchain_asset,
                 toToken.xchain_asset,
-                TEMP_ADDRESS
+                destAddress || ethAddress || TEMP_ADDRESS
             )
 
             if (estimate && estimate.txEstimate) {
@@ -322,19 +329,16 @@ export default function SwapPage() {
             console.error('Error fetching user phone:', error);
             throw error;
           }
-        }
-
-    // 处理交换操作
-    const handleSwap = async () => {
-        if (!fromAmount || !toAmount || !ethAddress) {
-            console.log('Swap failed: Missing required fields', fromAmount, toAmount, ethAddress)
-            alert('请输入有效的交换金额')
+        }    // 处理交换操作
+    const handleSwap = async () => {        if (!fromAmount || !toAmount || !ethAddress || !destAddress) {
+            console.log('Swap failed: Missing required fields', fromAmount, toAmount, ethAddress, destAddress)
+            toast.error('请输入有效的交换金额和目标地址')
             return
         }
 
         setIsLoading(true)
         try {
-            console.log('Starting swap process:', fromAmount, fromToken.symbol, 'to', toAmount, toToken.symbol)
+            console.log('Starting swap process:', fromAmount, fromToken.symbol, 'to', toAmount, toToken.symbol, 'destination:', destAddress)
             
             // 1. 首先获取最新的交换估算信息（包含交易详情）
             const swapEstimate = await estimateSwap(
@@ -342,7 +346,7 @@ export default function SwapPage() {
                 fromToken.decimals,
                 fromToken.xchain_asset,
                 toToken.xchain_asset,
-                ethAddress // 使用用户的实际地址作为目标地址
+                destAddress // 使用用户输入的目标地址
             )
 
             if (!swapEstimate) {
@@ -443,16 +447,14 @@ export default function SwapPage() {
                             ...txData,
                             sig,
                             publicKey: litActionPkp.publicKey,
-                            },
-                        })
+                            },                        })
 
                         console.log('交易广播结果:', txReceipt)
                         
-                        alert(`交换成功！交易哈希: ${txReceipt}`)
-                    } else {
-                        if (result.requireMFA) {
+                        toast.success(`交换成功！交易哈希: ${txReceipt}`)
+                    } else {                        if (result.requireMFA) {
                             // 如果需要 MFA，这里可以添加 MFA 流程
-                            alert('该交易需要多重身份验证，请联系管理员')
+                            toast.warning('该交易需要多重身份验证，请联系管理员')
                         } else {
                             throw new Error(result.error || '交易签名失败')
                         }
@@ -463,10 +465,9 @@ export default function SwapPage() {
             } else {
                 throw new Error(`暂不支持 ${fromToken.network} 网络的交易`)
             }
-            
-        } catch (error) {
+              } catch (error) {
             console.error('Swap failed:', error)
-            alert(`交换失败：${error instanceof Error ? error.message : '未知错误'}`)
+            toast.error(`交换失败：${error instanceof Error ? error.message : '未知错误'}`)
         } finally {
             setIsLoading(false)
         }
@@ -643,19 +644,20 @@ export default function SwapPage() {
                                     className="flex-1 bg-muted/50"
                                 />
                             </div>
-                            <div className="space-y-1">
-                                <div className="text-xs text-muted-foreground">
-                                    余额: {getTokenBalanceInfo(toToken).balance} {toToken.symbol}
-                                </div>
-                                {getTokenBalanceInfo(toToken).hasData && (
-                                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                        <span>{toToken.network} 地址:</span>
-                                        <CopyAddress 
-                                            textToCopy={getTokenBalanceInfo(toToken).address} 
-                                            className="text-xs"
-                                        />
-                                    </div>
-                                )}
+                        </div>
+
+                        {/* 目标地址输入 */}
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">目标地址</label>
+                            <Input
+                                placeholder="输入目标地址或使用默认地址"
+                                value={destAddress}
+                                onChange={(e) => setDestAddress(e.target.value)}
+                                type="text"
+                                className="w-full font-mono text-sm"
+                            />
+                            <div className="text-xs text-muted-foreground">
+                                代币将转入此地址。默认为您的钱包地址。
                             </div>
                         </div>
 
@@ -705,12 +707,10 @@ export default function SwapPage() {
                                     </span>
                                 </div>
                             </div>
-                        )}
-
-                        {/* 交换按钮 */}
+                        )}                        {/* 交换按钮 */}
                         <Button
                             onClick={handleSwap}
-                            disabled={!fromAmount || !toAmount || !exchangeRate || isLoading || isCalculating}
+                            disabled={!fromAmount || !toAmount || !exchangeRate || !destAddress || isLoading || isCalculating}
                             className="w-full"
                             size="lg"
                         >
