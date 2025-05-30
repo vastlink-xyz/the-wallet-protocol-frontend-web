@@ -38,11 +38,9 @@ export const getToSignTransactionByTokenType = async ({
       nonce,
       chainId: LIT_CHAINS['sepolia'].chainId,
     }
-    console.log('origin txData', txData, data)
     if (data) { 
       txData.data = data; // Include data if provided
       const estimatedGas = await rpcProvider.estimateGas(txData);
-      console.log('estimated gas', estimatedGas);
       txData.gasLimit = estimatedGas.toNumber();
     } else {
       txData.gasLimit = 21000;
