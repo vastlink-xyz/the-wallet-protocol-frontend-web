@@ -27,7 +27,7 @@ export function PersonalWalletSettings() {
     // Initialize with default values for all tokens
     const defaults: Partial<Record<TokenType, string>> = {};
     SUPPORTED_TOKEN_SYMBOLS.forEach(symbol => {
-      defaults[symbol] = '0.001';
+      defaults[symbol] = SUPPORTED_TOKENS_INFO[symbol].defaultWithdrawLimit;
     });
     return defaults as Record<TokenType, string>;
   });

@@ -49,7 +49,7 @@ export default function DebugPage() {
   }
 
   const handleTest = async () => {
-    const a = SUPPORTED_TOKENS_ARRAY
+    const a = LIT_CHAINS['baseSepolia']
     log('a', a)
   }
 

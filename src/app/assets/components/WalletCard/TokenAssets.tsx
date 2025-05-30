@@ -13,6 +13,7 @@ export type TokenData = {
   address: string
   loading: boolean
   chainType: string
+  chainName: string
   contractAddress?: string
   decimals: number
 }
@@ -25,9 +26,9 @@ interface TokenAssetsProps {
 const supportedTokens = Object.values(SUPPORTED_TOKENS_INFO)
 
 const addressByTokenSymbol = (tokenSymbol: TokenType, btcAddress: string, ethAddress: string) => {
-  if (tokenSymbol === 'BTC') return btcAddress
-  if (tokenSymbol === 'ETH') return ethAddress
-  if (tokenSymbol === 'USDT') return ethAddress
+  const tokenInfo = SUPPORTED_TOKENS_INFO[tokenSymbol]
+  if (tokenInfo.chainType === 'UTXO') return btcAddress
+  if (tokenInfo.chainType === 'EVM') return ethAddress
   return ''
 }
 
@@ -43,6 +44,7 @@ export function TokenAssets({ btcAddress, ethAddress }: TokenAssetsProps) {
       balance: '0',
       address: addressByTokenSymbol(token.symbol, btcAddress, ethAddress),
       chainType: token.chainType,
+      chainName: token.chainName,
       contractAddress: token.contractAddress,
       decimals: token.decimals,
       loading: false // Set to false initially, will be set to true when loading starts
@@ -65,12 +67,13 @@ export function TokenAssets({ btcAddress, ethAddress }: TokenAssetsProps) {
         balance = (await fetchBtcBalance(token.address))?.toString() || '0';
       } else if (token.symbol === 'ETH') {
         // fetchEthBalance returns string type directly
-        balance = await fetchEthBalance(token.address) || '0';
+        balance = await fetchEthBalance(token.address, token.chainName) || '0';
       } else if (token.chainType === 'EVM' && token.contractAddress) {
         balance = await fetchERC20TokenBalance({
           address: token.address,
           tokenAddress: token.contractAddress,
-          decimals: token.decimals
+          decimals: token.decimals,
+          chainName: token.chainName,
         })
       }
       balance = formatBalance(balance)

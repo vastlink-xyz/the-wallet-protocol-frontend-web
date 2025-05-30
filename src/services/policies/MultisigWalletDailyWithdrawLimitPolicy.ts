@@ -5,8 +5,9 @@ import Moralis from 'moralis';
 import { EvmChain } from "moralis/common-evm-utils";
 import { initializeMoralis } from '@/lib/moralis';
 import { MultisigWallet } from '@/app/api/multisig/storage';
-import { TokenType } from '@/lib/web3/token';
+import { SUPPORTED_TOKENS_INFO, TokenType } from '@/lib/web3/token';
 import { fetchBtc24HourOutflow } from '@/lib/web3/btc';
+import { LIT_CHAINS } from '@lit-protocol/constants';
 
 // Context specific to transaction operations
 export interface MultisigWalletTransactionOperationContext extends BaseOperationContext {
@@ -30,26 +31,46 @@ async function getUserWithdrawalAmountToday(walletData: MultisigWallet, tokenTyp
     const currentTimestamp = Date.now();
     const yesterdayTimestamp = Date.now() - 24 * 60 * 60 * 1000;
 
-    // Current implementation only supports ETH
-    // Future: Extend this to support other token types
-    const response = await Moralis.EvmApi.transaction.getWalletTransactions({
-      "chain": EvmChain.SEPOLIA,
-      "fromDate": new Date(yesterdayTimestamp),
-      "toDate": new Date(currentTimestamp),
-      "order": "DESC",
-      "address": address,
-    });
+    const tokenInfo = SUPPORTED_TOKENS_INFO[tokenType]
+    const chainName = tokenInfo.chainName;
+    const chainId = LIT_CHAINS[chainName as keyof typeof LIT_CHAINS]?.chainId;
 
-    // Filter outgoing transactions from the user's address
-    const amounts = response.result
-      .filter((tx: any) => tx.from.equals(address))
-      .map((tx: any) => BigInt(tx.value));
-    
-    // Calculate the total amount
-    const totalAmount = amounts.reduce((total: bigint, current: bigint) => total + current, BigInt(0));
-    
-    // Convert from Wei to ETH and return as number
-    return parseFloat(formatEther(totalAmount));
+    if (tokenInfo.chainType === 'EVM' && tokenInfo.contractAddress) {
+      const response = await Moralis.EvmApi.token.getWalletTokenTransfers({
+        chain: chainId,
+        fromDate: new Date(yesterdayTimestamp),
+        toDate: new Date(currentTimestamp),
+        contractAddresses: [tokenInfo.contractAddress],
+        address,
+      })
+      const erc20Transfers = response.result.filter((transfer: any) => {
+        return transfer.address.equals(tokenInfo.contractAddress) && transfer.fromAddress.equals(address)
+      });
+
+      const amounts = erc20Transfers.map((transfer: any) => BigInt(transfer.value));
+      const totalAmount = amounts.reduce((total: bigint, current: bigint) => total + current, BigInt(0));
+      return parseFloat(formatEther(totalAmount));
+    } else {
+      const response = await Moralis.EvmApi.transaction.getWalletTransactions({
+        // "chain": EvmChain.SEPOLIA,
+        "chain": chainId,
+        "fromDate": new Date(yesterdayTimestamp),
+        "toDate": new Date(currentTimestamp),
+        "order": "DESC",
+        "address": address,
+      });
+  
+      // Filter outgoing transactions from the user's address
+      const amounts = response.result
+        .filter((tx: any) => tx.from.equals(address))
+        .map((tx: any) => BigInt(tx.value));
+      
+      // Calculate the total amount
+      const totalAmount = amounts.reduce((total: bigint, current: bigint) => total + current, BigInt(0));
+      
+      // Convert from Wei to ETH and return as number
+      return parseFloat(formatEther(totalAmount));
+    }
   } catch(err) {
     console.error('Error getting user withdrawal amount today', err);
     return 0;
@@ -64,7 +85,7 @@ async function getUserDailyWithdrawalLimit(walletData: MultisigWallet, tokenType
   }
   
   // Return default if currency not found in settings
-  return "0.001";
+  return SUPPORTED_TOKENS_INFO[tokenType].defaultWithdrawLimit;
 }
 
 // MultisigWalletDailyWithdrawLimitPolicy handles transaction limits

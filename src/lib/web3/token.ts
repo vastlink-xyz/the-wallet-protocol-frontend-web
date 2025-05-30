@@ -4,7 +4,10 @@ export interface TokenInfo {
   decimals: number;
   iconUrl?: string;
   chainType: 'EVM' | 'UTXO' | 'Solana' | string;
+  chainName: string;
   contractAddress?: string;
+  addressKey: string;
+  defaultWithdrawLimit: string;
 }
 
 export const SUPPORTED_TOKENS_INFO = {
@@ -17,6 +20,7 @@ export const SUPPORTED_TOKENS_INFO = {
     iconUrl: '/cryptocurrency/btc.png',
     contractAddress: '',
     addressKey: 'btc',
+    defaultWithdrawLimit: '0.001',
   },
   ETH: {
     symbol: 'ETH',
@@ -27,6 +31,7 @@ export const SUPPORTED_TOKENS_INFO = {
     iconUrl: '/cryptocurrency/eth.png',
     contractAddress: '',
     addressKey: 'eth',
+    defaultWithdrawLimit: '0.001',
   },
   // SOL: {
   //   symbol: 'SOL',
@@ -43,7 +48,19 @@ export const SUPPORTED_TOKENS_INFO = {
     iconUrl: '/cryptocurrency/usdt.png',
     contractAddress: '0xaA8E23Fb1079EA71e0a56F48a2aA51851D8433D0',
     addressKey: 'eth',
-  }
+    defaultWithdrawLimit: '100',
+  },
+  VAST: { // (ERC-20 on baseSepolia)
+    symbol: 'VAST',
+    name: 'Vast',
+    decimals: 18,
+    chainType: 'EVM',
+    chainName: 'baseSepolia',
+    iconUrl: '/cryptocurrency/vast.png',
+    contractAddress: '0x4f86c33aE84c46972c2f7F8d33FAE3375F3E191b',
+    addressKey: 'eth',
+    defaultWithdrawLimit: '10',
+  },
 } as const;
 
 /**

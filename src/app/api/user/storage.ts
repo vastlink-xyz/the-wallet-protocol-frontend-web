@@ -2,6 +2,7 @@ import { IRelayPKP } from '@lit-protocol/types'
 import { connectToDatabase, UserModel } from './models'
 import crypto from 'crypto'
 import { getBtcAddressByPublicKey } from '@/lib/web3/btc'
+import { SUPPORTED_TOKEN_SYMBOLS, SUPPORTED_TOKENS_INFO } from '@/lib/web3/token'
 
 export interface UserAddresses {
   eth: string
@@ -142,6 +143,13 @@ export async function createUser({
       authMethodId,
       email,
       addresses,
+      walletSettings: {
+        dailyWithdrawLimits: {
+          ...SUPPORTED_TOKEN_SYMBOLS.map((token) => ({
+            [token]: SUPPORTED_TOKENS_INFO[token].defaultWithdrawLimit
+          }))
+        }
+      }
     };
     
     const newUser = await UserModel.create(userData);

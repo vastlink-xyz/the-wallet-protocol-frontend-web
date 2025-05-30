@@ -124,17 +124,44 @@ export const getToSignTransactionByTokenType = async ({
     const iface = new ethers.utils.Interface(ERC20_ABI);
     const data = iface.encodeFunctionData("transfer", [recipientAddress, amountInWei]);
     
-    const gasPrice = await rpcProvider.getGasPrice()
-    const nonce = await rpcProvider.getTransactionCount(sendAddress)
+    // Get fee data required for EIP-1559
+    const feeData = await provider.getFeeData();
+    const nonce = await provider.getTransactionCount(sendAddress);
     
+    // Use standard buffer multiplier
+    const maxPriorityFeePerGasValue = feeData.maxPriorityFeePerGas || ethers.utils.parseUnits("1", "gwei");
+    let maxFeePerGasValue = feeData.maxFeePerGas || maxPriorityFeePerGasValue.mul(2);
+    
+    // Use same 2x buffer for all networks
+    maxFeePerGasValue = maxFeePerGasValue.mul(2);
+    
+    // Transaction data for gas estimation (includes from field)
+    const txDataForEstimate = {
+      from: sendAddress,
+      to: tokenInfo.contractAddress,
+      value: "0x0",
+      data,
+      type: 2, // EIP-1559
+      maxFeePerGas: maxFeePerGasValue.toHexString(),
+      maxPriorityFeePerGas: maxPriorityFeePerGasValue.toHexString(),
+      chainId: LIT_CHAINS[tokenInfo.chainName as keyof typeof LIT_CHAINS]?.chainId,
+      nonce,
+    };
+
+    // Estimate gas
+    const estimatedGas = await provider.estimateGas(txDataForEstimate);
+    
+    // Create final transaction object (without from field)
     const txData = {
       to: tokenInfo.contractAddress,
       value: "0x0",
       data,
-      chainId: LIT_CHAINS['sepolia'].chainId,
-      gasPrice: gasPrice.toHexString(),
-      gasLimit: ethers.utils.hexlify(100000),
+      type: 2, // EIP-1559
+      maxFeePerGas: maxFeePerGasValue.toHexString(),
+      maxPriorityFeePerGas: maxPriorityFeePerGasValue.toHexString(),
+      chainId: LIT_CHAINS[tokenInfo.chainName as keyof typeof LIT_CHAINS]?.chainId,
       nonce,
+      gasLimit: estimatedGas.toNumber(),
     };
 
     const toSign = ethers.utils.arrayify(
@@ -166,7 +193,10 @@ export const broadcastTransactionByTokenType = async ({
       })
     );
 
-    const txReceipt = await rpcProvider.sendTransaction(signedAndSerializedTx);
+    const tokenInfo = SUPPORTED_TOKENS_INFO[tokenType]
+    const provider = new ethers.providers.JsonRpcProvider(LIT_CHAINS[tokenInfo.chainName as keyof typeof LIT_CHAINS]?.rpcUrls[0]);
+
+    const txReceipt = await provider.sendTransaction(signedAndSerializedTx);
     return txReceipt.hash
   } else if (tokenType === 'BTC') {
     const { sig, publicKey, tx } = options

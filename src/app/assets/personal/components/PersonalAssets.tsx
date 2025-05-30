@@ -201,7 +201,7 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
         }
       }
     } catch (error) {
-      console.error(`Error sending ${tokenInfo.symbol}:`, error)
+      console.log(`Error sending ${tokenInfo.symbol}:`, typeof error, error)
       
       // Check if token expired error
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
