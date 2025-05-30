@@ -23,7 +23,7 @@ export const getToSignTransactionByTokenType = async ({
   options: any;
 }) => {
   if (tokenType === 'ETH') {
-    const { sendAddress, recipientAddress, amount } = options
+    const { sendAddress, recipientAddress, amount, data } = options
     // Get nonce
     const nonce = await rpcProvider.getTransactionCount(sendAddress)
         
@@ -35,9 +35,15 @@ export const getToSignTransactionByTokenType = async ({
       to: recipientAddress,
       value: ethers.utils.parseEther(amount).toHexString(),
       gasPrice: gasPrice.toHexString(),
-      gasLimit: 21000, // Standard gas limit for ETH transfer
       nonce,
       chainId: LIT_CHAINS['sepolia'].chainId,
+    }
+    if (data) { 
+      txData.data = data; // Include data if provided
+      const estimatedGas = await rpcProvider.estimateGas(txData);
+      txData.gasLimit = estimatedGas.toNumber();
+    } else {
+      txData.gasLimit = 21000;
     }
 
     const toSign = ethers.utils.arrayify(
