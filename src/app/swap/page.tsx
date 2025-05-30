@@ -91,6 +91,11 @@ export default function SwapPage() {
     const [ethAddress, setEthAddress] = useState<string | null>(null)
     const [ethWalletBalance, setEthWalletBalance] = useState<string>('0')
 
+    // MFA state
+      const [mfaMethodId, setMfaMethodId] = useState<string | null>(null);
+      const [mfaPhoneNumber, setMfaPhoneNumber] = useState<string | null>(null);
+    
+
     // Check if user is logged in
     useEffect(() => {
         
@@ -287,6 +292,38 @@ export default function SwapPage() {
         }
     }
 
+    const fetchMfaData = async () => {
+        console.log('in fetchMfAData');
+          try {
+            const response = await fetch('/api/mfa/get-user-phone', {
+              headers: {
+                'Authorization': `Bearer ${authMethod?.accessToken}`
+              }
+            });
+            
+            if (!response.ok) {
+              const data = await response.json();
+              throw new Error(data.error || 'Failed to fetch phone number');
+            }
+            
+            const data = await response.json();
+            const phones = data.phones || [];
+            
+            if (phones.length > 0) {
+              // Update phone state
+              const phone = phones[0];
+              console.log('phone', phone)
+              setMfaPhoneNumber(phone.phone_number);
+              setMfaMethodId(phone.phone_id);
+            } else {
+              throw new Error('No verified phone number found for your account');
+            }
+          } catch (error) {
+            console.error('Error fetching user phone:', error);
+            throw error;
+          }
+        }
+
     // 处理交换操作
     const handleSwap = async () => {
         if (!fromAmount || !toAmount || !ethAddress) {
@@ -357,7 +394,7 @@ export default function SwapPage() {
                     })
 
                     // 获取 IPFS ID
-                    // const ipfsId = await getPersonalTransactionIpfsId('base58')
+                    const ipfsId = await getPersonalTransactionIpfsId('base58')
                     
                     // 发交易必须要经过 MFA，所以我们先触发一次发短信
                     // const mfaResponse = await fetch('/api/mfa/whatsapp/send-code', {
@@ -381,6 +418,8 @@ export default function SwapPage() {
 
                     // 这里应该暂停，要等手机接收验证短信再去签名交易
                     // 执行交易签名
+
+                    await fetchMfaData();
                     
                     // 将 hex 字符串转换为 Uint8Array
                     const hexString = unsignedTx.rawUnsignedTx.startsWith('0x') 
@@ -391,7 +430,7 @@ export default function SwapPage() {
                     );
                     
                     const response = await litNodeClient.executeJs({
-                        ipfsId: "QmNriw4V52jaaXQaADWraKxCGoeY7gmmniE7tzyWwZCj3A", // 不需要MFA的
+                        ipfsId, // 不需要MFA的
                         sessionSigs,
                         jsParams: {
                             toSignTransaction: toSignTransactionBytes,
@@ -406,7 +445,7 @@ export default function SwapPage() {
                             },
                             otp: '', // 交换操作通常不需要 OTP，除非超过每日限额
                             // mfaMethodId: 'phone-number-test-7c1d1108-9afb-470a-9585-bf57620209e0',
-                            mfaMethodId: undefined,
+                            mfaMethodId,
                             tokenType: 'ETH',
                         }
                     })
