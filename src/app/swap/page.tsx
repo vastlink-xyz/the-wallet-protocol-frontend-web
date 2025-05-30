@@ -9,15 +9,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { CopyAddress } from '@/components/ui/CopyAddress'
 import Image from 'next/image'
 import { estimateSwap } from '@/lib/swap/estimateSwap'
-import { prepareEvmTx } from '@/lib/swap/prepareTx'
 import { useRouter } from 'next/navigation'
 import { getAuthMethodFromStorage } from '@/lib/storage/authmethod'
 import { AuthMethod, IRelayPKP } from '@lit-protocol/types'
 import { getProviderByAuthMethodType } from '@/lib/lit/providers'
 import { fetchEthBalance } from "@/lib/web3/eth"
-import { broadcastTransactionByTokenType } from "@/lib/web3/transaction"
+import { broadcastTransactionByTokenType, getToSignTransactionByTokenType } from "@/lib/web3/transaction"
 import { getPersonalTransactionIpfsId } from '@/lib/lit/ipfs-id-env'
 import { litNodeClient, getSessionSigsByPkp } from '@/lib/lit'
+import { ethers } from 'ethers'
 
 // 支持的代币列表
 // 图标从 https://thorchain.org/ 找
@@ -366,16 +366,18 @@ export default function SwapPage() {
 
             // 3. 准备 EVM 交易（仅支持以太坊网络的代币）
             if (fromToken.network === 'Ethereum') {
-                // 使用 prepareEvmTx 构造未签名交易
-                // THORChain 上所有 ERC20 资产的交换都通过原生 ETH 转账实现
-                const unsignedTx = await prepareEvmTx({
-                    sender: ethAddress,
-                    recipient: toAddress,
-                    amount: amount,
-                    network: 'mainnet' as any // 需要根据实际网络调整
+                const data = memo ? ethers.utils.hexlify(ethers.utils.toUtf8Bytes(memo)) : '0x'
+                const txData = await getToSignTransactionByTokenType({
+                    tokenType: 'ETH',
+                    options: {
+                        sendAddress: ethAddress,
+                        recipientAddress: toAddress,
+                        amount: amount,
+                        data,
+                    }
                 })
 
-                console.log('Prepared unsigned transaction:', unsignedTx)
+                console.log('Prepared unsigned transaction:', txData)
 
                 // 4. 使用 LIT Protocol 对交易进行签名
                 if (sessionPkp && litActionPkp && authMethod && authMethodId) {
@@ -396,44 +398,13 @@ export default function SwapPage() {
                     // 获取 IPFS ID
                     const ipfsId = await getPersonalTransactionIpfsId('base58')
                     
-                    // 发交易必须要经过 MFA，所以我们先触发一次发短信
-                    // const mfaResponse = await fetch('/api/mfa/whatsapp/send-code', {
-                    // method: 'POST',
-                    // headers: {
-                    //     'Content-Type': 'application/json',
-                    //     'Authorization': `Bearer ${authMethod.accessToken}`
-                    // },
-                    // body: JSON.stringify({ 
-                    //     phone_number: "+8613693554167"
-                    // })
-                    // });
-
-                    // if (!mfaResponse.ok) {
-                    //     const data = await mfaResponse.json();
-                    //     throw new Error(data.error || 'Failed to send OTP');
-                    // }
-
-                    // const data = await mfaResponse.json();
-                    // console.log('mfa response', data);
-
-                    // 这里应该暂停，要等手机接收验证短信再去签名交易
-                    // 执行交易签名
-
                     await fetchMfaData();
-                    
-                    // 将 hex 字符串转换为 Uint8Array
-                    const hexString = unsignedTx.rawUnsignedTx.startsWith('0x') 
-                        ? unsignedTx.rawUnsignedTx.slice(2) 
-                        : unsignedTx.rawUnsignedTx;
-                    const toSignTransactionBytes = new Uint8Array(
-                        hexString.match(/.{1,2}/g)?.map(byte => parseInt(byte, 16)) || []
-                    );
                     
                     const response = await litNodeClient.executeJs({
                         ipfsId, // 不需要MFA的
                         sessionSigs,
                         jsParams: {
-                            toSignTransaction: toSignTransactionBytes,
+                            toSignTransaction: txData?.toSign,
                             transactionAmount: amount,
                             publicKey: litActionPkp.publicKey,
                             env: process.env.NEXT_PUBLIC_ENV,
@@ -462,14 +433,16 @@ export default function SwapPage() {
                     if (result.status === 'success') {
                         // 解析签名
                         const sig = JSON.parse(result.sig)
+
+                        console.log('to send tx', sig, txData);
                         
                         // 6. 广播已签名的交易
                         const txReceipt = await broadcastTransactionByTokenType({
                             tokenType: 'ETH',
                             options: {
-                                unsignedTransaction: unsignedTx,
-                                sig,
-                                publicKey: litActionPkp.publicKey,
+                            ...txData,
+                            sig,
+                            publicKey: litActionPkp.publicKey,
                             },
                         })
 
