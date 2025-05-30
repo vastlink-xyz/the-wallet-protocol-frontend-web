@@ -23,10 +23,9 @@ export const getToSignTransactionByTokenType = async ({
   tokenType: TokenType;
   options: any;
 }) => {
-  const { sendAddress, recipientAddress, amount } = options
+  const { sendAddress, recipientAddress, amount, data } = options
   const tokenInfo = SUPPORTED_TOKENS_INFO[tokenType]
   if (tokenType === 'ETH') {
-    const { sendAddress, recipientAddress, amount, data } = options
     // Get nonce
     const nonce = await rpcProvider.getTransactionCount(sendAddress)
         
@@ -34,7 +33,15 @@ export const getToSignTransactionByTokenType = async ({
     const gasPrice = await rpcProvider.getGasPrice()
   
     // Create the transaction object
-    const txData = {
+    const txData: {
+      to: any;
+      value: string;
+      gasPrice: string;
+      nonce: number;
+      chainId: number;
+      data?: string;
+      gasLimit?: number;
+    } = {
       to: recipientAddress,
       value: ethers.utils.parseEther(amount).toHexString(),
       gasPrice: gasPrice.toHexString(),
