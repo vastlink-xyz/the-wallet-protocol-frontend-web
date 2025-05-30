@@ -54,9 +54,7 @@ export const estimateSwap = async (amount: number, decimals: number, fromAssetRa
         const midgardCache = new MidgardCache(new Midgard(network))
         const thorchainCache = new ThorchainCache(new Thornode(network), new MidgardQuery(midgardCache))
         const thorchainQuery = new ThorchainQuery(thorchainCache)
-        let swapParams: QuoteSwapParams
-
-        swapParams = {
+        const swapParams: QuoteSwapParams = {
             fromAsset,
             destinationAsset: toAsset,
             amount: new CryptoAmount(assetToBase(assetAmount(amount, decimals)), fromAsset),
