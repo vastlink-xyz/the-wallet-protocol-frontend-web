@@ -215,6 +215,9 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
     }
   }
 
+  const handleDetailsClick = () => {
+    window.open(`/wallet/personal/details`, '_blank')
+  }
 
   if (isLoading) {
     return (
@@ -261,7 +264,7 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
             onSendClick={() => {
               setShowSendDialog(true)
             }}
-            onDetailsClick={() => {}}
+            onDetailsClick={handleDetailsClick}
             btcAddress={btcAddress}
             ethAddress={litActionPkp.ethAddress}
           />

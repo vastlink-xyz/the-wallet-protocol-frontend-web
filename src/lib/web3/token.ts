@@ -1,3 +1,5 @@
+import { LIT_CHAINS } from "@lit-protocol/constants";
+
 export interface TokenInfo {
   symbol: string;
   name: string;
@@ -16,7 +18,7 @@ export const SUPPORTED_TOKENS_INFO = {
     name: 'Bitcoin',
     decimals: 8,
     chainType: 'UTXO',
-    chainName: 'sepolia',
+    chainName: 'testnet3',
     iconUrl: '/cryptocurrency/btc.png',
     contractAddress: '',
     addressKey: 'btc',
@@ -70,3 +72,8 @@ export const SUPPORTED_TOKENS_ARRAY = Object.values(SUPPORTED_TOKENS_INFO);
 
 export type TokenType = keyof typeof SUPPORTED_TOKENS_INFO;
 export const SUPPORTED_TOKEN_SYMBOLS = Object.keys(SUPPORTED_TOKENS_INFO) as TokenType[]; 
+
+export function getChainIdByChainName(chainName: string): string {
+  const chainId = LIT_CHAINS[chainName as keyof typeof LIT_CHAINS].chainId;
+  return "0x" + chainId.toString(16);
+}

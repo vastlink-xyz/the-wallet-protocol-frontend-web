@@ -2,6 +2,9 @@ import { ethers } from "ethers"
 import { LIT_CHAINS } from "@lit-protocol/constants"
 import { log } from "../utils";
 import { ERC20_ABI } from "@/constants/abis/erc20";
+import Moralis from "moralis";
+import { initializeMoralis } from "../moralis";
+import { TransactionItem } from "@/components/Transaction/TransactionHistoryItem";
 
 /**
  * Fetch ETH balance for an address
@@ -34,49 +37,96 @@ export async function fetchEthBalance(address: string, chainName: string = 'sepo
   }
 }
 
-/**
- * Fetch ETH transaction history with pagination support
- * @param address - Ethereum address to fetch transaction history for
- * @param page - Page number (starts from 1, default: 1)
- * @param limit - Number of transactions per page (default: 20, max: 100 for Etherscan)
- * @returns Transaction array and pagination information
- */
-export const fetchEthTransactionHistory = async (
-  address: string,
-  page: number = 1,
-  limit: number = 20
-) => {
+export const fetchEthTransactionHistory = async ({
+  address,
+  chain,
+  cursor,
+  contractAddress,
+}: {
+  address: string
+  chain: string
+  cursor?: string
+  contractAddress?: string
+}) => {
+  await initializeMoralis()
+
+  const limit = 25;
+
   try {
-    // Use our internal API that wraps Etherscan API calls
-    const apiUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/eth/etherscan?address=${address}&action=txlist&page=${page}&limit=${limit}`;
-    
-    const response = await fetch(apiUrl);
-    
-    if (!response.ok) {
-      throw new Error(`API returned ${response.status}: ${response.statusText}`);
+    let response;
+    if (contractAddress) {
+      response = await Moralis.EvmApi.token.getWalletTokenTransfers({
+        chain,
+        order: "DESC",
+        address,
+        limit,
+        cursor,
+        contractAddresses: [contractAddress || ''],
+      });
+      
+      // Map ERC-20 token transfers to our app format
+      const tokenTransfers = response.raw.result || [];
+      const formattedTransactions: TransactionItem[] = tokenTransfers.map((tx: any) => {
+        const isSender = tx.from_address.toLowerCase() === address.toLowerCase();
+        const value = tx.value_decimal || ethers.utils.formatUnits(tx.value, tx.token_decimals || 18);
+        
+        return {
+          txid: tx.transaction_hash,
+          value: value,
+          from: tx.from_address,
+          to: tx.to_address,
+          timestamp: tx.block_timestamp,
+          status: "confirmed", // Moralis typically returns confirmed transactions
+          type: isSender ? "send" : "receive"
+        };
+      });
+      
+      return {
+        transactions: formattedTransactions,
+        cursor: response.raw.cursor
+      };
+    } else {
+      response = await Moralis.EvmApi.transaction.getWalletTransactions({
+        chain,
+        order: "DESC",
+        address,
+        limit,
+        cursor,
+      });
+      
+      // Map native ETH transactions to our app format
+      const ethTransactions = response.raw.result || [];
+      const formattedTransactions: TransactionItem[] = ethTransactions
+        .filter((tx: any) => tx.input === '0x')
+        .map((tx: any) => {
+        const isSender = tx.from_address.toLowerCase() === address.toLowerCase();
+        let value = "0";
+        
+        if (tx.value) {
+          value = ethers.utils.formatEther(tx.value);
+        }
+        
+        return {
+          txid: tx.hash,
+          value: value,
+          from: tx.from_address,
+          to: tx.to_address,
+          timestamp: tx.block_timestamp,
+          status: "confirmed", // Moralis typically returns confirmed transactions
+          type: isSender ? "send" : "receive"
+        };
+      });
+      
+      return {
+        transactions: formattedTransactions,
+        cursor: response.raw.cursor
+      };
     }
-    
-    const data = await response.json();
-    
-    if (data.status !== '1' && data.message !== 'No transactions found') {
-      throw new Error(`Etherscan API error: ${data.message}`);
-    }
-    
-    const transactions = data.result || [];
-    
-    return {
-      transactions,
-      hasMore: transactions.length === limit,
-      page: page,
-      limit: limit
-    };
   } catch (error) {
-    console.error("Error fetching ETH transaction history:", error);
+    console.log("Error fetching ETH transaction history:", error);
     return {
       transactions: [],
-      hasMore: false,
-      page: page,
-      limit: limit
+      cursor: null
     };
   }
 }

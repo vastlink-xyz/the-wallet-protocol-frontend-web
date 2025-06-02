@@ -6,7 +6,8 @@ export async function initializeMoralis() {
   if (isInitialized) {
     return;
   }
-
+  
+  // only used on server side
   if (!process.env.MORALIS_API_KEY) {
     throw new Error('Moralis API key is not defined');
   }

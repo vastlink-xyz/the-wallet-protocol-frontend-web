@@ -1,64 +1,80 @@
 import { NextResponse } from 'next/server';
 import { fetchBtcTransactionHistory } from '@/lib/web3/btc';
 import { fetchEthTransactionHistory } from '@/lib/web3/eth';
+import { getChainIdByChainName, SUPPORTED_TOKENS_INFO } from '@/lib/web3/token';
+import { TokenType } from '@/lib/web3/token';
+import { log } from '@/lib/utils';
 
 /**
  * API endpoint to fetch transaction history for ETH or BTC
  * 
  * Query parameters:
- * - type: 'eth' or 'btc'
+ * - tokenType: 'ETH', 'BTC', etc.
  * - address: wallet address
- * - page: page number (optional, default: 1, used for ETH)
- * - limit: items per page (optional, default depends on type)
- * - lastTxid: last transaction ID for pagination (optional, used for BTC)
+ * - lastId: last transaction ID for pagination (for ETH this is cursor, for BTC this is txid)
  */
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  const type = url.searchParams.get('type')?.toLowerCase();
   const address = url.searchParams.get('address');
-  const page = parseInt(url.searchParams.get('page') || '1');
-  const limit = parseInt(url.searchParams.get('limit') || '25');
-  const lastTxid = url.searchParams.get('lastTxid') || undefined;
+  const tokenType = url.searchParams.get('tokenType');
+  const lastId = url.searchParams.get('lastId') || undefined;
 
-  // Validate required parameters
-  if (!type || !['eth', 'btc'].includes(type)) {
+  if (!address || !tokenType) {
     return NextResponse.json(
-      { error: 'Missing or invalid type parameter. Must be "eth" or "btc".' }, 
+      { error: 'Address and tokenType are required.' }, 
       { status: 400 }
     );
   }
 
-  if (!address) {
+  const tokenInfo = SUPPORTED_TOKENS_INFO[tokenType as TokenType];
+  if (!tokenInfo) {
     return NextResponse.json(
-      { error: 'Address parameter is required.' }, 
+      { error: `Token type ${tokenType} is not supported.` },
       { status: 400 }
     );
   }
 
   try {
-    let result;
+    // Default response structure
+    const defaultResponse = {
+      transactions: [],
+      lastId: null,
+      hasMore: false
+    };
     
-    // Call appropriate function based on type
-    if (type === 'btc') {
-      // For BTC, we use cursor-based pagination with lastTxid
-      result = await fetchBtcTransactionHistory(address, limit, lastTxid);
-    } else {
-      // For ETH, we use page-based pagination
-      result = await fetchEthTransactionHistory(address, page, limit);
+    if (tokenInfo.chainType === 'UTXO') {
+      const btcResult = await fetchBtcTransactionHistory({
+        btcAddress: address,
+        lastTxid: lastId,
+      });
+      
+      return NextResponse.json({
+        transactions: btcResult?.transactions || [],
+        lastId: btcResult?.lastId || null, 
+        hasMore: !!btcResult?.lastId
+      });
+    } else if (tokenInfo.chainType === 'EVM') {
+      const ethResult = await fetchEthTransactionHistory({
+        address,
+        chain: getChainIdByChainName(tokenInfo.chainName),
+        cursor: lastId,
+        contractAddress: tokenInfo.contractAddress,
+      });
+      
+      return NextResponse.json({
+        transactions: ethResult?.transactions || [],
+        lastId: ethResult?.cursor || null,
+        hasMore: !!ethResult?.cursor
+      });
     }
-
-    return NextResponse.json({
-      type,
-      address,
-      page: type === 'eth' ? page : undefined,
-      limit,
-      ...result
-    });
+    
+    // Unsupported chain type
+    return NextResponse.json(defaultResponse);
     
   } catch (error) {
-    console.error(`Error fetching ${type.toUpperCase()} transaction history:`, error);
+    console.error(`Error fetching ${tokenType} transaction history:`, error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : `Failed to fetch ${type.toUpperCase()} transaction history` }, 
+      { error: error instanceof Error ? error.message : `Failed to fetch ${tokenType} transaction history` }, 
       { status: 500 }
     );
   }

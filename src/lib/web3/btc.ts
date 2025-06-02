@@ -1,4 +1,5 @@
 import * as bitcoinjs from "bitcoinjs-lib";
+import { TransactionItem } from "@/components/Transaction/TransactionHistoryItem";
 
 export const getBtcAddressByPublicKey = (publicKey: string) => {
   try {
@@ -125,20 +126,21 @@ export const fetchBtc24HourOutflow = async (btcAddress: string) => {
  * @param lastTxid - Last transaction ID for pagination (get transactions after this ID)
  * @returns Transaction array and pagination information
  */
-export const fetchBtcTransactionHistory = async (
-  btcAddress: string, 
-  limit: number = 25, 
+export const fetchBtcTransactionHistory = async ({
+  btcAddress,
+  lastTxid,
+}: {
+  btcAddress: string
   lastTxid?: string
-) => {
+}) => {
+  const limit = 50;
+
   // Try Mempool.space API first through our proxy
   try {
     // Build URL with pagination parameters if provided
     let apiUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/btc/mempool?address=${btcAddress}&endpoint=txs`;
     if (lastTxid) {
-      apiUrl += `&last_seen=${lastTxid}`;
-    }
-    if (limit) {
-      apiUrl += `&limit=${limit}`;
+      apiUrl += `&lastId=${lastTxid}`;
     }
     
     const response = await fetch(apiUrl);
@@ -147,18 +149,81 @@ export const fetchBtcTransactionHistory = async (
     }
     const transactions = await response.json();
     
+    // Transform mempool.space transactions to our app's format
+    const formattedTransactions: TransactionItem[] = transactions.map((tx: any) => {
+      // Check if this address is in inputs (sending) or outputs (receiving)
+      const isInputter = tx.vin.some((input: any) => 
+        input.prevout && input.prevout.scriptpubkey_address === btcAddress
+      );
+      
+      // Calculate transaction value
+      let value = 0;
+      let otherAddress = '';
+      
+      if (isInputter) {
+        // This is a sent transaction - sum outputs not going back to our address
+        for (const output of tx.vout) {
+          if (output.scriptpubkey_address && output.scriptpubkey_address !== btcAddress) {
+            value += output.value;
+            // Use first non-self address as the recipient
+            if (!otherAddress) {
+              otherAddress = output.scriptpubkey_address;
+            }
+          }
+        }
+      } else {
+        // This is a received transaction - sum outputs coming to our address
+        for (const output of tx.vout) {
+          if (output.scriptpubkey_address === btcAddress) {
+            value += output.value;
+          }
+        }
+        
+        // Try to find the sender
+        if (tx.vin[0] && tx.vin[0].prevout && tx.vin[0].prevout.scriptpubkey_address) {
+          otherAddress = tx.vin[0].prevout.scriptpubkey_address;
+        }
+      }
+      
+      // Format timestamp from unix time
+      const timestamp = tx.status && tx.status.block_time 
+        ? new Date(tx.status.block_time * 1000).toISOString() 
+        : new Date().toISOString(); // Use current time for unconfirmed transactions
+      
+      // Determine transaction status
+      let status: "confirmed" | "pending" | "failed" = "pending";
+      if (tx.status) {
+        if (tx.status.confirmed) {
+          status = "confirmed";
+        }
+      }
+      
+      // Format value from satoshis to BTC
+      const valueInBTC = (value / 100000000).toFixed(8);
+      
+      return {
+        txid: tx.txid,
+        value: valueInBTC,
+        from: isInputter ? btcAddress : otherAddress,
+        to: isInputter ? otherAddress : btcAddress,
+        timestamp,
+        status,
+        type: isInputter ? "send" : "receive"
+      };
+    });
+    
     // Return transactions and info needed for pagination
-    const lastTx = transactions.length > 0 ? transactions[transactions.length - 1].txid : null;
+    const lastId = transactions.length >= limit ? transactions[transactions.length - 1].txid : null;
     return {
-      transactions,
-      hasMore: transactions.length === limit,
-      lastTxid: lastTx
+      transactions: formattedTransactions,
+      lastId,
     };
   } catch (mempoolError) {
     console.warn("Mempool.space API failed for transaction history, falling back to BlockCypher:", mempoolError);
 
     // If Mempool.space fails, fallback to BlockCypher API
     try {
+      const limit = 25;
       // Build URL with pagination parameters
       let apiUrl = `https://api.blockcypher.com/v1/btc/test3/addrs/${btcAddress}/full?limit=${limit}`;
       if (lastTxid) {
@@ -174,17 +239,77 @@ export const fetchBtcTransactionHistory = async (
       const data = await response.json();
       const txs = data.txs || [];
       
+      // Convert BlockCypher format to our app's format
+      const formattedTransactions: TransactionItem[] = txs.map((tx: any) => {
+        // Determine if this is an incoming or outgoing transaction
+        // For BlockCypher, we can use the inputs and outputs
+        const isOutgoing = tx.inputs.some((input: any) => 
+          input.addresses && input.addresses.includes(btcAddress)
+        );
+        
+        // Calculate transaction value
+        let value = 0;
+        let otherAddress = '';
+        
+        if (isOutgoing) {
+          // This is a sent transaction - sum outputs not going back to our address
+          for (const output of tx.outputs) {
+            if (output.addresses && !output.addresses.includes(btcAddress)) {
+              value += output.value;
+              // Use first non-self address as the recipient
+              if (!otherAddress && output.addresses[0]) {
+                otherAddress = output.addresses[0];
+              }
+            }
+          }
+        } else {
+          // This is a received transaction - sum outputs coming to our address
+          for (const output of tx.outputs) {
+            if (output.addresses && output.addresses.includes(btcAddress)) {
+              value += output.value;
+            }
+          }
+          
+          // Try to find the sender
+          if (tx.inputs[0] && tx.inputs[0].addresses && tx.inputs[0].addresses[0]) {
+            otherAddress = tx.inputs[0].addresses[0];
+          }
+        }
+        
+        // Format timestamp
+        const timestamp = tx.confirmed || tx.received || new Date().toISOString();
+        
+        // Determine transaction status
+        let status: "confirmed" | "pending" | "failed" = "pending";
+        if (tx.confirmed) {
+          status = "confirmed";
+        } else if (tx.double_spend) {
+          status = "failed";
+        }
+        
+        // Format value from satoshis to BTC
+        const valueInBTC = (value / 100000000).toFixed(8);
+        
+        return {
+          txid: tx.hash,
+          value: valueInBTC,
+          from: isOutgoing ? btcAddress : otherAddress,
+          to: isOutgoing ? otherAddress : btcAddress,
+          timestamp,
+          status,
+          type: isOutgoing ? "send" : "receive"
+        };
+      });
+      
       return {
-        transactions: txs,
-        hasMore: txs.length === limit && txs.length > 0,
-        lastTxid: txs.length > 0 ? txs[txs.length - 1].hash : null
+        transactions: formattedTransactions,
+        lastId: txs.length > 0 ? txs[txs.length - 1].hash : null
       };
     } catch (blockCypherError) {
       console.error("BlockCypher API also failed for transaction history:", blockCypherError);
       return {
         transactions: [],
-        hasMore: false,
-        lastTxid: null
+        lastId: null
       };
     }
   }
