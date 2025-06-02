@@ -261,7 +261,6 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
             onSendClick={() => {
               setShowSendDialog(true)
             }}
-            onReceiveClick={() => {}}
             onDetailsClick={() => {}}
             btcAddress={btcAddress}
             ethAddress={litActionPkp.ethAddress}

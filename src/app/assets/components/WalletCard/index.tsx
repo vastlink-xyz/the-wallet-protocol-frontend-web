@@ -3,6 +3,8 @@ import { getAvatarColor, getInitials } from "./helpers"
 import { TokenAssets } from "./TokenAssets"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { FileText } from "lucide-react"
+import { ReceiveModal } from "./ReceiveModal"
+import { useState } from "react"
 
 interface WalletCardProps {
   avatars: {
@@ -11,7 +13,6 @@ interface WalletCardProps {
   walletName: string
   WalletSettings?: React.ReactNode
   onSendClick: () => void
-  onReceiveClick: () => void
   onDetailsClick: () => void
   btcAddress: string
   ethAddress: string
@@ -23,12 +24,13 @@ export function WalletCard({
   walletName,
   WalletSettings,
   onSendClick,
-  onReceiveClick,
   onDetailsClick,
   btcAddress,
   ethAddress,
   onWalletSettingsClick,
 }: WalletCardProps) {
+  const [receiveModalOpen, setReceiveModalOpen] = useState(false);
+
   return (
     <div className="bg-white rounded-lg border p-6 shadow-sm relative max-w-[800px] mx-auto">
       <header className="flex items-center justify-between">
@@ -74,7 +76,7 @@ export function WalletCard({
           Send
         </button>
         <button 
-          onClick={onReceiveClick} 
+          onClick={() => setReceiveModalOpen(true)  } 
           className="flex flex-col items-center justify-center p-2 bg-gray-50 hover:bg-gray-100 rounded-md text-sm font-medium text-gray-700 cursor-pointer"
         >
           <ArrowDownCircle size={18} className="mb-1"/>
@@ -88,6 +90,16 @@ export function WalletCard({
           Details
         </button>
       </div>  
+
+      <ReceiveModal
+        addresses={{
+          btc: btcAddress,
+          eth: ethAddress,
+        }}
+        open={receiveModalOpen}
+        email={avatars[0].email}
+        onClose={() => setReceiveModalOpen(false)}
+      />
     </div>
   )
 }
