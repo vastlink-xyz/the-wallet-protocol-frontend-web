@@ -13,25 +13,18 @@ import { useRouter } from 'next/navigation'
 import { getAuthMethodFromStorage } from '@/lib/storage/authmethod'
 import { AuthMethod, IRelayPKP } from '@lit-protocol/types'
 import { getProviderByAuthMethodType } from '@/lib/lit/providers'
-import { fetchEthBalance } from "@/lib/web3/eth"
+import { fetchERC20TokenBalance, fetchEthBalance } from "@/lib/web3/eth"
 import { broadcastTransactionByTokenType, getToSignTransactionByTokenType } from "@/lib/web3/transaction"
 import { getPersonalTransactionIpfsId } from '@/lib/lit/ipfs-id-env'
 import { litNodeClient, getSessionSigsByPkp } from '@/lib/lit'
 import { ethers } from 'ethers'
 import { toast } from 'react-toastify'
+import { fetchBtcBalance } from '@/lib/web3/btc'
 
 // 支持的代币列表
 // 图标从 https://thorchain.org/ 找
 // 支持的交易池从：https://runescan.io/zh-CN/pools 找
 const SUPPORTED_TOKENS = [
-    // {
-    //     symbol: 'BTC',
-    //     name: 'Bitcoin',
-    //     icon: '/cryptocurrency/btc.png',
-    //     network: 'Bitcoin',
-    //     xchain_asset: 'BTC.BTC',
-    //     decimals: 8,
-    // },
     {
         symbol: 'ETH',
         name: 'Ethereum',
@@ -49,20 +42,12 @@ const SUPPORTED_TOKENS = [
         decimals: 6,
     },
     {
-        symbol: 'BNB',
-        name: 'BNB (BSC)',
-        icon: '/cryptocurrency/bnb.svg',
-        network: 'BSC',
-        xchain_asset: 'BSC.BNB',
-        decimals: 18,
-    },
-    {
-        symbol: 'USDT',
-        name: 'USDT (BSC)',
-        icon: '/cryptocurrency/usdt.svg',
-        network: 'BSC',
-        xchain_asset: 'BSC.USDT-0X55D398326F99059FF775485246999027B3197955',
-        decimals: 6,
+        symbol: 'BTC',
+        name: 'Bitcoin',
+        icon: '/cryptocurrency/btc.png',
+        network: 'Bitcoin',
+        xchain_asset: 'BTC.BTC',
+        decimals: 8,
     },
 ];
 
@@ -91,23 +76,25 @@ export default function SwapPage() {
     const [btcAddress, setBtcAddress] = useState<string | null>(null)
     const [ethAddress, setEthAddress] = useState<string | null>(null)
     const [ethWalletBalance, setEthWalletBalance] = useState<string>('0')
+    const [usdtWalletBalance, setUsdtWalletBalance] = useState<string>('0')
+    const [btcWalletBalance, setBtcWalletBalance] = useState<number>(0)
     const [destAddress, setDestAddress] = useState<string>('') // 目标地址输入
 
     // MFA state
-      const [mfaMethodId, setMfaMethodId] = useState<string | null>(null);
-      const [mfaPhoneNumber, setMfaPhoneNumber] = useState<string | null>(null);
-    
+    const [mfaMethodId, setMfaMethodId] = useState<string | null>(null);
+    const [mfaPhoneNumber, setMfaPhoneNumber] = useState<string | null>(null);
+
 
     // Check if user is logged in
     useEffect(() => {
-        
+
 
         const storedAuthMethod = getAuthMethodFromStorage()
         console.log('Stored auth method:', storedAuthMethod)
         if (storedAuthMethod) {
             setAuthMethod(storedAuthMethod)
 
-            
+
         } else {
             // Redirect to homepage if not logged in
             router.push('/')
@@ -145,8 +132,8 @@ export default function SwapPage() {
                     setBtcAddress(userData.addresses?.btc)
                     setEthAddress(userData.addresses?.eth)
 
-                    const balance = await fetchEthBalance(userData.addresses?.eth)
-                    setEthWalletBalance(balance)
+                    // const balance = await fetchEthBalance(userData.addresses?.eth)
+                    // setEthWalletBalance(balance)
                 }
             } catch (error) {
                 console.error("Error fetching data from database:", error)
@@ -157,22 +144,48 @@ export default function SwapPage() {
         fetchUserData();
     }, [authMethod]);
 
-    const updateWalletBalance = async (address: string) => {
+    const updateEthWalletBalance = async (address: string) => {
         try {
-            const balance = await fetchEthBalance(address)
-            console.log('Fetched ETH wallet balance:', balance)
-            setEthWalletBalance(balance)
+            const ethBalance = await fetchEthBalance(address)
+            console.log('Fetched ETH wallet balance:', ethBalance)
+            setEthWalletBalance(ethBalance)
+
+            // fetch usdt balance
+            const usdtBalance = await fetchERC20TokenBalance({
+                address,
+                tokenAddress: '0xaA8E23Fb1079EA71e0a56F48a2aA51851D8433D0', // USDT contract address on Ethereum
+                decimals: 6
+            })
+            setUsdtWalletBalance(usdtBalance)
         } catch (error) {
             console.error('Failed to update wallet balance:', error)
             setEthWalletBalance('0')
         }
     }
 
+    const updateBtcWalletBalance = async (address: string) => {
+        try {
+            const btcBalance = await fetchBtcBalance(address)
+            console.log('Fetched BTC wallet balance:', btcBalance)
+            setBtcWalletBalance(btcBalance)
+
+        } catch (error) {
+            console.error('Failed to update wallet balance:', error)
+            setBtcWalletBalance(0)
+        }
+    }
+
     useEffect(() => {
         if (!ethAddress) return
         // 更新以太坊钱包余额
-        updateWalletBalance(ethAddress)
+        updateEthWalletBalance(ethAddress)
     }, [ethAddress])
+
+    useEffect(() => {
+        if (!btcAddress) return
+        // 更新比特币钱包余额
+        updateBtcWalletBalance(btcAddress)
+    }, [btcAddress])
 
     // 设置默认目标地址为用户自己的地址
     useEffect(() => {
@@ -180,26 +193,6 @@ export default function SwapPage() {
             setDestAddress(ethAddress)
         }
     }, [ethAddress, destAddress])
-
-    // 获取当前选中代币的余额和地址信息
-    const getTokenBalanceInfo = (token: typeof SUPPORTED_TOKENS[0]) => {
-        // 根据代币的网络和类型返回对应的余额和地址
-        // console.log('getTokenBalanceInfo called for token:', token);
-        if (token.network === 'Ethereum') {
-            return {
-                balance: token.symbol === 'ETH' ? parseFloat(ethWalletBalance).toFixed(4) : 'Unknown',
-                address: ethAddress || 'N/A',
-                hasData: !!ethAddress
-            }
-        }
-        // 这里可以扩展其他网络的余额和地址获取逻辑
-        // 比如 BSC、Bitcoin 等
-        return {
-            balance: 'Unknown',
-            address: 'N/A',
-            hasData: false
-        }
-    }
 
     // 计算目标资产数量
     const calculateToAmount = async (amount: string) => {
@@ -209,7 +202,8 @@ export default function SwapPage() {
             setSwapFees(null)
             setSlippageBps(null)
             return
-        }        setIsCalculating(true)
+        }
+        setIsCalculating(true)
         try {
             // 使用 THORChain API 获取实际汇率和估算
             const estimate = await estimateSwap(
@@ -278,12 +272,37 @@ export default function SwapPage() {
             setSwapFees(null)
             setSlippageBps(null)
         }
-    }
-
-    // 处理输入框失去焦点时触发计算
+    }    // 处理输入框失去焦点时触发计算
     const handleFromAmountBlur = () => {
         if (fromAmount && parseFloat(fromAmount) > 0) {
             calculateToAmount(fromAmount)
+        }
+    }
+
+    // 根据代币符号获取对应的余额
+    const getBalanceByToken = (token: any) => {
+        switch (token.symbol) {
+            case 'ETH':
+                return ethWalletBalance
+            case 'USDT':
+                return usdtWalletBalance
+            case 'BTC':
+                return btcWalletBalance.toString()
+            default:
+                return '0'
+        }
+    }
+
+    // 根据代币符号获取对应的地址
+    const getAddressByToken = (token: any) => {
+        switch (token.symbol) {
+            case 'ETH':
+            case 'USDT':
+                return ethAddress
+            case 'BTC':
+                return btcAddress
+            default:
+                return null
         }
     }
 
@@ -301,36 +320,37 @@ export default function SwapPage() {
 
     const fetchMfaData = async () => {
         console.log('in fetchMfAData');
-          try {
+        try {
             const response = await fetch('/api/mfa/get-user-phone', {
-              headers: {
-                'Authorization': `Bearer ${authMethod?.accessToken}`
-              }
+                headers: {
+                    'Authorization': `Bearer ${authMethod?.accessToken}`
+                }
             });
-            
+
             if (!response.ok) {
-              const data = await response.json();
-              throw new Error(data.error || 'Failed to fetch phone number');
+                const data = await response.json();
+                throw new Error(data.error || 'Failed to fetch phone number');
             }
-            
+
             const data = await response.json();
             const phones = data.phones || [];
-            
+
             if (phones.length > 0) {
-              // Update phone state
-              const phone = phones[0];
-              console.log('phone', phone)
-              setMfaPhoneNumber(phone.phone_number);
-              setMfaMethodId(phone.phone_id);
+                // Update phone state
+                const phone = phones[0];
+                console.log('phone', phone)
+                setMfaPhoneNumber(phone.phone_number);
+                setMfaMethodId(phone.phone_id);
             } else {
-              throw new Error('No verified phone number found for your account');
+                throw new Error('No verified phone number found for your account');
             }
-          } catch (error) {
+        } catch (error) {
             console.error('Error fetching user phone:', error);
             throw error;
-          }
-        }    // 处理交换操作
-    const handleSwap = async () => {        if (!fromAmount || !toAmount || !ethAddress || !destAddress) {
+        }
+    }    // 处理交换操作
+    const handleSwap = async () => {
+        if (!fromAmount || !toAmount || !ethAddress || !destAddress) {
             console.log('Swap failed: Missing required fields', fromAmount, toAmount, ethAddress, destAddress)
             toast.error('请输入有效的交换金额和目标地址')
             return
@@ -339,7 +359,7 @@ export default function SwapPage() {
         setIsLoading(true)
         try {
             console.log('Starting swap process:', fromAmount, fromToken.symbol, 'to', toAmount, toToken.symbol, 'destination:', destAddress)
-            
+
             // 1. 首先获取最新的交换估算信息（包含交易详情）
             const swapEstimate = await estimateSwap(
                 parseFloat(fromAmount),
@@ -394,16 +414,16 @@ export default function SwapPage() {
 
                     // 获取会话签名
                     const sessionSigs = await getSessionSigsByPkp({
-                        authMethod, 
+                        authMethod,
                         pkp: sessionPkp,
                         refreshStytchAccessToken: true,
                     })
 
                     // 获取 IPFS ID
                     const ipfsId = await getPersonalTransactionIpfsId('base58')
-                    
+
                     await fetchMfaData();
-                    
+
                     const response = await litNodeClient.executeJs({
                         ipfsId, // 不需要MFA的
                         sessionSigs,
@@ -428,31 +448,33 @@ export default function SwapPage() {
                     console.log('LIT签名响应:', response)
 
                     // 处理响应
-                    const result = typeof response.response === 'string' 
-                        ? JSON.parse(response.response) 
+                    const result = typeof response.response === 'string'
+                        ? JSON.parse(response.response)
                         : response.response;
 
                     console.log('解析后的结果:', result)
-                    
+
                     if (result.status === 'success') {
                         // 解析签名
                         const sig = JSON.parse(result.sig)
 
                         console.log('to send tx', sig, txData);
-                        
+
                         // 6. 广播已签名的交易
                         const txReceipt = await broadcastTransactionByTokenType({
                             tokenType: 'ETH',
                             options: {
-                            ...txData,
-                            sig,
-                            publicKey: litActionPkp.publicKey,
-                            },                        })
+                                ...txData,
+                                sig,
+                                publicKey: litActionPkp.publicKey,
+                            },
+                        })
 
                         console.log('交易广播结果:', txReceipt)
-                        
+
                         toast.success(`交换成功！交易哈希: ${txReceipt}`)
-                    } else {                        if (result.requireMFA) {
+                    } else {
+                        if (result.requireMFA) {
                             // 如果需要 MFA，这里可以添加 MFA 流程
                             toast.warning('该交易需要多重身份验证，请联系管理员')
                         } else {
@@ -465,7 +487,7 @@ export default function SwapPage() {
             } else {
                 throw new Error(`暂不支持 ${fromToken.network} 网络的交易`)
             }
-              } catch (error) {
+        } catch (error) {
             console.error('Swap failed:', error)
             toast.error(`交换失败：${error instanceof Error ? error.message : '未知错误'}`)
         } finally {
@@ -558,13 +580,13 @@ export default function SwapPage() {
                             </div>
                             <div className="space-y-1">
                                 <div className="text-xs text-muted-foreground">
-                                    Balance: {ethWalletBalance} {fromToken.symbol}
+                                    Balance: {getBalanceByToken(fromToken)} {fromToken.symbol}
                                 </div>
-                                {ethAddress && (
+                                {getAddressByToken(fromToken) && (
                                     <div className="flex items-center gap-1 text-xs text-muted-foreground">
                                         <span>Address:</span>
                                         <CopyAddress
-                                            textToCopy={ethAddress}
+                                            textToCopy={getAddressByToken(fromToken)!}
                                             className="text-xs"
                                         />
                                     </div>
