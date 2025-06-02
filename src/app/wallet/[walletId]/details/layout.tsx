@@ -39,7 +39,7 @@ export default function WalletDetailsLayoutClient({
 
   // This check ensures walletId is available before rendering links
   if (!walletId) {
-    return <div>Loading wallet details...</div>; // Or some other loading state
+    return null;
   }
 
   return (

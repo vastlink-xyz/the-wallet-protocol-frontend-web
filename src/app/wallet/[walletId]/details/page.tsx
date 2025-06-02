@@ -14,5 +14,5 @@ export default function WalletDetailsRedirectPage() {
     }
   }, [walletId, router]);
 
-  return <div>Redirecting...</div>;
+  return null;
 } 

@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { SUPPORTED_TOKENS_ARRAY, SUPPORTED_TOKENS_INFO, TokenType } from "@/lib/web3/token";
+import { SUPPORTED_TOKENS_INFO, TokenType } from "@/lib/web3/token";
 import { MultisigWalletAddresses } from '@/app/api/multisig/storage';
 import { TransactionHistoryItem, TransactionItem } from './TransactionHistoryItem';
 import { log } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { CopyAddress } from '../ui/CopyAddress';
 import { toast } from 'react-toastify';
+import { SelectToken } from '@/components/SelectToken';
 
 export function TransactionHistory({
   addresses,
@@ -48,6 +48,7 @@ export function TransactionHistory({
     }
   }, [address, selectedToken]);
   
+  // Fetch transaction history
   const fetchTransactions = async (address: string, tokenType: TokenType) => {
     try {
       setIsLoading(true);
@@ -71,14 +72,7 @@ export function TransactionHistory({
       log('Transaction data:', data);
       
       if (data && data.transactions) {
-        // Format addresses for display
-        const formattedTransactions = data.transactions.map((tx: TransactionItem) => ({
-          ...tx,
-          from: tx.from,
-          to: tx.to
-        }));
-        
-        setTransactions(formattedTransactions);
+        setTransactions(data.transactions);
         setLastId(data.lastId);
         setHasMore(data.hasMore);
       } else {
@@ -150,31 +144,19 @@ export function TransactionHistory({
   };
 
   // Handle token change event
-  const handleTokenChange = (value: string) => {
-    setSelectedToken(value as TokenType);
+  const handleTokenChange = (tokenSymbol: TokenType) => {
+    setSelectedToken(tokenSymbol);
   };
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-xl font-semibold">Transaction History</h1>
-        <Select value={selectedToken} onValueChange={handleTokenChange}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Select token" />
-          </SelectTrigger>
-          <SelectContent>
-            {SUPPORTED_TOKENS_ARRAY.map((token) => (
-              <SelectItem key={token.symbol} value={token.symbol}>
-                <div className="flex items-center gap-2">
-                  {token.iconUrl && (
-                    <img src={token.iconUrl} alt={token.name} className="w-5 h-5" />
-                  )}
-                  {token.name}
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <SelectToken 
+          onSelect={handleTokenChange}
+          defaultValue={selectedToken}
+          className="w-[180px]"
+        />
       </div>
 
       {isLoading ? (
@@ -187,7 +169,7 @@ export function TransactionHistory({
               <CopyAddress className="text-xs break-all" textToCopy={address || ''} />
             </div>
           </div>
-
+          
           {transactions.length > 0 ? (
             <div className="space-y-2">
               {transactions.map((transaction) => (

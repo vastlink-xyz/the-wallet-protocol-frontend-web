@@ -42,7 +42,7 @@ export default function PersonalWalletDetailsPage() {
   }, [])
 
   if (isLoading) {
-    return <div>Loading...</div>
+    return null;
   }
 
   return (
