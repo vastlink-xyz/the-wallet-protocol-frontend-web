@@ -53,7 +53,6 @@ export default function DebugPage() {
     const response = await fetchEthTransactionHistory({
       address: '0x22ef809BD8D22853A9Be578aFA4B01Ea3D1f39ad',
       chain: getChainIdByChainName('baseSepolia'),
-      limit: 5,
       contractAddress: '0x4f86c33aE84c46972c2f7F8d33FAE3375F3E191b',
       cursor: 'eyJhbGciOiJIUzI1NiJ9.eyJhc2NlbmRpbmciOmZhbHNlLCJsaW1pdCI6NSwicGFnZSI6MCwibGFzdEV2YWx1YXRlZEtleSI6eyJ3YWxsZXRBZGRyZXNzIjoiMHgyMmVmODA5YmQ4ZDIyODUzYTliZTU3OGFmYTRiMDFlYTNkMWYzOWFkIiwibG9nSWRlbnRpZmllclJvbGx1cCI6IjAwMDE3NDg2MDc3NjQwMDAwMDAwMDAwMDAwMDAwMDA4In0sInRhYmxlSW5kZXgiOjB9.T2M2z4ucwHdrNWm_R3-aHZGuqozIqpTdJjZGELlAgpg',
     })
