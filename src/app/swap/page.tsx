@@ -32,6 +32,7 @@ const SUPPORTED_TOKENS = [
         network: 'Ethereum',
         xchain_asset: 'ETH.ETH',
         decimals: 18,
+        chainType: 'EVM',
     },
     {
         symbol: 'USDT',
@@ -40,6 +41,7 @@ const SUPPORTED_TOKENS = [
         network: 'Ethereum',
         xchain_asset: 'ETH.USDT-0XDAC17F958D2EE523A2206206994597C13D831EC7',
         decimals: 6,
+        chainType: 'EVM',
     },
     {
         symbol: 'BTC',
@@ -48,6 +50,7 @@ const SUPPORTED_TOKENS = [
         network: 'Bitcoin',
         xchain_asset: 'BTC.BTC',
         decimals: 8,
+        chainType: 'UTXO',
     },
 ];
 
@@ -453,8 +456,10 @@ export default function SwapPage() {
                             toSignTransaction: txData?.toSign,
                             transactionAmount: amount,
                             publicKey: litActionPkp.publicKey,
-                            env: process.env.NEXT_PUBLIC_ENV,
-                            chain: 'sepolia',
+                            // env: process.env.NEXT_PUBLIC_ENV,
+                            env: 'test',
+                            // chain: 'sepolia',
+                            chainType: fromToken.chainType,
                             authParams: {
                                 accessToken: authMethod.accessToken,
                                 authMethodId: authMethodId,
@@ -474,11 +479,16 @@ export default function SwapPage() {
                         ? JSON.parse(response.response)
                         : response.response;
 
-                    console.log('解析后的结果:', result)
+                    console.log('解析后的结果:', result, fromToken.chainType)
 
                     if (result.status === 'success') {
                         // 解析签名
-                        const sig = JSON.parse(result.sig)
+                        let sig: any
+                        if (fromToken.chainType === 'EVM') { // evm 使用sig字段
+                            sig = JSON.parse(result.sig)
+                        } else { // btc 使用btcSignatures
+                            sig = response.signatures.btcSignatures
+                        }
 
                         console.log('to send tx', sig, txData);
 
