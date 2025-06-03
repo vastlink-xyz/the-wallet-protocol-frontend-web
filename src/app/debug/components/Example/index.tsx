@@ -39,11 +39,9 @@ export function Example({
         const data = await response.json();
         if (data.sessionPkp) {
           setSessionPkp(data.sessionPkp);
-          log('Session PKP loaded:', data.sessionPkp);
         }
         if (data.litActionPkp) {
           setActionPkp(data.litActionPkp);
-          log('Action PKP loaded:', data.litActionPkp);
         }
       }
     } catch (error) {

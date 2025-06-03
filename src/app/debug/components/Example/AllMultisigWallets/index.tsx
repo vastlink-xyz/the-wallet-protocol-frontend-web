@@ -11,8 +11,8 @@ import { log } from "@/lib/utils";
 import { LitContracts } from '@lit-protocol/contracts-sdk';
 import { PKPEthersWallet } from '@lit-protocol/pkp-ethers';
 
-const upgradeIpfsFn = getMultisigTransactionIpfsId
-const removeIpfsIdHex = '0x122047cc66eb01bbc7cfa0962e29a104633dd47c97d8d63a92910a699ae68b1c68d6'
+const upgradeIpfsFn = getUpdateWalletIpfsId
+const removeIpfsIdHex = '0x1220db81843e88873ef8dfc91afe04f1158b70873fa7b3df0b95116315b6fda49323'
 
 interface AllMultisigWalletsProps {
   currentUserSessionPkp: IRelayPKP | null;

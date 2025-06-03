@@ -295,6 +295,7 @@ const _litActionCode = async () => {
     const changes = {
       addSigners: [],
       removeSigners: [],
+      nameChanged: false,
       thresholdChanged: false,
       mfaSettingsChanged: false
     } as any;
@@ -318,6 +319,11 @@ const _litActionCode = async () => {
           changes.removeSigners.push(decryptedSigner);
         }
       }
+    }
+
+    // Check if name has changed
+    if (parsedProposalMessage.name !== parsedDecryptedData.name) {
+      changes.nameChanged = true;
     }
 
     // Check if threshold has changed
@@ -404,6 +410,11 @@ const _litActionCode = async () => {
 
       // update signers list
       newDataToEncrypt.signers = updatedSigners;
+    }
+
+    // apply name changes
+    if (changes.nameChanged) {
+      newDataToEncrypt.name = parsedProposalMessage.name;
     }
 
     // apply threshold changes

@@ -17,7 +17,7 @@ export interface MFASettings {
 export interface MultisigWalletMetadata {
   accessControlConditions: any; // Lit Protocol access control conditions
   mfaSettings: MFASettings;
-  name?: string; // Optional, as name also exists as a top-level field
+  name: string;
   [key: string]: any; // Preserve extensibility
 }
 
