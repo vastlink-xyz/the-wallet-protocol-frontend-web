@@ -66,6 +66,7 @@ export default function SwapPage() {
         affiliateFee: string
     } | null>(null)
     const [slippageBps, setSlippageBps] = useState<number | null>(null)
+    const [hasEstimated, setHasEstimated] = useState(false) // 是否已经进行过估算
 
     const router = useRouter()
     const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null)
@@ -78,7 +79,7 @@ export default function SwapPage() {
     const [ethWalletBalance, setEthWalletBalance] = useState<string>('0')
     const [usdtWalletBalance, setUsdtWalletBalance] = useState<string>('0')
     const [btcWalletBalance, setBtcWalletBalance] = useState<number>(0)
-    const [destAddress, setDestAddress] = useState<string>('') // 目标地址输入
+    const [destAddress, setDestAddress] = useState<string>('')// 目标地址输入
 
     // MFA state
     const [mfaMethodId, setMfaMethodId] = useState<string | null>(null);
@@ -186,14 +187,26 @@ export default function SwapPage() {
         // 更新比特币钱包余额
         updateBtcWalletBalance(btcAddress)
     }, [btcAddress])
-
-    // 设置默认目标地址为用户自己的地址
-    useEffect(() => {
-        if (ethAddress && !destAddress) {
-            setDestAddress(ethAddress)
+    // 根据目标代币获取用户对应的钱包地址
+    const getDefaultAddressByToToken = () => {
+        switch (toToken.symbol) {
+            case 'ETH':
+            case 'USDT':
+                return ethAddress
+            case 'BTC':
+                return btcAddress
+            default:
+                return null
         }
-    }, [ethAddress, destAddress])
+    }
 
+    // 设置为默认地址
+    const handleSetDefaultAddress = () => {
+        const defaultAddress = getDefaultAddressByToToken()
+        if (defaultAddress) {
+            setDestAddress(defaultAddress)
+        }
+    }
     // 计算目标资产数量
     const calculateToAmount = async (amount: string) => {
         if (!amount || parseFloat(amount) <= 0) {
@@ -201,11 +214,13 @@ export default function SwapPage() {
             setExchangeRate(null)
             setSwapFees(null)
             setSlippageBps(null)
+            setHasEstimated(false)
             return
         }
         setIsCalculating(true)
         try {
             // 使用 THORChain API 获取实际汇率和估算
+            console.log('Calculating exchange rate for:', amount, fromToken, 'to', toToken)
             const estimate = await estimateSwap(
                 parseFloat(amount),
                 fromToken.decimals,
@@ -215,7 +230,7 @@ export default function SwapPage() {
             )
 
             if (estimate && estimate.txEstimate) {
-                console.log('Swap estimate received:', estimate);
+                console.log('Swap estimate received:', estimate, fromToken);
                 // 从估算结果中提取目标资产数量
                 const netOutputAmount = estimate.txEstimate.netOutput.assetAmount.amount().toNumber()
                 const netOutputDecimals = estimate.txEstimate.netOutput.assetAmount.decimal
@@ -236,6 +251,7 @@ export default function SwapPage() {
 
                 // 设置滑点信息
                 setSlippageBps(estimate.txEstimate.slipBasisPoints)
+                setHasEstimated(true)
 
                 console.log('Swap estimate:', {
                     input: amount + ' ' + fromToken.symbol,
@@ -250,6 +266,7 @@ export default function SwapPage() {
                 setExchangeRate(null)
                 setSwapFees(null)
                 setSlippageBps(null)
+                setHasEstimated(false)
             }
         } catch (error) {
             console.error('Failed to calculate exchange rate:', error)
@@ -257,12 +274,11 @@ export default function SwapPage() {
             setExchangeRate(null)
             setSwapFees(null)
             setSlippageBps(null)
+            setHasEstimated(false)
         } finally {
             setIsCalculating(false)
         }
-    }
-
-    // 处理源资产金额变化 (仅更新状态，不触发计算)
+    }    // 处理源资产金额变化 (仅更新状态，清空估算结果)
     const handleFromAmountChange = (value: string) => {
         setFromAmount(value)
         // 如果输入为空，立即清空结果
@@ -271,9 +287,15 @@ export default function SwapPage() {
             setExchangeRate(null)
             setSwapFees(null)
             setSlippageBps(null)
+            setHasEstimated(false)
+        } else {
+            // 如果有值但还没估算，清空之前的估算结果
+            setHasEstimated(false)
         }
-    }    // 处理输入框失去焦点时触发计算
-    const handleFromAmountBlur = () => {
+    }
+
+    // 手动触发估算
+    const handleEstimateSwap = () => {
         if (fromAmount && parseFloat(fromAmount) > 0) {
             calculateToAmount(fromAmount)
         }
@@ -304,18 +326,18 @@ export default function SwapPage() {
             default:
                 return null
         }
-    }
-
-    // 交换代币位置
+    }    // 交换代币位置
     const handleSwapTokens = () => {
         const temp = fromToken
         setFromToken(toToken)
         setToToken(temp)
 
-        // 重新计算金额
-        if (fromAmount) {
-            calculateToAmount(fromAmount)
-        }
+        // 清空估算结果，需要重新估算
+        setToAmount('')
+        setExchangeRate(null)
+        setSwapFees(null)
+        setSlippageBps(null)
+        setHasEstimated(false)
     }
 
     const fetchMfaData = async () => {
@@ -521,15 +543,16 @@ export default function SwapPage() {
                             <label className="text-sm font-medium">From</label>
                             <div className="flex gap-2">
                                 <Select
-                                    value={fromToken.xchain_asset}
-                                    onValueChange={(value) => {
+                                    value={fromToken.xchain_asset} onValueChange={(value) => {
                                         const token = SUPPORTED_TOKENS.find(t => t.xchain_asset === value)
                                         if (token) {
                                             setFromToken(token)
-                                            // 如果有输入金额，重新计算
-                                            if (fromAmount && parseFloat(fromAmount) > 0) {
-                                                calculateToAmount(fromAmount)
-                                            }
+                                            // 清空估算结果，需要重新估算
+                                            setHasEstimated(false)
+                                            setToAmount('')
+                                            setExchangeRate(null)
+                                            setSwapFees(null)
+                                            setSlippageBps(null)
                                         }
                                     }}
                                 >
@@ -567,12 +590,10 @@ export default function SwapPage() {
                                         ))}
                                     </SelectContent>
                                 </Select>
-
                                 <Input
                                     placeholder="0.0"
                                     value={fromAmount}
                                     onChange={(e) => handleFromAmountChange(e.target.value)}
-                                    onBlur={handleFromAmountBlur}
                                     type="number"
                                     step="any"
                                     className="flex-1"
@@ -611,15 +632,16 @@ export default function SwapPage() {
                             <label className="text-sm font-medium">To</label>
                             <div className="flex gap-2">
                                 <Select
-                                    value={toToken.xchain_asset}
-                                    onValueChange={(value) => {
+                                    value={toToken.xchain_asset} onValueChange={(value) => {
                                         const token = SUPPORTED_TOKENS.find(t => t.xchain_asset === value)
                                         if (token) {
                                             setToToken(token)
-                                            // 如果有输入金额，重新计算
-                                            if (fromAmount && parseFloat(fromAmount) > 0) {
-                                                calculateToAmount(fromAmount)
-                                            }
+                                            // 清空估算结果，需要重新估算
+                                            setHasEstimated(false)
+                                            setToAmount('')
+                                            setExchangeRate(null)
+                                            setSwapFees(null)
+                                            setSlippageBps(null)
                                         }
                                     }}
                                 >
@@ -666,22 +688,43 @@ export default function SwapPage() {
                                     className="flex-1 bg-muted/50"
                                 />
                             </div>
-                        </div>
-
-                        {/* 目标地址输入 */}
+                        </div>                        {/* 目标地址输入 */}
                         <div className="space-y-2">
-                            <label className="text-sm font-medium">To Address</label>
+                            <div className="flex items-center justify-between">
+                                <label className="text-sm font-medium">To Address</label>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleSetDefaultAddress}
+                                    disabled={!getDefaultAddressByToToken()}
+                                    className="text-xs h-7"
+                                >
+                                    Default Address
+                                </Button>
+                            </div>
                             <Input
-                                placeholder="Enter target address or use default"
+                                placeholder="Enter target address"
                                 value={destAddress}
                                 onChange={(e) => setDestAddress(e.target.value)}
                                 type="text"
                                 className="w-full font-mono text-sm"
                             />
                             <div className="text-xs text-muted-foreground">
-                                The token will be sent to this address. Defaults to your wallet address.
-                            </div>
-                        </div>
+                                The token will be sent to this address. Click "Default Address" to use your wallet address for {toToken.symbol}.
+                            </div>                        </div>
+
+                        {/* 估算按钮 */}
+                        {fromAmount && parseFloat(fromAmount) > 0 && destAddress && !hasEstimated && (
+                            <Button
+                                onClick={handleEstimateSwap}
+                                disabled={isCalculating}
+                                className="w-full"
+                                variant="outline"
+                                size="lg"
+                            >
+                                {isCalculating ? 'Calculating...' : 'Estimate Swap'}
+                            </Button>
+                        )}
 
                         {/* 交换信息 */}
                         {fromAmount && toAmount && exchangeRate && (
@@ -732,7 +775,7 @@ export default function SwapPage() {
                         )}                        {/* 交换按钮 */}
                         <Button
                             onClick={handleSwap}
-                            disabled={!fromAmount || !toAmount || !exchangeRate || !destAddress || isLoading || isCalculating}
+                            disabled={!fromAmount || !toAmount || !exchangeRate || !destAddress || !hasEstimated || isLoading || isCalculating}
                             className="w-full"
                             size="lg"
                         >
