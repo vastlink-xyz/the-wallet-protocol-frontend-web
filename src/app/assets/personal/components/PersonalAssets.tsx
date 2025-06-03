@@ -241,7 +241,7 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
   return (
     <div className="space-y-6">
       {
-        authMethodId && (
+        (authMethodId && showSendDialog) && (
           <SendTransactionDialog
             authMethod={authMethod}
             showSendDialog={showSendDialog}

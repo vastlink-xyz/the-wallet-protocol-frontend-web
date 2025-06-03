@@ -196,6 +196,8 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
             className="fixed bottom-8 right-8 flex items-center justify-center w-14 h-14 text-sm font-medium text-white bg-black rounded-full hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-700 focus:ring-offset-2 shadow-lg z-10 cursor-pointer"
             onClick={() => {
               if (userPkp && authMethodId) {
+                setMode('create')
+                setSelectedWallet(undefined)
                 setShowMultisigSetting(true)
               } else {
                 console.error('Missing userPkp or authMethodId')
@@ -213,7 +215,7 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
       {(showMultisigSetting && userPkp && sessionPkp) && (
         <MultisigSetting
           mode={mode}
-          wallet={selectedWallet}
+          walletId={selectedWallet?.id}
           authMethod={authMethod}
           userPkp={userPkp}
           sessionPkp={sessionPkp}

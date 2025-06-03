@@ -25,12 +25,11 @@ export async function GET(req: NextRequest) {
 
   } catch (error: any) {
     console.error('Error in GET /api/mfa/get-user-phone:', error);
-    log('Error fetching user phone:', error);
 
     let errorMessage = 'Failed to fetch user phone number';
     let statusCode = 500;
 
-    if (error.message?.includes('Authentication failed')) {
+    if (error.message?.includes('authentication failed')) {
       errorMessage = 'Authentication failed';
       statusCode = 401;
     }

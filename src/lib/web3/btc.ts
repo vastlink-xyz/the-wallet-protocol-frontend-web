@@ -219,98 +219,11 @@ export const fetchBtcTransactionHistory = async ({
       lastId,
     };
   } catch (mempoolError) {
-    console.warn("Mempool.space API failed for transaction history, falling back to BlockCypher:", mempoolError);
+    console.log("Mempool.space API failed for transaction history", mempoolError);
 
-    // If Mempool.space fails, fallback to BlockCypher API
-    try {
-      const limit = 25;
-      // Build URL with pagination parameters
-      let apiUrl = `https://api.blockcypher.com/v1/btc/test3/addrs/${btcAddress}/full?limit=${limit}`;
-      if (lastTxid) {
-        apiUrl += `&after=${lastTxid}`;
-      }
-      
-      const response = await fetch(apiUrl);
-      
-      if (!response.ok) {
-        throw new Error(`BlockCypher API returned ${response.status}: ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      const txs = data.txs || [];
-      
-      // Convert BlockCypher format to our app's format
-      const formattedTransactions: TransactionItem[] = txs.map((tx: any) => {
-        // Determine if this is an incoming or outgoing transaction
-        // For BlockCypher, we can use the inputs and outputs
-        const isOutgoing = tx.inputs.some((input: any) => 
-          input.addresses && input.addresses.includes(btcAddress)
-        );
-        
-        // Calculate transaction value
-        let value = 0;
-        let otherAddress = '';
-        
-        if (isOutgoing) {
-          // This is a sent transaction - sum outputs not going back to our address
-          for (const output of tx.outputs) {
-            if (output.addresses && !output.addresses.includes(btcAddress)) {
-              value += output.value;
-              // Use first non-self address as the recipient
-              if (!otherAddress && output.addresses[0]) {
-                otherAddress = output.addresses[0];
-              }
-            }
-          }
-        } else {
-          // This is a received transaction - sum outputs coming to our address
-          for (const output of tx.outputs) {
-            if (output.addresses && output.addresses.includes(btcAddress)) {
-              value += output.value;
-            }
-          }
-          
-          // Try to find the sender
-          if (tx.inputs[0] && tx.inputs[0].addresses && tx.inputs[0].addresses[0]) {
-            otherAddress = tx.inputs[0].addresses[0];
-          }
-        }
-        
-        // Format timestamp
-        const timestamp = tx.confirmed || tx.received || new Date().toISOString();
-        
-        // Determine transaction status
-        let status: "confirmed" | "pending" | "failed" = "pending";
-        if (tx.confirmed) {
-          status = "confirmed";
-        } else if (tx.double_spend) {
-          status = "failed";
-        }
-        
-        // Format value from satoshis to BTC
-        const valueInBTC = (value / 100000000).toFixed(8);
-        
-        return {
-          txid: tx.hash,
-          value: valueInBTC,
-          from: isOutgoing ? btcAddress : otherAddress,
-          to: isOutgoing ? otherAddress : btcAddress,
-          timestamp,
-          status,
-          type: isOutgoing ? "send" : "receive"
-        };
-      });
-      
-      return {
-        transactions: formattedTransactions,
-        lastId: txs.length > 0 ? txs[txs.length - 1].hash : null
-      };
-    } catch (blockCypherError) {
-      console.error("BlockCypher API also failed for transaction history:", blockCypherError);
-      return {
-        transactions: [],
-        lastId: null
-      };
-    }
+    return {
+      transactions: [],
+      lastId: null
+    };
   }
 };
