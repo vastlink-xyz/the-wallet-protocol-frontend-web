@@ -20,6 +20,14 @@ import { litNodeClient, getSessionSigsByPkp } from '@/lib/lit'
 import { ethers } from 'ethers'
 import { toast } from 'react-toastify'
 import { fetchBtcBalance } from '@/lib/web3/btc'
+import { Wallet } from '@xchainjs/xchain-wallet'
+import { ClientKeystore as MyEthClient } from '@/lib/xchain-lit-signer/xchain-lit-signer'
+import { defaultEthParams } from '@xchainjs/xchain-ethereum'
+import { ThorchainAMM } from '@xchainjs/xchain-thorchain-amm'
+import { QuoteSwapParams, ThorchainCache, ThorchainQuery, Thornode, TxDetails } from '@xchainjs/xchain-thorchain-query'
+import { assetAmount, assetFromString, assetToBase, CryptoAmount } from '@xchainjs/xchain-util'
+import { Midgard, MidgardCache, MidgardQuery } from '@xchainjs/xchain-midgard-query'
+import { Network } from '@xchainjs/xchain-client'
 
 // 支持的代币列表
 // 图标从 https://thorchain.org/ 找
@@ -413,115 +421,58 @@ export default function SwapPage() {
                 fromToken: fromToken.symbol
             })
 
-            // 3. 准备 EVM 交易（仅支持以太坊网络的代币）
-            if (fromToken.network === 'Ethereum') {
-                const data = memo ? ethers.utils.hexlify(ethers.utils.toUtf8Bytes(memo)) : '0x'
-                const txData = await getToSignTransactionByTokenType({
-                    tokenType: 'ETH',
-                    options: {
-                        sendAddress: ethAddress,
-                        recipientAddress: toAddress,
-                        amount: amount,
-                        data,
-                    }
-                })
-
-                console.log('Prepared unsigned transaction:', txData)
-
-                // 4. 使用 LIT Protocol 对交易进行签名
-                if (sessionPkp && litActionPkp && authMethod && authMethodId) {
-                    console.log('准备使用 LIT Protocol 签名交易...')
-
-                    // 确保 LIT 节点客户端已连接
-                    if (!litNodeClient.ready) {
-                        await litNodeClient.connect()
-                    }
-
-                    // 获取会话签名
-                    const sessionSigs = await getSessionSigsByPkp({
-                        authMethod,
-                        pkp: sessionPkp,
-                        refreshStytchAccessToken: true,
-                    })
-
-                    // 获取 IPFS ID
-                    const ipfsId = await getPersonalTransactionIpfsId('base58')
-
-                    await fetchMfaData();
-
-                    const response = await litNodeClient.executeJs({
-                        ipfsId, // 不需要MFA的
-                        sessionSigs,
-                        jsParams: {
-                            toSignTransaction: txData?.toSign,
-                            transactionAmount: amount,
-                            publicKey: litActionPkp.publicKey,
-                            // env: process.env.NEXT_PUBLIC_ENV,
-                            env: 'test',
-                            // chain: 'sepolia',
-                            chainType: fromToken.chainType,
-                            authParams: {
-                                accessToken: authMethod.accessToken,
-                                authMethodId: authMethodId,
-                                authMethodType: authMethod.authMethodType,
-                            },
-                            otp: '', // 交换操作通常不需要 OTP，除非超过每日限额
-                            // mfaMethodId: 'phone-number-test-7c1d1108-9afb-470a-9585-bf57620209e0',
-                            mfaMethodId,
-                            tokenType: 'ETH',
-                        }
-                    })
-
-                    console.log('LIT签名响应:', response)
-
-                    // 处理响应
-                    const result = typeof response.response === 'string'
-                        ? JSON.parse(response.response)
-                        : response.response;
-
-                    console.log('解析后的结果:', result, fromToken.chainType)
-
-                    if (result.status === 'success') {
-                        // 解析签名
-                        let sig: any
-                        if (fromToken.chainType === 'EVM') { // evm 使用sig字段
-                            sig = JSON.parse(result.sig)
-                        } else { // btc 使用btcSignatures
-                            sig = response.signatures.btcSignatures
-                        }
-
-                        console.log('to send tx', sig, txData);
-
-                        // 6. 广播已签名的交易
-                        const txReceipt = await broadcastTransactionByTokenType({
-                            tokenType: 'ETH',
-                            options: {
-                                ...txData,
-                                sig,
-                                publicKey: litActionPkp.publicKey,
-                            },
-                        })
-
-                        console.log('交易广播结果:', txReceipt)
-
-                        toast.success(`交换成功！交易哈希: ${txReceipt}`)
-                    } else {
-                        if (result.requireMFA) {
-                            // 如果需要 MFA，这里可以添加 MFA 流程
-                            toast.warning('该交易需要多重身份验证，请联系管理员')
-                        } else {
-                            throw new Error(result.error || '交易签名失败')
-                        }
-                    }
-                } else {
-                    throw new Error('缺少必要的认证信息，无法签名交易')
-                }
-            } else {
-                throw new Error(`暂不支持 ${fromToken.network} 网络的交易`)
+            if (!sessionPkp || !litActionPkp || !authMethod || !ethAddress) {
+                return;
             }
+            const sessionSigs = await getSessionSigsByPkp({
+                authMethod: authMethod!,
+                pkp: sessionPkp,
+                refreshStytchAccessToken: true,
+            })
+            const ethTestNetwork = ethers.providers.getNetwork('sepolia')
+            const ETH_TESTNET_ETHERS_PROVIDER = new ethers.providers.JsonRpcProvider(
+                'https://ethereum-sepolia-rpc.publicnode.com',
+                ethTestNetwork,
+            )
+            const wallet = new Wallet({
+                ETH: new MyEthClient({ ...defaultEthParams, 
+                    providers: {
+                        // TODO: 目前 vastlink 不支持主网，全切到测试网测试
+                        [Network.Mainnet]: ETH_TESTNET_ETHERS_PROVIDER,
+                        [Network.Testnet]: ETH_TESTNET_ETHERS_PROVIDER,
+                        [Network.Stagenet]: ETH_TESTNET_ETHERS_PROVIDER,
+                    },
+                    sessionSigs: sessionSigs, 
+                    publicKey: litActionPkp.publicKey, 
+                    chainType: 'EVM', 
+                    authParams: {
+                        accessToken: authMethod.accessToken,
+                        authMethodId: authMethodId,
+                        authMethodType: authMethod.authMethodType,
+                    },
+                    ethAddress,
+                }),
+            });
+            const network = Network.Mainnet;
+            const midgardCache = new MidgardCache(new Midgard(network))
+            const thorchainCache = new ThorchainCache(new Thornode(network), new MidgardQuery(midgardCache))
+            const thorchainQuery = new ThorchainQuery(thorchainCache)
+
+            const thorchainAmm = new ThorchainAMM(thorchainQuery, wallet)
+            const fromAsset = assetFromString(fromToken.xchain_asset)!;
+            const toAsset = assetFromString(toToken.xchain_asset)!;
+            const res = await thorchainAmm.doSwap({
+                fromAsset,
+                amount: new CryptoAmount(assetToBase(assetAmount(amount, fromToken.decimals)), fromAsset),
+                destinationAsset: toAsset,
+                destinationAddress: destAddress,
+                toleranceBps: 300, //optional
+            });
+            console.log('Swap transaction result:', res)
+            toast.success(`swap success: ${res.hash}`)
         } catch (error) {
             console.error('Swap failed:', error)
-            toast.error(`交换失败：${error instanceof Error ? error.message : '未知错误'}`)
+            toast.error(`swap failed：${error instanceof Error ? error.message : 'unknown'}`)
         } finally {
             setIsLoading(false)
         }
