@@ -1,7 +1,6 @@
 import { ClientKeystore as EVMClientKeystore, EVMClientParams, SignTransferParams, SignApproveParams } from '@xchainjs/xchain-evm'
-import { defaultEthParams } from '@xchainjs/xchain-ethereum'
 import { ISigner } from '@xchainjs/xchain-evm'
-import { litNodeClient, getSessionSigsByPkp } from '@/lib/lit'
+import { litNodeClient } from '@/lib/lit'
 import { getPersonalTransactionIpfsId } from '@/lib/lit/ipfs-id-env'
 import { TxHash } from '@xchainjs/xchain-client'
 import { ethers } from "ethers";
