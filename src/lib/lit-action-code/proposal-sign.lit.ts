@@ -21,13 +21,10 @@ const _litActionCode = async () => {
     Lit.Actions.setResponse({response: JSON.stringify(parsedRes)})
     return
   }
-
-  const messageHash = ethers.utils.hashMessage(message);
-  const messageBytes = ethers.utils.arrayify(messageHash);
   
-  // use Lit.Actions.signEcdsa to generate signature
-  const sigShare = await Lit.Actions.signEcdsa({ 
-    toSign: messageBytes, 
+  // use Lit.Actions.ethPersonalSignMessageEcdsa to generate signature
+  const sigShare = await Lit.Actions.ethPersonalSignMessageEcdsa({ 
+    message,
     publicKey, 
     sigName: 'sig',
   });

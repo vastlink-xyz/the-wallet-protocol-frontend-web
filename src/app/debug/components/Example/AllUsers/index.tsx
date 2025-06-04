@@ -14,8 +14,8 @@ import { upgradeLitActionCode } from '@/lib/lit-action-code/upgrade.lit';
 import { LIT_NETWORK } from '@lit-protocol/constants';
 import { getBtcAddressByPublicKey } from '@/lib/web3/btc';
 
-const upgradeIpfsHexFn = getPersonalTransactionIpfsId
-const removeIpfsIdHex = '0x1220a2cebf97e823200b976ab5fc7ec245d71da28a45171d190efba87adff889f62d'
+const upgradeIpfsHexFn = getPersonalSignIpfsId
+const removeIpfsIdHex = '0x122007b4331ad60377dd5d1bb3b69ffb54e6dbf6ced26c98d80486717bf75925321d'
 
 interface UserProps {
   currentUserPkp: IRelayPKP | null;

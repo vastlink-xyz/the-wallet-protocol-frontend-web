@@ -19,8 +19,8 @@ const verifyAuthTokenIpfsHex = '0x1220040da25a9624a5c139461568874b5f39658a5f9d72
 const multisigTransactionIpfsId = 'QmeAnNwsJWHzbKup72BLsGSBtQU35UJB8Uqk66zBxGCUdj'
 const multisigTransactionIpfsHex = '0x1220eb33dad6d931e3079a0d096047a4d8acfb67cbbce555762ac41ab7881679ec26'
 
-const personalSignIpfsId = 'QmNriw4V52jaaXQaADWraKxCGoeY7gmmniE7tzyWwZCj3A'
-const personalSignIpfsIdHex = '0x122007b4331ad60377dd5d1bb3b69ffb54e6dbf6ced26c98d80486717bf75925321d'
+const personalSignIpfsId = 'QmPuiigzron8C1sS3XC9BWQUA1vfqXQZxe4V6X45hYQNHG'
+const personalSignIpfsIdHex = '0x1220175463483f4a83029a74c6f6588a4e5789b788ce3a7bec74486b1c692a2457ab'
 
 const personalTransactionIpfsId = 'QmVhzmG12mfzwVM2YZ2Rj5R71Kc4GwcZA3g7tFizskACKK'
 const personalTransactionIpfsIdHex = '0x12206d79ae56b8483352d4021cb77d647c140e3134cf596001aea124b86145e909ca'
