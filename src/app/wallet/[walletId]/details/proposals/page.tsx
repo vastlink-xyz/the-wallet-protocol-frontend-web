@@ -29,9 +29,11 @@ export default function ProposalsPage() {
   const [proposals, setProposals] = useState<MessageProposal[]>([]);
   const [isLoadingProposals, setIsLoadingProposals] = useState(true);
 
-  const [isSigningProposal, setIsSigningProposal] = useState(false)
+  // Loading states for different operations
+  const [signingStates, setSigningStates] = useState<Record<string, boolean>>({});
+  const [executingStates, setExecutingStates] = useState<Record<string, boolean>>({});
+  
   const { handleExpiredAuth } = useAuthExpiration();
-  const [isProposalLoading, setIsProposalLoading] = useState(false);
 
   // mfa
   const [showMfaDialog, setShowMfaDialog] = useState(false);
@@ -288,7 +290,9 @@ export default function ProposalsPage() {
     }
     
     try {
-      setIsProposalLoading(true)
+      // Set loading state for this specific proposal execution
+      setExecutingStates(prev => ({ ...prev, [proposal.id]: true }));
+      
       // Connect to Lit Network
       if (!litNodeClient.ready) {
         await litNodeClient.connect()
@@ -322,7 +326,8 @@ export default function ProposalsPage() {
         toast.error(`Error executing operation: ${errorMessage}`);
       }
     } finally {
-      setIsProposalLoading(false)
+      // Clear loading state for this proposal
+      setExecutingStates(prev => ({ ...prev, [proposal.id]: false }));
     }
   }
 
@@ -333,7 +338,8 @@ export default function ProposalsPage() {
     }
     
     try {
-      setIsSigningProposal(true)
+      // Set loading state for this specific proposal signing
+      setSigningStates(prev => ({ ...prev, [proposal.id]: true }));
 
       const litActionIpfsId = await getPersonalSignIpfsId('base58')
       log('litActionIpfsId', litActionIpfsId)
@@ -406,7 +412,8 @@ export default function ProposalsPage() {
         toast.error(`Error signing proposal: ${errorMessage}`);
       }
     } finally {
-      setIsSigningProposal(false)
+      // Clear loading state for this proposal
+      setSigningStates(prev => ({ ...prev, [proposal.id]: false }));
     }
   }
 
@@ -437,7 +444,7 @@ export default function ProposalsPage() {
   };
 
   const handleOtpVerify = async (otp: string) => {
-    if (!authMethod || !userPkp) {
+    if (!authMethod || !userPkp || !currentProposal) {
       throw new Error('Missing required information for OTP verification');
     }
 
@@ -445,19 +452,21 @@ export default function ProposalsPage() {
     setShowMfaDialog(false);
 
     try {
-      setIsProposalLoading(true)
+      // Set executing state for this proposal during OTP verification
+      setExecutingStates(prev => ({ ...prev, [currentProposal.id]: true }));
+      
       const sessionSigs = await getSessionSigsByPkp({authMethod, pkp: userPkp, refreshStytchAccessToken: true})
-      if (currentProposal) {
-        log('otp in handleOtpVerified', otp)
-        await executeTransactionProposal(currentProposal, sessionSigs, otp)
-      }
+      log('otp in handleOtpVerified', otp)
+      await executeTransactionProposal(currentProposal, sessionSigs, otp)
     } catch (error) {
       console.error('Error executing transaction:', error)
     } finally {
-      setIsProposalLoading(false)
+      // Clear executing state
+      if (currentProposal) {
+        setExecutingStates(prev => ({ ...prev, [currentProposal.id]: false }));
+      }
     }
   }
-
 
   // Show loading state if wallet or proposals are still loading
   if (isWalletLoading || isLoadingProposals) {
@@ -485,8 +494,8 @@ export default function ProposalsPage() {
                 handleSignProposal={handleSignProposal}
                 executeMultisigLitAction={executeMultisigLitAction}
                 userPkp={userPkp}
-                isSigningProposal={isSigningProposal}
-                isLoading={isProposalLoading}
+                isSigningProposal={signingStates[proposal.id] || false}
+                isLoading={executingStates[proposal.id] || false}
               />
             )
           })
