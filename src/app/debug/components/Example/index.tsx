@@ -17,7 +17,6 @@ export function Example({
 }: {
   authMethod: AuthMethod;
 }) {
-  const [sessionPkp, setSessionPkp] = useState<IRelayPKP | null>(null);
   const [actionPkp, setActionPkp] = useState<IRelayPKP | null>(null);
   const [loading, setLoading] = useState(false);
   const [sessionSigs, setSessionSigs] = useState<SessionSigs | null>(null);
@@ -37,10 +36,6 @@ export function Example({
       
       if (response.ok) {
         const data = await response.json();
-        if (data.sessionPkp) {
-          log('sessionPkp', data.sessionPkp)
-          setSessionPkp(data.sessionPkp);
-        }
         if (data.litActionPkp) {
           setActionPkp(data.litActionPkp);
         }
@@ -62,9 +57,9 @@ export function Example({
   // Fetch session signatures
   useEffect(() => {
     const fetchSessionSigs = async () => {
-      if (!sessionSigs && sessionPkp && authMethod) {
+      if (!sessionSigs && actionPkp && authMethod) {
         const sigs = await getSessionSigs({
-          pkpPublicKey: sessionPkp.publicKey,
+          pkpPublicKey: actionPkp.publicKey,
           authMethod: authMethod,
           refreshStytchAccessToken: true,
         });
@@ -73,7 +68,7 @@ export function Example({
     };
 
     fetchSessionSigs();
-  }, [sessionPkp, authMethod, sessionSigs]);
+  }, [actionPkp, authMethod, sessionSigs]);
 
   // Render tab buttons
   const renderTabButtons = () => {
@@ -120,7 +115,6 @@ export function Example({
         return (
           <EditAuthmethod 
             authMethod={authMethod} 
-            sessionPkp={sessionPkp}
             actionPkp={actionPkp}
             loading={loading}
           />
@@ -129,7 +123,6 @@ export function Example({
         return (
           <ExecuteLitActionCode 
             authMethod={authMethod} 
-            sessionPkp={sessionPkp}
             actionPkp={actionPkp}
             loading={loading}
           />
@@ -138,14 +131,13 @@ export function Example({
         return (
           <Upgrade 
             authMethod={authMethod} 
-            sessionPkp={sessionPkp}
             actionPkp={actionPkp}
           />
         );
       case 'all-users':
         return (
           <AllUsers 
-            currentUserSessionPkp={sessionPkp}
+            currentUserPkp={actionPkp}
             currentUserAuthMethod={authMethod}
             sessionSigs={sessionSigs}
           />
@@ -153,7 +145,7 @@ export function Example({
       case 'all-wallets':
         return (
           <AllMultisigWallets 
-            currentUserSessionPkp={sessionPkp}
+            currentUserPkp={actionPkp}
             currentUserAuthMethod={authMethod}
             sessionSigs={sessionSigs}
           />
@@ -162,7 +154,6 @@ export function Example({
         return (
           <BtcDemo 
             authMethod={authMethod}
-            sessionPkp={sessionPkp}
             litactionPkp={actionPkp}
             sessionSigs={sessionSigs}
           />

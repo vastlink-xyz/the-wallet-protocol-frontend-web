@@ -15,13 +15,13 @@ const upgradeIpfsFn = getUpdateWalletIpfsId
 const removeIpfsIdHex = '0x1220db81843e88873ef8dfc91afe04f1158b70873fa7b3df0b95116315b6fda49323'
 
 interface AllMultisigWalletsProps {
-  currentUserSessionPkp: IRelayPKP | null;
+  currentUserPkp: IRelayPKP | null;
   currentUserAuthMethod: AuthMethod | null;
   sessionSigs: SessionSigs | null;
 }
 
 export function AllMultisigWallets({
-  currentUserSessionPkp,
+  currentUserPkp,
   currentUserAuthMethod,
   sessionSigs,
 }: AllMultisigWalletsProps) {
@@ -138,7 +138,7 @@ export function AllMultisigWallets({
 
       const pkpWallet = new PKPEthersWallet({
         controllerSessionSigs: sessionSigs,
-        pkpPubKey: currentUserSessionPkp!.publicKey,
+        pkpPubKey: currentUserPkp!.publicKey,
         litNodeClient: litNodeClient,
       });
       

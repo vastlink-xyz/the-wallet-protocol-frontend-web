@@ -23,7 +23,6 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
   const [hasMultisigWallets, setHasMultisigWallets] = useState(false)
   const [wallets, setWallets] = useState<MultisigWallet[]>([])
   const [userPkp, setUserPkp] = useState<IRelayPKP | null>(null)
-  const [sessionPkp, setSessionPKP] = useState<IRelayPKP | null>(null)
   const [showMultisigSetting, setShowMultisigSetting] = useState(false)
   const [authMethodId, setAuthMethodId] = useState<string>('')
   const [mode, setMode] = useState<'create' | 'edit'>('create')
@@ -55,9 +54,6 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
         // Use litActionPkp from user data
         if (userData.litActionPkp) {
           setUserPkp(userData.litActionPkp)
-        }
-        if (userData.sessionPkp) {
-          setSessionPKP(userData.sessionPkp)
         }
       } catch (error) {
         console.error("Error fetching user data:", error)
@@ -212,13 +208,12 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
         </TooltipContent>
       </Tooltip>
 
-      {(showMultisigSetting && userPkp && sessionPkp) && (
+      {(showMultisigSetting && userPkp) && (
         <MultisigSetting
           mode={mode}
           walletId={selectedWallet?.id}
           authMethod={authMethod}
           userPkp={userPkp}
-          sessionPkp={sessionPkp}
           authMethodId={authMethodId}
           onClose={() => setShowMultisigSetting(false)}
           onSuccess={handleRefreshWallets}

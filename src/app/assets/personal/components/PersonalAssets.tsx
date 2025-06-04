@@ -23,7 +23,6 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
   const { handleExpiredAuth } = useAuthExpiration()
 
   const [litActionPkp, setLitActionPkp] = useState<IRelayPKP | null>(null)
-  const [sessionPkp, setSessionPkp] = useState<IRelayPKP | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [email, setEmail] = useState<string | null>(null)
   const [authMethodId, setAuthMethodId] = useState<string | null>(null)
@@ -58,9 +57,6 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
         // Use litActionPkp from user data
         if (userData.litActionPkp) {
           setLitActionPkp(userData.litActionPkp)
-        }
-        if (userData.sessionPkp) {
-          setSessionPkp(userData.sessionPkp)
           setBtcAddress(userData.addresses?.btc)
         }
       } catch (error) {
@@ -104,7 +100,7 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
     mfaPhoneNumber,
     otpCode,
   }: SendTransactionDialogState) => {
-    if (!litActionPkp || !sessionPkp) {
+    if (!litActionPkp) {
       throw new Error('No PKP exists')
     }
 
@@ -133,7 +129,7 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
 
       const sessionSigs = await getSessionSigsByPkp({
         authMethod, 
-        pkp: sessionPkp,
+        pkp: litActionPkp,
         refreshStytchAccessToken: true,
       })
 
@@ -229,7 +225,7 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
   }
 
   // If no PKP exists yet
-  if (!litActionPkp || !sessionPkp) {
+  if (!litActionPkp) {
     return (
       <div className="bg-card p-6 rounded-lg border text-center">
         <p className="text-muted-foreground">No wallet information available</p>

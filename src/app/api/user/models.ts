@@ -51,13 +51,6 @@ const UserSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true },
   authMethodId: { type: String, required: true, unique: true },
   email: { type: String, required: true, unique: true },
-  // Instead of an array of PKPs, we define specific PKP fields for different types
-  sessionPkp: {
-    ethAddress: String,
-    publicKey: String,
-    tokenId: String,
-    type: { type: String, default: 'session' }
-  },
   litActionPkp: {
     ethAddress: String,
     publicKey: String,

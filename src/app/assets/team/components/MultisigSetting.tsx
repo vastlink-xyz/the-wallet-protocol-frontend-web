@@ -12,7 +12,6 @@ interface MultisigSettingProps {
   walletId?: string
   authMethod: AuthMethod
   userPkp: IRelayPKP
-  sessionPkp: IRelayPKP
   authMethodId: string
   onClose: () => void
   onSuccess?: () => void
@@ -23,7 +22,6 @@ export function MultisigSetting({
   walletId,
   authMethod, 
   userPkp, 
-  sessionPkp,
   authMethodId, 
   onClose,
   onSuccess 
@@ -66,7 +64,6 @@ export function MultisigSetting({
                 wallet={wallet}
                 authMethod={authMethod}
                 userPkp={userPkp}
-                sessionPkp={sessionPkp}
                 authMethodId={authMethodId}
                 onCancel={onClose}
                 onSuccess={() => {

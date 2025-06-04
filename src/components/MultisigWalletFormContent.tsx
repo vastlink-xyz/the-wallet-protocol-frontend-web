@@ -28,7 +28,6 @@ interface MultisigWalletFormContentProps {
   mode: 'create' | 'edit'
   authMethod: AuthMethod
   userPkp: IRelayPKP
-  sessionPkp?: IRelayPKP
   authMethodId: string
   wallet?: MultisigWallet // Only needed for edit mode
   onCancel?: () => void
@@ -94,7 +93,6 @@ export function MultisigWalletFormContent({
   mode,
   authMethod,
   userPkp,
-  sessionPkp,
   authMethodId,
   wallet,
   onCancel,
@@ -242,7 +240,7 @@ export function MultisigWalletFormContent({
 
   // Create new multisig wallet (create mode)
   const handleCreateMultisigWallet = async () => {
-    if (!userPkp || !sessionPkp) {
+    if (!userPkp) {
       console.error('Missing required information');
       return;
     }
@@ -388,7 +386,7 @@ export function MultisigWalletFormContent({
       log('encrypt data');
 
       // Get session signatures
-      const sessionSigs = await getSessionSigsByPkp({authMethod, pkp: sessionPkp, refreshStytchAccessToken: true});
+      const sessionSigs = await getSessionSigsByPkp({authMethod, pkp: userPkp, refreshStytchAccessToken: true});
       log('session sigs', sessionSigs);
 
       // Execute Lit Action to create wallet

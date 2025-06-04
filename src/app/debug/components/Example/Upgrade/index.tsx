@@ -14,11 +14,9 @@ import { getPersonalTransactionIpfsId, getUpdateWalletIpfsId } from "@/lib/lit/i
 
 export function Upgrade({
   authMethod,
-  sessionPkp,
   actionPkp,
 }: {
   authMethod: AuthMethod;
-  sessionPkp: IRelayPKP | null;
   actionPkp: IRelayPKP | null;
 }) {
   const [isMinting, setIsMinting] = useState(false);
@@ -45,7 +43,7 @@ export function Upgrade({
       setIsUpgrading(true);
 
       const sessionSigs = await getSessionSigs({
-        pkpPublicKey: sessionPkp!.publicKey,
+        pkpPublicKey: actionPkp!.publicKey,
         authMethod,
         refreshStytchAccessToken: true,
       });
@@ -94,13 +92,13 @@ export function Upgrade({
       }
 
       const sessionSigs = await getSessionSigs({
-        pkpPublicKey: sessionPkp!.publicKey,
+        pkpPublicKey: actionPkp!.publicKey,
         authMethod,
         refreshStytchAccessToken: true,
       })
       const pkpWallet = new PKPEthersWallet({
         controllerSessionSigs: sessionSigs,
-        pkpPubKey: sessionPkp!.publicKey,
+        pkpPubKey: actionPkp!.publicKey,
         litNodeClient: litNodeClient,
       });
       
@@ -131,7 +129,7 @@ export function Upgrade({
     
     try {
       const sessionSigs = await getSessionSigs({
-        pkpPublicKey: sessionPkp!.publicKey,
+        pkpPublicKey: actionPkp!.publicKey,
         authMethod,
         refreshStytchAccessToken: true,
       });
@@ -169,7 +167,6 @@ export function Upgrade({
       <div className="space-y-2">
         <h3 className="text-sm font-medium">Current PKPs</h3>
         <div className="text-sm">
-          <p>Session PKP: {sessionPkp ? sessionPkp.ethAddress : 'None'}</p>
           <p>Action PKP: {actionPkp ? actionPkp.ethAddress : 'None'}</p>
         </div>
       </div>

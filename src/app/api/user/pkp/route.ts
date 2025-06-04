@@ -49,6 +49,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate PKP type
+    // kkktodo
     let type = PKPType.Session;
     if (pkpType) {
       if (pkpType === 'litAction') {
@@ -63,8 +64,7 @@ export async function POST(request: NextRequest) {
 
     // Check if user already has a PKP of this type
     const existingUser = await getUser(authMethodId);
-    const hasExistingPkp = (type === PKPType.Session && existingUser?.sessionPkp) || 
-                          (type === PKPType.LitAction && existingUser?.litActionPkp);
+    const hasExistingPkp = existingUser?.litActionPkp;
     
     const action = hasExistingPkp ? 'Updating' : 'Adding';
     console.log(`${action} ${type} PKP for user ${authMethodId}`);

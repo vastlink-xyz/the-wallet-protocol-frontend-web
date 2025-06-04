@@ -14,14 +14,12 @@ import { Loader2 } from "lucide-react";
 
 interface EditAuthmethodProps {
   authMethod: AuthMethod;
-  sessionPkp: IRelayPKP | null;
   actionPkp: IRelayPKP | null;
   loading: boolean;
 }
 
 export function EditAuthmethod({
   authMethod,
-  sessionPkp,
   actionPkp,
   loading
 }: EditAuthmethodProps) {
@@ -159,16 +157,16 @@ export function EditAuthmethod({
 
 
   const handleCheckPermittedAuthmethods = async () => {
-    if (!sessionPkp || !actionPkp) {
+    if (!actionPkp) {
       log('No PKPs available');
       return;
     }
 
     try {
-      const sessionSigs = await getSessionSigsByPkp({authMethod, pkp: sessionPkp})
+      const sessionSigs = await getSessionSigsByPkp({authMethod, pkp: actionPkp})
       const pkpWallet = new PKPEthersWallet({
         controllerSessionSigs: sessionSigs,
-        pkpPubKey: sessionPkp.publicKey,
+        pkpPubKey: actionPkp.publicKey,
         litNodeClient: litNodeClient,
       });
       
@@ -224,7 +222,7 @@ export function EditAuthmethod({
 
           <Button
             onClick={handleCheckPermittedAuthmethods}
-            disabled={!sessionPkp || !actionPkp || loading}
+            disabled={!actionPkp || loading}
           >
             Check Permitted Authmethods
           </Button>

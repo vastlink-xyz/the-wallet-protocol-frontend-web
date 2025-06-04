@@ -9,7 +9,6 @@ import { getProviderByAuthMethodType } from '@/lib/lit';
 interface WalletContextType {
   wallet: MultisigWallet | null;
   userPkp: IRelayPKP | null;
-  sessionPkp: IRelayPKP | null;
   authMethod: AuthMethod | null;
   authMethodId: string | null;
   walletPkp: IRelayPKP | null;
@@ -20,7 +19,6 @@ interface WalletContextType {
 const WalletContext = createContext<WalletContextType>({
   wallet: null,
   userPkp: null,
-  sessionPkp: null,
   authMethod: null,
   authMethodId: null,
   walletPkp: null,
@@ -42,7 +40,6 @@ export function WalletProvider({
   const [wallet, setWallet] = useState<MultisigWallet | null>(null);
   const [walletPkp, setWalletPkp] = useState<IRelayPKP | null>(null);
   const [userPkp, setUserPkp] = useState<IRelayPKP | null>(null);
-  const [sessionPkp, setSessionPkp] = useState<IRelayPKP | null>(null);
   const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null);
   const [authMethodId, setAuthMethodId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -119,9 +116,8 @@ export function WalletProvider({
               
               if (userResponse.ok) {
                 const userData = await userResponse.json();
-                if (userData.sessionPkp) {
+                if (userData.litActionPkp) {
                   setUserPkp(userData.litActionPkp);
-                  setSessionPkp(userData.sessionPkp);
                 }
               } else {
                 console.error("Failed to fetch user information");
@@ -145,7 +141,6 @@ export function WalletProvider({
     <WalletContext.Provider value={{ 
       wallet, 
       userPkp, 
-      sessionPkp, 
       authMethod, 
       authMethodId, 
       walletPkp, 

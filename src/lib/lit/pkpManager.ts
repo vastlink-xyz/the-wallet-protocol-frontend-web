@@ -33,26 +33,6 @@ export async function getPKPs({
 }
 
 /**
- * Create a new PKP with all permissions
- * @param authMethod Authentication method
- */
-export async function mintSessionPKP(authMethod: AuthMethod): Promise<IRelayPKP> {
-  const provider = getProviderByAuthMethodType(authMethod.authMethodType)
-    
-  if (!provider) {
-    throw new Error('Provider not available for this auth method');
-  }
-
-  // Set permission scope
-  const options = {
-    permittedAuthMethodScopes: [[AUTH_METHOD_SCOPE.SignAnything]],
-  };
-  
-  // Use the generic mintPKP function
-  return await mintPKP({ authMethod, options });
-} 
-
-/**
  * Mint a PKP permanently bound to a specific Lit Action
  * This PKP will only be able to execute the specified Lit Action and cannot be modified
  */
@@ -93,7 +73,7 @@ export async function mintPersonalPKP({
       [AUTH_METHOD_SCOPE.SignAnything],
       [AUTH_METHOD_SCOPE.SignAnything],
       [AUTH_METHOD_SCOPE.SignAnything],
-      [AUTH_METHOD_SCOPE.NoPermissions]
+      [AUTH_METHOD_SCOPE.PersonalSign]
     ],
     addPkpEthAddressAsPermittedAddress: false,
     sendPkpToItself: true,

@@ -18,13 +18,13 @@ const upgradeIpfsHexFn = getPersonalTransactionIpfsId
 const removeIpfsIdHex = '0x1220a2cebf97e823200b976ab5fc7ec245d71da28a45171d190efba87adff889f62d'
 
 interface UserProps {
-  currentUserSessionPkp: IRelayPKP | null;
+  currentUserPkp: IRelayPKP | null;
   currentUserAuthMethod: AuthMethod | null;
   sessionSigs: SessionSigs | null;
 }
 
 export function AllUsers({
-  currentUserSessionPkp,
+  currentUserPkp,
   currentUserAuthMethod,
   sessionSigs,
 }: UserProps) {
@@ -74,7 +74,7 @@ export function AllUsers({
 
       const pkpWallet = new PKPEthersWallet({
         controllerSessionSigs: sessionSigs,
-        pkpPubKey: currentUserSessionPkp!.publicKey,
+        pkpPubKey: currentUserPkp!.publicKey,
         litNodeClient: litNodeClient,
       });
       

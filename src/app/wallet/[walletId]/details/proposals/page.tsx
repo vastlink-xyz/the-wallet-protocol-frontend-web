@@ -23,7 +23,7 @@ export default function ProposalsPage() {
   const walletId = params.walletId as string;
   
   // Get wallet data from context
-  const { wallet, isLoading: isWalletLoading, authMethod, walletPkp, userPkp, sessionPkp, authMethodId, userPhone } = useWallet();
+  const { wallet, isLoading: isWalletLoading, authMethod, walletPkp, userPkp, authMethodId, userPhone } = useWallet();
   
   // Local state for proposals
   const [proposals, setProposals] = useState<MessageProposal[]>([]);
@@ -282,7 +282,7 @@ export default function ProposalsPage() {
 
   // Function to execute a Lit Action using the multisig PKP
   const executeMultisigLitAction = async (proposal: MessageProposal) => {
-    if (!walletPkp || !wallet || !authMethod || !sessionPkp) {
+    if (!walletPkp || !wallet || !authMethod || !userPkp) {
       console.error('Missing multisig wallet information or auth method')
       return
     }
@@ -297,7 +297,7 @@ export default function ProposalsPage() {
       log('selected mulsig pkp', walletPkp)
       
       // Get session signatures for the current user
-      const sessionSigs = await getSessionSigsByPkp({authMethod, pkp: sessionPkp, refreshStytchAccessToken: true})
+      const sessionSigs = await getSessionSigsByPkp({authMethod, pkp: userPkp, refreshStytchAccessToken: true})
       
       // Check if this is a wallet settings change proposal
       const isWalletSettingsProposal = proposal.type === 'walletSettings';
@@ -327,7 +327,7 @@ export default function ProposalsPage() {
   }
 
   const handleSignProposal = async (proposal: MessageProposal) => {
-    if (!walletPkp || !authMethod || !sessionPkp || !wallet || !userPkp) {
+    if (!walletPkp || !authMethod || !wallet || !userPkp) {
       console.error('Missing required information for signing')
       return
     }
@@ -342,7 +342,7 @@ export default function ProposalsPage() {
         await litNodeClient.connect();
       }
 
-      const sessionSigs = await getSessionSigsByPkp({authMethod, pkp: sessionPkp, refreshStytchAccessToken: true})
+      const sessionSigs = await getSessionSigsByPkp({authMethod, pkp: userPkp, refreshStytchAccessToken: true})
       log('session sigs', sessionSigs)
 
       const actionResponse = await litNodeClient.executeJs({
@@ -437,7 +437,7 @@ export default function ProposalsPage() {
   };
 
   const handleOtpVerify = async (otp: string) => {
-    if (!authMethod || !sessionPkp) {
+    if (!authMethod || !userPkp) {
       throw new Error('Missing required information for OTP verification');
     }
 
@@ -446,7 +446,7 @@ export default function ProposalsPage() {
 
     try {
       setIsProposalLoading(true)
-      const sessionSigs = await getSessionSigsByPkp({authMethod, pkp: sessionPkp, refreshStytchAccessToken: true})
+      const sessionSigs = await getSessionSigsByPkp({authMethod, pkp: userPkp, refreshStytchAccessToken: true})
       if (currentProposal) {
         log('otp in handleOtpVerified', otp)
         await executeTransactionProposal(currentProposal, sessionSigs, otp)

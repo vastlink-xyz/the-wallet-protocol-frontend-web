@@ -11,13 +11,6 @@ import { log } from "@/lib/utils";
 import { AuthMethod } from "@lit-protocol/types";
 import { litNodeClient } from "@/lib/lit";
 
-
-const sessionPKP = {
-  "ethAddress" : "0xd027F558d7ae10E673816adb5CdCc23be7814C0e",
-  "publicKey" : "0x04042e218a8729f011641a78da1939ab72299ebb70a0ba750645468311694ad1f24787945ebb91fe24caa76717203546748e89d4c589fe76bfa9e1fbd55f118eb0",
-  "tokenId" : "0xb7aaf498c4d450855f7a3cccc900b24b348f0e108d5d5a7ba9072e9403f6ff4e",
-}
-
 const litActionPkp = {
   "tokenId": "0x1354853dbb73274bb3f3262e1df21ffb0caf849fd2e27d388f33f3a7a50aa91d",
   "publicKey": "0x048721804caec0f4deb6d8c64cb8e2dc4139c220e6ca9a32a050ddec12cc86e184294c03263367e8a98f2c7bd4af5b12934c97efdea6a477489d84f70bc9e668f3",
@@ -136,7 +129,7 @@ export function Encryption({ authMethod }: { authMethod: AuthMethod }) {
       const sessionSigs = await litNodeClient.getPkpSessionSigs({
         chain: "ethereum",
         authMethods: [authMethod],
-        pkpPublicKey: sessionPKP.publicKey,
+        pkpPublicKey: litActionPkp.publicKey,
         expiration: new Date(Date.now() + 1000 * 60 * 10).toISOString(), // 10 minutes
         resourceAbilityRequests: [
           {

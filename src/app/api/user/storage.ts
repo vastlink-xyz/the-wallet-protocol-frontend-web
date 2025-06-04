@@ -14,12 +14,6 @@ export interface User {
   id: string
   authMethodId: string
   email: string
-  sessionPkp?: {
-    ethAddress: string
-    publicKey: string
-    tokenId: string
-    type: string
-  }
   litActionPkp?: {
     ethAddress: string
     publicKey: string
@@ -39,7 +33,6 @@ function extractUserData(doc: any): User | null {
     id: doc.id || doc._id?.toString(),
     authMethodId: doc.authMethodId,
     email: doc.email,
-    sessionPkp: doc.sessionPkp || undefined,
     litActionPkp: doc.litActionPkp || undefined,
     walletSettings: doc.walletSettings || undefined,
     addresses: doc.addresses || undefined
@@ -68,26 +61,10 @@ export async function getUserById(id: string): Promise<User | null> {
   }
 }
 
-// Find user by PKP ethAddress, either in sessionPkp or litActionPkp
+// Find user by PKP ethAddress, only in litActionPkp
 export async function getUserByPkpAddress(ethAddress: string): Promise<{authMethodId: string, pkp: IRelayPKP} | null> {
   try {
     await connectToDatabase();
-    
-    // Check session PKP
-    const userWithSessionPkp = await UserModel.findOne({
-      'sessionPkp.ethAddress': ethAddress
-    }).exec();
-    
-    if (userWithSessionPkp) {
-      return {
-        authMethodId: userWithSessionPkp.authMethodId,
-        pkp: {
-          ethAddress: userWithSessionPkp.sessionPkp.ethAddress,
-          publicKey: userWithSessionPkp.sessionPkp.publicKey,
-          tokenId: userWithSessionPkp.sessionPkp.tokenId
-        }
-      };
-    }
     
     // Check lit action PKP
     const userWithLitActionPkp = await UserModel.findOne({
@@ -189,7 +166,7 @@ export async function addPkpToUser(
       const newUser = await createUser({ authMethodId, email, addresses: { eth: ethAddress, btc: btcAddress } });
       
       // Prepare update based on PKP type
-      const updateField = pkpType === PKPType.Session ? 'sessionPkp' : 'litActionPkp';
+      const updateField = 'litActionPkp';
       const update = {
         [updateField]: {
           ethAddress: pkp.ethAddress,
@@ -211,7 +188,7 @@ export async function addPkpToUser(
     }
     
     // Update existing user with the new PKP
-    const updateField = pkpType === PKPType.Session ? 'sessionPkp' : 'litActionPkp';
+    const updateField = 'litActionPkp';
     const update = {
       [updateField]: {
         ethAddress: pkp.ethAddress,
@@ -242,21 +219,13 @@ export async function addPkpToUser(
   }
 }
 
-export async function getUserPkps(authMethodId: string): Promise<{sessionPkp?: IRelayPKP, litActionPkp?: IRelayPKP}> {
+export async function getUserPkps(authMethodId: string): Promise<{litActionPkp?: IRelayPKP}> {
   try {
     const user = await getUser(authMethodId);
     if (!user) return {};
     
-    const result: {sessionPkp?: IRelayPKP, litActionPkp?: IRelayPKP} = {};
-    
-    if (user.sessionPkp) {
-      result.sessionPkp = {
-        ethAddress: user.sessionPkp.ethAddress,
-        publicKey: user.sessionPkp.publicKey,
-        tokenId: user.sessionPkp.tokenId
-      };
-    }
-    
+    const result: {litActionPkp?: IRelayPKP} = {};
+
     if (user.litActionPkp) {
       result.litActionPkp = {
         ethAddress: user.litActionPkp.ethAddress,

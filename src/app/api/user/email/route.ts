@@ -40,12 +40,6 @@ export async function GET(request: NextRequest) {
         publicKey: user.litActionPkp.publicKey,
         tokenId: user.litActionPkp.tokenId
       };
-    } else if (user.sessionPkp) {
-      pkpData = {
-        ethAddress: user.sessionPkp.ethAddress,
-        publicKey: user.sessionPkp.publicKey,
-        tokenId: user.sessionPkp.tokenId
-      };
     }
 
     if (!pkpData) {

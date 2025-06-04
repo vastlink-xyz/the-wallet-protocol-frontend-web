@@ -19,12 +19,11 @@ bitcoinjs.initEccLib(ecc);
 
 interface BtcDemoProps {
   authMethod: AuthMethod;
-  sessionPkp: IRelayPKP | null;
   litactionPkp: IRelayPKP | null;
   sessionSigs: SessionSigs | null;
 }
 
-export function BtcDemo({ authMethod, sessionPkp, litactionPkp, sessionSigs }: BtcDemoProps) {
+export function BtcDemo({ authMethod, litactionPkp, sessionSigs }: BtcDemoProps) {
   const [btcAddress, setBtcAddress] = useState<string | null>(null);
   const [balance, setBalance] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -34,12 +33,12 @@ export function BtcDemo({ authMethod, sessionPkp, litactionPkp, sessionSigs }: B
   const [status, setStatus] = useState<string>("");
 
   useEffect(() => {
-    if (!sessionPkp) {
+    if (!litactionPkp) {
       return;
     }
 
     // get the btc address from the public key
-    const publicKey = sessionPkp.publicKey.slice(2);
+    const publicKey = litactionPkp.publicKey.slice(2);
     const pubkeyBuffer = Buffer.from(publicKey, "hex");
     const pkpBTCAddress = bitcoinjs.payments.p2pkh({
       pubkey: pubkeyBuffer,
@@ -51,7 +50,7 @@ export function BtcDemo({ authMethod, sessionPkp, litactionPkp, sessionSigs }: B
       // setToAddress('tb1qn85hsmq7td49n8h62st4epcel4806um928spxw');
       setToAddress('mrLsGGKoanYPxoVYPQxwFDF68tgzhfNnPs');
     }
-  }, [sessionPkp]);
+  }, [litactionPkp]);
 
   const fetchBalance = async () => {
     if (!btcAddress) return;
@@ -80,7 +79,7 @@ export function BtcDemo({ authMethod, sessionPkp, litactionPkp, sessionSigs }: B
   }, [btcAddress]);
 
   const handleSend = async () => {
-    if (!btcAddress || !sessionSigs || !sessionPkp) {
+    if (!btcAddress || !sessionSigs || !litactionPkp) {
       console.error("Missing required parameters");
       return;
     }
@@ -159,7 +158,7 @@ export function BtcDemo({ authMethod, sessionPkp, litactionPkp, sessionSigs }: B
         sessionSigs,
         jsParams: {
           toSign: sighash,
-          publicKey: sessionPkp.publicKey,
+          publicKey: litactionPkp.publicKey,
         },
       }) as any;
 
@@ -223,7 +222,7 @@ export function BtcDemo({ authMethod, sessionPkp, litactionPkp, sessionSigs }: B
       
       const scriptSig = bitcoinjs.script.compile([
         signatureWithHashType,
-        Buffer.from(sessionPkp.publicKey.slice(2), "hex"),
+        Buffer.from(litactionPkp.publicKey.slice(2), "hex"),
       ]);
       
       tx.setInputScript(0, scriptSig);

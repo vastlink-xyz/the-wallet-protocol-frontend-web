@@ -24,27 +24,25 @@ const litActionCode = decryptDebugLitActionCode
 
 interface ExecuteLitActionCodeProps {
   authMethod: AuthMethod;
-  sessionPkp: IRelayPKP | null;
   actionPkp: IRelayPKP | null;
   loading: boolean;
 }
 
 export function ExecuteLitActionCode({ 
   authMethod,
-  sessionPkp,
   actionPkp,
   loading 
 }: ExecuteLitActionCodeProps) {
   const [isSaving, setIsSaving] = useState<boolean>(false);
 
   const handleExecuteLitAction = async () => {
-    if (!sessionPkp) {
+    if (!actionPkp) {
       log('No session PKP available');
       return;
     }
 
     log('authMethod', authMethod);
-    const pkpPublicKey = sessionPkp.publicKey;
+    const pkpPublicKey = actionPkp.publicKey;
     
     const sessionSigs = await getSessionSigs({
       pkpPublicKey,
@@ -146,7 +144,7 @@ export function ExecuteLitActionCode({
 
   const handleVerifyToken = async () => {
     log('authMethod', authMethod);
-    const pkpPublicKey = sessionPkp?.publicKey || '';
+    const pkpPublicKey = actionPkp?.publicKey || '';
     
     const sessionSigs = await getSessionSigs({
       pkpPublicKey,
@@ -191,7 +189,7 @@ export function ExecuteLitActionCode({
         <>
           <Button
             onClick={handleExecuteLitAction}
-            disabled={!sessionPkp || isSaving}
+            disabled={!actionPkp || isSaving}
           >
             {isSaving ? 'Executing...' : 'Execute Custom Lit Action'}
           </Button>

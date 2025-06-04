@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { 
   GOOGLE_SIGNIN_REDIRECT, 
   getProviderByAuthMethodType,
-  mintSessionPKP,
   mintPersonalPKP
 } from '@/lib/lit';
 import { log, setUserDataToStorage } from '@/lib/utils';
@@ -154,8 +153,8 @@ export default function GoogleCallbackPage() {
       
       const pkps = await pkpResponse.json();
       
-      // Check if user has both session and litAction PKPs
-      return !!(pkps?.sessionPkp && pkps?.litActionPkp);
+      // Check if user has litAction PKP
+      return !!(pkps?.litActionPkp);
     } catch (error) {
       console.error('Error checking user PKPs:', error);
       return false;
@@ -200,19 +199,13 @@ export default function GoogleCallbackPage() {
 
       // Step 1: Get auth method ID
       const authMethodId = await googleProvider.getAuthMethodId(authMethod);
-      
-      // Step 2: Mint the first PKP for session
-      const pkpForSession = await mintSessionPKP(authMethod);
-      
-      // Step 3: Save first PKP to database with 'session' type
-      await savePkpToDatabase(authMethodId, pkpForSession, 'session');
-      
-      // Step 4: Mint the second PKP with permanent Lit Action
+
+      // Step 2: Mint the second PKP with permanent Lit Action
       const pkpForLitAction = await mintPersonalPKP({
         authMethod,
       });
       
-      // Step 5: Save second PKP to database with 'litAction' type
+      // Step 3: Save second PKP to database with 'litAction' type
       await savePkpToDatabase(authMethodId, pkpForLitAction, 'litAction');
     } catch (error) {
       console.error("Error minting or saving PKP:", error);
