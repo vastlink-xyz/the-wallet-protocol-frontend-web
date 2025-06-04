@@ -7,8 +7,7 @@ import { AuthMethod, IRelayPKP } from "@lit-protocol/types";
 import { calculateCIDFromString, getLitActionIpfsCid, hexCidToBase58, uploadViaPinata } from "@/lib/lit/get-lit-action-ipfs-cid";
 import { AUTH_METHOD_TYPE } from "@lit-protocol/constants";
 import { ethers } from "ethers";
-import { editAuthmethodLitActionCode } from "@/app/debug/lit-actions/edit-authmethod";
-import { editAuthmethodForDebugLitActionCode } from "@/app/debug/lit-actions/edit-authmethod-for-debug";
+import { editAuthmethodForDebugLitActionCode } from "@/app/debug/components/Example/EditAuthmethod/edit-authmethod-for-debug";
 import { encryptString } from "@lit-protocol/encryption";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
@@ -19,8 +18,9 @@ import { multisigTransactionLitActionCode } from "@/lib/lit-action-code/multisig
 import { personalSignLitActionCode } from "@/lib/lit-action-code/proposal-sign.lit";
 import { upgradeLitActionCode } from "@/lib/lit-action-code/upgrade.lit";
 import { personalTransactionLitActionCode } from "@/lib/lit-action-code/personal-transaction.lit";
+import { decryptDebugLitActionCode } from "@/app/debug/decrypt-lit-action";
 
-const litActionCode = updateWalletSettingsLitActionCode
+const litActionCode = decryptDebugLitActionCode
 
 interface ExecuteLitActionCodeProps {
   authMethod: AuthMethod;

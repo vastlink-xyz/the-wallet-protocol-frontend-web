@@ -38,6 +38,7 @@ export function Example({
       if (response.ok) {
         const data = await response.json();
         if (data.sessionPkp) {
+          log('sessionPkp', data.sessionPkp)
           setSessionPkp(data.sessionPkp);
         }
         if (data.litActionPkp) {
