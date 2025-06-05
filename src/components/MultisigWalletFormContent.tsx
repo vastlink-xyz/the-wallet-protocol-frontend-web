@@ -686,9 +686,9 @@ export function MultisigWalletFormContent({
         </div>
       </div>
       
-      {/* Add New Signer */}
+      {/* Add A New Signer */}
       <div ref={newSignerFormRef} className={`space-y-3 border-t border-b py-4 ${newSignerError ? 'bg-red-50 px-4 rounded-md border-red-200' : ''}`}>
-        <h3 className="text-md font-semibold">Add New Signer</h3>
+        <h3 className="text-md font-semibold">Add A New Signer</h3>
         
         {showAddSignerForm ? (
           <div className="grid grid-cols-1 gap-3">
@@ -757,7 +757,7 @@ export function MultisigWalletFormContent({
             className="w-full"
           >
             <Plus className="h-4 w-4 mr-2" />
-            Add New Signer
+            Add A New Signer
           </Button>
         )}
       </div>

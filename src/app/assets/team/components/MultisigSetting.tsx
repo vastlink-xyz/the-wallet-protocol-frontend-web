@@ -44,7 +44,7 @@ export function MultisigSetting({
       <div className="bg-white rounded-lg max-w-xl w-full relative flex flex-col max-h-[90vh]">
         {/* Fixed header */}
         <div className="sticky top-0 p-6 border-b flex justify-between items-center">
-          <h2 className="text-xl font-semibold">Create A Team Wallet</h2>
+          <h2 className="text-xl font-semibold">Team Wallet Settings</h2>
         <button 
           onClick={onClose} 
             className="text-gray-500 hover:text-gray-800"
