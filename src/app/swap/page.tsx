@@ -82,7 +82,6 @@ export default function SwapPage() {
     const [authMethodId, setAuthMethodId] = useState<string | null>(null)
     const [email, setEmail] = useState<string | null>(null)
     const [litActionPkp, setLitActionPkp] = useState<IRelayPKP | null>(null)
-    const [sessionPkp, setSessionPkp] = useState<IRelayPKP | null>(null)
     const [btcAddress, setBtcAddress] = useState<string | null>(null)
     const [ethAddress, setEthAddress] = useState<string | null>(null)
     const [ethWalletBalance, setEthWalletBalance] = useState<string>('0')
@@ -136,14 +135,9 @@ export default function SwapPage() {
                 // Use litActionPkp from user data
                 if (userData.litActionPkp) {
                     setLitActionPkp(userData.litActionPkp)
-                }
-                if (userData.sessionPkp) {
-                    setSessionPkp(userData.sessionPkp)
+
                     setBtcAddress(userData.addresses?.btc)
                     setEthAddress(userData.addresses?.eth)
-
-                    // const balance = await fetchEthBalance(userData.addresses?.eth)
-                    // setEthWalletBalance(balance)
                 }
             } catch (error) {
                 console.error("Error fetching data from database:", error)
@@ -419,12 +413,12 @@ export default function SwapPage() {
                 fromToken: fromToken.symbol
             })
 
-            if (!sessionPkp || !litActionPkp || !authMethod || !ethAddress) {
+            if (!litActionPkp || !authMethod || !ethAddress) {
                 return;
             }
             const sessionSigs = await getSessionSigsByPkp({
                 authMethod: authMethod!,
-                pkp: sessionPkp,
+                pkp: litActionPkp,
                 refreshStytchAccessToken: true,
             })
             const ethTestNetwork = ethers.providers.getNetwork('sepolia')

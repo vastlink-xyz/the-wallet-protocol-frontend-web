@@ -118,7 +118,7 @@ export class LitKeystoreSigner implements ISigner {
 
         console.log('transferAmountInEther', transferAmountInEther)
         const response = await litNodeClient.executeJs({
-            ipfsId, // 不需要MFA的
+            ipfsId,
             sessionSigs: this.sessionSigs,
             jsParams: {
                 toSignTransaction: toSign,
