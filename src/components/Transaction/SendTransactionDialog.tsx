@@ -10,6 +10,10 @@ import { SelectToken } from "../SelectToken";
 import { AuthMethod } from "@lit-protocol/types";
 import { MFAOtpDialog } from "./MFAOtpDialog";
 import { log } from "@/lib/utils";
+import { estimateGasFee } from "@/lib/web3/transaction";
+import { fetchEthBalance, fetchERC20TokenBalance } from "@/lib/web3/eth";
+import { fetchBtcBalance } from "@/lib/web3/btc";
+import { MultisigWalletAddresses } from "@/app/api/multisig/storage";
 
 export interface SendTransactionDialogState {
   to: string
@@ -30,6 +34,7 @@ interface SendTransactionDialogProps {
   onMFACancel?: () => void
   onMFAVerify?: (state: SendTransactionDialogState) => Promise<void>
   onDialogOpenChange: (open: boolean) => void
+  addresses: MultisigWalletAddresses | null
 }
 
 export function SendTransactionDialog({
@@ -41,6 +46,7 @@ export function SendTransactionDialog({
   onMFACancel,
   onMFAVerify,
   onDialogOpenChange,
+  addresses,
 }: SendTransactionDialogProps) {
   // transaction state
   const [to, setTo] = useState('') // email or wallet address
@@ -50,14 +56,69 @@ export function SendTransactionDialog({
   // Token state
   const [tokenType, setTokenType] = useState<TokenType>('ETH')
   const [tokenInfo, setTokenInfo] = useState(SUPPORTED_TOKENS_INFO[tokenType])
+  const [balance, setBalance] = useState("0");
+  const [isLoadingBalance, setIsLoadingBalance] = useState(false);
 
   // MFA state
   const [mfaMethodId, setMfaMethodId] = useState<string | null>(null);
   const [mfaPhoneNumber, setMfaPhoneNumber] = useState<string | null>(null);
+  
+  // Fee estimation state
+  const [feeEstimation, setFeeEstimation] = useState<{
+    estimatedFee: string;
+    isSufficientForFee: boolean;
+    feeRate?: string;
+    transactionPriority?: string;
+    remainingBalance?: string;
+    error?: string;
+  } | null>(null);
+  const [isLoadingFee, setIsLoadingFee] = useState(false);
+
+  // Load balance when token type changes
+  useEffect(() => {
+    async function loadBalance() {
+      if (!addresses) {
+        setBalance("0");
+        return;
+      }
+      
+      try {
+        setIsLoadingBalance(true);
+        let newBalance: string = "0";
+
+        const tokenInfo = SUPPORTED_TOKENS_INFO[tokenType]
+        
+        if (tokenInfo.chainType === 'EVM' && !tokenInfo.contractAddress) {
+          newBalance = await fetchEthBalance(addresses[tokenInfo.addressKey], tokenInfo.chainName);
+        } else if (tokenInfo.chainType === 'UTXO') {
+          const btcBalance = await fetchBtcBalance(addresses.btc);
+          newBalance = btcBalance.toString();
+        } else if (tokenInfo.chainType === 'EVM' && tokenInfo.contractAddress) {
+          newBalance = await fetchERC20TokenBalance({
+            address: addresses[tokenInfo.addressKey],
+            tokenAddress: tokenInfo.contractAddress!,
+            chainName: tokenInfo.chainName,
+            decimals: tokenInfo.decimals
+          });
+        }
+        
+        setBalance(newBalance);
+      } catch (error) {
+        console.error(`Failed to fetch ${tokenType} balance:`, error);
+        setBalance("0");
+      } finally {
+        setIsLoadingBalance(false);
+      }
+    }
+    
+    loadBalance();
+  }, [tokenType, addresses]);
 
   // Update tokenInfo when tokenType changes
   useEffect(() => {
     setTokenInfo(SUPPORTED_TOKENS_INFO[tokenType])
+    // Reset fee estimation when token changes
+    setFeeEstimation(null);
   }, [tokenType])
 
   useEffect(() => {
@@ -66,6 +127,7 @@ export function SendTransactionDialog({
       setRecipientAddress('')
       setAmount('')
       setTokenType('ETH')
+      setFeeEstimation(null);
     }
   }, [showSendDialog])
 
@@ -107,14 +169,72 @@ export function SendTransactionDialog({
   const isValidAmount = useMemo(() => {
     return !isNaN(Number(amount)) && Number(amount) > 0
   }, [amount])
+  
+  // Calculate fees effect
+  useEffect(() => {
+    async function calculateFees() {
+      // Only calculate fees when we have a valid amount and balance
+      if (!isValidAmount || !balance || amount === '' || Number(amount) <= 0) {
+        setFeeEstimation(null);
+        return;
+      }
+      
+      try {
+        setIsLoadingFee(true);
+        
+        // Call the fee estimation function
+        const estimation = await estimateGasFee({
+          tokenType,
+          balance
+        });
+        
+        setFeeEstimation(estimation);
+      } catch (error) {
+        console.error("Error calculating fees:", error);
+        setFeeEstimation({
+          estimatedFee: "0",
+          isSufficientForFee: true,
+          error: "Failed to estimate fee"
+        });
+      } finally {
+        setIsLoadingFee(false);
+      }
+    }
+    
+    calculateFees();
+  }, [tokenType, isValidAmount, balance, amount]);
+
+  // Check if balance is sufficient for amount + fees
+  const isBalanceSufficient = useMemo(() => {
+    if (!isValidAmount) return true;
+    
+    // If we have fee estimation, use it
+    if (feeEstimation) {
+      const totalRequired = Number(amount) + Number(feeEstimation.estimatedFee);
+      return Number(balance) >= totalRequired;
+    }
+    
+    // Fallback to simple check if no fee estimation available
+    return Number(balance) >= Number(amount);
+  }, [amount, balance, isValidAmount, feeEstimation]);
 
   // Validation
   const canSend = useMemo(() => {
     const isValidEthAddress = recipientAddress && recipientAddress.startsWith('0x') && recipientAddress.length === 42
     const isValidBtcAddress = recipientAddress
 
-    return (isValidEthAddress || isValidBtcAddress) && isValidAmount && !isSending
-  }, [recipientAddress, isValidAmount, isSending])
+    // Include fee estimation in validation
+    const hasSufficientFunds = 
+      isBalanceSufficient && 
+      (!feeEstimation || feeEstimation.isSufficientForFee);
+
+    return (isValidEthAddress || isValidBtcAddress) && 
+           isValidAmount && 
+           !isSending && 
+           hasSufficientFunds && 
+           !isLoadingFee &&
+           !isLoadingBalance;
+  }, [recipientAddress, isValidAmount, isSending, isBalanceSufficient, feeEstimation, isLoadingFee, isLoadingBalance]);
 
   // Function to send OTP
   const handleSendOtp = async () => {
@@ -202,11 +322,51 @@ export function SendTransactionDialog({
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               min="0"
-              className={amount && !isValidAmount ? 'border-red-500' : ''}
+              className={amount && (!isValidAmount || (isValidAmount && !isBalanceSufficient)) ? 'border-red-500' : ''}
             />
+            
+            {/* Fee information display */}
+            {isLoadingFee && (
+              <p className="text-xs text-gray-500">Calculating network fee...</p>
+            )}
+            
+            {!isLoadingFee && feeEstimation && amount && isValidAmount && (
+              <div className="text-xs space-y-1">
+                <p className="text-gray-500">
+                  Estimated network fee: {feeEstimation.estimatedFee} {tokenInfo.symbol}
+                  {feeEstimation.feeRate && ` (${feeEstimation.feeRate})`}
+                </p>
+                
+                {feeEstimation.transactionPriority && (
+                  <p className="text-gray-500">
+                    Priority: <span className={feeEstimation.transactionPriority === 'high' ? 'text-green-600' : 'text-yellow-600'}>
+                      {feeEstimation.transactionPriority}
+                    </span>
+                  </p>
+                )}
+                
+                <p className="text-gray-500">
+                  Total: {(Number(amount) + Number(feeEstimation.estimatedFee)).toFixed(8)} {tokenInfo.symbol}
+                </p>
+                
+                {!feeEstimation.isSufficientForFee && (
+                  <p className="text-red-500">Insufficient funds for network fee</p>
+                )}
+              </div>
+            )}
+            
             {amount && !isValidAmount && (
               <p className="text-red-500 text-xs">Please enter a valid amount</p>
             )}
+            
+            {amount && isValidAmount && isBalanceSufficient === false && (
+              <p className="text-red-500 text-xs">Insufficient funds for this transaction</p>
+            )}
+            
+            {/* Balance display with loading indicator */}
+            <p className="text-xs text-gray-500">
+              Balance: {isLoadingBalance ? 'Loading...' : balance} {tokenInfo.symbol}
+            </p>
           </div>
 
           <Button 

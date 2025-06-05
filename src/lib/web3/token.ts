@@ -54,7 +54,7 @@ export const SUPPORTED_TOKENS_INFO = {
   },
   VAST: { // (ERC-20 on baseSepolia)
     symbol: 'VAST',
-    name: 'Vast',
+    name: 'VAST (ERC-20)',
     decimals: 18,
     chainType: 'EVM',
     chainName: 'baseSepolia',

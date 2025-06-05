@@ -36,6 +36,13 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}>
+          {/* testnet warning */}
+          <div className="w-full h-[45px] py-[9px] bg-[#fffbe6] rounded-sm border border-[#ffe58f] justify-between items-center gap-1.5 inline-flex px-8">
+            <div className="flex-1 text-center">
+              <div className="grow shrink basis-0 text-center text-black/90 text-sm font-normal leading-snug">All assets on this platform are on testnets only</div>
+            </div>
+          </div>
+
           <AppNavbar />
           <main>
             {children}

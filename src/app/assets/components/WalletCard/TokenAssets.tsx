@@ -8,6 +8,7 @@ import { useEffect, useState } from "react"
 
 export type TokenData = {
   iconUrl: string
+  name: string
   symbol: string
   balance: string
   address: string
@@ -40,6 +41,7 @@ export function TokenAssets({ btcAddress, ethAddress }: TokenAssetsProps) {
     console.log(btcAddress, ethAddress)
     setTokenDataList(supportedTokens.map((token) => ({
       iconUrl: token.iconUrl,
+      name: token.name,
       symbol: token.symbol,
       balance: '0',
       address: addressByTokenSymbol(token.symbol, btcAddress, ethAddress),
@@ -114,7 +116,7 @@ export function TokenAssets({ btcAddress, ethAddress }: TokenAssetsProps) {
               className="w-8 h-8 rounded-full mt-4" 
             />
             <div className="flex flex-col relative">
-              <span className="font-medium text-gray-700">{token.symbol}</span>
+              <span className="font-medium text-gray-700">{token.name}</span>
               <CopyAddress
                 textToCopy={token.address}
                 className="absolute -bottom-4 left-0 text-xs text-gray-500"

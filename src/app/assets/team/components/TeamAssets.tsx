@@ -227,6 +227,7 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
         onSendTransaction={handleExecuteTransaction}
         isSending={isSending}
         onDialogOpenChange={setShowSendDialog}
+        addresses={selectedWallet?.addresses || null}
       />
     </div>
   )

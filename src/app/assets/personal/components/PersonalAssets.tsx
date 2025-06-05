@@ -14,6 +14,7 @@ import { getPersonalTransactionIpfsId } from '@/lib/lit/ipfs-id-env'
 import { log } from '@/lib/utils'
 import { toast } from 'react-toastify'
 import { useAuthExpiration } from '@/hooks/useAuthExpiration'
+import { MultisigWalletAddresses } from '@/app/api/multisig/storage'
 
 interface PersonalAssetsProps {
   authMethod: AuthMethod
@@ -27,6 +28,7 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
   const [email, setEmail] = useState<string | null>(null)
   const [authMethodId, setAuthMethodId] = useState<string | null>(null)
   const [btcAddress, setBtcAddress] = useState<string | null>(null)
+  const [addresses, setAddresses] = useState<MultisigWalletAddresses | null>(null)
 
   const [showMfa, setShowMfa] = useState(false)
   const [showSendDialog, setShowSendDialog] = useState(false)
@@ -58,6 +60,7 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
         if (userData.litActionPkp) {
           setLitActionPkp(userData.litActionPkp)
           setBtcAddress(userData.addresses?.btc)
+          setAddresses(userData.addresses)
         }
       } catch (error) {
         console.error("Error fetching data from database:", error)
@@ -237,7 +240,7 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
   return (
     <div className="space-y-6">
       {
-        (authMethodId && showSendDialog) && (
+        (authMethodId && addresses && showSendDialog) && (
           <SendTransactionDialog
             authMethod={authMethod}
             showSendDialog={showSendDialog}
@@ -247,6 +250,7 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
             onMFACancel={handleMfaCancel}
             onMFAVerify={handleMfaVerify}
             onDialogOpenChange={setShowSendDialog}
+            addresses={addresses}
           />
         )
       }

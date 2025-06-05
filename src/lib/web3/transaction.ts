@@ -270,3 +270,133 @@ export const broadcastTransactionByTokenType = async ({
     return txid
   }
 }
+
+export const estimateGasFee = async ({
+  tokenType,
+  balance
+}: {
+  tokenType: TokenType;
+  balance: string;
+}) => {
+  const tokenInfo = SUPPORTED_TOKENS_INFO[tokenType];
+  
+  try {
+    if (tokenInfo.chainType === 'EVM') {
+      const rpcUrl = LIT_CHAINS[tokenInfo.chainName as keyof typeof LIT_CHAINS]?.rpcUrls[0];
+      if (!rpcUrl) {
+        throw new Error(`Chain ${tokenInfo.chainName} not found in LIT_CHAINS`);
+      }
+      const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
+      
+      const feeData = await provider.getFeeData();
+      let estimatedGasLimit: number;
+      
+      if (tokenInfo.contractAddress) {
+        // ERC20 token transfers (estimate higher gas usage)
+        estimatedGasLimit = 65000; // Common gas limit for ERC20 transfers
+      } else {
+        // Native token transfers (ETH)
+        estimatedGasLimit = 21000; // Standard gas for ETH transfers
+      }
+      
+      // Calculate fee based on transaction type
+      let estimatedFee: string;
+      
+      if (feeData.maxFeePerGas) {
+        // EIP-1559 transaction
+        const priorityFee = feeData.maxPriorityFeePerGas || ethers.utils.parseUnits("1", "gwei");
+        const maxFeePerGas = feeData.maxFeePerGas;
+        
+        // Calculate with some buffer for price fluctuations
+        const bufferedMaxFee = maxFeePerGas.mul(12).div(10); // Add 20% buffer
+        const estimatedWei = bufferedMaxFee.mul(estimatedGasLimit);
+        estimatedFee = ethers.utils.formatEther(estimatedWei);
+      } else {
+        // Legacy transaction
+        const gasPrice = feeData.gasPrice || ethers.utils.parseUnits("20", "gwei");
+        const bufferedGasPrice = gasPrice.mul(12).div(10); // Add 20% buffer
+        const estimatedWei = bufferedGasPrice.mul(estimatedGasLimit);
+        estimatedFee = ethers.utils.formatEther(estimatedWei);
+      }
+      
+      // Check if sufficient balance
+      const numBalance = parseFloat(balance);
+      const numFee = parseFloat(estimatedFee);
+      const isSufficientForFee = numBalance >= numFee;
+      
+      return {
+        estimatedFee,
+        isSufficientForFee,
+        remainingBalance: isSufficientForFee ? (numBalance - numFee).toString() : "0"
+      };
+    } else if (tokenInfo.chainType === 'UTXO') {
+      // Dynamic fee calculation based on network congestion for UTXO chains
+      try {
+        // Use our dedicated API endpoint for Bitcoin fee recommendations
+        const feeRatesResponse = await fetch(`/api/btc/mempool/fees`);
+        
+        if (!feeRatesResponse.ok) {
+          throw new Error(`Failed to fetch fee rates: ${feeRatesResponse.status}`);
+        }
+        
+        const feeRates = await feeRatesResponse.json();
+        
+        // Use fastestFee for higher priority or economyFee for lower cost
+        // Rates are in sat/vByte
+        const feeRate = feeRates.fastestFee || feeRates.halfHourFee || feeRates.hourFee || 10; // Fallback to 10 sat/vByte
+        
+        // Estimate transaction size - P2PKH transaction with 1 input and 2 outputs
+        // (One for recipient, one for change)
+        const estimatedTxSize = 225; // bytes
+        
+        // Calculate fee in satoshis
+        const feeSats = feeRate * estimatedTxSize;
+        
+        // Convert to BTC (1 BTC = 100,000,000 satoshis)
+        const estimatedFee = (feeSats / 100000000).toFixed(8);
+        
+        // Check if sufficient balance
+        const numBalance = parseFloat(balance);
+        const numFee = parseFloat(estimatedFee);
+        const isSufficientForFee = numBalance >= numFee;
+        
+        return {
+          estimatedFee,
+          feeRate: `${feeRate} sat/vB`,
+          transactionPriority: feeRate >= feeRates.halfHourFee ? 'high' : 'medium',
+          isSufficientForFee,
+          remainingBalance: isSufficientForFee ? (numBalance - numFee).toString() : "0"
+        };
+      } catch (error) {
+        console.error("Error fetching dynamic fee rates:", error);
+        // Fallback to fixed fee if API call fails
+        const estimatedFee = "0.0001"; // Fallback fixed fee
+        const numBalance = parseFloat(balance);
+        const numFee = parseFloat(estimatedFee);
+        const isSufficientForFee = numBalance >= numFee;
+        
+        return {
+          estimatedFee,
+          isSufficientForFee,
+          remainingBalance: isSufficientForFee ? (numBalance - numFee).toString() : "0",
+          note: "Using fallback fixed fee due to error fetching current rates"
+        };
+      }
+    }
+    
+    // Default response for unsupported chains
+    return {
+      estimatedFee: "0",
+      isSufficientForFee: true,
+      remainingBalance: balance
+    };
+  } catch (error) {
+    console.error("Error estimating gas fee:", error);
+    return {
+      estimatedFee: "0",
+      error: `Failed to estimate gas fee: ${error instanceof Error ? error.message : String(error)}`,
+      isSufficientForFee: false,
+      remainingBalance: balance
+    };
+  }
+}
