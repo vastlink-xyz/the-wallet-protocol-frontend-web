@@ -19,7 +19,7 @@ import { ethers } from 'ethers'
 import { toast } from 'react-toastify'
 import { fetchBtcBalance } from '@/lib/web3/btc'
 import { Wallet } from '@xchainjs/xchain-wallet'
-import { ClientKeystore as MyEthClient } from '@/lib/xchain-lit-signer/xchain-lit-signer'
+import { LitEvmClientKeystore as EthClient } from '@/lib/xchain-lit-signer/xchain-lit-signer'
 import { defaultEthParams } from '@xchainjs/xchain-ethereum'
 import { ThorchainAMM } from '@xchainjs/xchain-thorchain-amm'
 import { ThorchainCache, ThorchainQuery, Thornode } from '@xchainjs/xchain-thorchain-query'
@@ -413,7 +413,7 @@ export default function SwapPage() {
                 fromToken: fromToken.symbol
             })
 
-            if (!litActionPkp || !authMethod || !ethAddress) {
+            if (!litActionPkp || !authMethod || !authMethodId || !ethAddress) {
                 return;
             }
             const sessionSigs = await getSessionSigsByPkp({
@@ -427,7 +427,7 @@ export default function SwapPage() {
                 ethTestNetwork,
             )
             const wallet = new Wallet({
-                ETH: new MyEthClient({ ...defaultEthParams, 
+                ETH: new EthClient({ ...defaultEthParams, 
                     providers: {
                         // TODO: 目前 vastlink 不支持主网，全切到测试网测试
                         [Network.Mainnet]: ETH_TESTNET_ETHERS_PROVIDER,
@@ -436,7 +436,6 @@ export default function SwapPage() {
                     },
                     sessionSigs: sessionSigs, 
                     publicKey: litActionPkp.publicKey, 
-                    chainType: 'EVM', 
                     authParams: {
                         accessToken: authMethod.accessToken,
                         authMethodId: authMethodId,

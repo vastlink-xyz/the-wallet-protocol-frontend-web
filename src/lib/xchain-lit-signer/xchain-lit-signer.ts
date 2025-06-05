@@ -4,16 +4,22 @@ import { litNodeClient } from '@/lib/lit'
 import { getPersonalTransactionIpfsId } from '@/lib/lit/ipfs-id-env'
 import { TxHash } from '@xchainjs/xchain-client'
 import { ethers } from "ethers";
+import {
+    SessionSigsMap,
+} from '@lit-protocol/types';
 
 export type LitEVMKeystoreClientParams = EVMClientParams & {
-    sessionSigs: any;
+    sessionSigs: SessionSigsMap;
     publicKey: string;
-    chainType: string;
-    authParams: any;
+    authParams: {
+        accessToken: string;
+        authMethodId: string;
+        authMethodType: number;
+    };
     ethAddress: string;
 };
 
-export class ClientKeystore extends EVMClientKeystore {
+export class LitEvmClientKeystore extends EVMClientKeystore {
     /**
      * Constructor for the Ethereum EVM client.
      * @param {Object} config - Configuration object for the client (optional).
@@ -23,10 +29,9 @@ export class ClientKeystore extends EVMClientKeystore {
         // Call the constructor of the parent class with the provided config or the default parameters
         super({
             ...config,
-            signer: new LitKeystoreSigner({
+            signer: new LitEvmKeystoreSigner({
                 sessionSigs: config.sessionSigs,
                 publicKey: config.publicKey,
-                chainType: config.chainType || 'EVM',
                 authParams: config.authParams || {},
                 ethAddress: config.ethAddress || '',
             }),
@@ -34,28 +39,38 @@ export class ClientKeystore extends EVMClientKeystore {
     }
 }
 
-export class LitKeystoreSigner implements ISigner {
-    private sessionSigs: any;
+export class LitEvmKeystoreSigner implements ISigner {
+    private sessionSigs: SessionSigsMap;
     private publicKey: string;
-    private chainType: string;
-    private authParams: any;
+    private authParams: {
+        accessToken: string;
+        authMethodId: string;
+        authMethodType: number;
+    };
     private ethAddress: string;
 
     constructor({
         sessionSigs,
         publicKey,
-        chainType,
         authParams,
         ethAddress,
+    }: {
+        sessionSigs: SessionSigsMap;
+        publicKey: string;
+        authParams: {
+            accessToken: string;
+            authMethodId: string;
+            authMethodType: number;
+        };
+        ethAddress: string;
     }) {
         this.sessionSigs = sessionSigs;
         this.publicKey = publicKey;
-        this.chainType = chainType;
         this.authParams = authParams;
         this.ethAddress = ethAddress;
     }
     setPhrase(phrase: string, walletIndex?: number): string {
-        throw new Error('setPhrase is not implemented in LitKeystoreSigner');
+        throw new Error('setPhrase is not implemented in LitEvmKeystoreSigner');
     }
 
     getAddress(walletIndex?: number): string {
@@ -99,7 +114,7 @@ export class LitKeystoreSigner implements ISigner {
             console.error('Error fetching user phone:', error);
             throw error;
         }
-    } 
+    }
 
     public async signTransfer({ tx }: SignTransferParams): Promise<TxHash> {
         if (!litNodeClient.ready) {
@@ -212,13 +227,16 @@ export class LitKeystoreSigner implements ISigner {
     getFullDerivationPath(walletIndex: number): string {
         // Implement logic to get the full derivation path
         // For now, return a placeholder path
-        throw new Error('getFullDerivationPath is not implemented in LitKeystoreSigner');
+        throw new Error('getFullDerivationPath is not implemented in LitEvmKeystoreSigner');
     }
 
     purge(): void {
-        this.sessionSigs = undefined;
-        this.publicKey = undefined;
-        this.chainType = undefined;
-        this.authParams = undefined;
+        this.publicKey = '';
+        this.authParams = {
+            accessToken: '',
+            authMethodId: '',
+            authMethodType: 0,
+        };
+        this.ethAddress = '';
     }
 }
