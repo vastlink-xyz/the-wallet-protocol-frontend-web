@@ -12,6 +12,8 @@ import { Mail } from 'lucide-react';
 import axios from 'axios';
 import { setAuthMethodToStorage } from '@/lib/storage/authmethod';
 import { AUTH_METHOD_TYPE } from '@lit-protocol/constants';
+import { toast } from 'react-toastify';
+import { parseError } from '@/lib/error';
 
 type OtpStep = 'submit' | 'verify';
 
@@ -25,12 +27,10 @@ const StytchOTP = () => {
   const [methodId, setMethodId] = useState<string>('');
   const [code, setCode] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<Error>();
 
   async function sendPasscode(event: any) {
     event.preventDefault();
     setLoading(true);
-    setError(undefined);
     try {
       // Call backend API to send OTP
       const { data } = await axios.post('/api/stytch/send-otp', { 
@@ -41,7 +41,8 @@ const StytchOTP = () => {
       setMethodId(data.method_id);
       setStep('verify');
     } catch (err: any) {
-      setError(new Error(err.response?.data?.error || 'Failed to send verification code'));
+      log('error sending otp', err);
+      toast.error(err.response?.data?.error || 'Failed to send verification code');
     } finally {
       setLoading(false);
     }
@@ -50,7 +51,6 @@ const StytchOTP = () => {
   async function authenticate(event: any) {
     event.preventDefault();
     setLoading(true);
-    setError(undefined);
     try {
       // Call backend API to verify OTP
       const { data } = await axios.post('/api/stytch/verify-otp', {
@@ -75,7 +75,10 @@ const StytchOTP = () => {
       router.push(STYTCH_SIGNIN_REDIRECT.replace(window.location.origin, ''));
       
     } catch (err: any) {
-      setError(new Error(err.response?.data?.error || 'Failed to verify code'));
+      const error = parseError(err);
+      log('error verifying otp2', error);
+      const parsedError = parseError(error);
+      toast.error(parsedError?.message || 'Failed to verify code');
     } finally {
       setLoading(false);
     }
@@ -94,12 +97,6 @@ const StytchOTP = () => {
           </CardHeader>
           
           <CardContent>
-            {error && (
-              <div className="text-red-500 mb-4">
-                {error.message}
-              </div>
-            )}
-
             <form onSubmit={sendPasscode} className="space-y-4">
               <div>
                 <label htmlFor="email" className="sr-only">
@@ -142,12 +139,6 @@ const StytchOTP = () => {
           </CardHeader>
           
           <CardContent>
-            {error && (
-              <div className="text-red-500 mb-4">
-                {error.message}
-              </div>
-            )}
-            
             <form onSubmit={authenticate} className="space-y-4">
               <div>
                 <label htmlFor="code" className="sr-only">

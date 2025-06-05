@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stytchClient } from '../client';
+import { parseError } from '@/lib/error';
+import { log } from '@/lib/utils';
 
 export async function POST(req: NextRequest) {
   try {
@@ -33,11 +35,18 @@ export async function POST(req: NextRequest) {
       user_id: response.user_id,
     });
   } catch (error: any) {
-    console.error('Error verifying OTP:', error);
+    let message = 'Failed to verify OTP';
+    const parsedError = parseError(error);
+    log('parsedError', parsedError);
+
+    if (parsedError.error_type === 'otp_code_not_found') {
+      message = 'OTP code is invalid, please try again';
+    }
+
     return NextResponse.json(
       { 
-        error: error.message || 'Failed to verify OTP',
-        details: error.error_type || error.error_message 
+        error,
+        message,
       },
       { status: 500 }
     );

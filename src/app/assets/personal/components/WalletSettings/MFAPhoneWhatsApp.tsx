@@ -448,7 +448,7 @@ export function MFAPhoneWhatsApp({
               />
             </div>
             <ActionButtons
-              primaryText="Send Code"
+              primaryText="Continue"
               loadingText="Sending..."
               isLoading={isLoading}
               isDisabled={!isValidPhoneNumber(phoneNumber)}
