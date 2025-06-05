@@ -19,8 +19,9 @@ import { ethers } from 'ethers'
 import { toast } from 'react-toastify'
 import { fetchBtcBalance } from '@/lib/web3/btc'
 import { Wallet } from '@xchainjs/xchain-wallet'
-import { ClientKeystore as MyEthClient } from '@/lib/xchain-lit-signer/xchain-lit-signer'
+import { LitEvmClientKeystore as EthClient, LitBtcClientKeystore as BtcClient } from '@/lib/xchain-lit-signer/xchain-lit-signer'
 import { defaultEthParams } from '@xchainjs/xchain-ethereum'
+import { defaultBTCParams as defaultBtcParams } from '@xchainjs/xchain-bitcoin'
 import { ThorchainAMM } from '@xchainjs/xchain-thorchain-amm'
 import { ThorchainCache, ThorchainQuery, Thornode } from '@xchainjs/xchain-thorchain-query'
 import { assetAmount, assetFromString, assetToBase, CryptoAmount } from '@xchainjs/xchain-util'
@@ -82,7 +83,6 @@ export default function SwapPage() {
     const [authMethodId, setAuthMethodId] = useState<string | null>(null)
     const [email, setEmail] = useState<string | null>(null)
     const [litActionPkp, setLitActionPkp] = useState<IRelayPKP | null>(null)
-    const [sessionPkp, setSessionPkp] = useState<IRelayPKP | null>(null)
     const [btcAddress, setBtcAddress] = useState<string | null>(null)
     const [ethAddress, setEthAddress] = useState<string | null>(null)
     const [ethWalletBalance, setEthWalletBalance] = useState<string>('0')
@@ -136,14 +136,9 @@ export default function SwapPage() {
                 // Use litActionPkp from user data
                 if (userData.litActionPkp) {
                     setLitActionPkp(userData.litActionPkp)
-                }
-                if (userData.sessionPkp) {
-                    setSessionPkp(userData.sessionPkp)
+
                     setBtcAddress(userData.addresses?.btc)
                     setEthAddress(userData.addresses?.eth)
-
-                    // const balance = await fetchEthBalance(userData.addresses?.eth)
-                    // setEthWalletBalance(balance)
                 }
             } catch (error) {
                 console.error("Error fetching data from database:", error)
@@ -419,12 +414,12 @@ export default function SwapPage() {
                 fromToken: fromToken.symbol
             })
 
-            if (!sessionPkp || !litActionPkp || !authMethod || !ethAddress) {
+            if (!litActionPkp || !authMethod || !authMethodId || !ethAddress) {
                 return;
             }
             const sessionSigs = await getSessionSigsByPkp({
                 authMethod: authMethod!,
-                pkp: sessionPkp,
+                pkp: litActionPkp,
                 refreshStytchAccessToken: true,
             })
             const ethTestNetwork = ethers.providers.getNetwork('sepolia')
@@ -433,7 +428,7 @@ export default function SwapPage() {
                 ethTestNetwork,
             )
             const wallet = new Wallet({
-                ETH: new MyEthClient({ ...defaultEthParams, 
+                ETH: new EthClient({ ...defaultEthParams, 
                     providers: {
                         // TODO: 目前 vastlink 不支持主网，全切到测试网测试
                         [Network.Mainnet]: ETH_TESTNET_ETHERS_PROVIDER,
@@ -442,7 +437,6 @@ export default function SwapPage() {
                     },
                     sessionSigs: sessionSigs, 
                     publicKey: litActionPkp.publicKey, 
-                    chainType: 'EVM', 
                     authParams: {
                         accessToken: authMethod.accessToken,
                         authMethodId: authMethodId,
@@ -450,6 +444,17 @@ export default function SwapPage() {
                     },
                     ethAddress,
                 }),
+                BTC: new BtcClient({
+                    ...defaultBtcParams,
+                    sessionSigs: sessionSigs, 
+                    publicKey: litActionPkp.publicKey, 
+                    authParams: {
+                        accessToken: authMethod.accessToken,
+                        authMethodId: authMethodId,
+                        authMethodType: authMethod.authMethodType,
+                    },
+                    btcAddress: btcAddress || '',
+                })
             });
             const network = Network.Mainnet;
             const midgardCache = new MidgardCache(new Midgard(network))
