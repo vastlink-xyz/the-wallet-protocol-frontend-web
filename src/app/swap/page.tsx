@@ -19,8 +19,9 @@ import { ethers } from 'ethers'
 import { toast } from 'react-toastify'
 import { fetchBtcBalance } from '@/lib/web3/btc'
 import { Wallet } from '@xchainjs/xchain-wallet'
-import { LitEvmClientKeystore as EthClient } from '@/lib/xchain-lit-signer/xchain-lit-signer'
+import { LitEvmClientKeystore as EthClient, LitBtcClientKeystore as BtcClient } from '@/lib/xchain-lit-signer/xchain-lit-signer'
 import { defaultEthParams } from '@xchainjs/xchain-ethereum'
+import { defaultBTCParams as defaultBtcParams } from '@xchainjs/xchain-bitcoin'
 import { ThorchainAMM } from '@xchainjs/xchain-thorchain-amm'
 import { ThorchainCache, ThorchainQuery, Thornode } from '@xchainjs/xchain-thorchain-query'
 import { assetAmount, assetFromString, assetToBase, CryptoAmount } from '@xchainjs/xchain-util'
@@ -443,6 +444,17 @@ export default function SwapPage() {
                     },
                     ethAddress,
                 }),
+                BTC: new BtcClient({
+                    ...defaultBtcParams,
+                    sessionSigs: sessionSigs, 
+                    publicKey: litActionPkp.publicKey, 
+                    authParams: {
+                        accessToken: authMethod.accessToken,
+                        authMethodId: authMethodId,
+                        authMethodType: authMethod.authMethodType,
+                    },
+                    btcAddress: btcAddress || '',
+                })
             });
             const network = Network.Mainnet;
             const midgardCache = new MidgardCache(new Midgard(network))
