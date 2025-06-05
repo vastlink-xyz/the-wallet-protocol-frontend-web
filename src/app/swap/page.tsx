@@ -21,12 +21,16 @@ import { fetchBtcBalance } from '@/lib/web3/btc'
 import { Wallet } from '@xchainjs/xchain-wallet'
 import { LitEvmClientKeystore as EthClient, LitBtcClientKeystore as BtcClient } from '@/lib/xchain-lit-signer/xchain-lit-signer'
 import { defaultEthParams } from '@xchainjs/xchain-ethereum'
-import { defaultBTCParams as defaultBtcParams } from '@xchainjs/xchain-bitcoin'
+import { defaultBTCParams as defaultBtcParams, BTCChain, AssetBTC } from '@xchainjs/xchain-bitcoin'
 import { ThorchainAMM } from '@xchainjs/xchain-thorchain-amm'
 import { ThorchainCache, ThorchainQuery, Thornode } from '@xchainjs/xchain-thorchain-query'
 import { assetAmount, assetFromString, assetToBase, CryptoAmount } from '@xchainjs/xchain-util'
 import { Midgard, MidgardCache, MidgardQuery } from '@xchainjs/xchain-midgard-query'
 import { Network } from '@xchainjs/xchain-client'
+import {
+  HaskoinNetwork,
+  HaskoinProvider,
+} from '@xchainjs/xchain-utxo-providers'
 
 // 支持的代币列表
 // 图标从 https://thorchain.org/ 找
@@ -427,6 +431,13 @@ export default function SwapPage() {
                 'https://ethereum-sepolia-rpc.publicnode.com',
                 ethTestNetwork,
             )
+            const testnetHaskoinProvider = new HaskoinProvider(
+                'https://api.haskoin.com',
+                BTCChain,
+                AssetBTC,
+                8,
+                HaskoinNetwork.BTCTEST,
+            )
             const wallet = new Wallet({
                 ETH: new EthClient({ ...defaultEthParams, 
                     providers: {
@@ -446,6 +457,15 @@ export default function SwapPage() {
                 }),
                 BTC: new BtcClient({
                     ...defaultBtcParams,
+                     dataProviders: [
+                        {
+                            // TODO: 为了方便本地测试，全换成测试环境的provider
+                            // 上线前一定要改掉
+                            [Network.Testnet]: testnetHaskoinProvider,
+                            [Network.Stagenet]: testnetHaskoinProvider,
+                            [Network.Mainnet]: testnetHaskoinProvider,
+                        }
+                    ],
                     sessionSigs: sessionSigs, 
                     publicKey: litActionPkp.publicKey, 
                     authParams: {
