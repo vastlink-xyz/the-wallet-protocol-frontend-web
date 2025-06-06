@@ -20,6 +20,8 @@ export type LitEVMKeystoreClientParams = EVMClientParams & {
         authMethodId: string;
         authMethodType: number;
     };
+    otp: string;
+    mfaMethodId: string;
     ethAddress: string;
 };
 
@@ -37,6 +39,8 @@ export class LitEvmClientKeystore extends EVMClientKeystore {
                 sessionSigs: config.sessionSigs,
                 publicKey: config.publicKey,
                 authParams: config.authParams || {},
+                otp: config.otp || '',
+                mfaMethodId: config.mfaMethodId || '',
                 ethAddress: config.ethAddress || '',
             }),
         })
@@ -52,12 +56,16 @@ export class LitEvmKeystoreSigner implements ISigner {
         authMethodType: number;
     };
     private ethAddress: string;
+    private otp: string;
+    private mfaMethodId: string;
 
     constructor({
         sessionSigs,
         publicKey,
         authParams,
         ethAddress,
+        otp,
+        mfaMethodId
     }: {
         sessionSigs: SessionSigsMap;
         publicKey: string;
@@ -66,12 +74,16 @@ export class LitEvmKeystoreSigner implements ISigner {
             authMethodId: string;
             authMethodType: number;
         };
-        ethAddress: string;
+            ethAddress: string;
+            otp: string,
+            mfaMethodId: string;
     }) {
         this.sessionSigs = sessionSigs;
         this.publicKey = publicKey;
         this.authParams = authParams;
         this.ethAddress = ethAddress;
+        this.otp = otp || '';
+        this.mfaMethodId = mfaMethodId || '';
     }
     setPhrase(phrase: string, walletIndex?: number): string {
         throw new Error('setPhrase is not implemented in LitEvmKeystoreSigner');
@@ -87,39 +99,6 @@ export class LitEvmKeystoreSigner implements ISigner {
         return this.ethAddress;
     }
 
-    async fetchMfaData() {
-        console.log('in fetchMfAData');
-        try {
-            const response = await fetch('/api/mfa/get-user-phone', {
-                headers: {
-                    'Authorization': `Bearer ${this.authParams.accessToken}`
-                }
-            });
-
-            if (!response.ok) {
-                const data = await response.json();
-                throw new Error(data.error || 'Failed to fetch phone number');
-            }
-
-            const data = await response.json();
-            const phones = data.phones || [];
-
-            if (phones.length > 0) {
-                // Update phone state
-                const phone = phones[0];
-                console.log('phone', phone)
-                // setMfaPhoneNumber(phone.phone_number);
-                // setMfaMethodId(phone.phone_id);
-                return phone.phone_id;
-            } else {
-                throw new Error('No verified phone number found for your account');
-            }
-        } catch (error) {
-            console.error('Error fetching user phone:', error);
-            throw error;
-        }
-    }
-
     public async signTransfer({ tx }: SignTransferParams): Promise<TxHash> {
         if (!litNodeClient.ready) {
             await litNodeClient.connect()
@@ -132,10 +111,9 @@ export class LitEvmKeystoreSigner implements ISigner {
 
         const ipfsId = await getPersonalTransactionIpfsId('base58')
 
-        const mfaMethodId = await this.fetchMfaData()
         const transferAmountInEther = ethers.utils.formatEther(tx.value);
 
-        console.log('transferAmountInEther', transferAmountInEther)
+        console.log('transferAmountInEther', transferAmountInEther, this.otp, this.mfaMethodId)
         const response = await litNodeClient.executeJs({
             ipfsId,
             sessionSigs: this.sessionSigs,
@@ -148,8 +126,8 @@ export class LitEvmKeystoreSigner implements ISigner {
                 // chain: 'sepolia',
                 chainType: 'EVM',
                 authParams: this.authParams,
-                otp: '', // 交换操作通常不需要 OTP，除非超过每日限额
-                mfaMethodId,
+                otp: this.otp, // 交换操作通常不需要 OTP，除非超过每日限额
+                mfaMethodId: this.mfaMethodId,
                 tokenType: 'ETH',
             }
         })
@@ -165,6 +143,10 @@ export class LitEvmKeystoreSigner implements ISigner {
         let sig: any;
         if (result.status === 'success') {
             sig = JSON.parse(result.sig)
+        } else {
+            if (result.requireMFA) {
+                throw new Error('MFA required for this transaction');
+            }
         }
 
         console.log('lit NodeClient sig:', sig)
@@ -203,8 +185,8 @@ export class LitEvmKeystoreSigner implements ISigner {
                 // chain: 'sepolia',
                 chainType: 'EVM',
                 authParams: this.authParams,
-                otp: '', // 交换操作通常不需要 OTP，除非超过每日限额
-                // mfaMethodId: 'phone-number-test-7c1d1108-9afb-470a-9585-bf57620209e0',
+                otp: this.otp, // 交换操作通常不需要 OTP，除非超过每日限额，但这里还是读一下
+                mfaMethodId: this.mfaMethodId,
                 tokenType: 'ETH',
             }
         })
@@ -254,6 +236,8 @@ export class LitBtcClientKeystore extends BaseBtcClient {
         authMethodId: string;
         authMethodType: number;
     };
+    private otp: string;
+    private mfaMethodId: string;
     private btcAddress: string;
     constructor(
         params: UtxoClientParams & {
@@ -265,6 +249,8 @@ export class LitBtcClientKeystore extends BaseBtcClient {
                 authMethodId: string;
                 authMethodType: number;
             };
+            otp: string;
+            mfaMethodId: string;
             btcAddress: string;
         },
     ) {
@@ -272,6 +258,8 @@ export class LitBtcClientKeystore extends BaseBtcClient {
         this.sessionSigs = params.sessionSigs;
         this.publicKey = params.publicKey;
         this.authParams = params.authParams;
+        this.otp = params.otp || '';
+        this.mfaMethodId = params.mfaMethodId || '';
         this.btcAddress = params.btcAddress || '';
     }
 
@@ -340,10 +328,10 @@ export class LitBtcClientKeystore extends BaseBtcClient {
                 publicKey: this.publicKey,
                 env: process.env.NEXT_PUBLIC_ENV,
                 // env: 'test',
-                // chain: 'sepolia',
                 chainType: 'UTXO',
                 authParams: this.authParams,
-                otp: '', // 交换操作通常不需要 OTP，除非超过每日限额
+                otp: this.otp,
+                mfaMethodId: this.mfaMethodId,
                 tokenType: 'BTC',
             }
         })
