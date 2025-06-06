@@ -21,12 +21,17 @@ import { fetchBtcBalance } from '@/lib/web3/btc'
 import { Wallet } from '@xchainjs/xchain-wallet'
 import { LitEvmClientKeystore as EthClient, LitBtcClientKeystore as BtcClient } from '@/lib/xchain-lit-signer/xchain-lit-signer'
 import { defaultEthParams } from '@xchainjs/xchain-ethereum'
-import { defaultBTCParams as defaultBtcParams } from '@xchainjs/xchain-bitcoin'
+import { defaultBTCParams as defaultBtcParams, BTCChain, AssetBTC } from '@xchainjs/xchain-bitcoin'
 import { ThorchainAMM } from '@xchainjs/xchain-thorchain-amm'
 import { ThorchainCache, ThorchainQuery, Thornode } from '@xchainjs/xchain-thorchain-query'
 import { assetAmount, assetFromString, assetToBase, CryptoAmount } from '@xchainjs/xchain-util'
 import { Midgard, MidgardCache, MidgardQuery } from '@xchainjs/xchain-midgard-query'
 import { Network } from '@xchainjs/xchain-client'
+import {
+    HaskoinNetwork,
+    HaskoinProvider,
+} from '@xchainjs/xchain-utxo-providers'
+import { MFAOtpDialog } from '@/components/Transaction/MFAOtpDialog'
 
 // 支持的代币列表
 // 图标从 https://thorchain.org/ 找
@@ -88,11 +93,11 @@ export default function SwapPage() {
     const [ethWalletBalance, setEthWalletBalance] = useState<string>('0')
     const [usdtWalletBalance, setUsdtWalletBalance] = useState<string>('0')
     const [btcWalletBalance, setBtcWalletBalance] = useState<number>(0)
-    const [destAddress, setDestAddress] = useState<string>('')// 目标地址输入
-
-    // MFA state
+    const [destAddress, setDestAddress] = useState<string>('')// 目标地址输入    // MFA state
     const [mfaMethodId, setMfaMethodId] = useState<string | null>(null);
     const [mfaPhoneNumber, setMfaPhoneNumber] = useState<string | null>(null);
+    const [showMfa, setShowMfa] = useState(false);
+    const [pendingSwapData, setPendingSwapData] = useState<any>(null);
 
 
     // Check if user is logged in
@@ -131,15 +136,16 @@ export default function SwapPage() {
 
                 const userData = await userResponse.json()
                 console.log('Fetched user data:', userData)
-                setEmail(userData.email)
-
-                // Use litActionPkp from user data
+                setEmail(userData.email)                // Use litActionPkp from user data
                 if (userData.litActionPkp) {
                     setLitActionPkp(userData.litActionPkp)
 
                     setBtcAddress(userData.addresses?.btc)
                     setEthAddress(userData.addresses?.eth)
                 }
+
+                // Fetch MFA data
+                await fetchMfaData()
             } catch (error) {
                 console.error("Error fetching data from database:", error)
             } finally {
@@ -330,7 +336,9 @@ export default function SwapPage() {
             default:
                 return null
         }
-    }    // 交换代币位置
+    }
+
+    // 交换代币位置
     const handleSwapTokens = () => {
         const temp = fromToken
         setFromToken(toToken)
@@ -371,9 +379,144 @@ export default function SwapPage() {
                 throw new Error('No verified phone number found for your account');
             }
         } catch (error) {
-            console.error('Error fetching user phone:', error);
-            throw error;
+            console.error('Error fetching user phone:', error); throw error;
         }
+    }
+
+    // Function to send OTP
+    const handleSendOtp = async () => {
+        const response = await fetch('/api/mfa/whatsapp/send-code', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authMethod?.accessToken}`,
+            },
+            body: JSON.stringify({ phone_number: mfaPhoneNumber }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || `Failed to send OTP: ${response.status}`);
+        }
+    };    // 执行实际的交换操作（不包含 MFA 错误处理）
+    const executeSwap = async (fromAmount: string, fromToken: any, toToken: any, destAddress: string, otpCode?: string) => {
+        console.log('Starting swap process:', fromAmount, fromToken.symbol, 'to', toToken.symbol, 'destination:', destAddress, 'otp:', otpCode, 'mfaMethodId:', mfaMethodId)
+
+        if (!litActionPkp || !authMethod || !authMethodId || !ethAddress) {
+            throw new Error('Missing authentication data')
+        }
+
+        const sessionSigs = await getSessionSigsByPkp({
+            authMethod: authMethod!,
+            pkp: litActionPkp,
+            refreshStytchAccessToken: true,
+        })
+
+        const ethTestNetwork = ethers.providers.getNetwork('sepolia')
+        const ETH_TESTNET_ETHERS_PROVIDER = new ethers.providers.JsonRpcProvider(
+            'https://ethereum-sepolia-rpc.publicnode.com',
+            ethTestNetwork,
+        )
+        const testnetHaskoinProvider = new HaskoinProvider(
+            'https://api.haskoin.com',
+            BTCChain,
+            AssetBTC,
+            8,
+            HaskoinNetwork.BTCTEST,
+        )
+
+        const wallet = new Wallet({
+            ETH: new EthClient({
+                ...defaultEthParams,
+                providers: {
+                    // TODO: 目前 vastlink 不支持主网，全切到测试网测试
+                    [Network.Mainnet]: ETH_TESTNET_ETHERS_PROVIDER,
+                    [Network.Testnet]: ETH_TESTNET_ETHERS_PROVIDER,
+                    [Network.Stagenet]: ETH_TESTNET_ETHERS_PROVIDER,
+                },
+                sessionSigs: sessionSigs,
+                publicKey: litActionPkp.publicKey, authParams: {
+                    accessToken: authMethod.accessToken,
+                    authMethodId: authMethodId,
+                    authMethodType: authMethod.authMethodType,
+                },
+                otp: otpCode || '',
+                mfaMethodId: mfaMethodId || '',
+                ethAddress,
+            }),
+            BTC: new BtcClient({
+                ...defaultBtcParams,
+                dataProviders: [
+                    {
+                        // TODO: 为了方便本地测试，全换成测试环境的provider
+                        // 上线前一定要改掉
+                        [Network.Testnet]: testnetHaskoinProvider,
+                        [Network.Stagenet]: testnetHaskoinProvider,
+                        [Network.Mainnet]: testnetHaskoinProvider,
+                    }
+                ],
+                sessionSigs: sessionSigs,
+                publicKey: litActionPkp.publicKey, authParams: {
+                    accessToken: authMethod.accessToken,
+                    authMethodId: authMethodId,
+                    authMethodType: authMethod.authMethodType,
+                },
+                otp: otpCode || '',
+                mfaMethodId: mfaMethodId || '',
+                btcAddress: btcAddress || '',
+            })
+        });
+
+        const network = Network.Mainnet;
+        const midgardCache = new MidgardCache(new Midgard(network))
+        const thorchainCache = new ThorchainCache(new Thornode(network), new MidgardQuery(midgardCache))
+        const thorchainQuery = new ThorchainQuery(thorchainCache)
+
+        const thorchainAmm = new ThorchainAMM(thorchainQuery, wallet)
+        const fromAsset = assetFromString(fromToken.xchain_asset)!;
+        const toAsset = assetFromString(toToken.xchain_asset)!;
+
+        const res = await thorchainAmm.doSwap({
+            fromAsset,
+            amount: new CryptoAmount(assetToBase(assetAmount(fromAmount, fromToken.decimals)), fromAsset),
+            destinationAsset: toAsset,
+            destinationAddress: destAddress,
+            toleranceBps: 300, //optional
+        });
+
+        console.log('Swap transaction result:', res)
+        toast.success(`swap success: ${res.hash}`)
+        return res
+    }
+
+    const handleOtpVerify = async (otp: string) => {
+        if (!pendingSwapData) {
+            toast.error('No pending swap data found')
+            return
+        }
+
+        try {
+            setIsLoading(true)
+
+            const { fromAmount, fromToken, toToken, destAddress } = pendingSwapData;
+            await executeSwap(fromAmount, fromToken, toToken, destAddress, otp)
+
+            // 清理状态
+            setShowMfa(false)
+            setPendingSwapData(null)
+
+        } catch (error) {
+            console.error('MFA verification or swap failed:', error)
+            toast.error(`Verification failed: ${error instanceof Error ? error.message : 'unknown'}`)
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+    const handleMFACancel = () => {
+        setShowMfa(false)
+        setPendingSwapData(null)
+        setIsLoading(false)
     }    // 处理交换操作
     const handleSwap = async () => {
         if (!fromAmount || !toAmount || !ethAddress || !destAddress) {
@@ -384,385 +527,322 @@ export default function SwapPage() {
 
         setIsLoading(true)
         try {
-            console.log('Starting swap process:', fromAmount, fromToken.symbol, 'to', toAmount, toToken.symbol, 'destination:', destAddress)
-
-            // 1. 首先获取最新的交换估算信息（包含交易详情）
-            const swapEstimate = await estimateSwap(
-                parseFloat(fromAmount),
-                fromToken.decimals,
-                fromToken.xchain_asset,
-                toToken.xchain_asset,
-                destAddress // 使用用户输入的目标地址
-            )
-
-            if (!swapEstimate) {
-                throw new Error('无法获取交换估算信息')
-            }
-
-            console.log('Swap estimate for transaction:', swapEstimate)
-
-            // 2. 从估算结果中提取交易详情
-            const txDetails = swapEstimate
-            const toAddress = txDetails.toAddress // THORChain 的入站地址
-            const memo = txDetails.memo // THORChain memo
-            const amount = fromAmount // 发送金额
-
-            console.log('Transaction details:', {
-                toAddress,
-                memo,
-                amount,
-                fromToken: fromToken.symbol
-            })
-
-            if (!litActionPkp || !authMethod || !authMethodId || !ethAddress) {
-                return;
-            }
-            const sessionSigs = await getSessionSigsByPkp({
-                authMethod: authMethod!,
-                pkp: litActionPkp,
-                refreshStytchAccessToken: true,
-            })
-            const ethTestNetwork = ethers.providers.getNetwork('sepolia')
-            const ETH_TESTNET_ETHERS_PROVIDER = new ethers.providers.JsonRpcProvider(
-                'https://ethereum-sepolia-rpc.publicnode.com',
-                ethTestNetwork,
-            )
-            const wallet = new Wallet({
-                ETH: new EthClient({ ...defaultEthParams, 
-                    providers: {
-                        // TODO: 目前 vastlink 不支持主网，全切到测试网测试
-                        [Network.Mainnet]: ETH_TESTNET_ETHERS_PROVIDER,
-                        [Network.Testnet]: ETH_TESTNET_ETHERS_PROVIDER,
-                        [Network.Stagenet]: ETH_TESTNET_ETHERS_PROVIDER,
-                    },
-                    sessionSigs: sessionSigs, 
-                    publicKey: litActionPkp.publicKey, 
-                    authParams: {
-                        accessToken: authMethod.accessToken,
-                        authMethodId: authMethodId,
-                        authMethodType: authMethod.authMethodType,
-                    },
-                    ethAddress,
-                }),
-                BTC: new BtcClient({
-                    ...defaultBtcParams,
-                    sessionSigs: sessionSigs, 
-                    publicKey: litActionPkp.publicKey, 
-                    authParams: {
-                        accessToken: authMethod.accessToken,
-                        authMethodId: authMethodId,
-                        authMethodType: authMethod.authMethodType,
-                    },
-                    btcAddress: btcAddress || '',
-                })
-            });
-            const network = Network.Mainnet;
-            const midgardCache = new MidgardCache(new Midgard(network))
-            const thorchainCache = new ThorchainCache(new Thornode(network), new MidgardQuery(midgardCache))
-            const thorchainQuery = new ThorchainQuery(thorchainCache)
-
-            const thorchainAmm = new ThorchainAMM(thorchainQuery, wallet)
-            const fromAsset = assetFromString(fromToken.xchain_asset)!;
-            const toAsset = assetFromString(toToken.xchain_asset)!;
-            const res = await thorchainAmm.doSwap({
-                fromAsset,
-                amount: new CryptoAmount(assetToBase(assetAmount(amount, fromToken.decimals)), fromAsset),
-                destinationAsset: toAsset,
-                destinationAddress: destAddress,
-                toleranceBps: 300, //optional
-            });
-            console.log('Swap transaction result:', res)
-            toast.success(`swap success: ${res.hash}`)
+            await executeSwap(fromAmount, fromToken, toToken, destAddress, '')
         } catch (error) {
             console.error('Swap failed:', error)
-            toast.error(`swap failed：${error instanceof Error ? error.message : 'unknown'}`)
+            if (error instanceof Error && error.message.includes('MFA required')) {
+                // 保存当前的交换数据，准备显示 MFA 弹窗
+                setPendingSwapData({
+                    fromAmount,
+                    toAmount,
+                    fromToken,
+                    toToken,
+                    destAddress
+                })
+                setShowMfa(true)
+            } else {
+                toast.error(`swap failed：${error instanceof Error ? error.message : 'unknown'}`)
+            }
         } finally {
             setIsLoading(false)
         }
     }
-
     return (
-        <div className="container mx-auto px-4 py-8 max-w-md">
-            <div className="space-y-6">
-                {/* 页面标题 */}
-                <div className="text-center">
-                    <h1 className="text-3xl font-bold">Token Swap</h1>
-                    <p className="text-muted-foreground mt-2">Using THORChain for cross-chain token swaps</p>
-                </div>
+        <>
+            {/* MFA Dialog */}
+            {showMfa && mfaPhoneNumber && (
+                <MFAOtpDialog
+                    isOpen={showMfa}
+                    onClose={handleMFACancel}
+                    onOtpVerify={handleOtpVerify}
+                    sendOtp={handleSendOtp}
+                    identifier={mfaPhoneNumber}
+                    title="Swap Verification"
+                    description={pendingSwapData ?
+                        `Please verify your swap of ${pendingSwapData.fromAmount} ${pendingSwapData.fromToken.symbol} to ${pendingSwapData.toToken.symbol}` :
+                        'Please verify your swap transaction'
+                    }
+                />
+            )}
 
-                {/* 主交换界面 */}
-                <Card>
-                    <CardHeader className="pb-4">
-                        <div className="flex items-center justify-between">
-                            <CardTitle>Swap</CardTitle>
-                            <Button variant="ghost" size="icon">
-                                <Settings className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    </CardHeader>
+            <div className="container mx-auto px-4 py-8 max-w-md">
+                <div className="space-y-6">
+                    {/* 页面标题 */}
+                    <div className="text-center">
+                        <h1 className="text-3xl font-bold">Token Swap</h1>
+                        <p className="text-muted-foreground mt-2">Using THORChain for cross-chain token swaps</p>
+                    </div>
 
-                    <CardContent className="space-y-4">
-                        {/* 源代币选择 */}
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium">From</label>
-                            <div className="flex gap-2">
-                                <Select
-                                    value={fromToken.xchain_asset} onValueChange={(value) => {
-                                        const token = SUPPORTED_TOKENS.find(t => t.xchain_asset === value)
-                                        if (token) {
-                                            setFromToken(token)
-                                            // 清空估算结果，需要重新估算
-                                            setHasEstimated(false)
-                                            setToAmount('')
-                                            setExchangeRate(null)
-                                            setSwapFees(null)
-                                            setSlippageBps(null)
-                                        }
-                                    }}
-                                >
-                                    <SelectTrigger className="w-32">
-                                        <SelectValue>
-                                            <div className="flex items-center gap-2">
-                                                <Image
-                                                    src={fromToken.icon}
-                                                    alt={fromToken.symbol}
-                                                    width={20}
-                                                    height={20}
-                                                    className="rounded-full"
-                                                />
-                                                {fromToken.symbol}
-                                            </div>
-                                        </SelectValue>
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {SUPPORTED_TOKENS.map((token) => (
-                                            <SelectItem key={token.xchain_asset} value={token.xchain_asset}>
-                                                <div className="flex items-center gap-2">
-                                                    <Image
-                                                        src={token.icon}
-                                                        alt={token.symbol}
-                                                        width={20}
-                                                        height={20}
-                                                        className="rounded-full"
-                                                    />
-                                                    <div>
-                                                        <div className="font-medium">{token.symbol}</div>
-                                                        <div className="text-xs text-muted-foreground">{token.name}</div>
-                                                    </div>
-                                                </div>
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <Input
-                                    placeholder="0.0"
-                                    value={fromAmount}
-                                    onChange={(e) => handleFromAmountChange(e.target.value)}
-                                    type="number"
-                                    step="any"
-                                    className="flex-1"
-                                />
-                            </div>
-                            <div className="space-y-1">
-                                <div className="text-xs text-muted-foreground">
-                                    Balance: {getBalanceByToken(fromToken)} {fromToken.symbol}
-                                </div>
-                                {getAddressByToken(fromToken) && (
-                                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                        <span>Address:</span>
-                                        <CopyAddress
-                                            textToCopy={getAddressByToken(fromToken)!}
-                                            className="text-xs"
-                                        />
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* 交换按钮 */}
-                        <div className="flex justify-center">
-                            <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={handleSwapTokens}
-                                className="rounded-full"
-                            >
-                                <ArrowDownUp className="h-4 w-4" />
-                            </Button>
-                        </div>
-
-                        {/* 目标代币选择 */}
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium">To</label>
-                            <div className="flex gap-2">
-                                <Select
-                                    value={toToken.xchain_asset} onValueChange={(value) => {
-                                        const token = SUPPORTED_TOKENS.find(t => t.xchain_asset === value)
-                                        if (token) {
-                                            setToToken(token)
-                                            // 清空估算结果，需要重新估算
-                                            setHasEstimated(false)
-                                            setToAmount('')
-                                            setExchangeRate(null)
-                                            setSwapFees(null)
-                                            setSlippageBps(null)
-                                        }
-                                    }}
-                                >
-                                    <SelectTrigger className="w-32">
-                                        <SelectValue>
-                                            <div className="flex items-center gap-2">
-                                                <Image
-                                                    src={toToken.icon}
-                                                    alt={toToken.symbol}
-                                                    width={20}
-                                                    height={20}
-                                                    className="rounded-full"
-                                                />
-                                                {toToken.symbol}
-                                            </div>
-                                        </SelectValue>
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {SUPPORTED_TOKENS.map((token) => (
-                                            <SelectItem key={token.xchain_asset} value={token.xchain_asset}>
-                                                <div className="flex items-center gap-2">
-                                                    <Image
-                                                        src={token.icon}
-                                                        alt={token.symbol}
-                                                        width={20}
-                                                        height={20}
-                                                        className="rounded-full"
-                                                    />
-                                                    <div>
-                                                        <div className="font-medium">{token.symbol}</div>
-                                                        <div className="text-xs text-muted-foreground">{token.name}</div>
-                                                    </div>
-                                                </div>
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-
-                                <Input
-                                    placeholder="0.0"
-                                    value={isCalculating ? 'Calculating...' : toAmount}
-                                    readOnly
-                                    type="text"
-                                    className="flex-1 bg-muted/50"
-                                />
-                            </div>
-                        </div>                        {/* 目标地址输入 */}
-                        <div className="space-y-2">
+                    {/* 主交换界面 */}
+                    <Card>
+                        <CardHeader className="pb-4">
                             <div className="flex items-center justify-between">
-                                <label className="text-sm font-medium">To Address</label>
+                                <CardTitle>Swap</CardTitle>
+                            </div>
+                        </CardHeader>
+
+                        <CardContent className="space-y-4">
+                            {/* 源代币选择 */}
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">From</label>
+                                <div className="flex gap-2">
+                                    <Select
+                                        value={fromToken.xchain_asset} onValueChange={(value) => {
+                                            const token = SUPPORTED_TOKENS.find(t => t.xchain_asset === value)
+                                            if (token) {
+                                                setFromToken(token)
+                                                // 清空估算结果，需要重新估算
+                                                setHasEstimated(false)
+                                                setToAmount('')
+                                                setExchangeRate(null)
+                                                setSwapFees(null)
+                                                setSlippageBps(null)
+                                            }
+                                        }}
+                                    >
+                                        <SelectTrigger className="w-32">
+                                            <SelectValue>
+                                                <div className="flex items-center gap-2">
+                                                    <Image
+                                                        src={fromToken.icon}
+                                                        alt={fromToken.symbol}
+                                                        width={20}
+                                                        height={20}
+                                                        className="rounded-full"
+                                                    />
+                                                    {fromToken.symbol}
+                                                </div>
+                                            </SelectValue>
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {SUPPORTED_TOKENS.map((token) => (
+                                                <SelectItem key={token.xchain_asset} value={token.xchain_asset}>
+                                                    <div className="flex items-center gap-2">
+                                                        <Image
+                                                            src={token.icon}
+                                                            alt={token.symbol}
+                                                            width={20}
+                                                            height={20}
+                                                            className="rounded-full"
+                                                        />
+                                                        <div>
+                                                            <div className="font-medium">{token.symbol}</div>
+                                                            <div className="text-xs text-muted-foreground">{token.name}</div>
+                                                        </div>
+                                                    </div>
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <Input
+                                        placeholder="0.0"
+                                        value={fromAmount}
+                                        onChange={(e) => handleFromAmountChange(e.target.value)}
+                                        type="number"
+                                        step="any"
+                                        className="flex-1"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <div className="text-xs text-muted-foreground">
+                                        Balance: {getBalanceByToken(fromToken)} {fromToken.symbol}
+                                    </div>
+                                    {getAddressByToken(fromToken) && (
+                                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                            <span>Address:</span>
+                                            <CopyAddress
+                                                textToCopy={getAddressByToken(fromToken)!}
+                                                className="text-xs"
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* 交换按钮 */}
+                            <div className="flex justify-center">
                                 <Button
                                     variant="outline"
-                                    size="sm"
-                                    onClick={handleSetDefaultAddress}
-                                    disabled={!getDefaultAddressByToToken()}
-                                    className="text-xs h-7"
+                                    size="icon"
+                                    onClick={handleSwapTokens}
+                                    className="rounded-full"
                                 >
-                                    Default Address
+                                    <ArrowDownUp className="h-4 w-4" />
                                 </Button>
                             </div>
-                            <Input
-                                placeholder="Enter target address"
-                                value={destAddress}
-                                onChange={(e) => setDestAddress(e.target.value)}
-                                type="text"
-                                className="w-full font-mono text-sm"
-                            />
-                            <div className="text-xs text-muted-foreground">
-                                The token will be sent to this address. Click "Default Address" to use your wallet address for {toToken.symbol}.
-                            </div>                        </div>
 
-                        {/* 估算按钮 */}
-                        {fromAmount && parseFloat(fromAmount) > 0 && destAddress && !hasEstimated && (
+                            {/* 目标代币选择 */}
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">To</label>
+                                <div className="flex gap-2">
+                                    <Select
+                                        value={toToken.xchain_asset} onValueChange={(value) => {
+                                            const token = SUPPORTED_TOKENS.find(t => t.xchain_asset === value)
+                                            if (token) {
+                                                setToToken(token)
+                                                // 清空估算结果，需要重新估算
+                                                setHasEstimated(false)
+                                                setToAmount('')
+                                                setExchangeRate(null)
+                                                setSwapFees(null)
+                                                setSlippageBps(null)
+                                            }
+                                        }}
+                                    >
+                                        <SelectTrigger className="w-32">
+                                            <SelectValue>
+                                                <div className="flex items-center gap-2">
+                                                    <Image
+                                                        src={toToken.icon}
+                                                        alt={toToken.symbol}
+                                                        width={20}
+                                                        height={20}
+                                                        className="rounded-full"
+                                                    />
+                                                    {toToken.symbol}
+                                                </div>
+                                            </SelectValue>
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {SUPPORTED_TOKENS.map((token) => (
+                                                <SelectItem key={token.xchain_asset} value={token.xchain_asset}>
+                                                    <div className="flex items-center gap-2">
+                                                        <Image
+                                                            src={token.icon}
+                                                            alt={token.symbol}
+                                                            width={20}
+                                                            height={20}
+                                                            className="rounded-full"
+                                                        />
+                                                        <div>
+                                                            <div className="font-medium">{token.symbol}</div>
+                                                            <div className="text-xs text-muted-foreground">{token.name}</div>
+                                                        </div>
+                                                    </div>
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+
+                                    <Input
+                                        placeholder="0.0"
+                                        value={isCalculating ? 'Calculating...' : toAmount}
+                                        readOnly
+                                        type="text"
+                                        className="flex-1 bg-muted/50"
+                                    />
+                                </div>
+                            </div>                        {/* 目标地址输入 */}
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-sm font-medium">To Address</label>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={handleSetDefaultAddress}
+                                        disabled={!getDefaultAddressByToToken()}
+                                        className="text-xs h-7"
+                                    >
+                                        Default Address
+                                    </Button>
+                                </div>
+                                <Input
+                                    placeholder="Enter target address"
+                                    value={destAddress}
+                                    onChange={(e) => setDestAddress(e.target.value)}
+                                    type="text"
+                                    className="w-full font-mono text-sm"
+                                />
+                                <div className="text-xs text-muted-foreground">
+                                    The token will be sent to this address. Click "Default Address" to use your wallet address for {toToken.symbol}.
+                                </div>                        </div>
+
+                            {/* 估算按钮 */}
+                            {fromAmount && parseFloat(fromAmount) > 0 && destAddress && !hasEstimated && (
+                                <Button
+                                    onClick={handleEstimateSwap}
+                                    disabled={isCalculating}
+                                    className="w-full"
+                                    variant="outline"
+                                    size="lg"
+                                >
+                                    {isCalculating ? 'Calculating...' : 'Estimate Swap'}
+                                </Button>
+                            )}
+
+                            {/* 交换信息 */}
+                            {fromAmount && toAmount && exchangeRate && (
+                                <div className="bg-muted/50 rounded-lg p-3 space-y-2">
+                                    <div className="flex justify-between items-center text-sm">
+                                        <span className="text-muted-foreground">Exchange Rate</span>
+                                        <div className="flex items-center gap-2">
+                                            <span>1 {fromToken.symbol} = {exchangeRate.toFixed(6)} {toToken.symbol}</span>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-6 w-6"
+                                                onClick={() => calculateToAmount(fromAmount)}
+                                                disabled={isCalculating}
+                                            >
+                                                <RefreshCw className={`h-3 w-3 ${isCalculating ? 'animate-spin' : ''}`} />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                    {swapFees && (
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-muted-foreground">Network Fee</span>
+                                            <span>{swapFees.outboundFee}</span>
+                                        </div>
+                                    )}
+                                    {swapFees && swapFees.affiliateFee !== '0' && (
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-muted-foreground">Affiliate Fee</span>
+                                            <span>{swapFees.affiliateFee}</span>
+                                        </div>
+                                    )}
+                                    {slippageBps !== null && (
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-muted-foreground">Estimated Slippage</span>
+                                            <span>{(slippageBps / 100).toFixed(2)}%</span>
+                                        </div>
+                                    )}
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-muted-foreground">Minimum Received</span>
+                                        <span>
+                                            {slippageBps !== null
+                                                ? (parseFloat(toAmount) * (1 - slippageBps / 10000)).toFixed(6)
+                                                : (parseFloat(toAmount) * 0.995).toFixed(6)
+                                            } {toToken.symbol}
+                                        </span>
+                                    </div>
+                                </div>
+                            )}                        {/* 交换按钮 */}
                             <Button
-                                onClick={handleEstimateSwap}
-                                disabled={isCalculating}
+                                onClick={handleSwap}
+                                disabled={!fromAmount || !toAmount || !exchangeRate || !destAddress || !hasEstimated || isLoading || isCalculating}
                                 className="w-full"
-                                variant="outline"
                                 size="lg"
                             >
-                                {isCalculating ? 'Calculating...' : 'Estimate Swap'}
+                                {isLoading ? 'Swapping...' : isCalculating ? 'Calculating...' : 'Swap'}
                             </Button>
-                        )}
+                        </CardContent>
+                    </Card>
 
-                        {/* 交换信息 */}
-                        {fromAmount && toAmount && exchangeRate && (
-                            <div className="bg-muted/50 rounded-lg p-3 space-y-2">
-                                <div className="flex justify-between items-center text-sm">
-                                    <span className="text-muted-foreground">Exchange Rate</span>
-                                    <div className="flex items-center gap-2">
-                                        <span>1 {fromToken.symbol} = {exchangeRate.toFixed(6)} {toToken.symbol}</span>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-6 w-6"
-                                            onClick={() => calculateToAmount(fromAmount)}
-                                            disabled={isCalculating}
-                                        >
-                                            <RefreshCw className={`h-3 w-3 ${isCalculating ? 'animate-spin' : ''}`} />
-                                        </Button>
-                                    </div>
-                                </div>
-                                {swapFees && (
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-muted-foreground">Network Fee</span>
-                                        <span>{swapFees.outboundFee}</span>
-                                    </div>
-                                )}
-                                {swapFees && swapFees.affiliateFee !== '0' && (
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-muted-foreground">Affiliate Fee</span>
-                                        <span>{swapFees.affiliateFee}</span>
-                                    </div>
-                                )}
-                                {slippageBps !== null && (
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-muted-foreground">Estimated Slippage</span>
-                                        <span>{(slippageBps / 100).toFixed(2)}%</span>
-                                    </div>
-                                )}
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-muted-foreground">Minimum Received</span>
-                                    <span>
-                                        {slippageBps !== null
-                                            ? (parseFloat(toAmount) * (1 - slippageBps / 10000)).toFixed(6)
-                                            : (parseFloat(toAmount) * 0.995).toFixed(6)
-                                        } {toToken.symbol}
-                                    </span>
-                                </div>
+                    {/* 交换历史或其他信息 */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-lg">Swap Instructions</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-sm text-muted-foreground space-y-2">
+                                <p>• Using THORChain technology for cross-chain token swaps</p>
+                                <p>• Supports major blockchains like Bitcoin and Ethereum</p>
+                                <p>• No centralized exchange required, you have full control over your assets</p>
+                                <p>• The swap process may take a few minutes to complete</p>
                             </div>
-                        )}                        {/* 交换按钮 */}
-                        <Button
-                            onClick={handleSwap}
-                            disabled={!fromAmount || !toAmount || !exchangeRate || !destAddress || !hasEstimated || isLoading || isCalculating}
-                            className="w-full"
-                            size="lg"
-                        >
-                            {isLoading ? 'Swapping...' : isCalculating ? 'Calculating...' : 'Swap'}
-                        </Button>
-                    </CardContent>
-                </Card>
-
-                {/* 交换历史或其他信息 */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="text-lg">Swap Instructions</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-sm text-muted-foreground space-y-2">
-                            <p>• Using THORChain technology for cross-chain token swaps</p>
-                            <p>• Supports major blockchains like Bitcoin and Ethereum</p>
-                            <p>• No centralized exchange required, you have full control over your assets</p>
-                            <p>• The swap process may take a few minutes to complete</p>
-                        </div>
-                    </CardContent>
-                </Card>
+                        </CardContent>                </Card>
+                </div>
             </div>
-        </div>
+        </>
     )
 }
