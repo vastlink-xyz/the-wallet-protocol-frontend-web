@@ -12,7 +12,7 @@ import { LitContracts } from '@lit-protocol/contracts-sdk';
 import { PKPEthersWallet } from '@lit-protocol/pkp-ethers';
 
 const upgradeIpfsFn = getUpdateWalletIpfsId
-const removeIpfsIdHex = '0x1220db81843e88873ef8dfc91afe04f1158b70873fa7b3df0b95116315b6fda49323'
+const removeIpfsIdHex = '0x1220739c4930a5c9ae89c39c0db56a1551ac1f5f2d32723a8744e1f9707c15cb5fa0'
 
 interface AllMultisigWalletsProps {
   currentUserPkp: IRelayPKP | null;

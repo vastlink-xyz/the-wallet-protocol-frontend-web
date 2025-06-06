@@ -1,9 +1,9 @@
 'use client'
 
 import { Button } from "@/components/ui/button"
-import { getLitActionIpfsCid, getPKPs, getSessionSigsByPkp, litNodeClient, mintPKP } from "@/lib/lit"
+import { getLitActionIpfsCid, getPKPs, getSessionSigsByPkp, litNodeClient, mintPersonalPKP, mintPKP } from "@/lib/lit"
 import { log } from "@/lib/utils";
-import { AccessControlConditions, AuthMethod } from "@lit-protocol/types";
+import { AccessControlConditions, AuthMethod, SessionSigs } from "@lit-protocol/types";
 import { useEffect, useState } from "react";
 import { AUTH_METHOD_SCOPE, AUTH_METHOD_TYPE, LIT_ABILITY, LIT_CHAINS, LIT_NETWORK } from "@lit-protocol/constants";
 import { Example } from "./components/Example";
@@ -19,18 +19,19 @@ import { getUpgradeIpfsId } from "@/lib/lit/ipfs-id-env";
 import { getPersonalSignIpfsId } from "@/lib/lit/ipfs-id-env";
 import { LitActionResource } from "@lit-protocol/auth-helpers";
 import { LitAccessControlConditionResource } from "@lit-protocol/auth-helpers";
+import { LitContracts } from "@lit-protocol/contracts-sdk";
+import { PKPEthersWallet } from "@lit-protocol/pkp-ethers";
 
 const pkp = {
-  "tokenId": "0xb93f2816733176218cdad7415e87ce06a5f735c736347a3a427839c4c2dad055",
-  "publicKey": "0x048fa9dbc9a6b40b7020f4e175d9b57bc4625c4debed3440a7c0961f8ceee1640160cc9f871642427652312a2d5f837bb585c6626d5dc4e22df4382c72de924ad3",
-  "ethAddress": "0xA529033ac1a00eDC7229076dB8507668eE5B0b96"
+  "tokenId": "0x4db47d93f4544bce5325db9c5f0aa502e9b404caf882115df84ec6c1ca6708c8",
+  "publicKey": "0x0489fe5c9976406a3dd3fcbf3fafb03b9be4cbc6bfc47632d2e0da9b4ce03121e8d3b28b3f5c5252df75a1e20c0c5bcb5227cb7ed401e2dc35925d6f7b2443a0f9",
+  "ethAddress": "0xDDcD0087D735683cEC3F672ade904083b862fe06"
 }
 
-// session pkp
 // const pkp = {
-//   "tokenId": "0x0ba25cb3b1af9bbfb115a183c3f38470558962d90d4dbcea3a968c8ee1717838",
-//   "publicKey": "0x045cd7f7e11b2ecec17cbc481ca322e96a5411e50eeb2adbe832458e5add9f11f075fa396b7fa694d32b8590aee7bef734d9364aa96fc4fd8ff6cc2879e2b0a5aa",
-//   "ethAddress": "0x13569AB9b12548f5b56af3f16b102Dd8c46e6323"
+//   "ethAddress" : "0x828166387109c7E3cD7f2Dd53982AcCAB13a7a88",
+//   "publicKey" : "0x04b6edbf182efdb25e07aae229961efad01031f246d31f197d5c00a475e8f5a0f59ed8b69fc2ca39d529feff90225db9aba2ddfd0aee55b09c91d9f67c06ea659f",
+//   "tokenId" : "0x91adbc8b8c16c70e2e88f38e825d3b5702143fe6e8ee4259ae788a4a8c7b7405",
 // }
 
 const accessControlConditions: AccessControlConditions = [
@@ -49,6 +50,7 @@ const accessControlConditions: AccessControlConditions = [
 
 export default function DebugPage() {
   const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null);
+  const [sessionSigs, setSessionSigs] = useState<SessionSigs | null>(null);
 
   // Initialize by reading authMethod from localStorage
   useEffect(() => {
@@ -116,45 +118,15 @@ export default function DebugPage() {
       return
     }
 
-    const ipfsId = await getLitActionIpfsCid({
-      input: decryptDebugLitActionCode,
-      outputFormat: 'base58',
-    })
-
-    const decryptIpfsIdHex = await getLitActionIpfsCid({
-      input: decryptDebugLitActionCode,
-      outputFormat: 'hex',
-    })
-
-    const authMethodId = await getAuthIdByAuthMethod(authMethod)
-
-    const personalSignIpfsIdHex = await getPersonalSignIpfsId('hex')
-    const upgradeIpfsIdHex = await getUpgradeIpfsId('hex')
-
-    const pkp = await mintPKP({
+    const pkp = await mintPersonalPKP({
       authMethod,
-      options: {
-        permittedAuthMethodTypes: [AUTH_METHOD_TYPE.StytchEmailFactorOtp, AUTH_METHOD_TYPE.LitAction, AUTH_METHOD_TYPE.LitAction, AUTH_METHOD_TYPE.LitAction],
-        permittedAuthMethodIds: [authMethodId, personalSignIpfsIdHex, upgradeIpfsIdHex, decryptIpfsIdHex],
-        permittedAuthMethodPubkeys: ['0x', '0x', '0x', '0x'],
-        permittedAuthMethodScopes: [[AUTH_METHOD_SCOPE.SignAnything], [AUTH_METHOD_SCOPE.SignAnything], [AUTH_METHOD_SCOPE.SignAnything], [AUTH_METHOD_SCOPE.SignAnything]],
-        addPkpEthAddressAsPermittedAddress: true,
-        sendPkpToItself: false,
-        keyType: 2 // Standard PKP type
-      },
     })
 
     log('pkp', pkp)
-
-    // {
-    //   "tokenId": "0x5515ef8204715f09b370e3f10a7efd40634bd8431b6e0654237d6bd876f635c6",
-    //   "publicKey": "0x04450422ac9f3b571d3e03d040fc86e29a6f5da3b0b8e1a4c897c4af0db2c9717cd0aa759fc8168ed63ccb3e13212fd0d433ba9b4a192aad6bdf0a3e5029be277a",
-    //   "ethAddress": "0xe9C26033709C6faE6a7bC05CB74e02a4B4Ea7c7A"
-    // }
   }
   
   const handleExecuteLitActionCode = async () => {
-    if (!authMethod) {
+    if (!authMethod || !sessionSigs) {
       return
     }
 
@@ -163,14 +135,6 @@ export default function DebugPage() {
     if (!litNodeClient.ready) {
       await litNodeClient.connect()
     }
-
-    const sessionSigs = await getSessionSigsByPkp({
-      authMethod, 
-      pkp,
-      refreshStytchAccessToken: true,
-    })
-
-    log('sessionSigs', sessionSigs)
 
     const res = await litNodeClient.executeJs({
       code: personalSignLitActionCode,
@@ -208,21 +172,13 @@ export default function DebugPage() {
   }
 
   const handleDecrypt = async () => {
-    if (!authMethod) {
+    if (!authMethod || !sessionSigs) {
       return
     }
 
     if (!litNodeClient.ready) {
       await litNodeClient.connect()
     }
-
-    const sessionSigs = await getSessionSigsByPkp({
-      authMethod, 
-      pkp,
-      refreshStytchAccessToken: true,
-    })
-
-    log('sessionSigs', sessionSigs)
 
     const ciphertext = localStorage.getItem('demoEncryptionCiphertext')
     const dataToEncryptHash = localStorage.getItem('demoEncryptionDataToEncryptHash')
@@ -240,7 +196,7 @@ export default function DebugPage() {
     })
 
     log('a', a)
-    return
+    // return
 
     const decryptIpfsId = await getLitActionIpfsCid({
       input: decryptDebugLitActionCode,
@@ -270,7 +226,7 @@ export default function DebugPage() {
   }
 
   const handleUpgrade = async () => {
-    if (!authMethod) {
+    if (!authMethod || !sessionSigs) {
       return
     }
 
@@ -278,12 +234,6 @@ export default function DebugPage() {
       const ipfsIdHex = await getLitActionIpfsCid({
         input: decryptDebugLitActionCode,
         outputFormat: 'hex',
-      })
-
-      const sessionSigs = await getSessionSigsByPkp({
-        authMethod, 
-        pkp,
-        refreshStytchAccessToken: true,
       })
 
       const response = await litNodeClient.executeJs({
@@ -310,6 +260,54 @@ export default function DebugPage() {
   };
 
 
+  const handleCheckPermittedLitActions = async () => {
+    if (!authMethod || !sessionSigs) {
+      return
+    }
+
+    try {
+      if (!litNodeClient.ready) {
+        await litNodeClient.connect();
+      }
+
+      const pkpWallet = new PKPEthersWallet({
+        controllerSessionSigs: sessionSigs,
+        pkpPubKey: pkp.publicKey,
+        litNodeClient: litNodeClient,
+      });
+      
+      await pkpWallet.init();
+      log('pkpWallet init')
+
+      const litContracts = new LitContracts({
+        signer: pkpWallet,
+      });
+      await litContracts.connect();
+      log('litcontract conneected')
+
+      const permittedActions = await litContracts.pkpPermissionsContractUtils.read.getPermittedActions(pkp.tokenId)
+      log('permitted actions', permittedActions)
+    } catch (err) {
+      log('err', err);
+    } finally {
+    }
+  }
+
+  const handleGetSessionSigs = async () => {
+    if (!authMethod) {
+      return
+    }
+    
+    const sessionSigs = await getSessionSigsByPkp({
+      authMethod, 
+      pkp,
+      refreshStytchAccessToken: true,
+    })
+
+    setSessionSigs(sessionSigs)
+  }
+
+
   return (
     <div className="space-y-8 p-4">
       <div className="flex flex-wrap gap-2">
@@ -331,6 +329,8 @@ export default function DebugPage() {
       <Button onClick={handleEncrypt}>Encrypt</Button>
       <Button onClick={handleDecrypt}>Decrypt</Button>
       <Button onClick={handleUpgrade}>Upgrade</Button>
+      <Button onClick={handleCheckPermittedLitActions}>Check Permitted Lit Actions</Button>
+      <Button onClick={handleGetSessionSigs}>Get Session Sigs</Button>
     </div>
   );
 }

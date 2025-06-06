@@ -7,8 +7,8 @@ import { personalSignLitActionCode } from "../lit-action-code/proposal-sign.lit"
 import { upgradeLitActionCode } from "../lit-action-code/upgrade.lit"
 import { personalTransactionLitActionCode } from "../lit-action-code/personal-transaction.lit"
 
-const updateWalletSettingsIpfsId = 'QmW7wpDK4nYv74y4gQtwfAFE9r8E7es9vNZP1zUEwb6JHu'
-const updateWalletSettingsIpfsIdHex = '0x1220739c4930a5c9ae89c39c0db56a1551ac1f5f2d32723a8744e1f9707c15cb5fa0'
+const updateWalletSettingsIpfsId = 'QmVmNhCPL87PwsKfxdRXgTXMdeuSUMWv677oDzH8feBY8y'
+const updateWalletSettingsIpfsIdHex = '0x12206e57383fbb362b99ea1e5eb3614822dc7cb2a1e0140f2874bbe612bea3a6448a'
 
 const createWalletIpfsId = 'QmWWCfH9doco4zadnFk5wKYTfvnWx71ZoUCoUcMj69qPuk'
 const createWalletIpfsIdHex = '0x1220794fd99f5f8459c602e869a7af409bd7f3bf92b5d45f689bcf31b9f736a9a2ab'

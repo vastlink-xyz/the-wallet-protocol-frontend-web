@@ -357,7 +357,7 @@ const _litActionCode = async () => {
           authMethodMetadata: {
             addOrRemove: 'add',
             keyType: 2,
-            authMethodType: 6,
+            authMethodType: 10,
             authMethodId: signerToAdd.authMethodId,
             authMethodPubkey: '0x',
             permittedScopes: [0],
@@ -376,7 +376,7 @@ const _litActionCode = async () => {
           authMethodMetadata: {
             addOrRemove: 'remove',
             keyType: 2,
-            authMethodType: 6,
+            authMethodType: 10,
             authMethodId: signerToRemove.authMethodId,
             authMethodPubkey: '0x',
             permittedScopes: [0],

@@ -74,7 +74,7 @@ export function BtcDemo({ authMethod, litactionPkp, sessionSigs }: BtcDemoProps)
 
   useEffect(() => {
     if (btcAddress) {
-      fetchBalance();
+      // fetchBalance();
     }
   }, [btcAddress]);
 

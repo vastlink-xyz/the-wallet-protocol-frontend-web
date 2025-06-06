@@ -20,7 +20,7 @@ import { upgradeLitActionCode } from "@/lib/lit-action-code/upgrade.lit";
 import { personalTransactionLitActionCode } from "@/lib/lit-action-code/personal-transaction.lit";
 import { decryptDebugLitActionCode } from "@/app/debug/decrypt-lit-action";
 
-const litActionCode = personalSignLitActionCode
+const litActionCode = updateWalletSettingsLitActionCode
 
 interface ExecuteLitActionCodeProps {
   authMethod: AuthMethod;
