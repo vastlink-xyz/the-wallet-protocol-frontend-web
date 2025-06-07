@@ -283,16 +283,14 @@ export function PersonalWalletSettings() {
 
           <div className="max-h-[60vh] overflow-y-auto p-8 pt-4">
             <LabeledContainer label="Daily Withdraw Limits" className="mb-8">
-              <div className="flex flex-col space-y-4">
-                {
-                  tokenLimits && (
-                    <DailyWithdrawLimits
-                      initialLimits={tokenLimits}
-                      onChange={handleLimitsChange}
-                    />
-                  )
-                }
-              </div>
+              {
+                tokenLimits && (
+                  <DailyWithdrawLimits
+                    initialLimits={tokenLimits}
+                    onChange={handleLimitsChange}
+                  />
+                )
+              }
             </LabeledContainer>
 
             <LabeledContainer label="MFA Settings">

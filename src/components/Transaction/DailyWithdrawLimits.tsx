@@ -10,7 +10,6 @@ interface DailyWithdrawLimitsProps {
 export function DailyWithdrawLimits({ initialLimits, onChange }: DailyWithdrawLimitsProps) {
   const [tokenLimits, setTokenLimits] = useState<Record<TokenType, string>>(initialLimits);
   const [limitErrors, setLimitErrors] = useState<Record<TokenType, string>>({} as Record<TokenType, string>);
-  const [isLimitValid, setIsLimitValid] = useState<boolean>(true);
 
   // Validate all limits and set overall validity
   const validateAllLimits = useCallback((limits: Record<TokenType, string>, errors: Record<TokenType, string>) => {
@@ -34,7 +33,6 @@ export function DailyWithdrawLimits({ initialLimits, onChange }: DailyWithdrawLi
       setLimitErrors(newErrors);
       
       const isValid = validateAllLimits(newLimits, newErrors);
-      setIsLimitValid(isValid);
       
       if (onChange) {
         onChange(newLimits, isValid);
@@ -51,7 +49,6 @@ export function DailyWithdrawLimits({ initialLimits, onChange }: DailyWithdrawLi
       setLimitErrors(newErrors);
       
       const isValid = validateAllLimits(newLimits, newErrors);
-      setIsLimitValid(isValid);
       
       if (onChange) {
         onChange(newLimits, isValid);
@@ -68,7 +65,6 @@ export function DailyWithdrawLimits({ initialLimits, onChange }: DailyWithdrawLi
       setLimitErrors(newErrors);
       
       const isValid = validateAllLimits(newLimits, newErrors);
-      setIsLimitValid(isValid);
       
       if (onChange) {
         onChange(newLimits, isValid);
@@ -82,7 +78,6 @@ export function DailyWithdrawLimits({ initialLimits, onChange }: DailyWithdrawLi
     setLimitErrors(newErrors);
     
     const isValid = validateAllLimits(newLimits, newErrors);
-    setIsLimitValid(isValid);
     
     if (onChange) {
       onChange(newLimits, isValid);
@@ -95,7 +90,7 @@ export function DailyWithdrawLimits({ initialLimits, onChange }: DailyWithdrawLi
         const tokenInfo = SUPPORTED_TOKENS_INFO[symbol];
         return (
           <div key={symbol} className="flex flex-col space-y-2">
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center justify-between gap-2 mb-2">
               <div className="flex items-center gap-2">
                 <img 
                   src={tokenInfo.iconUrl} 
