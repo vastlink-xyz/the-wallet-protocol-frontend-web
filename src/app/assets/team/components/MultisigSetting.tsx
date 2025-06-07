@@ -41,21 +41,23 @@ export function MultisigSetting({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg max-w-xl w-full relative flex flex-col max-h-[90vh]">
+      <div className="bg-white rounded-lg max-w-[600px] w-full relative flex flex-col max-h-[90vh]">
         {/* Fixed header */}
-        <div className="sticky top-0 p-6 border-b flex justify-between items-center">
-          <h2 className="text-xl font-semibold">Team Wallet Settings</h2>
-        <button 
-          onClick={onClose} 
-            className="text-gray-500 hover:text-gray-800"
-        >
-          <X size={20} />
-        </button>
+        <div className="sticky top-0 px-6 py-4 border-b flex justify-between items-center">
+          <div className="flex flex-col gap-2">
+            <h2 className="text-xl font-semibold">Team Wallet Settings</h2>
+            <p className="text-sm text-gray-500">A team wallet requires approval from multiple signers to execute any transaction.</p>
+          </div>
+          <button 
+            onClick={onClose} 
+              className="text-gray-500 hover:text-gray-800"
+          >
+            <X size={20} />
+          </button>
         </div>
         
         {/* Scrollable content area */}
         <div className="p-6 overflow-y-auto">
-          <p className="text-sm text-gray-500 mb-4">A team wallet requires approval from multiple signers to execute any transaction.</p>
           
           {
             ((wallet && mode === 'edit') || mode === 'create') && (

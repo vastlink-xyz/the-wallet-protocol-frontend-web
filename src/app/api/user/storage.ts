@@ -115,17 +115,18 @@ export async function createUser({
     // Generate unique ID for the user
     const id = crypto.randomUUID();
     
+    const dailyWithdrawLimits: Record<string, string> = {};
+    SUPPORTED_TOKEN_SYMBOLS.forEach((token) => {
+      dailyWithdrawLimits[token] = SUPPORTED_TOKENS_INFO[token].defaultWithdrawLimit;
+    });
+    
     const userData = {
       id,
       authMethodId,
       email,
       addresses,
       walletSettings: {
-        dailyWithdrawLimits: {
-          ...SUPPORTED_TOKEN_SYMBOLS.map((token) => ({
-            [token]: SUPPORTED_TOKENS_INFO[token].defaultWithdrawLimit
-          }))
-        }
+        dailyWithdrawLimits
       }
     };
     

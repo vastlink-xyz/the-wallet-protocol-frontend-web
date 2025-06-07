@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -23,6 +23,8 @@ import { useAuthExpiration } from '@/hooks/useAuthExpiration'
 import { isTokenValid } from '@/lib/jwt'
 import { TokenType, SUPPORTED_TOKEN_SYMBOLS, SUPPORTED_TOKENS_INFO } from '@/lib/web3/token'
 import { MFASettings, MultisigWallet, MultisigWalletMetadata } from '@/app/api/multisig/storage'
+import { LabeledContainer } from './LabeledContainer'
+import { DailyWithdrawLimits, getDefaultDailyWithdrawLimits } from './Transaction/DailyWithdrawLimits'
 
 interface MultisigWalletFormContentProps {
   mode: 'create' | 'edit'
@@ -117,16 +119,15 @@ export function MultisigWalletFormContent({
   )
   
   // Create default dailyLimits object
-  const defaultDailyLimits = {} as Record<TokenType, string>;
-  SUPPORTED_TOKEN_SYMBOLS.forEach(token => {
-    defaultDailyLimits[token] = SUPPORTED_TOKENS_INFO[token].defaultWithdrawLimit;
-  });
+  const defaultDailyLimits = getDefaultDailyWithdrawLimits();
   
-  const [dailyLimits, setDailyLimits] = useState<Record<TokenType, string>>(
+  const [dailyLimits, setDailyLimits] = useState<Record<TokenType, string> | undefined>(
     mode === 'edit'
-      ? {...defaultDailyLimits, ...(wallet?.metadata?.mfaSettings?.dailyLimits || {})}
-      : defaultDailyLimits
+      ? {...defaultDailyLimits, ...(wallet?.metadata?.mfaSettings?.dailyLimits)}
+      : undefined
   )
+  const [isLimitValid, setIsLimitValid] = useState<boolean>(true);
+
   const [walletName, setWalletName] = useState(
     mode === 'edit'
       ? wallet?.name || ''
@@ -186,7 +187,12 @@ export function MultisigWalletFormContent({
       authMethodId: signerAuthMethodId || ''
     };
     
-    setSigners([...signers, newSigner]);
+    const newSigners = [...signers, newSigner];
+    setSigners(newSigners);
+    
+    // Update threshold when adding a new signer
+    // For 1 of 1 -> 2 of 2, or 1 of 2 -> 2 of 3, etc.
+    setThreshold(Math.min(2, newSigners.length));
     
     // Clear form and hide
     setNewSignerEmail('');
@@ -234,16 +240,15 @@ export function MultisigWalletFormContent({
     }
   }, [mode, userPkp]);
 
-  const handleDailyLimitChange = (token: TokenType, value: string) => {
-    setDailyLimits(prev => ({
-      ...prev,
-      [token]: value
-    }));
-  };
+  // Handle limits change from DailyWithdrawLimits component
+  const handleLimitsChange = useCallback((newLimits: Record<TokenType, string>, isValid: boolean) => {
+    setDailyLimits(newLimits);
+    setIsLimitValid(isValid);
+  }, []);
 
   // Create new multisig wallet (create mode)
   const handleCreateMultisigWallet = async () => {
-    if (!userPkp) {
+    if (!userPkp || !dailyLimits) {
       console.error('Missing required information');
       return;
     }
@@ -642,185 +647,157 @@ export function MultisigWalletFormContent({
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Wallet Name */}
-      <div className="space-y-3">
-        <h3 className="text-md font-semibold">Wallet Name</h3>
-        <div className="bg-gray-50 p-4 rounded-md">
-          <div>
-            <Label htmlFor="walletName">Name</Label>
-            <div className="flex mt-1 gap-2">
-              <Input
-                id="walletName"
-                value={walletName}
-                onChange={(e) => setWalletName(e.target.value)}
-                placeholder="Enter wallet name"
-                className="flex-grow"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
+      <LabeledContainer label="Wallet Name">
+        <Input
+          id="walletName"
+          value={walletName}
+          onChange={(e) => setWalletName(e.target.value)}
+          placeholder="Enter wallet name"
+          className="flex-grow"
+        />
+      </LabeledContainer>
       
       {/* Signers Section */}
-      <div className="space-y-4">
-        <h3 className="text-md font-semibold">Signers</h3>
-        <div className="space-y-3 bg-gray-50 p-4 rounded-md">
-          {signers.map((signer, index) => (
-            <div key={index} className="flex items-center justify-between gap-2">
-              <SignerEmailField
-                label={`Signer ${index + 1}`}
-                input={{
-                  value: signer.email,
-                  onChange: () => {},
-                }}
-                inputType="email"
-                address={signer.ethAddress}
-                disabled={true}
-                className="flex-1"
-              />
-              
-              {/* Only allow removing signers that are not the current user */}
-              {signer.ethAddress !== userPkp.ethAddress && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleRemoveSigner(signer.ethAddress)}
-                  className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                >
-                  <Trash2 className="h-5 w-5" />
-                </Button>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-      
-      {/* Add A New Signer */}
-      <div ref={newSignerFormRef} className={`space-y-3 border-t border-b py-4 ${newSignerError ? 'bg-red-50 px-4 rounded-md border-red-200' : ''}`}>
-        <h3 className="text-md font-semibold">Add A New Signer</h3>
-        
-        {showAddSignerForm ? (
-          <div className="grid grid-cols-1 gap-3">
+      <LabeledContainer label="Signers">
+        {signers.map((signer, index) => (
+          <div key={index} className="flex items-center justify-between gap-2 mb-2">
             <SignerEmailField
-              emailOnly={true}
-              label="New Signer"
+              label={`Signer ${index + 1}`}
               input={{
-                value: newSignerEmail,
-                onChange: (value) => {
-                  setNewSignerEmail(value);
-                  setNewSignerError(false);
-                },
-                placeholder: "Enter signer's email or ETH address",
-                id: "newSigner",
-                className: newSignerError ? "border-red-500" : ""
+                value: signer.email,
+                onChange: () => {},
               }}
-              onAddressFound={(addressData) => {
-                if (addressData) {
-                  setNewSignerAddress(addressData.addresses?.eth || '');
-                  setNewSignerPublicKey(addressData.publicKey || '');
-                  setSignerAuthMethodId(addressData.authMethodId || '');
-                } else {
-                  setNewSignerAddress('');
-                  setNewSignerPublicKey('');
-                  setSignerAuthMethodId('');
-                }
-              }}
+              inputType="email"
+              address={signer.ethAddress}
+              disabled={true}
+              className="flex-1"
             />
             
-            {newSignerError && (
-              <div className="text-sm text-red-500 -mt-1">
-                Please confirm or cancel this signer before proceeding
-              </div>
-            )}
-            
-            <div className="flex space-x-2 mt-2">
-              <Button 
-                onClick={handleAddSigner}
-                variant="outline"
-                disabled={!newSignerEmail || !newSignerAddress}
-                className="flex-1"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Confirm
-              </Button>
-              
-              <Button 
-                onClick={() => {
-                  setShowAddSignerForm(false);
-                  setNewSignerEmail('');
-                  setNewSignerAddress('');
-                  setNewSignerPublicKey('');
-                  setSignerAuthMethodId('');
-                  setNewSignerError(false);
-                }}
+            {/* Only allow removing signers that are not the current user */}
+            {signer.ethAddress !== userPkp.ethAddress && (
+              <Button
                 variant="ghost"
-                className="flex-none"
+                size="icon"
+                onClick={() => handleRemoveSigner(signer.ethAddress)}
+                className="text-red-500 hover:text-red-600 hover:bg-red-50"
               >
-                Cancel
+                <Trash2 className="h-5 w-5" />
               </Button>
-            </div>
+            )}
           </div>
-        ) : (
-          <Button 
-            onClick={() => setShowAddSignerForm(true)}
-            variant="outline"
-            className="w-full"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add A New Signer
-          </Button>
-        )}
-      </div>
+        ))}
+
+        {/* Add A New Signer */}
+        <div ref={newSignerFormRef} className={`space-y-3 py-4 ${newSignerError ? 'bg-red-50 px-4 rounded-md border-red-200' : ''}`}>
+          {showAddSignerForm ? (
+            <div className="grid grid-cols-1 gap-3">
+              <SignerEmailField
+                emailOnly={true}
+                label="New Signer"
+                input={{
+                  value: newSignerEmail,
+                  onChange: (value) => {
+                    setNewSignerEmail(value);
+                    setNewSignerError(false);
+                  },
+                  placeholder: "Enter signer's email or ETH address",
+                  id: "newSigner",
+                  className: newSignerError ? "border-red-500" : ""
+                }}
+                onAddressFound={(addressData) => {
+                  if (addressData) {
+                    setNewSignerAddress(addressData.addresses?.eth || '');
+                    setNewSignerPublicKey(addressData.publicKey || '');
+                    setSignerAuthMethodId(addressData.authMethodId || '');
+                  } else {
+                    setNewSignerAddress('');
+                    setNewSignerPublicKey('');
+                    setSignerAuthMethodId('');
+                  }
+                }}
+              />
+              
+              {newSignerError && (
+                <div className="text-sm text-red-500 -mt-1">
+                  Please confirm or cancel this signer before proceeding
+                </div>
+              )}
+              
+              <div className="flex space-x-2 mt-2">
+                <Button 
+                  onClick={handleAddSigner}
+                  variant="outline"
+                  disabled={!newSignerEmail || !newSignerAddress}
+                  className="flex-1"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Confirm
+                </Button>
+                
+                <Button 
+                  onClick={() => {
+                    setShowAddSignerForm(false);
+                    setNewSignerEmail('');
+                    setNewSignerAddress('');
+                    setNewSignerPublicKey('');
+                    setSignerAuthMethodId('');
+                    setNewSignerError(false);
+                  }}
+                  variant="ghost"
+                  className="flex-none"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <Button 
+              onClick={() => setShowAddSignerForm(true)}
+              variant="outline"
+              className="w-full"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add A New Signer
+            </Button>
+          )}
+        </div>
+      </LabeledContainer>
+      
       
       {/* Threshold Setting - only show if we have signers */}
       {signers.length > 0 && (
-        <div className="space-y-3">
-          <h3 className="text-md font-semibold">Signature Threshold</h3>
-          <div className="bg-gray-50 p-4 rounded-md">
-            <div className="flex items-center space-x-4">
-              <Label htmlFor="threshold">Required Signatures:</Label>
-              <select
-                id="threshold"
-                value={threshold}
-                onChange={(e) => setThreshold(parseInt(e.target.value))}
-                className="border border-gray-300 rounded-md px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {thresholdOptions.map((num) => (
-                  <option key={num} value={num}>
-                    {num} of {signers.length}
-                  </option>
-                ))}
-              </select>
-            </div>
+        <LabeledContainer label="Signature Threshold">
+          <div className="flex items-center space-x-4">
+            <Label htmlFor="threshold">Required Signatures:</Label>
+            <select
+              id="threshold"
+              value={threshold}
+              onChange={(e) => setThreshold(parseInt(e.target.value))}
+              className="border border-gray-300 rounded-md px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {thresholdOptions.map((num) => (
+                <option key={num} value={num}>
+                  {num} of {signers.length}
+                </option>
+              ))}
+            </select>
           </div>
-        </div>
+        </LabeledContainer>
       )}
       
       {/* MFA Settings */}
-      <div className="space-y-3">
-        <h3 className="text-md font-semibold">Daily Transfer Limits</h3>
-        <div className="space-y-3 bg-gray-50 p-4 rounded-md">
-          {SUPPORTED_TOKEN_SYMBOLS.map((token) => (
-            <div key={token} className="flex flex-col space-y-1">
-              <Label htmlFor={`dailyLimit-${token}`}>Daily {token} Limit</Label>
-              <div className="flex items-center">
-                <Input
-                  id={`dailyLimit-${token}`}
-                  value={dailyLimits[token]}
-                  onChange={(e) => handleDailyLimitChange(token, e.target.value)}
-                  placeholder={SUPPORTED_TOKENS_INFO[token].defaultWithdrawLimit}
-                  type="number"
-                  min="0"
-                />
-                <span className="ml-2 text-gray-600 font-medium">
-                  {token}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+      <LabeledContainer label="Daily Transfer Limits">
+        {
+          dailyLimits && (
+            <DailyWithdrawLimits
+              initialLimits={dailyLimits}
+              onChange={handleLimitsChange}
+            />
+          )
+        }
+      </LabeledContainer>
       
       {/* Action Buttons */}
       <div className="flex gap-4 mt-6">
@@ -836,7 +813,7 @@ export function MultisigWalletFormContent({
         )}
         <Button
           onClick={handleSubmit}
-          disabled={isLoading || signers.length === 0}
+          disabled={isLoading || signers.length === 0 || !isLimitValid}
           className="flex-1"
           title={mode === 'edit' ? "Update signers, threshold or MFA settings (requires multi-signature approval)" : ""}
         >

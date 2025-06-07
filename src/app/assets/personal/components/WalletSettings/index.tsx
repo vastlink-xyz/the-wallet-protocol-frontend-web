@@ -20,18 +20,12 @@ import { SUPPORTED_TOKENS_INFO, TokenType, SUPPORTED_TOKEN_SYMBOLS } from '@/lib
 import { Settings } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { MFAOtpDialog } from '@/components/Transaction/MFAOtpDialog';
+import { LabeledContainer } from '@/components/LabeledContainer';
+import { DailyWithdrawLimits, getDefaultDailyWithdrawLimits } from '@/components/Transaction/DailyWithdrawLimits';
 
 export function PersonalWalletSettings() {
   const [isOpen, setIsOpen] = useState(false);
-  const [tokenLimits, setTokenLimits] = useState<Record<TokenType, string>>(() => {
-    // Initialize with default values for all tokens
-    const defaults: Partial<Record<TokenType, string>> = {};
-    SUPPORTED_TOKEN_SYMBOLS.forEach(symbol => {
-      defaults[symbol] = SUPPORTED_TOKENS_INFO[symbol].defaultWithdrawLimit;
-    });
-    return defaults as Record<TokenType, string>;
-  });
-  const [limitErrors, setLimitErrors] = useState<Record<TokenType, string>>({} as Record<TokenType, string>);
+  const [tokenLimits, setTokenLimits] = useState<Record<TokenType, string> | undefined>();
   const [isLimitValid, setIsLimitValid] = useState<boolean>(true);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [authMethodId, setAuthMethodId] = useState<string | null>(null);
@@ -89,14 +83,21 @@ export function PersonalWalletSettings() {
       }
       
       const userData = await response.json();
-      const newLimits = { ...tokenLimits };
+      const newLimits = {} as Record<TokenType, string>;
+
+      log('userData', userData.walletSettings.dailyWithdrawLimits);
       
       // Update limits for each token if they exist in the user settings
       SUPPORTED_TOKEN_SYMBOLS.forEach(symbol => {
         if (userData.walletSettings?.dailyWithdrawLimits?.[SUPPORTED_TOKENS_INFO[symbol].symbol]) {
-          newLimits[symbol] = userData.walletSettings.dailyWithdrawLimits[SUPPORTED_TOKENS_INFO[symbol].symbol].toString();
+          newLimits[symbol] = userData.walletSettings.dailyWithdrawLimits[SUPPORTED_TOKENS_INFO[symbol].symbol];
+        } else {
+          // Use default value if not set
+          newLimits[symbol] = SUPPORTED_TOKENS_INFO[symbol].defaultWithdrawLimit;
         }
       });
+
+      log('newLimits', newLimits);
       
       setTokenLimits(newLimits);
     } catch (error) {
@@ -132,61 +133,14 @@ export function PersonalWalletSettings() {
     }
   };
   
-  const handleLimitChange = (tokenType: TokenType, value: string) => {
-    const newValue = value;
-    const newLimits = { ...tokenLimits };
-    const newErrors = { ...limitErrors };
-    
-    // Allow empty value so user can clear the input
-    if (newValue === '') {
-      newErrors[tokenType] = '';
-      newLimits[tokenType] = newValue;
-      setTokenLimits(newLimits);
-      setLimitErrors(newErrors);
-      validateAllLimits(newLimits, newErrors);
-      return;
-    }
-    
-    // Validate if input is a valid number
-    const numberRegex = /^(0|[1-9]\d*)(\.\d+)?$/;
-    if (!numberRegex.test(newValue)) {
-      newErrors[tokenType] = 'Please enter a valid number';
-      newLimits[tokenType] = newValue;
-      setTokenLimits(newLimits);
-      setLimitErrors(newErrors);
-      validateAllLimits(newLimits, newErrors);
-      return;
-    }
-    
-    // Parse to number to ensure validity
-    const numValue = parseFloat(newValue);
-    if (isNaN(numValue) || numValue < 0) {
-      newErrors[tokenType] = 'Please enter a number greater than or equal to 0';
-      newLimits[tokenType] = newValue;
-      setTokenLimits(newLimits);
-      setLimitErrors(newErrors);
-      validateAllLimits(newLimits, newErrors);
-      return;
-    }
-    
-    newErrors[tokenType] = '';
-    newLimits[tokenType] = newValue;
+  // Handle limits change from DailyWithdrawLimits component
+  const handleLimitsChange = (newLimits: Record<TokenType, string>, isValid: boolean) => {
     setTokenLimits(newLimits);
-    setLimitErrors(newErrors);
-    validateAllLimits(newLimits, newErrors);
-  };
-  
-  // Validate all limits and set overall validity
-  const validateAllLimits = (limits: Record<TokenType, string>, errors: Record<TokenType, string>) => {
-    // Check if any field has an error or is empty
-    const hasError = Object.values(errors).some(error => error !== '');
-    const hasEmptyField = Object.values(limits).some(limit => limit === '');
-    
-    setIsLimitValid(!hasError && !hasEmptyField);
+    setIsLimitValid(isValid);
   };
   
   const saveSettings = async () => {
-    if (!isLimitValid || !authMethodId) return;
+    if (!isLimitValid || !authMethodId || !tokenLimits) return;
     
     setIsSaving(true);
     
@@ -319,7 +273,7 @@ export function PersonalWalletSettings() {
           </Tooltip>
         </DialogTrigger>
 
-        <DialogContent className="sm:max-w-md p-0">
+        <DialogContent className="p-0 sm:!max-w-[600px]">
           <DialogHeader className="border-b px-8 py-6">
             <DialogTitle>Wallet Settings</DialogTitle>
             <DialogDescription>
@@ -327,38 +281,26 @@ export function PersonalWalletSettings() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="max-h-[60vh] overflow-y-auto p-8 pt-0">
-            <div className="">
-              <h2 className='font-medium mb-2'>Daily Withdraw Limits</h2>
+          <div className="max-h-[60vh] overflow-y-auto p-8 pt-4">
+            <LabeledContainer label="Daily Withdraw Limits" className="mb-8">
               <div className="flex flex-col space-y-4">
-                {SUPPORTED_TOKEN_SYMBOLS.map(symbol => {
-                  const tokenInfo = SUPPORTED_TOKENS_INFO[symbol];
-                  return (
-                    <div key={symbol} className="flex flex-col space-y-2">
-                      <label className="text-sm font-medium">{tokenInfo.name} ({tokenInfo.symbol})</label>
-                      <div className="flex items-center gap-2">
-                        <Input 
-                          value={tokenLimits[symbol]} 
-                          onChange={(e) => handleLimitChange(symbol, e.target.value)} 
-                          placeholder="0.001"
-                          className="w-32"
-                        />
-                        <span className="font-medium">{tokenInfo.symbol}</span>
-                      </div>
-                      {limitErrors[symbol] && <p className="text-sm text-red-500">{limitErrors[symbol]}</p>}
-                    </div>
-                  );
-                })}
+                {
+                  tokenLimits && (
+                    <DailyWithdrawLimits
+                      initialLimits={tokenLimits}
+                      onChange={handleLimitsChange}
+                    />
+                  )
+                }
               </div>
-            </div>
+            </LabeledContainer>
 
-            <div className="mt-4">
-              <h2 className='font-medium mb-2'>MFA Settings</h2>
+            <LabeledContainer label="MFA Settings">
               <MFASettingsContent 
                 isOpen={isOpen} 
                 onPhoneUpdated={fetchUserPhone}
               />
-            </div>
+            </LabeledContainer>
 
             <DialogFooter className="pt-4 space-x-2">
               <Button 

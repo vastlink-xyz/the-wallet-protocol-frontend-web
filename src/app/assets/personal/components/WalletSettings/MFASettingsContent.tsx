@@ -105,14 +105,12 @@ export function MFASettingsContent({ isOpen, onPhoneUpdated }: MFASettingsConten
       ) : (
         <>
           {/* Phone WhatsApp MFA */}
-          <div className="border rounded-md p-4">
-            <MFAPhoneWhatsApp 
-              verifiedPhone={verifiedPhone}
-              sessionJwt={sessionJwt}
-              onSuccess={refreshMFAStatus}
-              onPhoneUpdated={onPhoneUpdated}
-            />
-          </div>
+          <MFAPhoneWhatsApp 
+            verifiedPhone={verifiedPhone}
+            sessionJwt={sessionJwt}
+            onSuccess={refreshMFAStatus}
+            onPhoneUpdated={onPhoneUpdated}
+          />
         </>
       )}
 
