@@ -319,54 +319,56 @@ export function PersonalWalletSettings() {
           </Tooltip>
         </DialogTrigger>
 
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-md p-0">
+          <DialogHeader className="border-b px-8 py-6">
             <DialogTitle>Wallet Settings</DialogTitle>
             <DialogDescription>
               Configure daily withdrawal limits for each supported currency
             </DialogDescription>
           </DialogHeader>
 
-          <div>
-            <h2 className='font-medium mb-2'>Daily Withdraw Limits</h2>
-            <div className="flex flex-col space-y-4">
-              {SUPPORTED_TOKEN_SYMBOLS.map(symbol => {
-                const tokenInfo = SUPPORTED_TOKENS_INFO[symbol];
-                return (
-                  <div key={symbol} className="flex flex-col space-y-2">
-                    <label className="text-sm font-medium">{tokenInfo.name} ({tokenInfo.symbol})</label>
-                    <div className="flex items-center gap-2">
-                      <Input 
-                        value={tokenLimits[symbol]} 
-                        onChange={(e) => handleLimitChange(symbol, e.target.value)} 
-                        placeholder="0.001"
-                        className="w-32"
-                      />
-                      <span className="font-medium">{tokenInfo.symbol}</span>
+          <div className="max-h-[60vh] overflow-y-auto p-8 pt-0">
+            <div className="">
+              <h2 className='font-medium mb-2'>Daily Withdraw Limits</h2>
+              <div className="flex flex-col space-y-4">
+                {SUPPORTED_TOKEN_SYMBOLS.map(symbol => {
+                  const tokenInfo = SUPPORTED_TOKENS_INFO[symbol];
+                  return (
+                    <div key={symbol} className="flex flex-col space-y-2">
+                      <label className="text-sm font-medium">{tokenInfo.name} ({tokenInfo.symbol})</label>
+                      <div className="flex items-center gap-2">
+                        <Input 
+                          value={tokenLimits[symbol]} 
+                          onChange={(e) => handleLimitChange(symbol, e.target.value)} 
+                          placeholder="0.001"
+                          className="w-32"
+                        />
+                        <span className="font-medium">{tokenInfo.symbol}</span>
+                      </div>
+                      {limitErrors[symbol] && <p className="text-sm text-red-500">{limitErrors[symbol]}</p>}
                     </div>
-                    {limitErrors[symbol] && <p className="text-sm text-red-500">{limitErrors[symbol]}</p>}
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-          </div>
 
-          <div>
-            <h2 className='font-medium mb-2'>MFA Settings</h2>
-            <MFASettingsContent 
-              isOpen={isOpen} 
-              onPhoneUpdated={fetchUserPhone}
-            />
-          </div>
+            <div className="mt-4">
+              <h2 className='font-medium mb-2'>MFA Settings</h2>
+              <MFASettingsContent 
+                isOpen={isOpen} 
+                onPhoneUpdated={fetchUserPhone}
+              />
+            </div>
 
-          <DialogFooter className="pt-4 space-x-2">
-            <Button 
-              onClick={saveSettings} 
-              disabled={!isLimitValid || isSaving}
-            >
-              {isSaving ? 'Saving...' : 'Save Settings'}
-            </Button>
-          </DialogFooter>
+            <DialogFooter className="pt-4 space-x-2">
+              <Button 
+                onClick={saveSettings} 
+                disabled={!isLimitValid || isSaving}
+              >
+                {isSaving ? 'Saving...' : 'Save Settings'}
+              </Button>
+            </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
 
