@@ -67,7 +67,7 @@ export function TokenAssets({ btcAddress, ethAddress }: TokenAssetsProps) {
       if (token.symbol === 'BTC') {
         // fetchBtcBalance accepts string type address
         balance = (await fetchBtcBalance(token.address))?.toString() || '0';
-      } else if (token.symbol === 'ETH') {
+      } else if (token.chainType === 'EVM' && !token.contractAddress) {
         // fetchEthBalance returns string type directly
         balance = await fetchEthBalance(token.address, token.chainName) || '0';
       } else if (token.chainType === 'EVM' && token.contractAddress) {

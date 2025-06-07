@@ -333,21 +333,17 @@ export function SendTransactionDialog({
             {!isLoadingFee && feeEstimation && amount && isValidAmount && (
               <div className="text-xs space-y-1">
                 <p className="text-gray-500">
-                  Estimated network fee: {feeEstimation.estimatedFee} {tokenInfo.symbol}
+                  Estimated network fee: {feeEstimation.estimatedFee} {tokenInfo.gasFeeSymbol}
                   {feeEstimation.feeRate && ` (${feeEstimation.feeRate})`}
                 </p>
                 
-                {feeEstimation.transactionPriority && (
+                {/* {feeEstimation.transactionPriority && (
                   <p className="text-gray-500">
                     Priority: <span className={feeEstimation.transactionPriority === 'high' ? 'text-green-600' : 'text-yellow-600'}>
                       {feeEstimation.transactionPriority}
                     </span>
                   </p>
-                )}
-                
-                <p className="text-gray-500">
-                  Total: {(Number(amount) + Number(feeEstimation.estimatedFee)).toFixed(8)} {tokenInfo.symbol}
-                </p>
+                )} */}
                 
                 {!feeEstimation.isSufficientForFee && (
                   <p className="text-red-500">Insufficient funds for network fee</p>

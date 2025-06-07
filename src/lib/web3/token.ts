@@ -23,6 +23,7 @@ export const SUPPORTED_TOKENS_INFO = {
     contractAddress: '',
     addressKey: 'btc',
     defaultWithdrawLimit: '0.001',
+    gasFeeSymbol: 'BTC',
   },
   ETH: {
     symbol: 'ETH',
@@ -34,6 +35,7 @@ export const SUPPORTED_TOKENS_INFO = {
     contractAddress: '',
     addressKey: 'eth',
     defaultWithdrawLimit: '0.001',
+    gasFeeSymbol: 'ETH',
   },
   // SOL: {
   //   symbol: 'SOL',
@@ -51,6 +53,19 @@ export const SUPPORTED_TOKENS_INFO = {
     contractAddress: '0xaA8E23Fb1079EA71e0a56F48a2aA51851D8433D0',
     addressKey: 'eth',
     defaultWithdrawLimit: '100',
+    gasFeeSymbol: 'ETH',
+  },
+  USDC: { // (ERC-20 on sepolia)
+    symbol: 'USDC',
+    name: 'USD Coin (ERC-20)',
+    decimals: 6,
+    chainType: 'EVM',
+    chainName: 'sepolia',
+    iconUrl: '/cryptocurrency/usdc.png',
+    contractAddress: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238',
+    addressKey: 'eth',
+    defaultWithdrawLimit: '100',
+    gasFeeSymbol: 'ETH',
   },
   VAST: { // (ERC-20 on baseSepolia)
     symbol: 'VAST',
@@ -62,6 +77,19 @@ export const SUPPORTED_TOKENS_INFO = {
     contractAddress: '0x4f86c33aE84c46972c2f7F8d33FAE3375F3E191b',
     addressKey: 'eth',
     defaultWithdrawLimit: '10',
+    gasFeeSymbol: 'ETH',
+  },
+  TSTLPX: { // (Chronicle Yellowstone - Lit Protocol Testnet)
+    symbol: 'TSTLPX',
+    name: 'Chronicle Yellowstone - Lit Protocol Testnet',
+    decimals: 18,
+    chainType: 'EVM',
+    chainName: 'yellowstone',
+    iconUrl: '/cryptocurrency/tstlpx.png',
+    contractAddress: '',
+    addressKey: 'eth',
+    defaultWithdrawLimit: '10',
+    gasFeeSymbol: 'TSTLPX',
   },
 } as const;
 

@@ -9,9 +9,6 @@ import * as bip66 from "bip66";
 import { log } from "../utils";
 import { ERC20_ABI } from "@/constants/abis/erc20";
 
-const rpcUrl = LIT_CHAINS['sepolia']?.rpcUrls[0];
-const rpcProvider = new ethers.providers.JsonRpcProvider(rpcUrl);
-
 const BROADCAST_URL = "https://mempool.space/testnet/api/tx";
 const EC = elliptic.ec;
 bitcoinjs.initEccLib(ecc);
@@ -25,12 +22,15 @@ export const getToSignTransactionByTokenType = async ({
 }) => {
   const { sendAddress, recipientAddress, amount, data } = options
   const tokenInfo = SUPPORTED_TOKENS_INFO[tokenType]
-  if (tokenType === 'ETH') {
-    // Get nonce
-    const nonce = await rpcProvider.getTransactionCount(sendAddress)
+  if (tokenInfo.chainType === 'EVM' && !tokenInfo.contractAddress) {
+    const rpcUrl = LIT_CHAINS[tokenInfo.chainName as keyof typeof LIT_CHAINS]?.rpcUrls[0];
+    const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
+    const chainName = tokenInfo.chainName
+    // Get nonce with latest state
+    const nonce = await provider.getTransactionCount(sendAddress)
         
     // Get gas price
-    const gasPrice = await rpcProvider.getGasPrice()
+    const gasPrice = await provider.getGasPrice()
   
     // Create the transaction object
     const txData: {
@@ -46,11 +46,11 @@ export const getToSignTransactionByTokenType = async ({
       value: ethers.utils.parseEther(amount).toHexString(),
       gasPrice: gasPrice.toHexString(),
       nonce,
-      chainId: LIT_CHAINS['sepolia'].chainId,
+      chainId: LIT_CHAINS[chainName]?.chainId,
     }
     if (data) { 
       txData.data = data; // Include data if provided
-      const estimatedGas = await rpcProvider.estimateGas(txData);
+      const estimatedGas = await provider.estimateGas(txData);
       txData.gasLimit = estimatedGas.toNumber();
     } else {
       txData.gasLimit = 21000;
