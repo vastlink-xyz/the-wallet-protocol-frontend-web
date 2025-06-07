@@ -41,27 +41,27 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
       )}
     </div>
 
-    <div className="text-sm text-gray-500">
+    <div className="text-sm text-gray-500 mb-1">
       <span className="font-medium text-gray-700">Status:</span> {proposal.status}
     </div>
-    <div className="text-sm text-gray-500">
+    <div className="text-sm text-gray-500 mb-1">
       <span className="font-medium text-gray-700">Threshold:</span>
       {selectedWallet?.threshold && (
         <span> {selectedWallet.threshold}</span>
       )}
     </div>
     {(proposal as any).createdAt && (
-      <div className="text-sm text-gray-500">
+      <div className="text-sm text-gray-500 mb-1">
         <span className="font-medium text-gray-700">Date:</span> {new Date((proposal as any).createdAt).toLocaleString()}
       </div>
     )}
     {proposal.createdBy && (
-      <div className="text-sm text-gray-500">
+      <div className="text-sm text-gray-500 mb-1">
         <span className="font-medium text-gray-700">Created by:</span> {proposal.createdBy?.email}
       </div>
     )}
     
-    <div className="mt-2 mb-2">
+    <div className="mb-2">
       <div className="text-sm font-medium text-gray-700 mb-1">Signers:</div>
       <div className="pl-2 border-l-2 border-gray-200 space-y-1">
         {selectedWallet?.signers?.map(signer => {

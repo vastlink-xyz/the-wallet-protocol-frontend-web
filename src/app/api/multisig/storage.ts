@@ -49,6 +49,8 @@ export interface MessageProposal {
   id: string
   walletId: string      // Reference to the MultisigWallet
   status: 'pending' | 'completed' | 'failed'
+  createdAt: Date
+  updatedAt: Date
   createdBy: MessageProposalCreatedBy     // Address of the proposer
   message: string       // The message to be signed
   signatures: {
@@ -119,18 +121,8 @@ export async function getMessageProposals(walletId: string): Promise<MessageProp
   try {
     await connectToDatabase();
     const proposals = await MessageProposalModel.find({ walletId }).lean();
-    return proposals.map(proposal => ({
-      id: proposal.id,
-      walletId: proposal.walletId,
-      status: proposal.status as 'pending' | 'completed' | 'failed',
-      createdBy: proposal.createdBy,
-      message: proposal.message,
-      signatures: proposal.signatures,
-      type: proposal.type as 'transaction' | 'walletSettings',
-      transactionData: proposal.transactionData,
-      settingsData: proposal.settingsData,
-      txHash: proposal.txHash
-    }));
+    // Convert Mongoose objects to MessageProposal type while preserving all original fields
+    return proposals as unknown as MessageProposal[];
   } catch (error) {
     console.error('Failed to get message proposals:', error);
     return [];
@@ -144,18 +136,7 @@ export async function getProposalById(proposalId: string, walletId: string): Pro
     
     if (!proposal) return null;
     
-    return {
-      id: proposal.id,
-      walletId: proposal.walletId,
-      status: proposal.status as 'pending' | 'completed' | 'failed',
-      createdBy: proposal.createdBy,
-      message: proposal.message,
-      signatures: proposal.signatures,
-      type: proposal.type as 'transaction' | 'walletSettings',
-      transactionData: proposal.transactionData,
-      settingsData: proposal.settingsData,
-      txHash: proposal.txHash
-    };
+    return proposal as unknown as MessageProposal;
   } catch (error) {
     console.error('Failed to get proposal by ID:', error);
     return null;
