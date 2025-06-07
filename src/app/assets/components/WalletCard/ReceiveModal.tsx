@@ -11,7 +11,7 @@ import { useState, useMemo } from "react";
 export function ReceiveModal({
   addresses,
   open,
-  email,
+  footerText,
   onClose,
 }: {
   addresses: {
@@ -19,7 +19,7 @@ export function ReceiveModal({
     eth: string;
   };
   open: boolean;
-  email: string;
+  footerText: string;
   onClose: (open: boolean) => void;
 }) {
   const [selectedToken, setSelectedToken] = useState<TokenType>('BTC');
@@ -120,7 +120,7 @@ export function ReceiveModal({
 
           {/* Email section at the bottom */}
           <div className="p-4 flex items-center justify-center">
-            <CopyAddress textToCopy={email} iconSize={12} />
+            <p className="text-sm text-gray-500">{footerText}</p>
           </div>
         </div>
       </div>

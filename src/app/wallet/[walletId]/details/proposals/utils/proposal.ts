@@ -117,7 +117,9 @@ export const sendNotificationsToNewSigners = async (originalWallet: MultisigWall
           currentUserEmail,
           walletAddress: updatedWallet.pkp.ethAddress,
           threshold: updatedWallet.threshold,
-          signersCount: updatedWallet.signers.length
+          signersCount: updatedWallet.signers.length,
+          walletName: updatedWallet.name,
+          proposer: currentUserEmail,
         });
       }));
     }

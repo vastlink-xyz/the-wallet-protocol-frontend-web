@@ -40,7 +40,8 @@ const sendEmailToSigners = async (
   signers: any[], 
   walletAddress: string, 
   threshold: number,
-  walletLink: string
+  walletLink: string,
+  walletName: string
 ) => {
   // Filter out the current user from the signers list
   const otherSigners = signers.filter(signer => signer.email !== currentUserEmail);
@@ -65,7 +66,9 @@ const sendEmailToSigners = async (
         currentUserEmail,
         walletAddress,
         threshold,
-        signersCount: signers.length
+        signersCount: signers.length,
+        walletName,
+        proposer: currentUserEmail,
       });
     }));
     
@@ -448,7 +451,8 @@ export function MultisigWalletFormContent({
           signers,
           multisigPkp.ethAddress,
           threshold,
-          walletLink
+          walletLink,
+          walletName,
         ).catch(error => {
           console.error('Failed to send notification emails:', error);
         });
@@ -590,12 +594,18 @@ export function MultisigWalletFormContent({
       // For changes other than just the name, create a proposal
       const response = await axios.post('/api/multisig/messages', {
         walletId: wallet.id,
-        createdBy: userPkp.ethAddress,
+        createdBy: {
+          authMethodId: authMethodId,
+          ethAddress: userPkp.ethAddress,
+          email: currentUserEmail,
+        },
         message: JSON.stringify(settingsData),
         type: 'walletSettings', // Use new type field
         settingsData, // Only includes changed fields
         sendEmail: true,
-        signers: wallet.signers
+        signers: wallet.signers,
+        walletName: wallet.name, // Use the original wallet name
+        proposer: currentUserEmail,
       });
       
       if (response.data.success) {

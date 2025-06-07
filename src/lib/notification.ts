@@ -13,6 +13,8 @@ export const sendMultisigNotification = async (params: {
   walletAddress: string;
   threshold: number;
   signersCount: number;
+  walletName: string;
+  proposer: string;
 }) => {
   try {
     // Get backend URL

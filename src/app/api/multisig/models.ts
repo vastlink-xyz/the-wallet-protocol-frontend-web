@@ -104,7 +104,11 @@ const MessageProposalSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true },
   walletId: { type: String, required: true },
   status: { type: String, enum: ['pending', 'completed', 'failed'], default: 'pending' },
-  createdBy: String,
+  createdBy: {
+    authMethodId: String,
+    ethAddress: String,
+    email: String,
+  },
   message: String,
   signatures: [SignatureSchema],
   type: { 

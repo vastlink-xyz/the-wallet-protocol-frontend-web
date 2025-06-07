@@ -11,6 +11,7 @@ interface WalletCardProps {
     email: string
   }[]
   walletName: string
+  walletId?: string
   WalletSettings?: React.ReactNode
   onSendClick: () => void
   onDetailsClick: () => void
@@ -22,6 +23,7 @@ interface WalletCardProps {
 export function WalletCard({
   avatars,
   walletName,
+  walletId,
   WalletSettings,
   onSendClick,
   onDetailsClick,
@@ -47,7 +49,12 @@ export function WalletCard({
           ))}
         </div>
 
-        <h3 className="font-medium text-xl">{walletName}</h3>
+        <div className="flex flex-col">
+          <h3 className="font-medium text-xl">{walletName}</h3>
+          {walletId && (
+            <p className="text-gray-500 text-xs">{walletId}</p>
+          )}
+        </div>
 
         <div className="text-gray-500">
           {WalletSettings || (
@@ -97,7 +104,7 @@ export function WalletCard({
           eth: ethAddress,
         }}
         open={receiveModalOpen}
-        email={avatars[0].email}
+        footerText={walletName}
         onClose={() => setReceiveModalOpen(false)}
       />
     </div>

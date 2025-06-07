@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Check, Copy } from 'lucide-react';
+import { toast } from 'react-toastify';
 
 interface CopyAddressProps {
   textToCopy: string;
@@ -15,6 +16,9 @@ export function CopyAddress({ textToCopy, className, iconSize = 12 }: CopyAddres
     if (textToCopy) {
       navigator.clipboard.writeText(textToCopy).then(() => {
         setCopied(true);
+        toast.success('Copied to clipboard', {
+          autoClose: 1000,
+        });
         setTimeout(() => setCopied(false), 2000); // Reset icon after 2 seconds
       }).catch(err => {
         console.error('Failed to copy: ', err);

@@ -42,10 +42,42 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
     </div>
 
     <div className="text-sm text-gray-500">
-      Status: {proposal.status}
+      <span className="font-medium text-gray-700">Status:</span> {proposal.status}
     </div>
     <div className="text-sm text-gray-500">
-      Signatures: {proposal.signatures.length}
+      <span className="font-medium text-gray-700">Threshold:</span>
+      {selectedWallet?.threshold && (
+        <span> {selectedWallet.threshold}</span>
+      )}
+    </div>
+    {(proposal as any).createdAt && (
+      <div className="text-sm text-gray-500">
+        <span className="font-medium text-gray-700">Date:</span> {new Date((proposal as any).createdAt).toLocaleString()}
+      </div>
+    )}
+    {proposal.createdBy && (
+      <div className="text-sm text-gray-500">
+        <span className="font-medium text-gray-700">Created by:</span> {proposal.createdBy?.email}
+      </div>
+    )}
+    
+    <div className="mt-2 mb-2">
+      <div className="text-sm font-medium text-gray-700 mb-1">Signers:</div>
+      <div className="pl-2 border-l-2 border-gray-200 space-y-1">
+        {selectedWallet?.signers?.map(signer => {
+          const hasSigned = proposal.signatures.some(sig => sig.signer.toLowerCase() === signer.ethAddress.toLowerCase());
+          
+          return (
+            <div key={signer.ethAddress} className="text-sm flex items-center">
+              <div className={`w-2 h-2 rounded-full mr-2 ${hasSigned ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+              <span className={hasSigned ? 'text-green-700' : 'text-gray-500'}>
+                {signer.email}
+                {hasSigned ? ' ✓' : ''}
+              </span>
+            </div>
+          );
+        })}
+      </div>
     </div>
 
     <div className="flex flex-wrap gap-2 mt-2">

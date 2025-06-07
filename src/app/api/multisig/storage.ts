@@ -13,6 +13,12 @@ export interface MFASettings {
   dailyLimits: Record<TokenType, string>;
 }
 
+export interface MessageProposalCreatedBy {
+  authMethodId: string
+  ethAddress: string
+  email: string
+}
+
 // Multisig wallet metadata interface
 export interface MultisigWalletMetadata {
   accessControlConditions: any; // Lit Protocol access control conditions
@@ -43,7 +49,7 @@ export interface MessageProposal {
   id: string
   walletId: string      // Reference to the MultisigWallet
   status: 'pending' | 'completed' | 'failed'
-  createdBy: string     // Address of the proposer
+  createdBy: MessageProposalCreatedBy     // Address of the proposer
   message: string       // The message to be signed
   signatures: {
     signer: string      // Address of the signer

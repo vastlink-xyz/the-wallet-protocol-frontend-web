@@ -46,7 +46,18 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { walletId, createdBy, message, transactionData, signers, sendEmail, type, settingsData } = body
+    const {
+      walletId,
+      createdBy,
+      message,
+      transactionData,
+      signers,
+      sendEmail,
+      type,
+      settingsData,
+      walletName,
+      proposer,
+    } = body
 
     const proposalId = randomUUID()
     
@@ -79,6 +90,8 @@ export async function POST(request: NextRequest) {
                 proposalId: proposalId,
                 settingsData,
                 walletLink,
+                walletName,
+                proposer,
               });
             }
           }
@@ -93,7 +106,9 @@ export async function POST(request: NextRequest) {
                 amount: transactionData?.value || '0',
                 tokenType: transactionData?.tokenType,
                 walletLink,
-                notificationType: 'transaction'
+                notificationType: 'transaction',
+                walletName,
+                proposer,
               });
               }
             }
@@ -163,7 +178,9 @@ async function sendMultisigNotification({
   amount,
   tokenType,
   walletLink,
-  notificationType
+  notificationType,
+  walletName,
+  proposer,
 }: {
   to: string
   proposalId: string
@@ -172,6 +189,8 @@ async function sendMultisigNotification({
   tokenType: string
   walletLink: string
   notificationType: string
+  walletName: string
+  proposer: string
 }) {
   try {
     const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/messaging/send-multisig-notification`, {
@@ -181,7 +200,9 @@ async function sendMultisigNotification({
       amount,
       tokenType,
       walletLink,
-      notificationType
+      notificationType,
+      walletName,
+      proposer,
     })
     
     return response.data
@@ -197,11 +218,15 @@ async function sendWalletSettingsNotification({
   proposalId,
   settingsData,
   walletLink,
+  walletName,
+  proposer,
 }: {
   to: string
   proposalId: string
   settingsData: any
   walletLink: string
+  walletName: string
+  proposer: string
 }) {
   try {
     // Generate detailed change description
@@ -247,8 +272,11 @@ async function sendWalletSettingsNotification({
         changeDescription,
         threshold: settingsData.threshold,
         signerChanges: settingsData.signers ? true : false,
-        mfaChanges: settingsData.mfaSettings ? true : false
-      }
+        mfaChanges: settingsData.mfaSettings ? true : false,
+        nameChanges: settingsData.name ? true : false,
+      },
+      walletName,
+      proposer,
     })
     
     return response.data

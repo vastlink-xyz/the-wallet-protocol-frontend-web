@@ -13,6 +13,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { SendTransactionDialog, SendTransactionDialogState } from '@/components/Transaction/SendTransactionDialog'
 import { toast } from 'react-toastify'
 import { LogoLoading } from '@/components/LogoLoading'
+import { User } from '@/app/api/user/storage'
 
 interface TeamAssetsProps {
   authMethod: AuthMethod
@@ -24,6 +25,7 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
   const [hasMultisigWallets, setHasMultisigWallets] = useState(false)
   const [wallets, setWallets] = useState<MultisigWallet[]>([])
   const [userPkp, setUserPkp] = useState<IRelayPKP | null>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [showMultisigSetting, setShowMultisigSetting] = useState(false)
   const [authMethodId, setAuthMethodId] = useState<string>('')
   const [mode, setMode] = useState<'create' | 'edit'>('create')
@@ -51,6 +53,7 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
         }
         
         const userData = await userResponse.json()
+        setUser(userData)
         
         // Use litActionPkp from user data
         if (userData.litActionPkp) {
@@ -134,11 +137,17 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
       
       const response = await axios.post('/api/multisig/messages', {
         walletId: selectedWallet?.id,
-        createdBy: userPkp?.ethAddress,
+        createdBy: {
+          authMethodId: authMethodId,
+          ethAddress: userPkp?.ethAddress,
+          email: user?.email
+        },
         message: JSON.stringify(txData),
         transactionData: txData,
         sendEmail: true,
-        signers: selectedWallet?.signers
+        signers: selectedWallet?.signers,
+        walletName: selectedWallet?.name,
+        proposer: user?.email,
       })
 
       if (response.data.success) {
@@ -165,6 +174,7 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
                 {wallets.map(wallet => (
                   <div key={wallet.id} className="w-full max-w-3xl mb-6">
                     <WalletCard
+                      walletId={wallet.id}
                       avatars={wallet.signers.map(signer => ({ email: signer.email }))}
                       walletName={wallet.name}
                       onSendClick={() => handleSendClick(wallet)}
