@@ -116,7 +116,10 @@ export function TokenAssets({ btcAddress, ethAddress }: TokenAssetsProps) {
               className="w-8 h-8 rounded-full mt-4" 
             />
             <div className="flex flex-col relative">
-              <span className="font-medium text-gray-700">{token.name}</span>
+              <div className="flex items-center gap-2">
+                <span>{token.symbol}</span>
+                <span className="text-gray-500 text-xs">({token.name})</span>
+              </div>
               <CopyAddress
                 textToCopy={token.address}
                 className="absolute -bottom-4 left-0 text-xs text-gray-500"

@@ -53,6 +53,9 @@ interface SignerEmailFieldProps {
 
   // Token type to determine which address to display and retrieve
   tokenType?: TokenType
+  
+  // Whether to only accept email input (rejects addresses)
+  emailOnly?: boolean
 }
 
 export function SignerEmailField({
@@ -64,7 +67,8 @@ export function SignerEmailField({
   onAddressFound,
   inputType,
   className,
-  tokenType = 'ETH' // Default to ETH for backward compatibility
+  tokenType = 'ETH', // Default to ETH for backward compatibility
+  emailOnly = false
 }: SignerEmailFieldProps) {
   // State management
   const [isLoading, setIsLoading] = useState(false)
@@ -128,7 +132,7 @@ export function SignerEmailField({
         if (isValidEmail(input.value)) {
           setInternalInputType('email');
           fetchAddressByEmail(input.value);
-        } else if (isValidAddress(input.value, tokenType)) {
+        } else if (!emailOnly && isValidAddress(input.value, tokenType)) {
           // If it's a valid address for the current token type, use it directly
           setInternalInputType('address');
           
@@ -147,6 +151,11 @@ export function SignerEmailField({
           setAddressInfo(newAddressInfo);
           if (onAddressFound) onAddressFound(newAddressInfo);
           setError(null);
+        } else if (emailOnly && !isValidEmail(input.value) && input.value.trim() !== '') {
+          // If emailOnly is true and input is not a valid email, show error
+          setError('Please enter a valid email address');
+          setAddressInfo(null);
+          if (onAddressFound) onAddressFound(null);
         }
       }, 500) // 500ms debounce
       
@@ -158,7 +167,7 @@ export function SignerEmailField({
       setError(null);
       if (onAddressFound) onAddressFound(null);
     }
-  }, [input.value, lookupOnChange, address, onAddressFound, tokenType])
+  }, [input.value, lookupOnChange, address, onAddressFound, tokenType, emailOnly])
 
   // Query address information corresponding to email
   const fetchAddressByEmail = async (email: string) => {
@@ -213,7 +222,7 @@ export function SignerEmailField({
       if (isValidEmail(input.value)) {
         setInternalInputType('email');
         fetchAddressByEmail(input.value);
-      } else if (isValidAddress(input.value, tokenType)) {
+      } else if (!emailOnly && isValidAddress(input.value, tokenType)) {
         // If it's a valid address for the current token type, use it directly
         setInternalInputType('address');
         
@@ -232,6 +241,11 @@ export function SignerEmailField({
         setAddressInfo(newAddressInfo);
         if (onAddressFound) onAddressFound(newAddressInfo);
         setError(null);
+      } else if (emailOnly && !isValidEmail(input.value) && input.value.trim() !== '') {
+        // If emailOnly is true and input is not a valid email, show error
+        setError('Please enter a valid email address');
+        setAddressInfo(null);
+        if (onAddressFound) onAddressFound(null);
       }
     }
   }
@@ -256,7 +270,7 @@ export function SignerEmailField({
           value={input.value}
           onChange={(e) => input.onChange(e.target.value)}
           onBlur={handleBlur}
-          placeholder={input.placeholder || `Enter email address or ${tokenType} address`}
+          placeholder={input.placeholder || (emailOnly ? "Enter email address" : `Enter email address or ${tokenType} address`)}
           disabled={disabled || isLoading}
           className={`${disabled ? "bg-gray-50 text-black font-semibold" : ""} ${error ? "border-red-300" : ""} ${input.className || ""}`}
           autoComplete={input.autoComplete}

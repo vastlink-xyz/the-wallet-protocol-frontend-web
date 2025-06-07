@@ -70,7 +70,10 @@ export function ReceiveModal({
                       {selectedTokenInfo.iconUrl && (
                         <img src={selectedTokenInfo.iconUrl} alt={selectedTokenInfo.name} className="w-4 h-4" />
                       )}
-                      {selectedTokenInfo.name}
+                      <div className="flex items-center gap-2">
+                        <span>{selectedTokenInfo.symbol}</span>
+                        <span className="text-gray-500 text-xs">({selectedTokenInfo.name})</span>
+                      </div>
                     </div>
                   </SelectValue>
                 </SelectTrigger>
@@ -81,7 +84,10 @@ export function ReceiveModal({
                         {token.iconUrl && (
                           <img src={token.iconUrl} alt={token.name} className="w-5 h-5" />
                         )}
-                        {token.name}
+                        <div className="flex items-center gap-2">
+                          <span>{token.symbol}</span>
+                          <span className="text-gray-500 text-xs">({token.name})</span>
+                        </div>
                       </div>
                     </SelectItem>
                   ))}

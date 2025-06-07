@@ -16,6 +16,7 @@ import { useAuthExpiration } from "@/hooks/useAuthExpiration";
 import { broadcastTransactionByTokenType, getToSignTransactionByTokenType } from "@/lib/web3/transaction";
 import { MFAOtpDialog } from "@/components/Transaction/MFAOtpDialog";
 import { SUPPORTED_TOKENS_INFO, TokenType } from "@/lib/web3/token";
+import { LogoLoading } from "@/components/LogoLoading";
 
 export default function ProposalsPage() {
   // Get walletId from params
@@ -470,7 +471,7 @@ export default function ProposalsPage() {
 
   // Show loading state if wallet or proposals are still loading
   if (isWalletLoading || isLoadingProposals) {
-    return <div>Loading proposals...</div>;
+    return <LogoLoading />;
   }
 
   // If wallet is not available, show an error

@@ -693,6 +693,7 @@ export function MultisigWalletFormContent({
         {showAddSignerForm ? (
           <div className="grid grid-cols-1 gap-3">
             <SignerEmailField
+              emailOnly={true}
               label="New Signer"
               input={{
                 value: newSignerEmail,

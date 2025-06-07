@@ -2,12 +2,13 @@
 
 import { TransactionHistory } from "@/components/Transaction/TransactionHistory";
 import { useWallet } from "../context/WalletContext";
+import { LogoLoading } from "@/components/LogoLoading";
 
 export default function TransactionHistoryPage() {
   const { wallet, isLoading } = useWallet();
   
   if (isLoading) {
-    return <div className="mt-4">Loading wallet data...</div>;
+    return <LogoLoading />;
   }
   
   if (!wallet) {

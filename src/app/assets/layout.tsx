@@ -19,7 +19,7 @@ export default function AssetsLayout({
   }, [])
 
   return (
-    <div className="container mx-auto px-4 py-8">      
+    <div className="container mx-auto px-4 py-8">  
       <div className="flex space-x-1 rounded-xl bg-gray-100 p-1 mb-6">
         <Link
           href="/assets/personal"

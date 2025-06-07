@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { CopyAddress } from '../ui/CopyAddress';
 import { toast } from 'react-toastify';
 import { SelectToken } from '@/components/SelectToken';
+import { LogoLoading } from '../LogoLoading';
+import { Loader2 } from 'lucide-react';
 
 export function TransactionHistory({
   addresses,
@@ -160,7 +162,7 @@ export function TransactionHistory({
       </div>
 
       {isLoading ? (
-        <div className="text-center py-8">Loading transactions...</div>
+        <LogoLoading />
       ) : (
         <div className="space-y-4">
           <div className="p-3 bg-gray-50 rounded-md">
@@ -186,7 +188,7 @@ export function TransactionHistory({
                     onClick={handleLoadMore}
                     disabled={isLoadingMore}
                   >
-                    {isLoadingMore ? 'Loading...' : 'Load More'}
+                    {isLoadingMore ? <Loader2 className="animate-spin" /> : 'Load More'}
                   </Button>
                 </div>
               )}

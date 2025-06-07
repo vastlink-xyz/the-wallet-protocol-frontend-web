@@ -15,6 +15,7 @@ import { log } from '@/lib/utils'
 import { toast } from 'react-toastify'
 import { useAuthExpiration } from '@/hooks/useAuthExpiration'
 import { MultisigWalletAddresses } from '@/app/api/multisig/storage'
+import { LogoLoading } from '@/components/LogoLoading'
 
 interface PersonalAssetsProps {
   authMethod: AuthMethod
@@ -220,10 +221,7 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
 
   if (isLoading) {
     return (
-      <div className="bg-card p-6 rounded-lg border text-center">
-        <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
-        <p>Loading personal wallet...</p>
-      </div>
+      <LogoLoading />
     )
   }
 

@@ -12,6 +12,7 @@ import { useRouter } from 'next/navigation'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { SendTransactionDialog, SendTransactionDialogState } from '@/components/Transaction/SendTransactionDialog'
 import { toast } from 'react-toastify'
+import { LogoLoading } from '@/components/LogoLoading'
 
 interface TeamAssetsProps {
   authMethod: AuthMethod
@@ -154,7 +155,7 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
   return (
     <div className="p-4 flex flex-col items-center gap-4 w-full">
       {isLoading ? (
-        <p>Loading team wallets...</p>
+        <LogoLoading />
       ) : (
         <>
           {hasMultisigWallets ? (
