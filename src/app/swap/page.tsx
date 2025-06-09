@@ -56,6 +56,15 @@ const SUPPORTED_TOKENS = [
         chainType: 'EVM',
     },
     {
+        symbol: 'USDC',
+        name: 'USDC (Ethereum)',
+        icon: '/cryptocurrency/usdc.png',
+        network: 'Ethereum',
+        xchain_asset: 'ETH.USDC-0XA0B86991C6218B36C1D19D4A2E9EB0CE3606EB48',
+        decimals: 6,
+        chainType: 'EVM',
+    },
+    {
         symbol: 'BTC',
         name: 'Bitcoin',
         icon: '/cryptocurrency/btc.png',
@@ -92,6 +101,7 @@ export default function SwapPage() {
     const [ethAddress, setEthAddress] = useState<string | null>(null)
     const [ethWalletBalance, setEthWalletBalance] = useState<string>('0')
     const [usdtWalletBalance, setUsdtWalletBalance] = useState<string>('0')
+    const [usdcWalletBalance, setUsdcWalletBalance] = useState<string>('0')
     const [btcWalletBalance, setBtcWalletBalance] = useState<number>(0)
     const [destAddress, setDestAddress] = useState<string>('')// 目标地址输入    // MFA state
     const [mfaMethodId, setMfaMethodId] = useState<string | null>(null);
@@ -168,6 +178,14 @@ export default function SwapPage() {
                 decimals: 6
             })
             setUsdtWalletBalance(usdtBalance)
+
+            // fetch usdc balance
+            const usdcBalance = await fetchERC20TokenBalance({
+                address,
+                tokenAddress: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238', // USDC contract address on Ethereum
+                decimals: 6
+            })
+            setUsdcWalletBalance(usdcBalance)
         } catch (error) {
             console.error('Failed to update wallet balance:', error)
             setEthWalletBalance('0')
@@ -318,6 +336,8 @@ export default function SwapPage() {
                 return ethWalletBalance
             case 'USDT':
                 return usdtWalletBalance
+            case 'USDC':
+                return usdcWalletBalance
             case 'BTC':
                 return btcWalletBalance.toString()
             default:
@@ -481,6 +501,8 @@ export default function SwapPage() {
             amount: new CryptoAmount(assetToBase(assetAmount(fromAmount, fromToken.decimals)), fromAsset),
             destinationAsset: toAsset,
             destinationAddress: destAddress,
+            streamingInterval: 1,
+            streamingQuantity: 0,
             toleranceBps: 300, //optional
         });
 
