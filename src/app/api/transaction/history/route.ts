@@ -4,6 +4,7 @@ import { fetchEthTransactionHistory } from '@/lib/web3/eth';
 import { getChainIdByChainName, SUPPORTED_TOKENS_INFO } from '@/lib/web3/token';
 import { TokenType } from '@/lib/web3/token';
 import { log } from '@/lib/utils';
+import { fetchYellowstoneTransactionHistory } from '@/lib/web3/tstlpx';
 
 /**
  * API endpoint to fetch transaction history for ETH or BTC
@@ -52,6 +53,19 @@ export async function GET(request: Request) {
         transactions: btcResult?.transactions || [],
         lastId: btcResult?.lastId || null, 
         hasMore: !!btcResult?.lastId
+      });
+    } else if (tokenType === 'TSTLPX') {
+      // As tstlpx is not supported by the moralis api, use the yellowstone api to fetch the transaction history
+      const yellowstoneResult = await fetchYellowstoneTransactionHistory({
+        address,
+        cursor: lastId,
+        contractAddress: tokenInfo.contractAddress,
+      });
+      
+      return NextResponse.json({
+        transactions: yellowstoneResult?.transactions || [],
+        lastId: yellowstoneResult?.cursor || null,
+        hasMore: !!yellowstoneResult?.cursor
       });
     } else if (tokenInfo.chainType === 'EVM') {
       const ethResult = await fetchEthTransactionHistory({
