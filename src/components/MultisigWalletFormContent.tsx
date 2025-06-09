@@ -124,7 +124,7 @@ export function MultisigWalletFormContent({
   const [dailyLimits, setDailyLimits] = useState<Record<TokenType, string> | undefined>(
     mode === 'edit'
       ? {...defaultDailyLimits, ...(wallet?.metadata?.mfaSettings?.dailyLimits)}
-      : undefined
+      : defaultDailyLimits
   )
   const [isLimitValid, setIsLimitValid] = useState<boolean>(true);
 
