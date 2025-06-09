@@ -3,6 +3,7 @@ import { getMessageProposals, saveMessageProposal, getWalletById, getProposalByI
 import { randomUUID } from 'crypto'
 import { log } from '@/lib/utils'
 import axios from 'axios'
+import { sendTeamNotification } from '@/lib/notification'
 
 // Get message proposals for a wallet
 export async function GET(request: NextRequest) {
@@ -99,20 +100,20 @@ export async function POST(request: NextRequest) {
           // Send transaction notifications (original behavior)
           for (const signer of signers) {
             if (signer.email) {
-              await sendMultisigNotification({
+              await sendTeamNotification({
                 to: signer.email,
                 proposalId: proposalId,
                 recipientAddress: transactionData?.to || 'N/A',
                 amount: transactionData?.value || '0',
-                tokenType: transactionData?.tokenType,
+                symbol: transactionData?.tokenType,
                 walletLink,
                 notificationType: 'transaction',
                 walletName,
                 proposer,
               });
-              }
             }
           }
+        }
       } catch (emailError) {
         console.error('Failed to send email notifications:', emailError)
         // Continue with the response even if email sending fails
@@ -170,48 +171,6 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-// Helper function to send multisig notification emails
-async function sendMultisigNotification({
-  to,
-  proposalId,
-  recipientAddress,
-  amount,
-  tokenType,
-  walletLink,
-  notificationType,
-  walletName,
-  proposer,
-}: {
-  to: string
-  proposalId: string
-  recipientAddress: string
-  amount: string
-  tokenType: string
-  walletLink: string
-  notificationType: string
-  walletName: string
-  proposer: string
-}) {
-  try {
-    const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/messaging/send-multisig-notification`, {
-      to,
-      proposalId,
-      recipientAddress,
-      amount,
-      tokenType,
-      walletLink,
-      notificationType,
-      walletName,
-      proposer,
-    })
-    
-    return response.data
-  } catch (error) {
-    console.error('Error sending multisig notification:', error)
-    throw error
-  }
-}
-
 // Helper function specifically for wallet settings change notifications
 async function sendWalletSettingsNotification({
   to,
@@ -259,8 +218,8 @@ async function sendWalletSettingsNotification({
     // Use the provided change description if available, or generate one
     const changeDescription = settingsData.changeDescription || changes.join(', ') || 'Wallet settings updated';
 
-    // Send notification using existing API endpoint but with settings-specific info
-    const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/messaging/send-multisig-notification`, {
+    // Use the new sendTeamNotification function
+    const result = await sendTeamNotification({
       to,
       proposalId,
       recipientAddress: 'Wallet Settings',
@@ -277,11 +236,15 @@ async function sendWalletSettingsNotification({
       },
       walletName,
       proposer,
-    })
+    });
     
-    return response.data
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to send wallet settings notification');
+    }
+    
+    return result.response;
   } catch (error) {
-    console.error('Error sending wallet settings notification:', error)
-    throw error
+    console.error('Error sending wallet settings notification:', error);
+    throw error;
   }
 }

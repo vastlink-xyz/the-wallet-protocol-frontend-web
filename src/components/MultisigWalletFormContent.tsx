@@ -18,7 +18,7 @@ import {
 import { encryptString } from '@lit-protocol/encryption'
 import { AUTH_METHOD_SCOPE, AUTH_METHOD_TYPE } from '@lit-protocol/constants'
 import { getCreateWalletIpfsId, getMultisigTransactionIpfsId, getUpdateWalletIpfsId, getUpgradeIpfsId } from '@/lib/lit/ipfs-id-env'
-import { sendMultisigNotification } from '@/lib/notification'
+import { sendTeamNotification } from '@/lib/notification'
 import { useAuthExpiration } from '@/hooks/useAuthExpiration'
 import { isTokenValid } from '@/lib/jwt'
 import { TokenType, SUPPORTED_TOKEN_SYMBOLS, SUPPORTED_TOKENS_INFO } from '@/lib/web3/token'
@@ -61,11 +61,10 @@ const sendEmailToSigners = async (
   try {
     // Send notification email to each recipient
     const emailResults = await Promise.all(otherSigners.map(async (signer) => {
-      return await sendMultisigNotification({
+      return await sendTeamNotification({
         to: signer.email,
         walletLink,
         notificationType: 'multisig-wallet-added',
-        currentUserEmail,
         walletAddress,
         threshold,
         signersCount: signers.length,

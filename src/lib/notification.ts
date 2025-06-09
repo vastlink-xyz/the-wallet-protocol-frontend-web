@@ -1,20 +1,38 @@
 import axios from 'axios';
 
 /**
- * Send notification email to a signer about a team wallet
- * @param params The parameters for the notification
- * @returns A promise resolving to a result object
+ * Send team wallet notification - Unified handler for all types of team wallet notifications
+ * @param params Notification parameters
+ * @returns Sending result
  */
-export const sendMultisigNotification = async (params: {
+export const sendTeamNotification = async (params: {
+  // Basic parameters
   to: string;
   walletLink: string;
-  notificationType: string;
-  currentUserEmail: string;
-  walletAddress: string;
-  threshold: number;
-  signersCount: number;
-  walletName: string;
-  proposer: string;
+  notificationType: 'wallet-settings-change' | 'multisig-wallet-added' | 'transaction';
+  walletName?: string;
+  proposer?: string;
+  
+  // Transaction notification parameters
+  proposalId?: string;
+  recipientAddress?: string;
+  amount?: string;
+  symbol?: string; // For displaying correct token symbol
+  
+  // Wallet settings parameters
+  settingsChanges?: {
+    changeDescription?: string;
+    threshold?: number;
+    signerChanges?: boolean;
+    mfaChanges?: boolean;
+    nameChanges?: boolean;
+    [key: string]: any;
+  };
+  
+  // Multisig wallet parameters
+  walletAddress?: string;
+  threshold?: number;
+  signersCount?: number;
 }) => {
   try {
     // Get backend URL

@@ -1,5 +1,5 @@
 import { MessageProposal, MultisigWallet } from "@/app/api/multisig/storage";
-import { sendMultisigNotification } from "@/lib/notification";
+import { sendTeamNotification } from "@/lib/notification";
 import { getUserEmailFromStorage } from "@/lib/utils";
 import { IRelayPKP } from "@lit-protocol/types";
 import axios from "axios";
@@ -110,11 +110,10 @@ export const sendNotificationsToNewSigners = async (originalWallet: MultisigWall
       
       // Send notifications to each new signer
       await Promise.all(newSigners.map(async (signer: any) => {
-        await sendMultisigNotification({
+        await sendTeamNotification({
           to: signer.email,
           walletLink,
           notificationType: 'multisig-wallet-added',
-          currentUserEmail,
           walletAddress: updatedWallet.pkp.ethAddress,
           threshold: updatedWallet.threshold,
           signersCount: updatedWallet.signers.length,
