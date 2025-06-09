@@ -59,6 +59,8 @@ export const estimateSwap = async (amount: number, decimals: number, fromAssetRa
             destinationAsset: toAsset,
             amount: new CryptoAmount(assetToBase(assetAmount(amount, decimals)), fromAsset),
             destinationAddress: toDestinationAddress,
+            streamingInterval: 1,
+            streamingQuantity: 0,
             toleranceBps,
         }
 
