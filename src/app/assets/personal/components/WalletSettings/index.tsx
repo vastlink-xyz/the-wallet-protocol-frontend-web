@@ -275,10 +275,7 @@ export function PersonalWalletSettings() {
 
         <DialogContent className="p-0 sm:!max-w-[600px]">
           <DialogHeader className="border-b px-8 py-6">
-            <DialogTitle>Wallet Settings</DialogTitle>
-            <DialogDescription>
-              Configure daily withdrawal limits for each supported currency
-            </DialogDescription>
+            <DialogTitle>Personal Wallet Settings</DialogTitle>
           </DialogHeader>
 
           <div className="max-h-[60vh] overflow-y-auto p-8 pt-4">
