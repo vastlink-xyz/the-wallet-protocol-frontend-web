@@ -94,7 +94,7 @@ export function WalletCard({
           className="flex flex-col items-center justify-center p-2 bg-gray-50 hover:bg-gray-100 rounded-md text-sm font-medium text-gray-700 cursor-pointer"
         >
           <FileText size={18} className="mb-1"/>
-          Details
+          Transaction History
         </button>
       </div>  
 
