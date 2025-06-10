@@ -8,6 +8,7 @@ import * as ecc from "@bitcoin-js/tiny-secp256k1-asmjs";
 import * as bip66 from "bip66";
 import { log } from "../utils";
 import { ERC20_ABI } from "@/constants/abis/erc20";
+import { broadcastTransactionForVAST, getToSignTransactionForVAST } from "./vast";
 
 const BROADCAST_URL = "https://mempool.space/testnet/api/tx";
 const EC = elliptic.ec;
@@ -22,7 +23,12 @@ export const getToSignTransactionByTokenType = async ({
 }) => {
   const { sendAddress, recipientAddress, amount, data } = options
   const tokenInfo = SUPPORTED_TOKENS_INFO[tokenType]
-  if (tokenInfo.chainType === 'EVM' && !tokenInfo.contractAddress) {
+
+  if (tokenType === 'VAST') {
+    return getToSignTransactionForVAST({
+      options,
+    })
+  } else if (tokenInfo.chainType === 'EVM' && !tokenInfo.contractAddress) {
     const rpcUrl = LIT_CHAINS[tokenInfo.chainName as keyof typeof LIT_CHAINS]?.rpcUrls[0];
     const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
     const chainName = tokenInfo.chainName
@@ -182,7 +188,11 @@ export const broadcastTransactionByTokenType = async ({
   tokenType: TokenType;
   options: any;
 }) => {
-  if (SUPPORTED_TOKENS_INFO[tokenType].chainType === 'EVM') {
+  if (tokenType === 'VAST') {
+    return broadcastTransactionForVAST({
+      options,
+    })
+  } else if (SUPPORTED_TOKENS_INFO[tokenType].chainType === 'EVM') {
     const { unsignedTransaction, sig } = options
     const signedAndSerializedTx = ethers.utils.serializeTransaction(
       unsignedTransaction,
@@ -281,7 +291,13 @@ export const estimateGasFee = async ({
   const tokenInfo = SUPPORTED_TOKENS_INFO[tokenType];
   
   try {
-    if (tokenInfo.chainType === 'EVM') {
+    if (tokenType === 'VAST') {
+      return {
+        estimatedFee: "0",
+        isSufficientForFee: true,
+        remainingBalance: balance
+      };
+    } else if (tokenInfo.chainType === 'EVM') {
       const rpcUrl = LIT_CHAINS[tokenInfo.chainName as keyof typeof LIT_CHAINS]?.rpcUrls[0];
       if (!rpcUrl) {
         throw new Error(`Chain ${tokenInfo.chainName} not found in LIT_CHAINS`);

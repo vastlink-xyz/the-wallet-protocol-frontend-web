@@ -57,6 +57,7 @@ export default function RootLayout({
             pauseOnFocusLoss
             draggable
             pauseOnHover
+            theme="colored"
           />
         </GoogleOAuthProvider>
       </body>

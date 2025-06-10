@@ -74,7 +74,7 @@ export const SUPPORTED_TOKENS_INFO = {
     chainType: 'EVM',
     chainName: 'baseSepolia',
     iconUrl: '/cryptocurrency/vast.png',
-    contractAddress: '0x64Ea10A5E10c820876697793aCf25107Ec83c6c5',
+    contractAddress: '0x4f86c33aE84c46972c2f7F8d33FAE3375F3E191b',
     addressKey: 'eth',
     defaultWithdrawLimit: '10',
     gasFeeSymbol: 'ETH',
