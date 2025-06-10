@@ -129,6 +129,47 @@ export async function getMessageProposals(walletId: string): Promise<MessageProp
   }
 }
 
+/**
+ * Get all unsigned proposals for a user across all wallets they have access to
+ * @param userAddress Ethereum address of the user
+ * @returns Array of unsigned message proposals
+ */
+export async function getUnsignedProposalsByUser(userAddress: string): Promise<MessageProposal[]> {
+  try {
+    // First get all wallets where the user is a signer
+    await connectToDatabase();
+    const wallets = await MultisigWalletModel.find({
+      'signers.ethAddress': { $regex: new RegExp(userAddress, 'i') }
+    }).lean();
+
+    // If no wallets found, return empty array
+    if (!wallets || wallets.length === 0) {
+      return [];
+    }
+
+    // Get wallet IDs
+    const walletIds = wallets.map(wallet => wallet.id);
+
+    // Find all pending proposals for these wallets
+    const proposals = await MessageProposalModel.find({
+      walletId: { $in: walletIds },
+      status: 'pending'
+    }).lean();
+
+    // Filter out proposals that the user has already signed
+    const unsignedProposals = proposals.filter(proposal => 
+      !proposal.signatures.some((sig: { signer: string }) => 
+        sig.signer.toLowerCase() === userAddress.toLowerCase()
+      )
+    );
+
+    return unsignedProposals as unknown as MessageProposal[];
+  } catch (error) {
+    console.error('Failed to get unsigned proposals for user:', error);
+    return [];
+  }
+}
+
 export async function getProposalById(proposalId: string, walletId: string): Promise<MessageProposal | null> {
   try {
     await connectToDatabase();

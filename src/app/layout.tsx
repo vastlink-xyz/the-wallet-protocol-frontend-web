@@ -5,6 +5,7 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import AppNavbar from "@/components/AppNavbar";
+import { UnsignedProposalsNotification } from "@/components/UnsignedProposalsNotification";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,11 +43,15 @@ export default function RootLayout({
               <div className="grow shrink basis-0 text-center text-black/90 text-sm font-normal leading-snug">All assets on this platform are on testnets only</div>
             </div>
           </div>
+          
+          {/* Unsigned proposals notification */}
+          <UnsignedProposalsNotification />
 
           <AppNavbar />
           <main>
             {children}
           </main>
+          
           <ToastContainer
             position="top-center"
             autoClose={5000}
