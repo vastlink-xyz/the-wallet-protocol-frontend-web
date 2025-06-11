@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { 
   AUTH_METHOD_STORAGE_KEY,
   getProviderByAuthMethodType,
@@ -13,11 +13,17 @@ import axios from 'axios';
 import { getUserIdFromToken } from '@/lib/jwt';
 import { AUTH_METHOD_TYPE } from '@lit-protocol/constants';
 import { sendRecipientRegisteredEmail } from '@/lib/notification/invite-notification';
-import { PendingInvitation } from '@/app/api/invitation/models';
+
+const getQueryParam = (paramName: string): string | null => {
+  if (typeof window !== 'undefined') {
+    const searchParams = new URLSearchParams(window.location.search);
+    return searchParams.get(paramName);
+  }
+  return null;
+};
 
 export default function StytchCallbackPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -28,9 +34,8 @@ export default function StytchCallbackPage() {
 
   useEffect(() => {
     log('Stytch callback page loaded');
-    
     checkStytchAuth();
-  }, [searchParams]);
+  }, []);
 
   const fetchInvitationDetails = async (invitationId: string) => {
     try {
@@ -126,7 +131,7 @@ export default function StytchCallbackPage() {
 
   const handleSendRecipientRegisteredEmail = async (userEmail: string) => {
     try {
-      const invitationId = searchParams.get('invitationId');
+      const invitationId = getQueryParam('invitationId');
       if (!invitationId) {
         log('No invitation ID found');
         return;

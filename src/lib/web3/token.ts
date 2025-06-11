@@ -1,6 +1,6 @@
 import { LIT_CHAINS } from "@lit-protocol/constants";
 
-const VAST_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_VAST_CONTRACT_ADDRESS;
+const VAST_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_VAST_CONTRACT_ADDRESS!;
 
 export interface TokenInfo {
   symbol: string;
