@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -165,15 +165,31 @@ export function MultisigWalletFormContent({
       }]);
     }
   }, [mode, signers.length, userPkp, currentUserEmail, authMethodId]);
+  
+  const isInviteUsers = useMemo(() => {
+    log('signers', signers)
+    return signers.some(signer => !signer.ethAddress)
+  }, [signers])
+
+  const buttonText = useMemo(() => {
+    if (isInviteUsers) {
+      return 'Invite Unregistered Users'
+    }
+
+    if (mode === 'edit') {
+      return 'Update Wallet Settings'
+    }
+    return 'Create Wallet'
+  }, [mode, isInviteUsers])
 
   // Handle adding a new signer
   const handleAddSigner = () => {
-    if (!newSignerEmail || !newSignerAddress) return;
+    if (!newSignerEmail) return;
     
     // Check if signer already exists in the list
-    const existingSigner = signers.find(s => 
-      s.ethAddress === newSignerAddress || s.email === newSignerEmail
-    );
+    const existingSigner = signers.find(s => {
+      return (newSignerAddress && s.ethAddress === newSignerAddress) || (newSignerEmail && s.email === newSignerEmail)
+    })
     
     if (existingSigner) {
       toast.error('This signer is already in the list');
@@ -631,8 +647,53 @@ export function MultisigWalletFormContent({
     }
   };
 
+  const handleInviteUsers = async () => {
+    try {
+      setIsLoading(true)
+
+      const unregisteredSigners = signers.filter(signer => !signer.ethAddress)
+
+      for (const signer of unregisteredSigners) {
+        const response = await fetch('/api/invitation', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authMethod.accessToken}`
+          },
+          body: JSON.stringify({
+            recipientEmail: signer.email,
+            tokenType: 'ETH',
+            amount: '0',
+            authMethodId,
+          })
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || `Failed to create invitation: ${response.status}`);
+        }
+
+        toast.success(`Invitation sent to ${signer.email}`);
+      }
+
+      if (onSuccess) {
+        onSuccess();
+      }
+    } catch (error) {
+      console.error('Error inviting user:', error);
+      alert(`Failed to send invitation: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   // Handle form submission based on mode
   const handleSubmit = async () => {
+    if (isInviteUsers) {
+      await handleInviteUsers();
+      return;
+    }
+
     if (mode === 'create') {
       await handleCreateMultisigWallet();
     } else {
@@ -664,6 +725,7 @@ export function MultisigWalletFormContent({
         {signers.map((signer, index) => (
           <div key={index} className="flex items-center justify-between gap-2 mb-2">
             <SignerEmailField
+              allowUnregisteredEmail={true}
               label={`Signer ${index + 1}`}
               input={{
                 value: signer.email,
@@ -695,6 +757,7 @@ export function MultisigWalletFormContent({
             <div className="grid grid-cols-1 gap-3">
               <SignerEmailField
                 emailOnly={true}
+                allowUnregisteredEmail={true}
                 label="New Signer"
                 input={{
                   value: newSignerEmail,
@@ -729,7 +792,7 @@ export function MultisigWalletFormContent({
                 <Button 
                   onClick={handleAddSigner}
                   variant="outline"
-                  disabled={!newSignerEmail || !newSignerAddress}
+                  disabled={!newSignerEmail}
                   className="flex-1"
                 >
                   <Plus className="h-4 w-4 mr-2" />
@@ -818,7 +881,7 @@ export function MultisigWalletFormContent({
           title={mode === 'edit' ? "Update signers, threshold or MFA settings (requires multi-signature approval)" : ""}
         >
           {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {mode === 'create' ? 'Create Wallet' : 'Update Wallet Settings'}
+          {buttonText}
         </Button>
       </div>
     </div>

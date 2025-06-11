@@ -14,8 +14,6 @@ import { estimateGasFee } from "@/lib/web3/transaction";
 import { fetchEthBalance, fetchERC20TokenBalance } from "@/lib/web3/eth";
 import { fetchBtcBalance } from "@/lib/web3/btc";
 import { MultisigWalletAddresses } from "@/app/api/multisig/storage";
-import { getAuthIdByAuthMethod } from "@lit-protocol/lit-auth-client";
-import { toast } from "react-toastify";
 
 export interface SendTransactionDialogState {
   to: string
@@ -32,6 +30,7 @@ interface SendTransactionDialogProps {
   showSendDialog: boolean
   showMfa: boolean
   onSendTransaction: (state: SendTransactionDialogState) => Promise<void>
+  onInviteUser: (state: SendTransactionDialogState) => Promise<void>
   isSending: boolean
   onMFACancel?: () => void
   onMFAVerify?: (state: SendTransactionDialogState) => Promise<void>
@@ -44,6 +43,7 @@ export function SendTransactionDialog({
   showSendDialog,
   showMfa,
   onSendTransaction,
+  onInviteUser,
   isSending,
   onMFACancel,
   onMFAVerify,
@@ -283,46 +283,10 @@ export function SendTransactionDialog({
     }
   }, [tokenType]);
 
-  const handleInviteUser = async () => {
-    const authMethodId = await getAuthIdByAuthMethod(authMethod)
-    try {
-      // Create pending invitation
-      const response = await fetch('/api/invitation', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authMethod.accessToken}`
-        },
-        body: JSON.stringify({
-          recipientEmail: to,
-          tokenType,
-          amount,
-          authMethodId,
-        })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `Failed to create invitation: ${response.status}`);
-      }
-      const data = await response.json();
-      
-      if (data.success) {
-        toast.success(`Invitation sent to ${to}`);
-        
-        // Close the dialog
-        onDialogOpenChange(false);
-      }
-    } catch (error) {
-      console.error('Error inviting user:', error);
-      alert(`Failed to send invitation: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-  }
-
   const onSendClick = () => {
     if (isInviteUser) {
       // if there is no recipient address, invite user
-      handleInviteUser();
+      onInviteUser({ to, recipientAddress, amount, tokenType, mfaMethodId, mfaPhoneNumber });
     } else {
       // if there is a recipient address, send transaction to recipient
       onSendTransaction({ to, recipientAddress, amount, tokenType, mfaMethodId, mfaPhoneNumber })
@@ -435,7 +399,7 @@ export function SendTransactionDialog({
                 Sending...
               </>
             ) : (
-              `Send ${tokenInfo.symbol}`
+              isInviteUser ? `Invite Unregistered User` : `Send ${tokenInfo.symbol}`
             )}
           </Button>
         </div>

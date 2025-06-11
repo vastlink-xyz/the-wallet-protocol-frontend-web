@@ -161,6 +161,48 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
     }
   }
 
+  const handleInviteUser = async ({
+    to,
+    amount,
+    tokenType,
+  }: SendTransactionDialogState) => {
+    try {
+      setIsSending(true)
+      // Create pending invitation
+      const response = await fetch('/api/invitation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authMethod.accessToken}`
+        },
+        body: JSON.stringify({
+          recipientEmail: to,
+          tokenType,
+          amount,
+          authMethodId,
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Failed to create invitation: ${response.status}`);
+      }
+      const data = await response.json();
+      
+      if (data.success) {
+        toast.success(`Invitation sent to ${to}`);
+        
+        // Close the dialog
+        setShowSendDialog(false);
+      }
+    } catch (error) {
+      console.error('Error inviting user:', error);
+      alert(`Failed to send invitation: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsSending(false)
+    }
+  }
+
   return (
     <div className="p-4 flex flex-col items-center gap-4 w-full">
       {isLoading ? (
@@ -235,6 +277,7 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
         authMethod={authMethod}
         showSendDialog={showSendDialog}
         showMfa={false}
+        onInviteUser={handleInviteUser}
         onSendTransaction={handleExecuteTransaction}
         isSending={isSending}
         onDialogOpenChange={setShowSendDialog}
