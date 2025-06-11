@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { MultisigWallet } from '@/app/api/multisig/storage';
-import { formatEthAmount } from '@/lib/utils';
 import { AuthMethod, IRelayPKP, SessionSigs } from "@lit-protocol/types";
 import { AUTH_METHOD_TYPE, AUTH_METHOD_SCOPE, LIT_NETWORK } from "@lit-protocol/constants";
 import { litNodeClient } from "@/lib/lit";

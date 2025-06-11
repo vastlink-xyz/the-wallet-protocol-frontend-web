@@ -9,7 +9,7 @@ import { Loader2, Plus, Trash2 } from 'lucide-react'
 import { AuthMethod, IRelayPKP } from '@lit-protocol/types'
 import { toast } from 'react-toastify'
 import axios from 'axios'
-import { getUserEmailFromStorage, log } from '@/lib/utils'
+import { log } from '@/lib/utils'
 import { 
   getSessionSigsByPkp, 
   litNodeClient, 
@@ -18,13 +18,14 @@ import {
 import { encryptString } from '@lit-protocol/encryption'
 import { AUTH_METHOD_SCOPE, AUTH_METHOD_TYPE } from '@lit-protocol/constants'
 import { getCreateWalletIpfsId, getMultisigTransactionIpfsId, getUpdateWalletIpfsId, getUpgradeIpfsId } from '@/lib/lit/ipfs-id-env'
-import { sendTeamNotification } from '@/lib/notification'
 import { useAuthExpiration } from '@/hooks/useAuthExpiration'
 import { isTokenValid } from '@/lib/jwt'
 import { TokenType, SUPPORTED_TOKEN_SYMBOLS, SUPPORTED_TOKENS_INFO } from '@/lib/web3/token'
 import { MFASettings, MultisigWallet, MultisigWalletMetadata } from '@/app/api/multisig/storage'
 import { LabeledContainer } from './LabeledContainer'
 import { DailyWithdrawLimits, getDefaultDailyWithdrawLimits } from './Transaction/DailyWithdrawLimits'
+import { getUserEmailFromStorage } from '@/lib/storage/user'
+import { sendTeamNotification } from '@/lib/notification/team-notificatioin'
 
 interface MultisigWalletFormContentProps {
   mode: 'create' | 'edit'

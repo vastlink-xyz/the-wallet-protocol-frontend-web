@@ -2,8 +2,7 @@ import { NextRequest } from 'next/server'
 import { getMessageProposals, saveMessageProposal, getWalletById, getProposalById } from '../storage'
 import { randomUUID } from 'crypto'
 import { log } from '@/lib/utils'
-import axios from 'axios'
-import { sendTeamNotification } from '@/lib/notification'
+import { sendTeamNotification } from '@/lib/notification/team-notificatioin'
 
 // Get message proposals for a wallet
 export async function GET(request: NextRequest) {

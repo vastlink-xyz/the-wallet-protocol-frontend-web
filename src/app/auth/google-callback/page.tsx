@@ -7,12 +7,13 @@ import {
   getProviderByAuthMethodType,
   mintPersonalPKP
 } from '@/lib/lit';
-import { log, setUserDataToStorage } from '@/lib/utils';
+import { log } from '@/lib/utils';
 import { isSignInRedirect, getProviderFromUrl } from '@lit-protocol/lit-auth-client';
 import { AuthMethod, IRelayPKP } from '@lit-protocol/types';
 import { getEmailFromGoogleToken } from '@/lib/jwt';
 import { getAuthMethodFromStorage, setAuthMethodToStorage, clearAuthMethodFromStorage } from '@/lib/storage/authmethod';
 import { AUTH_METHOD_TYPE } from '@lit-protocol/constants';
+import { setUserDataToStorage } from '@/lib/storage/user';
 
 export default function GoogleCallbackPage() {
   const router = useRouter();

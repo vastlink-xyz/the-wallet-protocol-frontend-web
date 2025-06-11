@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { 
   AUTH_METHOD_STORAGE_KEY,
   getProviderByAuthMethodType,
@@ -12,9 +12,12 @@ import { AuthMethod, IRelayPKP } from '@lit-protocol/types';
 import axios from 'axios';
 import { getUserIdFromToken } from '@/lib/jwt';
 import { AUTH_METHOD_TYPE } from '@lit-protocol/constants';
+import { sendRecipientRegisteredEmail } from '@/lib/notification/invite-notification';
+import { PendingInvitation } from '@/app/api/invitation/models';
 
 export default function StytchCallbackPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -25,8 +28,30 @@ export default function StytchCallbackPage() {
 
   useEffect(() => {
     log('Stytch callback page loaded');
+    
     checkStytchAuth();
-  }, []);
+  }, [searchParams]);
+
+  const fetchInvitationDetails = async (invitationId: string) => {
+    try {
+      const response = await fetch(`/api/invitation?id=${invitationId}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Failed to fetch invitation: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.success && data.data) {
+        log('Invitation details fetched:', data.data);
+        return data.data;
+      } else {
+        log('Invalid invitation data');
+      }
+    } catch (err) {
+      console.error('Error fetching invitation:', err);
+    }
+  };
 
   // Check if the user has authenticated with Stytch
   const checkStytchAuth = async () => {
@@ -85,6 +110,9 @@ export default function StytchCallbackPage() {
       if (!hasPkps && userEmail) {
         // If user has no PKPs, create them automatically
         await handleMintPkp(authMethod);
+
+        // Send recipient registered email
+        await handleSendRecipientRegisteredEmail(userEmail);
       }
       
       // Redirect to assets page
@@ -95,7 +123,28 @@ export default function StytchCallbackPage() {
       setLoading(false);
     }
   };
-  
+
+  const handleSendRecipientRegisteredEmail = async (userEmail: string) => {
+    try {
+      const invitationId = searchParams.get('invitationId');
+      if (!invitationId) {
+        log('No invitation ID found');
+        return;
+      }
+
+      const invitation = await fetchInvitationDetails(invitationId);
+      await sendRecipientRegisteredEmail({
+        to: invitation.senderEmail,
+        recipientEmail: userEmail,
+        tokenType: invitation.tokenType,
+        amount: invitation.amount,
+        completeUrl: `${process.env.NEXT_PUBLIC_APP_URL}/assets/personal`
+      });
+    } catch (error) {
+      console.log('Failed to send recipient registered email:', error);
+    }
+  }
+
   // Check if user has PKPs
   const checkUserPkps = async (authMethodId: string, userEmail: string | null): Promise<boolean> => {
     try {

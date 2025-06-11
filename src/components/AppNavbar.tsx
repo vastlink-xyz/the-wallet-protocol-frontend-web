@@ -25,7 +25,7 @@ export default function AppNavbar() {
   }
 
   // Don't show navbar on login page
-  if (pathname === '/') {
+  if (pathname === '/' || pathname.startsWith('/invite/')) {
     return null
   }
   

@@ -9,11 +9,13 @@ import { Loader2 } from "lucide-react";
 import { SelectToken } from "../SelectToken";
 import { AuthMethod } from "@lit-protocol/types";
 import { MFAOtpDialog } from "./MFAOtpDialog";
-import { log } from "@/lib/utils";
+import { isValidEmail, log } from "@/lib/utils";
 import { estimateGasFee } from "@/lib/web3/transaction";
 import { fetchEthBalance, fetchERC20TokenBalance } from "@/lib/web3/eth";
 import { fetchBtcBalance } from "@/lib/web3/btc";
 import { MultisigWalletAddresses } from "@/app/api/multisig/storage";
+import { getAuthIdByAuthMethod } from "@lit-protocol/lit-auth-client";
+import { toast } from "react-toastify";
 
 export interface SendTransactionDialogState {
   to: string
@@ -74,6 +76,8 @@ export function SendTransactionDialog({
   } | null>(null);
   const [isLoadingFee, setIsLoadingFee] = useState(false);
 
+  const [isInviteUser, setIsInviteUser] = useState(false);
+
   // Load balance when token type changes
   useEffect(() => {
     async function loadBalance() {
@@ -130,6 +134,14 @@ export function SendTransactionDialog({
       setFeeEstimation(null);
     }
   }, [showSendDialog])
+
+  useEffect(() => {
+    if (isValidEmail(to) && !recipientAddress) {
+      setIsInviteUser(true);
+    } else {
+      setIsInviteUser(false);
+    }
+  }, [recipientAddress, to])
 
   useEffect(() => {
     const fetchMfaData = async () => {
@@ -228,7 +240,7 @@ export function SendTransactionDialog({
       isBalanceSufficient && 
       (!feeEstimation || feeEstimation.isSufficientForFee);
 
-    return (isValidEthAddress || isValidBtcAddress) && 
+    return (isValidEthAddress || isValidBtcAddress || isInviteUser) && 
            isValidAmount && 
            !isSending && 
            hasSufficientFunds && 
@@ -271,6 +283,52 @@ export function SendTransactionDialog({
     }
   }, [tokenType]);
 
+  const handleInviteUser = async () => {
+    const authMethodId = await getAuthIdByAuthMethod(authMethod)
+    try {
+      // Create pending invitation
+      const response = await fetch('/api/invitation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authMethod.accessToken}`
+        },
+        body: JSON.stringify({
+          recipientEmail: to,
+          tokenType,
+          amount,
+          authMethodId,
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Failed to create invitation: ${response.status}`);
+      }
+      const data = await response.json();
+      
+      if (data.success) {
+        toast.success(`Invitation sent to ${to}`);
+        
+        // Close the dialog
+        onDialogOpenChange(false);
+      }
+    } catch (error) {
+      console.error('Error inviting user:', error);
+      alert(`Failed to send invitation: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  const onSendClick = () => {
+    if (isInviteUser) {
+      // if there is no recipient address, invite user
+      handleInviteUser();
+    } else {
+      // if there is a recipient address, send transaction to recipient
+      onSendTransaction({ to, recipientAddress, amount, tokenType, mfaMethodId, mfaPhoneNumber })
+    }
+  }
+
   // Display MFA component
   if (showMfa && mfaPhoneNumber) {
     return (
@@ -311,6 +369,7 @@ export function SendTransactionDialog({
             }}
             onAddressFound={handleAddressFound}
             tokenType={tokenType}
+            allowUnregisteredEmail={true}
           />
 
           <div className="space-y-2">
@@ -366,7 +425,7 @@ export function SendTransactionDialog({
           </div>
 
           <Button 
-            onClick={() => onSendTransaction({ to, recipientAddress, amount, tokenType, mfaMethodId, mfaPhoneNumber })} 
+            onClick={onSendClick} 
             disabled={!canSend}
             className="w-full"
           >

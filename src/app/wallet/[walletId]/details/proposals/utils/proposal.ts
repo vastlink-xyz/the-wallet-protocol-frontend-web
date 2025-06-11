@@ -1,8 +1,8 @@
 import { MessageProposal, MultisigWallet } from "@/app/api/multisig/storage";
-import { sendTeamNotification } from "@/lib/notification";
-import { getUserEmailFromStorage } from "@/lib/utils";
+import { getUserEmailFromStorage } from "@/lib/storage/user";
 import { IRelayPKP } from "@lit-protocol/types";
 import axios from "axios";
+import { sendTeamNotification } from "@/lib/notification/team-notificatioin";
 
 export const getTransactionDetails = (proposal: MessageProposal, wallet: MultisigWallet) => {
   try {

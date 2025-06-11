@@ -56,6 +56,9 @@ interface SignerEmailFieldProps {
   
   // Whether to only accept email input (rejects addresses)
   emailOnly?: boolean
+
+  // Allow unregistered email without showing error
+  allowUnregisteredEmail?: boolean
 }
 
 export function SignerEmailField({
@@ -68,7 +71,8 @@ export function SignerEmailField({
   inputType,
   className,
   tokenType = 'ETH', // Default to ETH for backward compatibility
-  emailOnly = false
+  emailOnly = false,
+  allowUnregisteredEmail = false
 }: SignerEmailFieldProps) {
   // State management
   const [isLoading, setIsLoading] = useState(false)
@@ -200,13 +204,17 @@ export function SignerEmailField({
         if (onAddressFound) onAddressFound(newAddressInfo)
       } else {
         setAddressInfo(null)
-        setError('User not found')
+        if (!allowUnregisteredEmail) {
+          setError('User not found')
+        }
         if (onAddressFound) onAddressFound(null)
       }
     } catch (error) {
       console.error('Failed to fetch user by email:', error)
       setAddressInfo(null)
-      setError('Failed to find user')
+      if (!allowUnregisteredEmail) {
+        setError('Failed to find user')
+      }
       if (onAddressFound) onAddressFound(null)
     } finally {
       setIsLoading(false)
@@ -296,6 +304,15 @@ export function SignerEmailField({
         <div className="mt-1.5">
           <div className="text-xs text-gray-500 break-all font-mono flex items-center">
             <CopyAddress textToCopy={getDisplayAddress()} className="ml-1" iconSize={12} />
+          </div>
+        </div>
+      )}
+      
+      {/* Display message for unregistered user */}
+      {internalInputType === 'email' && !addressInfo && allowUnregisteredEmail && input.value && isValidEmail(input.value) && !isLoading && !error && (
+        <div className="mt-1.5">
+          <div className="text-xs text-gray-500">
+            This user is not registered yet
           </div>
         </div>
       )}

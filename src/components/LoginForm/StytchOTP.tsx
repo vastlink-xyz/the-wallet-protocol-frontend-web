@@ -3,7 +3,7 @@ import {
   STYTCH_SIGNIN_REDIRECT,
   getProviderByAuthMethodType,
 } from '@/lib/lit';
-import { log, setUserDataToStorage } from '@/lib/utils';
+import { log } from '@/lib/utils';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -14,16 +14,27 @@ import { setAuthMethodToStorage } from '@/lib/storage/authmethod';
 import { AUTH_METHOD_TYPE } from '@lit-protocol/constants';
 import { toast } from 'react-toastify';
 import { parseError } from '@/lib/error';
+import { setUserDataToStorage } from '@/lib/storage/user';
 
 type OtpStep = 'submit' | 'verify';
+
+interface StytchOTPProps {
+  defaultEmail?: string;
+  title?: string;
+  invitationId?: string;
+}
 
 /**
  * One-time passcodes can be sent via email through Stytch
  */
-const StytchOTP = () => {
+const StytchOTP = ({
+  defaultEmail,
+  title = 'Login',
+  invitationId,
+}: StytchOTPProps) => {
   const router = useRouter();
   const [step, setStep] = useState<OtpStep>('submit');
-  const [email, setEmail] = useState<string>('');
+  const [email, setEmail] = useState<string>(defaultEmail || '');
   const [methodId, setMethodId] = useState<string>('');
   const [code, setCode] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
@@ -72,7 +83,12 @@ const StytchOTP = () => {
       setUserDataToStorage({ email });
       
       // Redirect to Stytch callback page
-      router.push(STYTCH_SIGNIN_REDIRECT.replace(window.location.origin, ''));
+      const redirectPath = STYTCH_SIGNIN_REDIRECT.replace(window.location.origin, '');
+      if (invitationId) {
+        router.push(`${redirectPath}?invitationId=${invitationId}`);
+      } else {
+        router.push(redirectPath);
+      }
       
     } catch (err: any) {
       const error = parseError(err);
@@ -86,7 +102,7 @@ const StytchOTP = () => {
 
   return (
     <Card className="w-full">
-      <h2 className="text-lg font-medium mb-4 text-center">Login</h2>
+      <h2 className="text-lg font-medium mb-4 text-center">{title}</h2>
       {step === 'submit' && (
         <div className="space-y-4">
           <CardHeader>
