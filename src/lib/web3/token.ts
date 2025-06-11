@@ -1,5 +1,7 @@
 import { LIT_CHAINS } from "@lit-protocol/constants";
 
+const VAST_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_VAST_CONTRACT_ADDRESS;
+
 export interface TokenInfo {
   symbol: string;
   name: string;
@@ -74,7 +76,7 @@ export const SUPPORTED_TOKENS_INFO = {
     chainType: 'EVM',
     chainName: 'baseSepolia',
     iconUrl: '/cryptocurrency/vast.png',
-    contractAddress: '0x64Ea10A5E10c820876697793aCf25107Ec83c6c5',
+    contractAddress: VAST_CONTRACT_ADDRESS,
     addressKey: 'eth',
     defaultWithdrawLimit: '10',
     gasFeeSymbol: 'ETH',
