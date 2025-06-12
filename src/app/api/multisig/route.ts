@@ -5,6 +5,7 @@ import { getUserByPkpAddress, getUser } from '../user/storage'
 import { log } from '@/lib/utils'
 import { ethers } from 'ethers'
 import { getBtcAddressByPublicKey } from '@/lib/web3/btc'
+import { MessageProposalModel } from './models'
 
 export async function GET(request: NextRequest) {
   try {
@@ -33,7 +34,19 @@ export async function GET(request: NextRequest) {
           signer.ethAddress.toLowerCase() === signerAddress.toLowerCase()
         )
       )
-      return Response.json({ success: true, data: filteredWallets })
+      // count unsigned proposals for each wallet
+      const walletsWithUnsignedCount = await Promise.all(filteredWallets.map(async wallet => {
+        const unsignedCount = await MessageProposalModel.countDocuments({
+          walletId: wallet.id,
+          status: 'pending',
+          'signatures.signer': { $ne: signerAddress.toLowerCase() }
+        });
+        return {
+          ...wallet,
+          unsignedProposalsCount: unsignedCount
+        };
+      }));
+      return Response.json({ success: true, data: walletsWithUnsignedCount })
     }
     
     // If neither is provided, return error

@@ -19,17 +19,21 @@ interface TeamAssetsProps {
   authMethod: AuthMethod
 }
 
+interface MultisigWalletWithUnsignedProposalsCount extends MultisigWallet {
+  unsignedProposalsCount: number
+}
+
 export default function TeamAssets({ authMethod }: TeamAssetsProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(true)
   const [hasMultisigWallets, setHasMultisigWallets] = useState(false)
-  const [wallets, setWallets] = useState<MultisigWallet[]>([])
+  const [wallets, setWallets] = useState<MultisigWalletWithUnsignedProposalsCount[]>([])
   const [userPkp, setUserPkp] = useState<IRelayPKP | null>(null)
   const [user, setUser] = useState<User | null>(null)
   const [showMultisigSetting, setShowMultisigSetting] = useState(false)
   const [authMethodId, setAuthMethodId] = useState<string>('')
   const [mode, setMode] = useState<'create' | 'edit'>('create')
-  const [selectedWallet, setSelectedWallet] = useState<MultisigWallet | undefined>()
+  const [selectedWallet, setSelectedWallet] = useState<MultisigWalletWithUnsignedProposalsCount | undefined>()
 
   const [showSendDialog, setShowSendDialog] = useState(false)
   const [isSending, setIsSending] = useState(false)
@@ -105,13 +109,13 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
     }
   }
 
-  const handleWalletSettingsClick = (wallet: MultisigWallet) => {
+  const handleWalletSettingsClick = (wallet: MultisigWalletWithUnsignedProposalsCount) => {
     setSelectedWallet(wallet)
     setMode('edit')
     setShowMultisigSetting(true)
   }
 
-  const handleSendClick = (wallet: MultisigWallet) => {
+  const handleSendClick = (wallet: MultisigWalletWithUnsignedProposalsCount) => {
     setSelectedWallet(wallet)
     setShowSendDialog(true)
   }
@@ -152,7 +156,7 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
 
       if (response.data.success) {
         setShowSendDialog(false)
-        toast.success('Transaction proposal created successfully. Please go to the wallet details page to sign the proposal.')
+        toast.success('Transaction proposal created successfully. Please go to the transaction/proposals page to sign the proposal.')
       }
     } catch (error) {
       console.error('Failed to create proposal:', error)
@@ -224,6 +228,7 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
                       onDetailsClick={() => handleDetailsClick(wallet.id)}
                       btcAddress={wallet.addresses.btc}
                       ethAddress={wallet.addresses.eth}
+                      unsignedProposalsCount={wallet.unsignedProposalsCount}
                     />
                   </div>
                 ))}

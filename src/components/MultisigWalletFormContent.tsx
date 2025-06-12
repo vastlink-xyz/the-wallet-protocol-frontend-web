@@ -630,7 +630,7 @@ export function MultisigWalletFormContent({
       });
       
       if (response.data.success) {
-        toast.success('Wallet settings proposal created successfully');
+        toast.success('Wallet settings proposal created successfully. Please go to the transaction/proposals page to sign the proposal.');
         if (onSuccess) {
           onSuccess();
         }
