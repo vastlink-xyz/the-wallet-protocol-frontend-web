@@ -15,7 +15,7 @@ export function UnsignedProposalsNotification() {
   const [authMethodId, setAuthMethodId] = useState<string | null>(null);
 
   // Skip notification on login page and other excluded paths
-  const excludedPaths = ['/', '/auth/google-callback', '/login'];
+  const excludedPaths = ['/', '/auth/google-callback', '/login', '/invite'];
   const shouldShowOnCurrentPath = !excludedPaths.includes(pathname);
 
   // Get authMethodId on component mount
