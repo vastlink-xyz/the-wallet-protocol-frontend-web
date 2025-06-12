@@ -10,6 +10,7 @@ import { PendingInvitation } from '@/app/api/invitation/models';
 import { log } from '@/lib/utils';
 import { useParams } from 'next/navigation';
 import StytchOTP from '@/components/LoginForm/StytchOTP';
+import { LogoLoading } from '@/components/LogoLoading';
 
 export default function InvitePage() {
   const [invitation, setInvitation] = useState<PendingInvitation | null>(null);
@@ -49,7 +50,7 @@ export default function InvitePage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin" />
+        <LogoLoading />
       </div>
     );
   }

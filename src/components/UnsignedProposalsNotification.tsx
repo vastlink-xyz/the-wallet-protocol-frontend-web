@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Bell } from 'lucide-react';
 import axios from 'axios';
 import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
@@ -9,17 +9,25 @@ import { getProviderByAuthMethodType } from '@/lib/lit';
 
 export function UnsignedProposalsNotification() {
   const pathname = usePathname();
-  const router = useRouter();
   const [unsignedProposals, setUnsignedProposals] = useState<number>(0);
-  const [showNotification, setShowNotification] = useState<boolean>(true);
   const [authMethodId, setAuthMethodId] = useState<string | null>(null);
 
-  // Skip notification on login page and other excluded paths
-  const excludedPaths = ['/', '/auth/google-callback', '/login', '/invite'];
-  const shouldShowOnCurrentPath = !excludedPaths.includes(pathname);
+  const shouldShowOnCurrentPath = useMemo(() => {
+    const prefixPaths = [
+      '/auth/google-callback',
+      '/login',
+      '/invite',
+    ]
+    const exactPaths = [
+      '/'
+    ]
+    const isExcluded = prefixPaths.some(path => pathname.startsWith(path)) || exactPaths.some(path => pathname === path);
+    return !isExcluded;
+  }, [pathname]);
 
   // Get authMethodId on component mount
   useEffect(() => {
+    console.log('pathname', pathname, shouldShowOnCurrentPath)
     const getAuthMethodId = async () => {
       try {
         const authMethod = getAuthMethodFromStorage();
@@ -58,7 +66,7 @@ export function UnsignedProposalsNotification() {
   }, [authMethodId, shouldShowOnCurrentPath, pathname]);
 
   // Don't render anything if we shouldn't show on this path or there are no proposals
-  if (!shouldShowOnCurrentPath || unsignedProposals === 0 || !showNotification) {
+  if (!shouldShowOnCurrentPath || unsignedProposals === 0) {
     return null;
   }
 
