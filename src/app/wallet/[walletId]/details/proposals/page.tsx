@@ -33,6 +33,7 @@ export default function ProposalsPage() {
   // Loading states for different operations
   const [signingStates, setSigningStates] = useState<Record<string, boolean>>({});
   const [executingStates, setExecutingStates] = useState<Record<string, boolean>>({});
+  const [isDisabled, setIsDisabled] = useState(false);
   
   const { handleExpiredAuth } = useAuthExpiration();
 
@@ -293,6 +294,8 @@ export default function ProposalsPage() {
     try {
       // Set loading state for this specific proposal execution
       setExecutingStates(prev => ({ ...prev, [proposal.id]: true }));
+      // make sure the user cannot sign other proposals
+      setIsDisabled(true);
       
       // Connect to Lit Network
       if (!litNodeClient.ready) {
@@ -329,6 +332,8 @@ export default function ProposalsPage() {
     } finally {
       // Clear loading state for this proposal
       setExecutingStates(prev => ({ ...prev, [proposal.id]: false }));
+      // make sure the user can sign other proposals
+      setIsDisabled(false);
     }
   }
 
@@ -455,6 +460,8 @@ export default function ProposalsPage() {
     try {
       // Set executing state for this proposal during OTP verification
       setExecutingStates(prev => ({ ...prev, [currentProposal.id]: true }));
+      // make sure the user cannot sign other proposals
+      setIsDisabled(true);
       
       const sessionSigs = await getSessionSigsByPkp({authMethod, pkp: userPkp, refreshStytchAccessToken: true})
       log('otp in handleOtpVerified', otp)
@@ -466,6 +473,8 @@ export default function ProposalsPage() {
       if (currentProposal) {
         setExecutingStates(prev => ({ ...prev, [currentProposal.id]: false }));
       }
+      // make sure the user can sign other proposals
+      setIsDisabled(false);
     }
   }
 
@@ -497,6 +506,7 @@ export default function ProposalsPage() {
                 userPkp={userPkp}
                 isSigningProposal={signingStates[proposal.id] || false}
                 isLoading={executingStates[proposal.id] || false}
+                isDisabled={isDisabled}
               />
             )
           })

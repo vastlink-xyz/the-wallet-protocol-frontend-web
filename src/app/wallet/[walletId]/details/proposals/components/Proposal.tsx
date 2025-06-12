@@ -15,9 +15,10 @@ interface ProposalProps {
   userPkp: IRelayPKP;
   isSigningProposal: boolean;
   isLoading: boolean;
+  isDisabled: boolean;
 }
 
-export function Proposal({ proposal, selectedWallet, handleSignProposal, executeMultisigLitAction, userPkp, isSigningProposal, isLoading }: ProposalProps) {
+export function Proposal({ proposal, selectedWallet, handleSignProposal, executeMultisigLitAction, userPkp, isSigningProposal, isLoading, isDisabled }: ProposalProps) {
   const txDetails = getTransactionDetails(proposal, selectedWallet);
 
   return <div key={proposal.id} className="p-4 bg-gray-50 rounded-lg">
@@ -101,7 +102,7 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
         proposal.signatures.length >= selectedWallet.threshold && (
           <Button
             onClick={() => executeMultisigLitAction(proposal)}
-            disabled={isLoading}
+            disabled={isDisabled}
             className="bg-blue-600 hover:bg-blue-700"
           >
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
