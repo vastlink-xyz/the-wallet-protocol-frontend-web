@@ -22,17 +22,17 @@ import { LitAccessControlConditionResource } from "@lit-protocol/auth-helpers";
 import { LitContracts } from "@lit-protocol/contracts-sdk";
 import { PKPEthersWallet } from "@lit-protocol/pkp-ethers";
 
-const pkp = {
-  "tokenId": "0x4db47d93f4544bce5325db9c5f0aa502e9b404caf882115df84ec6c1ca6708c8",
-  "publicKey": "0x0489fe5c9976406a3dd3fcbf3fafb03b9be4cbc6bfc47632d2e0da9b4ce03121e8d3b28b3f5c5252df75a1e20c0c5bcb5227cb7ed401e2dc35925d6f7b2443a0f9",
-  "ethAddress": "0xDDcD0087D735683cEC3F672ade904083b862fe06"
-}
-
 // const pkp = {
-//   "ethAddress" : "0x828166387109c7E3cD7f2Dd53982AcCAB13a7a88",
-//   "publicKey" : "0x04b6edbf182efdb25e07aae229961efad01031f246d31f197d5c00a475e8f5a0f59ed8b69fc2ca39d529feff90225db9aba2ddfd0aee55b09c91d9f67c06ea659f",
-//   "tokenId" : "0x91adbc8b8c16c70e2e88f38e825d3b5702143fe6e8ee4259ae788a4a8c7b7405",
+//   "tokenId": "0x4db47d93f4544bce5325db9c5f0aa502e9b404caf882115df84ec6c1ca6708c8",
+//   "publicKey": "0x0489fe5c9976406a3dd3fcbf3fafb03b9be4cbc6bfc47632d2e0da9b4ce03121e8d3b28b3f5c5252df75a1e20c0c5bcb5227cb7ed401e2dc35925d6f7b2443a0f9",
+//   "ethAddress": "0xDDcD0087D735683cEC3F672ade904083b862fe06"
 // }
+
+const pkp = {
+  "ethAddress" : "0x828166387109c7E3cD7f2Dd53982AcCAB13a7a88",
+  "publicKey" : "0x04b6edbf182efdb25e07aae229961efad01031f246d31f197d5c00a475e8f5a0f59ed8b69fc2ca39d529feff90225db9aba2ddfd0aee55b09c91d9f67c06ea659f",
+  "tokenId" : "0x91adbc8b8c16c70e2e88f38e825d3b5702143fe6e8ee4259ae788a4a8c7b7405",
+}
 
 const accessControlConditions: AccessControlConditions = [
   {
@@ -44,6 +44,7 @@ const accessControlConditions: AccessControlConditions = [
     returnValueTest: {
       comparator: "=",
       value: pkp.ethAddress,
+      // value: '0xDDcD0087D735683cEC3F672ade904083b862fe06',
     },
   },
 ];
@@ -187,15 +188,18 @@ export default function DebugPage() {
       return
     }
 
-    const a = await litNodeClient.decrypt({
-      chain: "ethereum",
-      sessionSigs,
-      ciphertext,
-      dataToEncryptHash,
-      accessControlConditions,
-    })
+    // const { decryptedData } = await litNodeClient.decrypt({
+    //   chain: "ethereum",
+    //   sessionSigs,
+    //   ciphertext,
+    //   dataToEncryptHash,
+    //   accessControlConditions,
+    // })
 
-    log('a', a)
+    // const decoder = new TextDecoder('utf-8');
+    // const str = decoder.decode(decryptedData);
+
+    // log('str', str)
     // return
 
     const decryptIpfsId = await getLitActionIpfsCid({
