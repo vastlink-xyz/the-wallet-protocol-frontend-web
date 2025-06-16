@@ -5,15 +5,22 @@ import { Plus, Settings } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { MultisigSetting } from './MultisigSetting'
-import { getProviderByAuthMethodType } from '@/lib/lit'
+import { getProviderByAuthMethodType, getSessionSigsByPkp } from '@/lib/lit'
 import { WalletCard } from '../../components/WalletCard'
-import { MultisigWallet } from '@/app/api/multisig/storage'
+import { MessageProposal, MultisigWallet } from '@/app/api/multisig/storage'
 import { useRouter } from 'next/navigation'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { SendTransactionDialog, SendTransactionDialogState } from '@/components/Transaction/SendTransactionDialog'
 import { toast } from 'react-toastify'
 import { LogoLoading } from '@/components/LogoLoading'
 import { User } from '@/app/api/user/storage'
+import { signProposal } from '@/app/wallet/[walletId]/details/proposals/utils/sign-proposal'
+import { fetchProposal } from '@/app/wallet/[walletId]/details/proposals/utils/proposal'
+import { executeTransactionProposal } from '@/app/wallet/[walletId]/details/proposals/utils/execute-proposal'
+import { log } from '@/lib/utils'
+import { SUPPORTED_TOKENS_INFO } from '@/lib/web3/token'
+import { broadcastTransactionByTokenType } from '@/lib/web3/transaction'
+import { sendProposalExecutedNotification } from '@/lib/notification/proposal-executed-notification'
 
 interface TeamAssetsProps {
   authMethod: AuthMethod
@@ -37,6 +44,9 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
 
   const [showSendDialog, setShowSendDialog] = useState(false)
   const [isSending, setIsSending] = useState(false)
+
+  const [showMfaDialog, setShowMfaDialog] = useState(false);
+  const [currentProposal, setCurrentProposal] = useState<MessageProposal | null>(null)
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -124,9 +134,9 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
     window.open(`/wallet/${walletId}/details`, '_blank')
   }
 
-  const handleExecuteTransaction = async (state: SendTransactionDialogState) => {
+  const handleCreateAndApproveTransactionProposal = async (state: SendTransactionDialogState) => {
     const { to, recipientAddress, amount, tokenType } = state
-    if (!selectedWallet) {
+    if (!selectedWallet || !userPkp || !authMethod || !authMethodId || !user) {
       return
     }
     
@@ -155,15 +165,146 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
       })
 
       if (response.data.success) {
-        setShowSendDialog(false)
-        toast.success('Transaction proposal created successfully. Please go to the transaction/proposals page to sign the proposal.')
+        const proposal = response.data.data
+        const res = await signProposal({
+          proposal,
+          userPkp,
+          authMethod,
+          authMethodId,
+        })
+
+        if (res.data.success) {
+          const updatedProposal = await fetchProposal(proposal.id, selectedWallet.id)
+          
+          // Check if signatures have reached the threshold
+          if (updatedProposal && updatedProposal.signatures.length >= selectedWallet.threshold) {
+            // Automatically execute the multisig action once threshold is reached
+            await handleExecuteTransactionProposal({
+              proposal: updatedProposal,
+              wallet: selectedWallet,
+            })
+          } else {
+            toast.info('You have approved the proposal. Waiting for other signers to approve.')
+            setIsSending(false)
+            setShowSendDialog(false)
+          }
+        }
       }
     } catch (error) {
       console.error('Failed to create proposal:', error)
-    } finally {
       setIsSending(false)
     }
   }
+
+  const handleExecuteTransactionProposal = async ({
+    proposal,
+    wallet,
+    otpCode = '',
+    mfaMethodId = null,
+  }: {
+    proposal: MessageProposal
+    wallet: MultisigWallet
+    otpCode?: string
+    mfaMethodId?: string | null
+  }) => {
+    if (!userPkp || !authMethod || !authMethodId) {
+      return
+    }
+
+    const sessionSigs = await getSessionSigsByPkp({authMethod, pkp: userPkp, refreshStytchAccessToken: true});
+    const walletPkp = wallet.pkp
+
+    const {
+      response,
+      txData,
+      tokenType,
+    } = await executeTransactionProposal({
+      proposal,
+      sessionSigs,
+      wallet,
+      walletPkp,
+      authMethod,
+      authMethodId,
+      otpCode,
+      mfaMethodId,
+    })
+
+    // Update the proposal status to completed if verification was successful
+    const result = typeof response.response === 'string' 
+      ? JSON.parse(response.response) 
+      : response.response;
+    log('Parsed response object:', result);
+
+    if (result.isValid) {
+      if (result.requireMFA) {
+        setCurrentProposal(proposal)
+        setShowMfaDialog(true)
+        toast.warning('Daily limit exceeded')
+        return
+      } else if (result.error) {
+        toast.error(result.error)
+        return
+      }
+      
+      let txHash = null
+      // Try to extract transaction hash from different response formats
+      if (result.status === 'success') {
+        try {
+          let sig: any
+          if (SUPPORTED_TOKENS_INFO[tokenType].chainType === 'EVM') {
+            sig = JSON.parse(result.sig)
+          } else {
+            sig = response.signatures.btcSignatures
+          }
+          const txReceipt = await broadcastTransactionByTokenType({
+            tokenType,
+            options: {
+              ...txData,
+              sig,
+              publicKey: walletPkp.publicKey,
+            },
+          })
+          txHash = txReceipt
+          log('txReceipt', txReceipt)   
+        } catch (e: any) {
+          log('error', e)
+          if (e.message.includes('insufficient funds for intrinsic transaction cost')) {
+            toast.error('Insufficient funds for intrinsic transaction cost')
+            return
+          }
+          toast.error(`${e.message || 'Transaction failed'}`)
+          return
+        }
+      }
+      
+      await axios.put(`/api/multisig/messages`, {
+        proposalId: proposal.id,
+        walletId: proposal.walletId,
+        status: 'completed',
+        txHash: txHash
+      })
+      toast.success(`Transaction completed`);
+
+      // Close dialogs
+      setShowSendDialog(false)
+      setIsSending(false)
+      setShowMfaDialog(false)
+
+      // Send proposal executed notification to all approvers
+      if (wallet) {
+        try {
+          sendProposalExecutedNotification({
+            proposalType: 'transaction',
+            proposal,
+            wallet,
+            txHash,
+          });
+        } catch (error) {
+          console.error('Error sending proposal executed notifications:', error);
+        }
+      }
+    }
+  };
 
   const handleInviteUser = async ({
     to,
@@ -206,6 +347,36 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
       setIsSending(false)
     }
   }
+
+  // MFA cancellation callback
+  const handleMfaCancel = () => {
+    setShowMfaDialog(false)
+    setIsSending(false)
+  }
+
+  // MFA verification successful callback
+  const handleMfaVerify = async (state: SendTransactionDialogState) => {
+    const { otpCode, mfaMethodId } = state
+
+    // Verify OTP in lit action
+    if (!authMethod || !userPkp || !currentProposal || !selectedWallet) {
+      throw new Error('Missing required information for OTP verification');
+    }
+
+    try {
+      log('otp in handleOtpVerified', otpCode)
+      await handleExecuteTransactionProposal({
+        proposal: currentProposal,
+        wallet: selectedWallet,
+        otpCode,
+        mfaMethodId,
+      })
+    } catch (error) {
+      console.error('Error executing transaction:', error)
+    } finally {
+      setIsSending(false)
+    }
+  };
 
   return (
     <div className="p-4 flex flex-col items-center gap-4 w-full">
@@ -281,11 +452,13 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
       <SendTransactionDialog
         authMethod={authMethod}
         showSendDialog={showSendDialog}
-        showMfa={false}
+        showMfa={showMfaDialog}
         onInviteUser={handleInviteUser}
-        onSendTransaction={handleExecuteTransaction}
+        onSendTransaction={handleCreateAndApproveTransactionProposal}
         isSending={isSending}
         onDialogOpenChange={setShowSendDialog}
+        onMFACancel={handleMfaCancel}
+        onMFAVerify={handleMfaVerify}
         addresses={selectedWallet?.addresses || null}
       />
     </div>

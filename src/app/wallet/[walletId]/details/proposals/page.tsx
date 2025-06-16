@@ -18,7 +18,7 @@ import { MFAOtpDialog } from "@/components/Transaction/MFAOtpDialog";
 import { SUPPORTED_TOKENS_INFO, TokenType } from "@/lib/web3/token";
 import { LogoLoading } from "@/components/LogoLoading";
 import { signProposal } from "./utils/sign-proposal";
-import { executeWalletSettingsProposal } from "./utils/execute-proposal";
+import { executeTransactionProposal, executeWalletSettingsProposal } from "./utils/execute-proposal";
 
 export default function ProposalsPage() {
   // Get walletId from params
@@ -64,16 +64,6 @@ export default function ProposalsPage() {
     }
   }, [walletId]);
 
-  const sendAddressByTokenType = (tokenType: TokenType) => {
-    if (tokenType === 'ETH') {
-      return walletPkp?.ethAddress
-    } else if (tokenType === 'BTC') {
-      return wallet?.addresses.btc || ''
-    } else if (SUPPORTED_TOKENS_INFO[tokenType].chainType === 'EVM') {
-      return walletPkp?.ethAddress
-    }
-  }
-
   // Function to execute wallet settings change proposal
   const handleExecuteWalletSettingsProposal = async (proposal: MessageProposal, settingsData: any, sessionSigs: any) => {
     if (!wallet || !walletPkp || !authMethod || !authMethodId) return;
@@ -102,82 +92,32 @@ export default function ProposalsPage() {
     }
   }
 
-  // Function to execute transaction proposal
-  const executeTransactionProposal = async (proposal: MessageProposal, sessionSigs: any, otpCode: string = '') => {
-    if (!walletPkp || !wallet || !authMethod) return;
+  const handleExecuteTransactionProposal = async (proposal: MessageProposal, sessionSigs: any, otpCode: string = '') => {
+    if (!wallet || !walletPkp || !authMethod || !authMethodId) {
+      return
+    }
 
-    log('Executing Lit Action with multisig PKP', {
-      proposalId: proposal.id,
-      multisigPkpAddress: walletPkp.ethAddress,
-      signatures: proposal.signatures.length,
-      message: proposal.message
-    })
-
-    log('multisig wallet', wallet)
-    
-    // Get transaction details from proposal
-    const txDetails = getTransactionDetails(proposal, wallet)
-    log('Transaction details:', txDetails)
-
-    const tokenType = txDetails.tokenType as TokenType
-    const txData = await getToSignTransactionByTokenType({
+    const {
+      response,
+      txData,
       tokenType,
-      options: {
-        sendAddress: sendAddressByTokenType(tokenType),
-        recipientAddress: txDetails.to,
-        amount: txDetails.value,
-      },
-    })
-
-    log('txData', txData)
-
-    if (!txData) {
-      throw new Error('Failed to get transaction data')
-    }
-
-    const jsParams = {
-      message: proposal.message,
-      publicKeys: proposal.signatures.map(signer => signer.publicKey),
-      proposalId: proposal.id,
-      walletId: wallet.id,
-      requiredSignatures: wallet.threshold,
-      publicKey: walletPkp.publicKey,
-      // 
-      sendTransaction: true,
-      chainType: SUPPORTED_TOKENS_INFO[tokenType].chainType,
-      toSignTransaction: txData.toSign,
-      transactionAmount: txDetails.value,
-      env: process.env.NEXT_PUBLIC_ENV,
-      authParams: {
-        accessToken: authMethod.accessToken,
-        authMethodId: authMethodId,
-        authMethodType: authMethod.authMethodType,
-      },
-      otp: otpCode,
-      mfaMethodId,
-      tokenType: proposal.transactionData?.tokenType,
-    }
-    log('js params', jsParams)
-
-    const litActionIpfsId = await getMultisigTransactionIpfsId('base58')
-    log('ipfsid', litActionIpfsId)
-
-    // Execute the Lit Action using the multisig verification
-    const response = await litNodeClient.executeJs({
-      ipfsId: litActionIpfsId,
+    } = await executeTransactionProposal({
+      proposal,
       sessionSigs,
-      jsParams,
+      wallet,
+      walletPkp,
+      authMethod,
+      authMethodId,
+      otpCode,
+      mfaMethodId,
     })
-    
-    log('Multisig Lit Action execution result:', response)
-    
+
     // Update the proposal status to completed if verification was successful
     const result = typeof response.response === 'string' 
       ? JSON.parse(response.response) 
       : response.response;
-    
     log('Parsed response object:', result);
-    
+
     if (result.isValid) {
       if (result.requireMFA) {
         setCurrentProposal(proposal)
@@ -208,9 +148,7 @@ export default function ProposalsPage() {
             },
           })
           txHash = txReceipt
-          log('txReceipt', txReceipt)
-          
-          toast.success(`Transaction completed`);
+          log('txReceipt', txReceipt)          
         } catch (e: any) {
           log('error', e)
           if (e.message.includes('insufficient funds for intrinsic transaction cost')) {
@@ -228,22 +166,17 @@ export default function ProposalsPage() {
         status: 'completed',
         txHash: txHash
       })
+      toast.success(`Transaction completed`);
 
       // Send proposal executed notification to all approvers
       if (wallet) {
         try {
-          const notificationResult = await sendProposalExecutedNotification({
+          await sendProposalExecutedNotification({
             proposalType: 'transaction',
             proposal,
             wallet,
             txHash,
           });
-
-          if (notificationResult.success) {
-            log(`Proposal executed notifications sent to ${notificationResult.totalSent} approver(s)`);
-          } else {
-            console.error('Failed to send proposal executed notifications:', notificationResult.error);
-          }
         } catch (error) {
           console.error('Error sending proposal executed notifications:', error);
         }
@@ -287,7 +220,7 @@ export default function ProposalsPage() {
         await handleExecuteWalletSettingsProposal(proposal, settingsData, sessionSigs);
       } else {
         // Regular transaction execution
-        await executeTransactionProposal(proposal, sessionSigs);
+        await handleExecuteTransactionProposal(proposal, sessionSigs)
       }
     } catch (error: any) {
       // Check for Google JWT expired error
@@ -404,7 +337,7 @@ export default function ProposalsPage() {
       
       const sessionSigs = await getSessionSigsByPkp({authMethod, pkp: userPkp, refreshStytchAccessToken: true})
       log('otp in handleOtpVerified', otp)
-      await executeTransactionProposal(currentProposal, sessionSigs, otp)
+      await handleExecuteTransactionProposal(currentProposal, sessionSigs, otp)
     } catch (error) {
       console.error('Error executing transaction:', error)
     } finally {

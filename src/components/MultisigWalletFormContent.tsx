@@ -518,7 +518,7 @@ export function MultisigWalletFormContent({
         // Automatically execute the multisig action once threshold is reached
         await autoExecuteProposal(updatedProposal, wallet)
       } else {
-        toast.success('You have approved the proposal. Waiting for other signers to approve.')
+        toast.info('You have approved the proposal. Waiting for other signers to approve.')
       }
     }
   };

@@ -1,11 +1,13 @@
 import { MessageProposal, MultisigWallet } from "@/app/api/multisig/storage";
 import { litNodeClient } from "@/lib/lit";
-import { getUpdateWalletIpfsId } from "@/lib/lit/ipfs-id-env";
+import { getMultisigTransactionIpfsId, getUpdateWalletIpfsId } from "@/lib/lit/ipfs-id-env";
 import { log } from "@/lib/utils";
 import { AuthMethod, IRelayPKP } from "@lit-protocol/types";
 import axios from "axios";
-import { fetchUpdatedWallet, sendNotificationsToNewSigners } from "./proposal";
+import { fetchUpdatedWallet, getTransactionDetails, sendNotificationsToNewSigners } from "./proposal";
 import { sendProposalExecutedNotification } from "@/lib/notification/proposal-executed-notification";
+import { SUPPORTED_TOKENS_INFO, TokenType } from "@/lib/web3/token";
+import { getToSignTransactionByTokenType } from "@/lib/web3/transaction";
 
 interface IExecuteWalletSettingsProposalParams {
   proposal: MessageProposal;
@@ -14,6 +16,17 @@ interface IExecuteWalletSettingsProposalParams {
   walletPkp: IRelayPKP;
   authMethod: AuthMethod;
   authMethodId: string;
+}
+
+interface IExecuteTransactionProposalParams {
+  proposal: MessageProposal;
+  sessionSigs: any;
+  wallet: MultisigWallet;
+  walletPkp: IRelayPKP;
+  authMethod: AuthMethod;
+  authMethodId: string;
+  otpCode: string;
+  mfaMethodId: string | null;
 }
 
 export const executeWalletSettingsProposal = async ({
@@ -106,4 +119,109 @@ export const executeWalletSettingsProposal = async ({
   }
 
   return response
+}
+
+const sendAddressByTokenType = ({
+  tokenType,
+  walletPkp,
+  wallet
+}: {
+    tokenType: TokenType,
+    walletPkp: IRelayPKP,
+    wallet: MultisigWallet
+}) => {
+  if (tokenType === 'ETH') {
+    return walletPkp?.ethAddress
+  } else if (tokenType === 'BTC') {
+    return wallet?.addresses.btc || ''
+  } else if (SUPPORTED_TOKENS_INFO[tokenType].chainType === 'EVM') {
+    return walletPkp?.ethAddress
+  }
+}
+
+// Function to execute transaction proposal
+export const executeTransactionProposal = async ({
+  proposal,
+  walletPkp,
+  wallet,
+  authMethod,
+  authMethodId,
+  sessionSigs,
+  otpCode,
+  mfaMethodId,
+}: IExecuteTransactionProposalParams) => {
+
+  log('Executing Lit Action with multisig PKP', {
+    proposalId: proposal.id,
+    multisigPkpAddress: walletPkp.ethAddress,
+    signatures: proposal.signatures.length,
+    message: proposal.message
+  })
+
+  log('multisig wallet', wallet)
+  
+  // Get transaction details from proposal
+  const txDetails = getTransactionDetails(proposal, wallet)
+  log('Transaction details:', txDetails)
+
+  const tokenType = txDetails.tokenType as TokenType
+  const txData = await getToSignTransactionByTokenType({
+    tokenType,
+    options: {
+      sendAddress: sendAddressByTokenType({
+        tokenType,
+        walletPkp,
+        wallet,
+      }),
+      recipientAddress: txDetails.to,
+      amount: txDetails.value,
+    },
+  })
+
+  log('txData', txData)
+
+  if (!txData) {
+    throw new Error('Failed to get transaction data')
+  }
+
+  const jsParams = {
+    message: proposal.message,
+    publicKeys: proposal.signatures.map(signer => signer.publicKey),
+    proposalId: proposal.id,
+    walletId: wallet.id,
+    requiredSignatures: wallet.threshold,
+    publicKey: walletPkp.publicKey,
+    // 
+    sendTransaction: true,
+    chainType: SUPPORTED_TOKENS_INFO[tokenType].chainType,
+    toSignTransaction: txData.toSign,
+    transactionAmount: txDetails.value,
+    env: process.env.NEXT_PUBLIC_ENV,
+    authParams: {
+      accessToken: authMethod.accessToken,
+      authMethodId: authMethodId,
+      authMethodType: authMethod.authMethodType,
+    },
+    otp: otpCode,
+    mfaMethodId,
+    tokenType: proposal.transactionData?.tokenType,
+  }
+  log('js params', jsParams)
+
+  const litActionIpfsId = await getMultisigTransactionIpfsId('base58')
+  log('ipfsid', litActionIpfsId)
+
+  // Execute the Lit Action using the multisig verification
+  const response = await litNodeClient.executeJs({
+    ipfsId: litActionIpfsId,
+    sessionSigs,
+    jsParams,
+  })
+  
+  log('Multisig Lit Action execution result:', response)
+  return {
+    response,
+    txData,
+    tokenType,
+  }
 }
