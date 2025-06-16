@@ -120,7 +120,7 @@ export async function saveWallet(wallet: MultisigWallet): Promise<void> {
 export async function getMessageProposals(walletId: string): Promise<MessageProposal[]> {
   try {
     await connectToDatabase();
-    const proposals = await MessageProposalModel.find({ walletId }).lean();
+    const proposals = await MessageProposalModel.find({ walletId }).sort({ createdAt: -1 }).lean();
     // Convert Mongoose objects to MessageProposal type while preserving all original fields
     return proposals as unknown as MessageProposal[];
   } catch (error) {
@@ -150,11 +150,11 @@ export async function getUnsignedProposalsByUser(userAddress: string): Promise<M
     // Get wallet IDs
     const walletIds = wallets.map(wallet => wallet.id);
 
-    // Find all pending proposals for these wallets
+    // Find all pending proposals for these wallets, sorted by createdAt in descending order
     const proposals = await MessageProposalModel.find({
       walletId: { $in: walletIds },
       status: 'pending'
-    }).lean();
+    }).sort({ createdAt: -1 }).lean();
 
     // Filter out proposals that the user has already signed
     const unsignedProposals = proposals.filter(proposal => 

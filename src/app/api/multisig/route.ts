@@ -36,14 +36,22 @@ export async function GET(request: NextRequest) {
       )
       // count unsigned proposals for each wallet
       const walletsWithUnsignedCount = await Promise.all(filteredWallets.map(async wallet => {
-        const unsignedCount = await MessageProposalModel.countDocuments({
+        // Find all pending proposals for this wallet
+        const pendingProposals = await MessageProposalModel.find({
           walletId: wallet.id,
-          status: 'pending',
-          'signatures.signer': { $ne: signerAddress.toLowerCase() }
-        });
+          status: 'pending'
+        }).lean();
+
+        // Filter out proposals that the user has already signed
+        const unsignedProposals = pendingProposals.filter(proposal =>
+          !proposal.signatures.some((sig: any) =>
+            sig.signer.toLowerCase() === signerAddress.toLowerCase()
+          )
+        );
+
         return {
           ...wallet,
-          unsignedProposalsCount: unsignedCount
+          unsignedProposalsCount: unsignedProposals.length
         };
       }));
       return Response.json({ success: true, data: walletsWithUnsignedCount })

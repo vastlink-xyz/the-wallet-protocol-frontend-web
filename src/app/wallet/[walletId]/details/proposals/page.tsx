@@ -6,12 +6,12 @@ import { Proposal } from "./components/Proposal";
 import { fetchProposals, fetchUpdatedWallet, getTransactionDetails, sendNotificationsToNewSigners } from "./utils/proposal";
 import { useWallet } from "../context/WalletContext";
 import { useParams } from "next/navigation";
-import { AuthMethod } from "@lit-protocol/types";
 import { getMultisigTransactionIpfsId, getPersonalSignIpfsId, getUpdateWalletIpfsId } from "@/lib/lit/ipfs-id-env";
 import { getSessionSigsByPkp, litNodeClient } from "@/lib/lit";
 import { log } from "@/lib/utils";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { sendProposalExecutedNotification } from "@/lib/notification/proposal-executed-notification";
 import { useAuthExpiration } from "@/hooks/useAuthExpiration";
 import { broadcastTransactionByTokenType, getToSignTransactionByTokenType } from "@/lib/web3/transaction";
 import { MFAOtpDialog } from "@/components/Transaction/MFAOtpDialog";
@@ -142,6 +142,23 @@ export default function ProposalsPage() {
         if (updatedWallet && settingsData.signers) {
           // Send notifications to new signers
           await sendNotificationsToNewSigners(wallet, updatedWallet);
+        }
+
+        // Send proposal executed notification to all approvers
+        try {
+          const notificationResult = await sendProposalExecutedNotification({
+            proposalType: 'settings',
+            proposal,
+            wallet,
+          });
+
+          if (notificationResult.success) {
+            log(`Proposal executed notifications sent to ${notificationResult.totalSent} approver(s)`);
+          } else {
+            console.error('Failed to send proposal executed notifications:', notificationResult.error);
+          }
+        } catch (error) {
+          console.error('Error sending proposal executed notifications:', error);
         }
 
         toast.success('Wallet settings updated successfully')
@@ -277,7 +294,27 @@ export default function ProposalsPage() {
         status: 'completed',
         txHash: txHash
       })
-      
+
+      // Send proposal executed notification to all approvers
+      if (wallet) {
+        try {
+          const notificationResult = await sendProposalExecutedNotification({
+            proposalType: 'transaction',
+            proposal,
+            wallet,
+            txHash,
+          });
+
+          if (notificationResult.success) {
+            log(`Proposal executed notifications sent to ${notificationResult.totalSent} approver(s)`);
+          } else {
+            console.error('Failed to send proposal executed notifications:', notificationResult.error);
+          }
+        } catch (error) {
+          console.error('Error sending proposal executed notifications:', error);
+        }
+      }
+
       // Refresh proposals
       const newProposals = await fetchProposals(walletId)
       setProposals(newProposals)

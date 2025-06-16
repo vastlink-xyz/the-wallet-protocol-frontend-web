@@ -76,8 +76,8 @@ export function UnsignedProposalsNotification() {
         <div className="grow shrink basis-0 text-center text-black/90 text-sm font-normal leading-snug flex items-center justify-center">
           <Bell className="w-4 h-4 text-blue-500 mr-2" />
           <span>
-            You have <span className="font-medium">{unsignedProposals}</span> unsigned proposal{unsignedProposals > 1 ? 's' : ''} waiting for your signature. 
-            Please go to transaction/proposals to sign.
+            You have <span className="font-medium">{unsignedProposals}</span> pending proposal{unsignedProposals > 1 ? 's' : ''} waiting for your approval. 
+            Please go to transaction/proposals to approve.
           </span>
         </div>
       </div>

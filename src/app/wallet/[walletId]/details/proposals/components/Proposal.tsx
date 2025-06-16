@@ -88,13 +88,13 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
           disabled={isSigningProposal}
         >
           {isSigningProposal && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Sign Transaction
+          Approve Proposal
         </Button>
       )}
 
       {hasUserSigned(proposal, userPkp) && (
         <div className="text-sm text-green-600 flex items-center">
-          You have signed this transaction
+          You have approved this proposal
         </div>
       )}
 
