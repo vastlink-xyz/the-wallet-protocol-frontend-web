@@ -17,7 +17,7 @@ import {
 } from '@/lib/lit'
 import { encryptString } from '@lit-protocol/encryption'
 import { AUTH_METHOD_SCOPE, AUTH_METHOD_TYPE } from '@lit-protocol/constants'
-import { getCreateWalletIpfsId, getMultisigTransactionIpfsId, getUpdateWalletIpfsId, getUpgradeIpfsId } from '@/lib/lit/ipfs-id-env'
+import { getCreateWalletIpfsId, getMultisigTransactionIpfsId, getUpdateWalletIpfsId, getUpgradeIpfsId, getPersonalSignIpfsId } from '@/lib/lit/ipfs-id-env'
 import { useAuthExpiration } from '@/hooks/useAuthExpiration'
 import { isTokenValid } from '@/lib/jwt'
 import { TokenType, SUPPORTED_TOKEN_SYMBOLS, SUPPORTED_TOKENS_INFO } from '@/lib/web3/token'
@@ -26,6 +26,11 @@ import { LabeledContainer } from './LabeledContainer'
 import { DailyWithdrawLimits, getDefaultDailyWithdrawLimits } from './Transaction/DailyWithdrawLimits'
 import { getUserEmailFromStorage } from '@/lib/storage/user'
 import { sendTeamNotification } from '@/lib/notification/team-notificatioin'
+import { sendProposalExecutedNotification } from '@/lib/notification/proposal-executed-notification'
+import { MessageProposal } from '@/app/api/multisig/storage'
+import { signProposal } from '@/app/wallet/[walletId]/details/proposals/utils/sign-proposal'
+import { fetchProposal } from '@/app/wallet/[walletId]/details/proposals/utils/proposal'
+import { executeWalletSettingsProposal } from '@/app/wallet/[walletId]/details/proposals/utils/execute-proposal'
 
 interface MultisigWalletFormContentProps {
   mode: 'create' | 'edit'
@@ -493,6 +498,52 @@ export function MultisigWalletFormContent({
     }
   };
 
+  const autoSignProposal = async (proposal: MessageProposal) => {
+    if (!wallet) {
+      return
+    }
+
+    const response = await signProposal({
+      proposal,
+      userPkp,
+      authMethod,
+      authMethodId,
+    })
+
+    if (response.data.success) {
+      const updatedProposal = await fetchProposal(proposal.id, wallet.id)
+      
+      // Check if signatures have reached the threshold
+      if (updatedProposal && updatedProposal.signatures.length >= wallet.threshold) {
+        // Automatically execute the multisig action once threshold is reached
+        await autoExecuteProposal(updatedProposal, wallet)
+      } else {
+        toast.success('You have approved the proposal. Waiting for other signers to approve.')
+      }
+    }
+  };
+
+  const autoExecuteProposal = async (proposal: MessageProposal, wallet: MultisigWallet) => {
+    const sessionSigs = await getSessionSigsByPkp({authMethod, pkp: userPkp, refreshStytchAccessToken: true});
+    const walletPkp = wallet.pkp
+
+    const response = await executeWalletSettingsProposal({
+      proposal,
+      sessionSigs,
+      wallet,
+      walletPkp,
+      authMethod,
+      authMethodId,
+    })
+
+    if (response.data.success) {
+      if (onSuccess) {
+        toast.success('Wallet settings updated successfully.')
+        onSuccess();
+      }
+    }
+  };
+
   // Update existing multisig wallet (edit mode)
   const handleUpdateWalletSettings = async () => {
     if (!wallet) {
@@ -630,10 +681,8 @@ export function MultisigWalletFormContent({
       });
       
       if (response.data.success) {
-        toast.success('Wallet settings proposal created successfully. Please go to the transaction/proposals page to sign the proposal.');
-        if (onSuccess) {
-          onSuccess();
-        }
+        const proposal = response.data.data;
+        await autoSignProposal(proposal);
         // Close the modal when update is successful
         if (onCancel) {
           onCancel();

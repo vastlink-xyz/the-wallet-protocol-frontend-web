@@ -17,6 +17,8 @@ import { broadcastTransactionByTokenType, getToSignTransactionByTokenType } from
 import { MFAOtpDialog } from "@/components/Transaction/MFAOtpDialog";
 import { SUPPORTED_TOKENS_INFO, TokenType } from "@/lib/web3/token";
 import { LogoLoading } from "@/components/LogoLoading";
+import { signProposal } from "./utils/sign-proposal";
+import { executeWalletSettingsProposal } from "./utils/execute-proposal";
 
 export default function ProposalsPage() {
   // Get walletId from params
@@ -73,98 +75,30 @@ export default function ProposalsPage() {
   }
 
   // Function to execute wallet settings change proposal
-  const executeWalletSettingsProposal = async (proposal: MessageProposal, settingsData: any, sessionSigs: any) => {
-    if (!wallet || !walletPkp || !authMethod) return;
+  const handleExecuteWalletSettingsProposal = async (proposal: MessageProposal, settingsData: any, sessionSigs: any) => {
+    if (!wallet || !walletPkp || !authMethod || !authMethodId) return;
     log('selected multisig pkp', walletPkp.publicKey)
 
-    const updateWalletIpfsId = await getUpdateWalletIpfsId("base58")
-
     try {
-      const litActionResponse = await litNodeClient.executeJs({
-        ipfsId: updateWalletIpfsId,
+      const response = await executeWalletSettingsProposal({
+        proposal,
         sessionSigs,
-        jsParams: {
-          authParams: {
-            accessToken: authMethod.accessToken,
-            authMethodId: authMethodId,
-            authMethodType: authMethod.authMethodType,
-          },
-          publicKey: walletPkp.publicKey,
-          env: process.env.NEXT_PUBLIC_ENV,
-          walletId: wallet.id,
-          proposalId: proposal.id,
-        },
-      });
+        wallet,
+        walletPkp,
+        authMethod,
+        authMethodId,
+      })
 
-      log('lit action res', litActionResponse)
-
-      const responseObj = typeof litActionResponse.response === 'string' 
-        ? JSON.parse(litActionResponse.response) 
-        : litActionResponse.response;
-
-      const signature = litActionResponse.signatures.dataToEncryptHashSignature.signature
-
-      // get the mfaSettings from the responseObj
-      const { mfaSettings } = responseObj.data.newDataToEncrypt;
-
-      const body = {
-        id: wallet.id,
-        ...responseObj.data.newDataToEncrypt,
-        dataToEncryptHash: responseObj.data.dataToEncryptHash,
-        ciphertext: responseObj.data.ciphertext,
-        dataToEncryptHashSignature: signature,
-        metadata: {
-          ...wallet.metadata, // save the original metadata
-          mfaSettings // update the mfaSettings
-        }
-      }
-
-      log('Update wallet request body:', body);
-
-      // Save the updated wallet to the database
-      const response = await axios.put('/api/multisig', body);
-      
       if (response.data.success) {
-        // Update proposal status to completed
-        await axios.put('/api/multisig/messages', {
-          proposalId: proposal.id,
-          walletId: proposal.walletId,
-          status: 'completed',
-        });
-        
         // Refresh data
-        // kkktodo: refresh wallet data
         const newProposals = await fetchProposals(walletId);
         setProposals(newProposals)
-        
-        // Find new signers and send notifications
-        const updatedWallet = await fetchUpdatedWallet(wallet.id);
-        if (updatedWallet && settingsData.signers) {
-          // Send notifications to new signers
-          await sendNotificationsToNewSigners(wallet, updatedWallet);
-        }
-
-        // Send proposal executed notification to all approvers
-        try {
-          const notificationResult = await sendProposalExecutedNotification({
-            proposalType: 'settings',
-            proposal,
-            wallet,
-          });
-
-          if (notificationResult.success) {
-            log(`Proposal executed notifications sent to ${notificationResult.totalSent} approver(s)`);
-          } else {
-            console.error('Failed to send proposal executed notifications:', notificationResult.error);
-          }
-        } catch (error) {
-          console.error('Error sending proposal executed notifications:', error);
-        }
 
         toast.success('Wallet settings updated successfully')
       }
     } catch (error) {
       log('error', error);
+      throw error
     }
   }
 
@@ -350,14 +284,12 @@ export default function ProposalsPage() {
       
       if (isWalletSettingsProposal && settingsData) {
         // Handle wallet settings change
-        await executeWalletSettingsProposal(proposal, settingsData, sessionSigs);
+        await handleExecuteWalletSettingsProposal(proposal, settingsData, sessionSigs);
       } else {
         // Regular transaction execution
         await executeTransactionProposal(proposal, sessionSigs);
       }
     } catch (error: any) {
-      toast.error(`${error.message || 'Transaction failed'}`)
-
       // Check for Google JWT expired error
       const errorMessage = error?.message || '';
       if (errorMessage.includes('Google JWT expired') || 
@@ -375,7 +307,7 @@ export default function ProposalsPage() {
   }
 
   const handleSignProposal = async (proposal: MessageProposal) => {
-    if (!walletPkp || !authMethod || !wallet || !userPkp) {
+    if (!walletPkp || !authMethod || !wallet || !userPkp || !authMethodId) {
       console.error('Missing required information for signing')
       return
     }
@@ -384,41 +316,11 @@ export default function ProposalsPage() {
       // Set loading state for this specific proposal signing
       setSigningStates(prev => ({ ...prev, [proposal.id]: true }));
 
-      const litActionIpfsId = await getPersonalSignIpfsId('base58')
-      log('litActionIpfsId', litActionIpfsId)
-
-      if (!litNodeClient.ready) {
-        await litNodeClient.connect();
-      }
-
-      const sessionSigs = await getSessionSigsByPkp({authMethod, pkp: userPkp, refreshStytchAccessToken: true})
-      log('session sigs', sessionSigs)
-
-      const actionResponse = await litNodeClient.executeJs({
-        ipfsId: litActionIpfsId,
-        sessionSigs,
-        jsParams: {
-          message: proposal.message,
-          publicKey: userPkp.publicKey,
-          env: process.env.NEXT_PUBLIC_ENV,
-          authParams: {
-            accessToken: authMethod.accessToken,
-            authMethodId: authMethodId,
-            authMethodType: authMethod.authMethodType,
-          },
-        }
-      });
-      
-      const signature = actionResponse.signatures.sig.signature;
-      log('signature', signature)
-
-      // Submit signature to API
-      const response = await axios.put(`/api/multisig/messages`, {
-        proposalId: proposal.id,
-        walletId: proposal.walletId,
-        signer: userPkp.ethAddress,
-        signature,
-        publicKey: userPkp.publicKey,
+      const response = await signProposal({
+        proposal,
+        userPkp,
+        authMethod,
+        authMethodId,
       })
 
       if (response.data.success) {

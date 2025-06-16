@@ -55,7 +55,7 @@ export function WalletCard({
         <div className="flex flex-col">
           <h3 className="font-medium text-xl">{walletName}</h3>
           {walletId && (
-            <p className="text-gray-500 text-xs">{walletId}</p>
+            <p className="text-gray-500 text-xs">ID: {walletId}</p>
           )}
         </div>
 
