@@ -10,7 +10,7 @@ import { log } from "../utils";
 import { ERC20_ABI } from "@/constants/abis/erc20";
 import { broadcastTransactionForVAST, getToSignTransactionForVAST } from "./vast";
 
-const BROADCAST_URL = "https://mempool.space/testnet/api/tx";
+const BROADCAST_URL = "https://blockstream.info/testnet/api/tx";
 const EC = elliptic.ec;
 bitcoinjs.initEccLib(ecc);
 
@@ -71,28 +71,51 @@ export const getToSignTransactionByTokenType = async ({
       unsignedTransaction: txData,
     }
   } else if (tokenType === 'BTC') {
-    const response = await fetch(`https://mempool.space/testnet/api/address/${sendAddress}/utxo`);
-    const utxos = await response.json();
-    log('utxos', utxos)
-    // Sort utxos by value in descending order and pick the first one
-    const utxo = utxos.sort((a: any, b: any) => b.value - a.value)[0];
+    // Use Blockstream API only
+    let utxos, utxoTxDetails, scriptPubKey, utxo;
 
-    const utxoTxResponse = await fetch(`https://mempool.space/testnet/api/tx/${utxo.txid}`);
-    const utxoTxDetails = await utxoTxResponse.json();
-    const scriptPubKey = utxoTxDetails.vout[utxo.vout].scriptpubkey;
+    try {
+      const response = await fetch(`https://blockstream.info/testnet/api/address/${sendAddress}/utxo`);
+      if (!response.ok) throw new Error(`Blockstream UTXO API failed: ${response.status}`);
+      utxos = await response.json();
+      log('utxos from Blockstream', utxos)
+
+      // Sort utxos by value in descending order and pick the first one
+      utxo = utxos.sort((a: any, b: any) => b.value - a.value)[0];
+
+      const utxoTxResponse = await fetch(`https://blockstream.info/testnet/api/tx/${utxo.txid}`);
+      if (!utxoTxResponse.ok) throw new Error(`Blockstream TX API failed: ${utxoTxResponse.status}`);
+      utxoTxDetails = await utxoTxResponse.json();
+      scriptPubKey = utxoTxDetails.vout[utxo.vout].scriptpubkey;
+    } catch (blockstreamError) {
+      console.error('Blockstream API failed:', blockstreamError);
+      throw new Error('Failed to fetch UTXO data from Blockstream API');
+    }
 
     const tx = new bitcoinjs.Transaction();
       tx.version = 2;
-      
+
       tx.addInput(Buffer.from(utxo.txid, "hex").reverse(), utxo.vout);
       const network = bitcoinjs.networks.testnet;
-      
+
       const utxoValue = utxo.value;
       const amountSats = Math.floor(Number(amount) * 100000000);
-      const minimumFee = 1000; // Assuming a minimum fee of 0.0001 BTC
-      
+
+      // Get dynamic fee rate
+      let feeSats = 10000; // Default fallback
+      try {
+        const feeResponse = await fetch('https://blockstream.info/testnet/api/fee-estimates');
+        if (feeResponse.ok) {
+          const feeRates = await feeResponse.json();
+          const feeRate = feeRates['1'] || feeRates['2'] || feeRates['3'] || 10;
+          feeSats = Math.ceil(feeRate * 250); // 250 bytes tx size estimate
+        }
+      } catch (error) {
+        console.warn('Failed to fetch dynamic fee, using fallback:', error);
+      }
+
       // Calculate change amount
-      const changeAmount = utxoValue - amountSats - minimumFee;
+      const changeAmount = utxoValue - amountSats - feeSats;
       
       // Add output for the amount to be sent
       tx.addOutput(
@@ -346,56 +369,42 @@ export const estimateGasFee = async ({
         remainingBalance: isSufficientForFee ? (numBalance - numFee).toString() : "0"
       };
     } else if (tokenInfo.chainType === 'UTXO') {
-      // Dynamic fee calculation based on network congestion for UTXO chains
+      // Simple dynamic fee calculation for Bitcoin
       try {
-        // Use our dedicated API endpoint for Bitcoin fee recommendations
-        const feeRatesResponse = await fetch(`/api/btc/mempool/fees`);
-        
-        if (!feeRatesResponse.ok) {
-          throw new Error(`Failed to fetch fee rates: ${feeRatesResponse.status}`);
-        }
-        
-        const feeRates = await feeRatesResponse.json();
-        
-        // Use fastestFee for higher priority or economyFee for lower cost
-        // Rates are in sat/vByte
-        const feeRate = feeRates.fastestFee || feeRates.halfHourFee || feeRates.hourFee || 10; // Fallback to 10 sat/vByte
-        
-        // Estimate transaction size - P2PKH transaction with 1 input and 2 outputs
-        // (One for recipient, one for change)
-        const estimatedTxSize = 225; // bytes
-        
-        // Calculate fee in satoshis
-        const feeSats = feeRate * estimatedTxSize;
-        
-        // Convert to BTC (1 BTC = 100,000,000 satoshis)
-        const estimatedFee = (feeSats / 100000000).toFixed(8);
-        
-        // Check if sufficient balance
+        // Directly call Blockstream API for fee rates
+        const response = await fetch('https://blockstream.info/testnet/api/fee-estimates');
+        if (!response.ok) throw new Error('Fee API failed');
+
+        const feeRates = await response.json();
+
+        // Use a simple fee rate (sat/vByte) - prefer faster confirmation
+        const feeRate = feeRates['1'] || feeRates['2'] || feeRates['3'] || 10; // fallback to 10 sat/vB
+
+        // Simple transaction size estimate: 250 bytes (covers most P2PKH transactions)
+        const txSize = 250;
+        const feeSats = Math.ceil(feeRate * txSize);
+        const estimatedFee = (feeSats / 100000000).toFixed(8); // Convert to BTC
+
         const numBalance = parseFloat(balance);
         const numFee = parseFloat(estimatedFee);
         const isSufficientForFee = numBalance >= numFee;
-        
+
         return {
           estimatedFee,
-          feeRate: `${feeRate} sat/vB`,
-          transactionPriority: feeRate >= feeRates.halfHourFee ? 'high' : 'medium',
           isSufficientForFee,
           remainingBalance: isSufficientForFee ? (numBalance - numFee).toString() : "0"
         };
       } catch (error) {
-        console.error("Error fetching dynamic fee rates:", error);
-        // Fallback to fixed fee if API call fails
-        const estimatedFee = "0.0001"; // Fallback fixed fee
+        // Simple fallback if API fails
+        const estimatedFee = "0.0001"; // 0.0001 BTC fallback
         const numBalance = parseFloat(balance);
         const numFee = parseFloat(estimatedFee);
         const isSufficientForFee = numBalance >= numFee;
-        
+
         return {
           estimatedFee,
           isSufficientForFee,
-          remainingBalance: isSufficientForFee ? (numBalance - numFee).toString() : "0",
-          note: "Using fallback fixed fee due to error fetching current rates"
+          remainingBalance: isSufficientForFee ? (numBalance - numFee).toString() : "0"
         };
       }
     }

@@ -18,84 +18,64 @@ export const getBtcAddressByPublicKey = (publicKey: string) => {
 }
 
 export const fetchBtcBalance = async (btcAddress: string): Promise<number> => {
-  // Try Mempool.space API first
   try {
-    const response = await fetch(`https://mempool.space/testnet/api/address/${btcAddress}`);
+    const response = await fetch(`https://blockstream.info/testnet/api/address/${btcAddress}`);
     if (!response.ok) {
       if (response.status === 404) {
-        console.log(`Address ${btcAddress} not found on Mempool.space or has no transactions.`);
-        return 0; 
+        console.log(`Address ${btcAddress} not found on Blockstream or has no transactions.`);
+        return 0;
       }
-      throw new Error(`Mempool.space API returned ${response.status}: ${response.statusText}`);
+      throw new Error(`Blockstream API returned ${response.status}: ${response.statusText}`);
     }
     const data = await response.json();
     const balance = data.chain_stats.funded_txo_sum - data.chain_stats.spent_txo_sum;
     return balance / 100000000; // Convert satoshis to BTC
-  } catch (mempoolError) {
-    console.warn("Mempool.space API failed, falling back to BlockCypher:", mempoolError);
-
-    // If Mempool.space fails, fallback to BlockCypher API (only try once)
-    try {
-      const response = await fetch(`https://api.blockcypher.com/v1/btc/test3/addrs/${btcAddress}/balance`);
-      
-      if (response.status === 404) {
-          console.log(`Address ${btcAddress} not found on BlockCypher or has no transactions.`);
-          return 0; 
-      }
-      if (!response.ok) {
-        // For BlockCypher's 429 error, we don't handle retry here, just treat it as a failure
-        throw new Error(`BlockCypher API returned ${response.status}: ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      return data.final_balance / 100000000; // Convert satoshis to BTC
-    } catch (blockCypherError) {
-      console.error("BlockCypher API also failed:", blockCypherError);
-      return 0; // If BlockCypher also fails, return 0
-    }
+  } catch (error) {
+    console.error("Error fetching BTC balance:", error);
+    return 0;
   }
 };
 
 export const fetchBtc24HourOutflow = async (btcAddress: string) => {
   try {
-    // Fetch transactions for the address using mempool.space API via our proxy
+    // Fetch transactions for the address using Blockstream API via our proxy
     const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/btc/mempool?address=${btcAddress}&endpoint=txs`);
-    
+
     if (!response.ok) {
       throw new Error(`API returned ${response.status}: ${response.statusText}`);
     }
-    
+
     const transactions = await response.json();
-    
+
     if (!Array.isArray(transactions)) {
       return 0;
     }
-    
+
     // Calculate time 24 hours ago
     const oneDayAgo = new Date();
     oneDayAgo.setHours(oneDayAgo.getHours() - 24);
-    
+
     // Filter transactions from last 24 hours and sum outgoing amounts
     let totalOutflow = 0;
-    
+
     for (const tx of transactions) {
       // Check if transaction has a timestamp
       if (!tx.status || !tx.status.block_time) {
         // Skip transactions without timestamps (pending transactions)
         continue;
       }
-      
+
       // Convert block_time (Unix timestamp) to Date
       const txTime = new Date(tx.status.block_time * 1000);
-      
+
       // Skip transactions older than 24 hours
       if (txTime < oneDayAgo) {
         continue;
       }
-      
+
       // Check if this is an outgoing transaction
-      // In mempool.space API, vin contains inputs and vout contains outputs
-      const isOutgoing = tx.vin.some((input: any) => 
+      // In Blockstream API, vin contains inputs and vout contains outputs
+      const isOutgoing = tx.vin.some((input: any) =>
         input.prevout && input.prevout.scriptpubkey_address === btcAddress
       );
       
@@ -135,21 +115,21 @@ export const fetchBtcTransactionHistory = async ({
 }) => {
   const limit = 50;
 
-  // Try Mempool.space API first through our proxy
+  // Try Blockstream API through our proxy
   try {
     // Build URL with pagination parameters if provided
     let apiUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/btc/mempool?address=${btcAddress}&endpoint=txs`;
     if (lastTxid) {
       apiUrl += `&lastId=${lastTxid}`;
     }
-    
+
     const response = await fetch(apiUrl);
     if (!response.ok) {
       throw new Error(`API returned ${response.status}: ${response.statusText}`);
     }
     const transactions = await response.json();
-    
-    // Transform mempool.space transactions to our app's format
+
+    // Transform Blockstream transactions to our app's format
     const formattedTransactions: TransactionItem[] = transactions.map((tx: any) => {
       // Check if this address is in inputs (sending) or outputs (receiving)
       const isInputter = tx.vin.some((input: any) => 
@@ -218,8 +198,8 @@ export const fetchBtcTransactionHistory = async ({
       transactions: formattedTransactions,
       lastId,
     };
-  } catch (mempoolError) {
-    console.log("Mempool.space API failed for transaction history", mempoolError);
+  } catch (blockstreamError) {
+    console.log("Blockstream API failed for transaction history", blockstreamError);
 
     return {
       transactions: [],

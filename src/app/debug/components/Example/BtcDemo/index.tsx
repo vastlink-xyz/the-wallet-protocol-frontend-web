@@ -13,7 +13,7 @@ import { fetchBtc24HourOutflow } from "@/lib/web3/btc";
 // btc dependencies
 
 // Testnet transaction broadcast URL
-const BROADCAST_URL = "https://mempool.space/testnet/api/tx";
+const BROADCAST_URL = "https://blockstream.info/testnet/api/tx";
 const EC = elliptic.ec;
 bitcoinjs.initEccLib(ecc);
 
@@ -90,7 +90,7 @@ export function BtcDemo({ authMethod, litactionPkp, sessionSigs }: BtcDemoProps)
       setStatus("Fetching UTXO information...");
       
       // 1. Get UTXO information
-      const response = await fetch(`https://mempool.space/testnet/api/address/${btcAddress}/utxo`);
+      const response = await fetch(`https://blockstream.info/testnet/api/address/${btcAddress}/utxo`);
       const utxos = await response.json();
       
       if (!utxos || utxos.length === 0) {
@@ -114,7 +114,7 @@ export function BtcDemo({ authMethod, litactionPkp, sessionSigs }: BtcDemoProps)
         throw new Error(`Insufficient funds. UTXO value: ${utxoValue / 100000000} BTC, trying to send: ${amountToSend / 100000000} BTC plus fees`);
       }
       
-      const utxoTxResponse = await fetch(`https://mempool.space/testnet/api/tx/${utxo.txid}`);
+      const utxoTxResponse = await fetch(`https://blockstream.info/testnet/api/tx/${utxo.txid}`);
       const utxoTxDetails = await utxoTxResponse.json();
       const scriptPubKey = utxoTxDetails.vout[utxo.vout].scriptpubkey;
       
