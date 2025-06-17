@@ -13,6 +13,7 @@ import axios from 'axios';
 import { getUserIdFromToken } from '@/lib/jwt';
 import { AUTH_METHOD_TYPE } from '@lit-protocol/constants';
 import { sendRecipientRegisteredEmail } from '@/lib/notification/invite-notification';
+import { LogoLoading } from '@/components/LogoLoading';
 
 const getQueryParam = (paramName: string): string | null => {
   if (typeof window !== 'undefined') {
@@ -243,7 +244,7 @@ export default function StytchCallbackPage() {
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">Logging in ...</div>;
+    return <LogoLoading />
   }
   
   if (error) {

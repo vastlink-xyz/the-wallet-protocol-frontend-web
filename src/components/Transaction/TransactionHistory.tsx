@@ -9,6 +9,7 @@ import { toast } from 'react-toastify';
 import { SelectToken } from '@/components/SelectToken';
 import { LogoLoading } from '../LogoLoading';
 import { Loader2 } from 'lucide-react';
+import { TableList } from './TransactionHistoryTabls';
 
 export function TransactionHistory({
   addresses,
@@ -152,34 +153,27 @@ export function TransactionHistory({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-xl font-semibold">Transaction History</h1>
-        <SelectToken 
-          onSelect={handleTokenChange}
-          defaultValue={selectedToken}
-          className="w-[180px]"
-        />
-      </div>
+      <SelectToken 
+        onSelect={handleTokenChange}
+        defaultValue={selectedToken}
+        className="w-[180px]"
+      />
 
       {isLoading ? (
         <LogoLoading />
       ) : (
         <div className="space-y-4">
-          <div className="p-3 bg-gray-50 rounded-md">
-            <div className="flex items-center gap-2 text-sm text-gray-500">
-              <span>{selectedToken} Address: </span>
-              <CopyAddress className="text-xs break-all" textToCopy={address || ''} />
-            </div>
-          </div>
           
           {transactions.length > 0 ? (
             <div className="space-y-2">
-              {transactions.map((transaction) => (
+              {/* {transactions.map((transaction) => (
                 <TransactionHistoryItem 
                   key={transaction.txid} 
                   transaction={transaction} 
                 />
-              ))}
+              ))} */}
+              
+              <TableList data={transactions} tokenType={selectedToken} isLoading={isLoading} />
               
               {hasMore && (
                 <div className="pt-4 text-center">

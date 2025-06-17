@@ -5,6 +5,7 @@ import { usePathname, useParams, useRouter } from "next/navigation";
 import { History, FileText, ArrowLeft, Wallet } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WalletProvider, useWallet } from "./context/WalletContext";
+import { cn } from "@/lib/utils";
 
 // Inner component that can use the wallet context
 function WalletName() {
@@ -44,9 +45,12 @@ export default function WalletDetailsLayoutClient({
 
   return (
     <WalletProvider walletId={walletId}>
-      <div className="container mx-auto py-8">
-        <div className="mb-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Wallet Details</h1>
+      <div className={cn(
+        "mx-auto py-8",
+        'w-[342px] tablet:w-[725px] laptop:w-[908px] desktop:w-[1224px]',
+      )}>
+        <div className="mb-4 flex items-center">
+          {/* <h1 className="text-2xl font-bold">Wallet Details</h1> */}
           <button 
             onClick={() => router.push('/assets/team')}
             className="flex items-center text-sm font-medium text-gray-600 hover:text-gray-900 cursor-pointer"
@@ -56,7 +60,9 @@ export default function WalletDetailsLayoutClient({
           </button>
         </div>
 
-        <WalletName />
+        <div className="flex items-center justify-center">
+          <WalletName />
+        </div>
         
         <Tabs value={getActiveTab()} className="mb-6">
           <TabsList className="grid w-full grid-cols-2">
