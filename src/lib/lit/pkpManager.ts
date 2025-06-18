@@ -50,7 +50,6 @@ export async function mintPersonalPKP({
   
   const personalSignIpfsIdHex = await getPersonalSignIpfsId('hex')
   const personalTransactionIpfsIdHex = await getPersonalTransactionIpfsId('hex')
-  const upgradeIpfsIdHex = await getUpgradeIpfsId('hex')
 
   const authMethodId = await provider.getAuthMethodId(authMethod);
 
@@ -59,18 +58,15 @@ export async function mintPersonalPKP({
     permittedAuthMethodTypes: [
       AUTH_METHOD_TYPE.LitAction,
       AUTH_METHOD_TYPE.LitAction,
-      AUTH_METHOD_TYPE.LitAction,
       authMethod.authMethodType,
     ],
     permittedAuthMethodIds: [
       personalSignIpfsIdHex,
       personalTransactionIpfsIdHex,
-      upgradeIpfsIdHex,
       authMethodId
     ],
-    permittedAuthMethodPubkeys: ['0x', '0x', '0x', '0x'],
+    permittedAuthMethodPubkeys: ['0x', '0x', '0x'],
     permittedAuthMethodScopes: [
-      [AUTH_METHOD_SCOPE.SignAnything],
       [AUTH_METHOD_SCOPE.SignAnything],
       [AUTH_METHOD_SCOPE.SignAnything],
       [AUTH_METHOD_SCOPE.PersonalSign]
