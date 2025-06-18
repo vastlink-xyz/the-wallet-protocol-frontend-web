@@ -9,7 +9,7 @@ import { Loader2, Plus, Trash2 } from 'lucide-react'
 import { AuthMethod, IRelayPKP } from '@lit-protocol/types'
 import { toast } from 'react-toastify'
 import axios from 'axios'
-import { log } from '@/lib/utils'
+import { isValidEmail, log } from '@/lib/utils'
 import { 
   getSessionSigsByPkp, 
   litNodeClient, 
@@ -189,7 +189,9 @@ export function MultisigWalletFormContent({
 
   // Handle adding a new signer
   const handleAddSigner = () => {
-    if (!newSignerEmail) return;
+    if (!newSignerEmail || !isValidEmail(newSignerEmail)) {
+      return
+    }
     
     // Check if signer already exists in the list
     const existingSigner = signers.find(s => {

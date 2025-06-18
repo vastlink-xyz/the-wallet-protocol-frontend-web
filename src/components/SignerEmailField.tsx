@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Loader2, AlertCircle } from 'lucide-react'
@@ -7,12 +7,7 @@ import { ethers } from 'ethers'
 import { SUPPORTED_TOKENS_INFO, TokenType } from '@/lib/web3/token'
 import { UserAddresses } from '@/app/api/user/storage'
 import { CopyAddress } from './ui/CopyAddress'
-
-// Helper functions to validate input formats
-const isValidEmail = (email: string): boolean => {
-  const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/
-  return emailRegex.test(email)
-}
+import { isValidEmail, log } from '@/lib/utils'
 
 interface SignerEmailFieldProps {
   // Field label
@@ -89,6 +84,7 @@ export function SignerEmailField({
     } 
   } : null)
   const [internalInputType, setInternalInputType] = useState<'email' | 'address' | null>(inputType || null)
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   // If address prop changes, update the state (only for initial and changed props)
   useEffect(() => {
@@ -124,51 +120,6 @@ export function SignerEmailField({
         return false;
     }
   }
-
-  // Query address when input changes and auto-lookup is enabled
-  useEffect(() => {
-    if (lookupOnChange && input.value) {
-      const debounceTimer = setTimeout(() => {
-        // Check if input is a valid email or address for the current token type
-        if (isValidEmail(input.value)) {
-          setInternalInputType('email');
-          fetchAddressByEmail(input.value);
-        } else if (!emailOnly && isValidAddress(input.value, tokenType)) {
-          // If it's a valid address for the current token type, use it directly
-          setInternalInputType('address');
-          
-          // Create an addresses object with the input value for the current token type
-          const addresses: UserAddresses = {
-            eth: '',
-            btc: ''
-          };
-          addresses[SUPPORTED_TOKENS_INFO[tokenType].addressKey] = input.value;
-          
-          const newAddressInfo = {
-            publicKey: '',
-            addresses
-          };
-          
-          setAddressInfo(newAddressInfo);
-          if (onAddressFound) onAddressFound(newAddressInfo);
-          setError(null);
-        } else if (emailOnly && !isValidEmail(input.value) && input.value.trim() !== '') {
-          // If emailOnly is true and input is not a valid email, show error
-          setError('Please enter a valid email address');
-          setAddressInfo(null);
-          if (onAddressFound) onAddressFound(null);
-        }
-      }, 500) // 500ms debounce
-      
-      return () => clearTimeout(debounceTimer)
-    } else if (!input.value) {
-      // Clear everything if input is empty
-      setInternalInputType(null);
-      setAddressInfo(null);
-      setError(null);
-      if (onAddressFound) onAddressFound(null);
-    }
-  }, [input.value, lookupOnChange, onAddressFound, tokenType, emailOnly])
 
   // Query address information corresponding to email
   const fetchAddressByEmail = async (email: string) => {
@@ -215,39 +166,77 @@ export function SignerEmailField({
     }
   }
 
-  // Handle manual query
-  const handleBlur = () => {
-    if (!lookupOnChange && input.value) {
-      if (isValidEmail(input.value)) {
+  // Process the input value with validation and lookup
+  const processInputValue = (value: string) => {
+    if (lookupOnChange && value) {
+      if (isValidEmail(value)) {
         setInternalInputType('email');
-        fetchAddressByEmail(input.value);
-      } else if (!emailOnly && isValidAddress(input.value, tokenType)) {
-        // If it's a valid address for the current token type, use it directly
-        setInternalInputType('address');
-        
-        // Create an addresses object with the input value for the current token type
-        const addresses: UserAddresses = {
-          eth: '',
-          btc: ''
-        };
-        addresses[SUPPORTED_TOKENS_INFO[tokenType].addressKey] = input.value;
-        
-        const newAddressInfo = {
-          publicKey: '',
-          addresses
-        };
-        
-        setAddressInfo(newAddressInfo);
-        if (onAddressFound) onAddressFound(newAddressInfo);
-        setError(null);
-      } else if (emailOnly && !isValidEmail(input.value) && input.value.trim() !== '') {
+        fetchAddressByEmail(value);
+      } else if (!emailOnly) {
+        if (isValidAddress(value, tokenType)) {
+          // If it's a valid address for the current token type, use it directly
+          setInternalInputType('address');
+          
+          // Create an addresses object with the input value for the current token type
+          const addresses: UserAddresses = {
+            eth: '',
+            btc: ''
+          };
+          addresses[SUPPORTED_TOKENS_INFO[tokenType].addressKey] = value;
+          
+          const newAddressInfo = {
+            publicKey: '',
+            addresses
+          };
+          
+          setAddressInfo(newAddressInfo);
+          if (onAddressFound) onAddressFound(newAddressInfo);
+          setError(null);
+        } else {
+          setError('Please enter a valid email or wallet address');
+          setAddressInfo(null);
+          if (onAddressFound) onAddressFound(null);
+        }
+      } else if (emailOnly && !isValidEmail(value) && value.trim() !== '') {
         // If emailOnly is true and input is not a valid email, show error
         setError('Please enter a valid email address');
         setAddressInfo(null);
         if (onAddressFound) onAddressFound(null);
+        log('emailOnly', value)
+      } else if (!value.trim()) {
+        // Clear everything if input is empty
+        setInternalInputType(null);
+        setAddressInfo(null);
+        setError(null);
+        if (onAddressFound) onAddressFound(null);
       }
     }
   }
+
+  // Handle input change with debounce
+  const handleChange = (value: string) => {
+    // Update the input value immediately
+    input.onChange(value)
+    
+    // Clear any existing debounce timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current)
+    }
+    
+    // Set a new debounce timer for processing the value
+    debounceTimerRef.current = setTimeout(() => {
+      processInputValue(value)
+    }, 500) // 500ms debounce
+  }
+
+  // Clean up the timer on component unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+      }
+    }
+  }, [])
 
   // Get the appropriate address to display based on tokenType
   const getDisplayAddress = (): string => {
@@ -267,8 +256,7 @@ export function SignerEmailField({
         <Input
           id={input.id || 'recipient-field'}
           value={input.value}
-          onChange={(e) => input.onChange(e.target.value)}
-          onBlur={handleBlur}
+          onChange={(e) => handleChange(e.target.value)}
           placeholder={input.placeholder || (emailOnly ? "Enter email address" : `Enter email address or ${tokenType} address`)}
           disabled={disabled || isLoading}
           className={`${disabled ? "bg-gray-50 text-black font-semibold" : ""} ${error ? "border-red-300" : ""} ${input.className || ""}`}

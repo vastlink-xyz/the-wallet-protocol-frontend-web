@@ -127,6 +127,7 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
 
   const handleSendClick = (wallet: MultisigWalletWithUnsignedProposalsCount) => {
     setSelectedWallet(wallet)
+    setIsSending(false)
     setShowSendDialog(true)
   }
 
@@ -185,14 +186,14 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
             })
           } else {
             toast.info('You have approved the proposal. Waiting for other signers to approve.')
-            setIsSending(false)
             setShowSendDialog(false)
           }
         }
       }
     } catch (error) {
       console.error('Failed to create proposal:', error)
-      setIsSending(false)
+      const errorMessage = error instanceof Error && error.message ? error.message : 'Operation failed'
+      toast.error(errorMessage)
     }
   }
 
@@ -287,7 +288,6 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
 
       // Close dialogs
       setShowSendDialog(false)
-      setIsSending(false)
       setShowMfaDialog(false)
 
       // Send proposal executed notification to all approvers
@@ -343,15 +343,12 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
     } catch (error) {
       console.error('Error inviting user:', error);
       alert(`Failed to send invitation: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    } finally {
-      setIsSending(false)
     }
   }
 
   // MFA cancellation callback
   const handleMfaCancel = () => {
     setShowMfaDialog(false)
-    setIsSending(false)
   }
 
   // MFA verification successful callback
@@ -373,8 +370,7 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
       })
     } catch (error) {
       console.error('Error executing transaction:', error)
-    } finally {
-      setIsSending(false)
+      toast.error('Failed to execute transaction')
     }
   };
 
