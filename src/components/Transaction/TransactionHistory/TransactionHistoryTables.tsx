@@ -9,8 +9,8 @@ import {
 import { cn, log } from "@/lib/utils"
 import { formatBalance } from "@/lib/web3/format";
 import { SUPPORTED_TOKENS_INFO, TokenType } from "@/lib/web3/token";
-import { CopyAddress } from "../ui/CopyAddress";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
+import { CopyAddress } from "@/components/ui/CopyAddress";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 
 const openTxPage = (tx: any) => {

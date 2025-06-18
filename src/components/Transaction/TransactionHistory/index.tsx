@@ -6,9 +6,8 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'react-toastify';
 import { SelectToken } from '@/components/SelectToken';
 import { Loader2 } from 'lucide-react';
-import { TransactionItem } from './TransactionHistoryItem';
 import { LogoLoading } from '@/components/LogoLoading';
-import { TableList } from './TransactionHistoryTables';
+import { TableList, TransactionItem } from './TransactionHistoryTables';
 
 export function TransactionHistory({
   addresses,

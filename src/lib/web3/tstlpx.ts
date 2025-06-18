@@ -1,8 +1,5 @@
 import { ethers } from "ethers";
-import { LIT_CHAINS } from "@lit-protocol/constants";
-import { TransactionItem } from '@/components/Transaction/TransactionHistoryItem';
-import { ERC20_ABI } from "@/constants/abis/erc20";
-import { SUPPORTED_TOKENS_INFO } from "./token";
+import { TransactionItem } from "@/components/Transaction/TransactionHistory/TransactionHistoryTables";
 
 export const fetchYellowstoneTransactionHistory = async ({
   address,

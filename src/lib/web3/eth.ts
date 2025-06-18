@@ -4,7 +4,7 @@ import { log } from "../utils";
 import { ERC20_ABI } from "@/constants/abis/erc20";
 import Moralis from "moralis";
 import { initializeMoralis } from "../moralis";
-import { TransactionItem } from "@/components/Transaction/TransactionHistoryItem";
+import { TransactionItem } from "@/components/Transaction/TransactionHistory/TransactionHistoryTables";
 
 /**
  * Fetch ETH balance for an address
