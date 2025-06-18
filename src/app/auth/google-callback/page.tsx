@@ -202,12 +202,12 @@ export default function GoogleCallbackPage() {
       const authMethodId = await googleProvider.getAuthMethodId(authMethod);
 
       // Step 2: Mint the second PKP with permanent Lit Action
-      const pkpForLitAction = await mintPersonalPKP({
+      const pkpForPersonal = await mintPersonalPKP({
         authMethod,
       });
       
       // Step 3: Save second PKP to database with 'litAction' type
-      await savePkpToDatabase(authMethodId, pkpForLitAction, 'litAction');
+      await savePkpToDatabase(authMethodId, pkpForPersonal, 'litAction');
     } catch (error) {
       console.error("Error minting or saving PKP:", error);
     } finally {
