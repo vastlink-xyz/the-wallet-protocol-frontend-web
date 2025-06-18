@@ -166,5 +166,5 @@ const go = async () => {
     });
   }
 };
-
-export const personalTransactionLitActionCode = `(${go.toString()})();`;
+// 
+export const litActionCodeForPersonalTransaction = `(${go.toString()})();`;

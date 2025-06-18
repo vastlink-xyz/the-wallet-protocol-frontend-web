@@ -5,10 +5,10 @@ import { AuthMethod, IRelayPKP, SessionSigs } from "@lit-protocol/types";
 import { AUTH_METHOD_TYPE, AUTH_METHOD_SCOPE, LIT_NETWORK } from "@lit-protocol/constants";
 import { litNodeClient } from "@/lib/lit";
 import { getMultisigTransactionIpfsId, getPersonalSignIpfsId, getUpdateWalletIpfsId } from "@/lib/lit/ipfs-id-env";
-import { upgradeLitActionCode } from "@/lib/lit-action-code/upgrade.lit";
 import { log } from "@/lib/utils";
 import { LitContracts } from '@lit-protocol/contracts-sdk';
 import { PKPEthersWallet } from '@lit-protocol/pkp-ethers';
+import { litActionCodeForCommonUpgradableProxy } from '@/lib/lit-action-code/common-upgradable-proxy.lit';
 
 const upgradeIpfsFn = getUpdateWalletIpfsId
 const removeIpfsIdHex = '0x1220739c4930a5c9ae89c39c0db56a1551ac1f5f2d32723a8744e1f9707c15cb5fa0'
@@ -66,7 +66,7 @@ export function AllMultisigWallets({
       const ipfsIdHex = await upgradeIpfsFn('hex')
       
       const response = await litNodeClient.executeJs({
-        code: upgradeLitActionCode,
+        code: litActionCodeForCommonUpgradableProxy,
         sessionSigs,
         jsParams: {
           publicKey: wallet.pkp.publicKey,
@@ -99,7 +99,7 @@ export function AllMultisigWallets({
       setLoading(true);
       
       const response = await litNodeClient.executeJs({
-        code: upgradeLitActionCode,
+        code: litActionCodeForCommonUpgradableProxy,
         sessionSigs,
         jsParams: {
           publicKey: wallet.pkp.publicKey,

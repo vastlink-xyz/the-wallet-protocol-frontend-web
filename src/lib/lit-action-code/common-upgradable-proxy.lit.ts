@@ -211,4 +211,5 @@ const _litActionCode = async () => {
   }
 };
 
-export const upgradeLitActionCode = `(${_litActionCode.toString()})();`;
+// LitActionUpgradableProxy
+export const litActionCodeForCommonUpgradableProxy = `(${_litActionCode.toString()})();`;

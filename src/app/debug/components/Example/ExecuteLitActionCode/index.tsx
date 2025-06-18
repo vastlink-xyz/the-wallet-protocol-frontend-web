@@ -12,15 +12,11 @@ import { encryptString } from "@lit-protocol/encryption";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { verifyAuthTokenLitActionCode } from "@/lib/lit-action-code/verify-auth-token";
-import { updateWalletSettingsLitActionCode } from "@/lib/lit-action-code/update-wallet-settings";
-import { createWalletLitActionCode } from "@/lib/lit-action-code/create-wallet";
-import { multisigTransactionLitActionCode } from "@/lib/lit-action-code/multisig-transaction.lit";
 import { personalSignLitActionCode } from "@/lib/lit-action-code/proposal-sign.lit";
-import { upgradeLitActionCode } from "@/lib/lit-action-code/upgrade.lit";
-import { personalTransactionLitActionCode } from "@/lib/lit-action-code/personal-transaction.lit";
 import { decryptDebugLitActionCode } from "@/app/debug/decrypt-lit-action";
+import { litActionCodeForUpdateMultisigWalletSettings } from "@/lib/lit-action-code/update-multisig-wallet-settings";
 
-const litActionCode = updateWalletSettingsLitActionCode
+const litActionCode = litActionCodeForUpdateMultisigWalletSettings
 
 interface ExecuteLitActionCodeProps {
   authMethod: AuthMethod;

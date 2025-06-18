@@ -489,4 +489,4 @@ const _litActionCode = async () => {
   }
 };
 
-export const updateWalletSettingsLitActionCode = `(${_litActionCode.toString()})();`;
+export const litActionCodeForUpdateMultisigWalletSettings = `(${_litActionCode.toString()})();`;

@@ -10,9 +10,9 @@ import { log } from '@/lib/utils';
 import { AuthMethod, IRelayPKP, SessionSigs } from '@lit-protocol/types';
 import { User } from '@/app/api/user/storage';
 import { getPersonalSignIpfsId, getPersonalTransactionIpfsId } from '@/lib/lit/ipfs-id-env';
-import { upgradeLitActionCode } from '@/lib/lit-action-code/upgrade.lit';
 import { LIT_NETWORK } from '@lit-protocol/constants';
 import { getBtcAddressByPublicKey } from '@/lib/web3/btc';
+import { litActionCodeForCommonUpgradableProxy } from '@/lib/lit-action-code/common-upgradable-proxy.lit';
 
 const upgradeIpfsHexFn = getPersonalSignIpfsId
 const removeIpfsIdHex = '0x122007b4331ad60377dd5d1bb3b69ffb54e6dbf6ced26c98d80486717bf75925321d'
@@ -107,7 +107,7 @@ export function AllUsers({
       const ipfsIdHex = await upgradeIpfsHexFn('hex')
       
       const response = await litNodeClient.executeJs({
-        code: upgradeLitActionCode,
+        code: litActionCodeForCommonUpgradableProxy,
         sessionSigs,
         jsParams: {
           publicKey: user.litActionPkp!.publicKey,
@@ -141,7 +141,7 @@ export function AllUsers({
       setLoading(true);
       
       const response = await litNodeClient.executeJs({
-        code: upgradeLitActionCode,
+        code: litActionCodeForCommonUpgradableProxy,
         sessionSigs,
         jsParams: {
           publicKey: user.litActionPkp!.publicKey,

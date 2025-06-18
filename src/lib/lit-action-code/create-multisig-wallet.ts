@@ -38,4 +38,4 @@ const _litActionCode = async () => {
   })})
 };
 
-export const createWalletLitActionCode = `(${_litActionCode.toString()})();`;
+export const litActionCodeForCreateMultisigWallet = `(${_litActionCode.toString()})();`;

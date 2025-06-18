@@ -1,11 +1,11 @@
 import { getLitActionIpfsCid } from "./get-lit-action-ipfs-cid"
-import { createWalletLitActionCode } from "../lit-action-code/create-wallet"
 import { verifyAuthTokenLitActionCode } from "../lit-action-code/verify-auth-token"
-import { updateWalletSettingsLitActionCode } from "../lit-action-code/update-wallet-settings"
-import { multisigTransactionLitActionCode } from "../lit-action-code/multisig-transaction.lit"
+import { litActionCodeForMultisigTransaction } from "../lit-action-code/multisig-transaction.lit"
 import { personalSignLitActionCode } from "../lit-action-code/proposal-sign.lit"
-import { upgradeLitActionCode } from "../lit-action-code/upgrade.lit"
-import { personalTransactionLitActionCode } from "../lit-action-code/personal-transaction.lit"
+import { litActionCodeForPersonalTransaction } from "../lit-action-code/personal-transaction.lit"
+import { litActionCodeForCommonUpgradableProxy } from "../lit-action-code/common-upgradable-proxy.lit"
+import { litActionCodeForUpdateMultisigWalletSettings } from "../lit-action-code/update-multisig-wallet-settings"
+import { litActionCodeForCreateMultisigWallet } from "../lit-action-code/create-multisig-wallet"
 
 const updateWalletSettingsIpfsId = 'QmVmNhCPL87PwsKfxdRXgTXMdeuSUMWv677oDzH8feBY8y'
 const updateWalletSettingsIpfsIdHex = '0x12206e57383fbb362b99ea1e5eb3614822dc7cb2a1e0140f2874bbe612bea3a6448a'
@@ -32,7 +32,7 @@ const upgradeIpfsIdHex = '0x12204e852f217ab356ea529afc8584ef67340cae7b0cb0e76d80
 export const getUpdateWalletIpfsId = async (outputFormat: "base58" | "hex") => {
   if (process.env.NEXT_PUBLIC_ENV === 'dev') {
     return await getLitActionIpfsCid({
-      input: updateWalletSettingsLitActionCode,
+      input: litActionCodeForUpdateMultisigWalletSettings,
       outputFormat: outputFormat
     })
   } else {
@@ -47,7 +47,7 @@ export const getUpdateWalletIpfsId = async (outputFormat: "base58" | "hex") => {
 export const getCreateWalletIpfsId = async (outputFormat: "base58" | "hex") => {
   if (process.env.NEXT_PUBLIC_ENV === 'dev') {
     return await getLitActionIpfsCid({
-      input: createWalletLitActionCode,
+      input: litActionCodeForCreateMultisigWallet,
       outputFormat: outputFormat
     })
   } else {
@@ -77,7 +77,7 @@ export const getVerifyAuthTokenIpfsId = async (outputFormat: "base58" | "hex") =
 export const getMultisigTransactionIpfsId = async (outputFormat: "base58" | "hex") => {
   if (process.env.NEXT_PUBLIC_ENV === 'dev') {
     return await getLitActionIpfsCid({
-      input: multisigTransactionLitActionCode,
+      input: litActionCodeForMultisigTransaction,
       outputFormat: outputFormat
     })
   } else {
@@ -107,7 +107,7 @@ export const getPersonalSignIpfsId = async (outputFormat: "base58" | "hex") => {
 export const getPersonalTransactionIpfsId = async (outputFormat: "base58" | "hex") => {
   if (process.env.NEXT_PUBLIC_ENV === 'dev') {
     return await getLitActionIpfsCid({
-      input: personalTransactionLitActionCode,
+      input: litActionCodeForPersonalTransaction,
       outputFormat: outputFormat
     })
   } else {
@@ -122,7 +122,7 @@ export const getPersonalTransactionIpfsId = async (outputFormat: "base58" | "hex
 export const getUpgradeIpfsId = async (outputFormat: "base58" | "hex") => {
   if (process.env.NEXT_PUBLIC_ENV === 'dev') {
     return await getLitActionIpfsCid({
-      input: upgradeLitActionCode,
+      input: litActionCodeForCommonUpgradableProxy,
       outputFormat: outputFormat
     })
   } else {

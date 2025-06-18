@@ -4,13 +4,13 @@ import { AuthMethod, IRelayPKP } from "@lit-protocol/types";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import { upgradeLitActionCode } from "@/lib/lit-action-code/upgrade.lit";
 import { LitActionResource } from "@lit-protocol/auth-helpers";
 import { AUTH_METHOD_SCOPE, AUTH_METHOD_TYPE, LIT_ABILITY, LIT_NETWORK } from "@lit-protocol/constants";
 import { LitPKPResource } from "@lit-protocol/auth-helpers";
 import { PKPEthersWallet } from "@lit-protocol/pkp-ethers";
 import { LitContracts } from "@lit-protocol/contracts-sdk";
 import { getPersonalTransactionIpfsId, getUpdateWalletIpfsId } from "@/lib/lit/ipfs-id-env";
+import { litActionCodeForCommonUpgradableProxy } from "@/lib/lit-action-code/common-upgradable-proxy.lit";
 
 export function Upgrade({
   authMethod,
@@ -52,7 +52,7 @@ export function Upgrade({
       const ipfsIdHex = await getUpdateWalletIpfsId('hex')
       
       const response = await litNodeClient.executeJs({
-        code: upgradeLitActionCode,
+        code: litActionCodeForCommonUpgradableProxy,
         sessionSigs,
         jsParams: {
           publicKey: actionPkp!.publicKey,
@@ -136,7 +136,7 @@ export function Upgrade({
       log('sessionSigs', sessionSigs)
       
       const response = await litNodeClient.executeJs({
-        code: upgradeLitActionCode,
+        code: litActionCodeForCommonUpgradableProxy,
         sessionSigs,
         jsParams: {
           publicKey: actionPkp!.publicKey,

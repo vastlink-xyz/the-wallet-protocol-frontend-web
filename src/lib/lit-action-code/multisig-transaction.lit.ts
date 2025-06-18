@@ -260,4 +260,4 @@ const go = async () => {
   }
 };
 
-export const multisigTransactionLitActionCode = `(${go.toString()})();`;
+export const litActionCodeForMultisigTransaction = `(${go.toString()})();`;

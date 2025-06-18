@@ -354,7 +354,7 @@ export function MultisigWalletFormContent({
         ...signerAuthMethodIds.filter(id => id !== authMethodId).map(() => [AUTH_METHOD_SCOPE.NoPermissions])
       ];
 
-      const multisigPkp = await mintPKP({
+      const pkpForTeam = await mintPKP({
         authMethod,
         options: {
           permittedAuthMethodTypes: allAuthMethodTypes,
@@ -366,7 +366,7 @@ export function MultisigWalletFormContent({
         },
       });
       
-      log('multisig pkp', multisigPkp);
+      log('multisig pkp', pkpForTeam);
 
       // Prepare MFA settings and wallet data
       const mfaSettings: MFASettings = {
@@ -431,7 +431,7 @@ export function MultisigWalletFormContent({
             authMethodType: authMethod.authMethodType,
           },
           dataToEncryptHash,
-          publicKey: multisigPkp.publicKey,
+          publicKey: pkpForTeam.publicKey,
           env: process.env.NEXT_PUBLIC_ENV,
         },
       });
@@ -455,7 +455,7 @@ export function MultisigWalletFormContent({
 
       // Create the wallet via API
       const response = await axios.post('/api/multisig', {
-        multisigPkp: multisigPkp,
+        multisigPkp: pkpForTeam,
         currentPkp: userPkp,
         signer1Email: currentUserEmail,
         ciphertext,
@@ -477,7 +477,7 @@ export function MultisigWalletFormContent({
         await sendEmailToSigners(
           currentUserEmail,
           signers,
-          multisigPkp.ethAddress,
+          pkpForTeam.ethAddress,
           threshold,
           walletLink,
           walletName,

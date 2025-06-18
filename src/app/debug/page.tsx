@@ -14,13 +14,13 @@ import { getAuthIdByAuthMethod } from "@lit-protocol/lit-auth-client";
 import { personalSignLitActionCode } from "@/lib/lit-action-code/proposal-sign.lit";
 import { encryptString } from "@lit-protocol/encryption";
 import { decryptDebugLitActionCode } from "./decrypt-lit-action";
-import { upgradeLitActionCode } from "@/lib/lit-action-code/upgrade.lit";
 import { getUpgradeIpfsId } from "@/lib/lit/ipfs-id-env";
 import { getPersonalSignIpfsId } from "@/lib/lit/ipfs-id-env";
 import { LitActionResource } from "@lit-protocol/auth-helpers";
 import { LitAccessControlConditionResource } from "@lit-protocol/auth-helpers";
 import { LitContracts } from "@lit-protocol/contracts-sdk";
 import { PKPEthersWallet } from "@lit-protocol/pkp-ethers";
+import { litActionCodeForCommonUpgradableProxy } from "@/lib/lit-action-code/common-upgradable-proxy.lit";
 
 // const pkp = {
 //   "tokenId": "0x4db47d93f4544bce5325db9c5f0aa502e9b404caf882115df84ec6c1ca6708c8",
@@ -241,7 +241,7 @@ export default function DebugPage() {
       })
 
       const response = await litNodeClient.executeJs({
-        code: upgradeLitActionCode,
+        code: litActionCodeForCommonUpgradableProxy,
         sessionSigs,
         jsParams: {
           publicKey: pkp.publicKey,
