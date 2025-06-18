@@ -814,7 +814,7 @@ export function MultisigWalletFormContent({
                     setNewSignerEmail(value);
                     setNewSignerError(false);
                   },
-                  placeholder: "Enter signer's email or ETH address",
+                  placeholder: "Enter signer's email",
                   id: "newSigner",
                   className: newSignerError ? "border-red-500" : ""
                 }}

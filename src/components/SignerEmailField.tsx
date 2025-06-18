@@ -35,7 +35,7 @@ interface SignerEmailFieldProps {
   // Whether to automatically query address after input
   lookupOnChange?: boolean
   
-  // Explicit address (if provided, no lookup will be performed)
+  // Explicit address (if provided, used as initial value but can be overridden)
   address?: string
   
   // Callback when address information changes
@@ -90,7 +90,7 @@ export function SignerEmailField({
   } : null)
   const [internalInputType, setInternalInputType] = useState<'email' | 'address' | null>(inputType || null)
 
-  // If address prop changes, update the state
+  // If address prop changes, update the state (only for initial and changed props)
   useEffect(() => {
     if (address) {
       const addressData = { 
@@ -127,9 +127,6 @@ export function SignerEmailField({
 
   // Query address when input changes and auto-lookup is enabled
   useEffect(() => {
-    // Skip lookup if address is explicitly provided
-    if (address) return
-    
     if (lookupOnChange && input.value) {
       const debounceTimer = setTimeout(() => {
         // Check if input is a valid email or address for the current token type
@@ -171,13 +168,10 @@ export function SignerEmailField({
       setError(null);
       if (onAddressFound) onAddressFound(null);
     }
-  }, [input.value, lookupOnChange, address, onAddressFound, tokenType, emailOnly])
+  }, [input.value, lookupOnChange, onAddressFound, tokenType, emailOnly])
 
   // Query address information corresponding to email
   const fetchAddressByEmail = async (email: string) => {
-    // Skip lookup if address is explicitly provided
-    if (address) return
-    
     if (!email || !email.includes('@')) {
       setAddressInfo(null)
       setError(null)
@@ -223,9 +217,6 @@ export function SignerEmailField({
 
   // Handle manual query
   const handleBlur = () => {
-    // Skip lookup if address is explicitly provided
-    if (address) return
-    
     if (!lookupOnChange && input.value) {
       if (isValidEmail(input.value)) {
         setInternalInputType('email');

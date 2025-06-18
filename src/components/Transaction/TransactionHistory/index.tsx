@@ -1,15 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { SUPPORTED_TOKENS_INFO, TokenType } from "@/lib/web3/token";
 import { MultisigWalletAddresses } from '@/app/api/multisig/storage';
-import { TransactionHistoryItem, TransactionItem } from './TransactionHistoryItem';
 import { log } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { CopyAddress } from '../ui/CopyAddress';
 import { toast } from 'react-toastify';
 import { SelectToken } from '@/components/SelectToken';
-import { LogoLoading } from '../LogoLoading';
 import { Loader2 } from 'lucide-react';
-import { TableList } from './TransactionHistoryTabls';
+import { TransactionItem } from './TransactionHistoryItem';
+import { LogoLoading } from '@/components/LogoLoading';
+import { TableList } from './TransactionHistoryTables';
 
 export function TransactionHistory({
   addresses,
