@@ -15,6 +15,7 @@ import { AUTH_METHOD_TYPE } from '@lit-protocol/constants';
 import { sendRecipientRegisteredEmail } from '@/lib/notification/invite-notification';
 import { LogoLoading } from '@/components/LogoLoading';
 
+
 const getQueryParam = (paramName: string): string | null => {
   if (typeof window !== 'undefined') {
     const searchParams = new URLSearchParams(window.location.search);
@@ -45,9 +46,9 @@ export default function StytchCallbackPage() {
         const errorData = await response.json();
         throw new Error(errorData.error || `Failed to fetch invitation: ${response.status}`);
       }
-      
+
       const data = await response.json();
-      
+
       if (data.success && data.data) {
         log('Invitation details fetched:', data.data);
         return data.data;
@@ -56,6 +57,33 @@ export default function StytchCallbackPage() {
       }
     } catch (err) {
       console.error('Error fetching invitation:', err);
+    }
+  };
+
+  const updateInvitationStatus = async (invitationId: string, status: string) => {
+    try {
+      const response = await fetch('/api/invitation/status', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          invitationId,
+          status
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Failed to update invitation status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      log('Invitation status updated:', data);
+      return data;
+    } catch (err) {
+      console.error('Error updating invitation status:', err);
+      throw err;
     }
   };
 
@@ -118,7 +146,7 @@ export default function StytchCallbackPage() {
         await handleMintPkp(authMethod);
 
         // Send recipient registered email
-        await handleSendRecipientRegisteredEmail(userEmail);
+        await handleSendRecipientRegisteredEmail(userEmail, authMethodId);
       }
       
       // Redirect to assets page
@@ -130,7 +158,7 @@ export default function StytchCallbackPage() {
     }
   };
 
-  const handleSendRecipientRegisteredEmail = async (userEmail: string) => {
+  const handleSendRecipientRegisteredEmail = async (userEmail: string, authMethodId: string) => {
     try {
       const invitationId = getQueryParam('invitationId');
       if (!invitationId) {
@@ -139,15 +167,54 @@ export default function StytchCallbackPage() {
       }
 
       const invitation = await fetchInvitationDetails(invitationId);
-      await sendRecipientRegisteredEmail({
-        to: invitation.senderEmail,
-        recipientEmail: userEmail,
-        tokenType: invitation.tokenType,
-        amount: invitation.amount,
-        completeUrl: `${process.env.NEXT_PUBLIC_APP_URL}/assets/personal`
-      });
+
+      // Update the invitation status to 'registered'
+      await updateInvitationStatus(invitationId, 'registered');
+
+      // Check if this is a multisig wallet invitation (0 ETH transfer)
+      if (invitation.tokenType === 'ETH' && invitation.amount === '0') {
+        await handleMultisigWalletInvitationRegistration(userEmail, invitationId, authMethodId);
+      } else {
+        // Regular transfer invitation - send the original email
+        await sendRecipientRegisteredEmail({
+          to: invitation.senderEmail,
+          recipientEmail: userEmail,
+          tokenType: invitation.tokenType,
+          amount: invitation.amount,
+          completeUrl: `${process.env.NEXT_PUBLIC_APP_URL}/assets/personal`
+        });
+      }
     } catch (error) {
       console.log('Failed to send recipient registered email:', error);
+    }
+  }
+
+  const handleMultisigWalletInvitationRegistration = async (userEmail: string, invitationId: string, authMethodId: string) => {
+    try {
+      log('Handling multisig wallet invitation registration for:', userEmail);
+
+      // Call the API to process the registration
+      const response = await fetch('/api/invitation/process-registration', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userEmail,
+          invitationId,
+          authMethodId
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to process registration');
+      }
+
+      const result = await response.json();
+      log('Multisig wallet invitation registration processed:', result);
+    } catch (error) {
+      console.error('Failed to handle multisig wallet invitation registration:', error);
     }
   }
 

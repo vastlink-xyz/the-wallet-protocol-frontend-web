@@ -171,21 +171,17 @@ export function MultisigWalletFormContent({
     }
   }, [mode, signers.length, userPkp, currentUserEmail, authMethodId]);
   
-  const isInviteUsers = useMemo(() => {
+  const hasInviteUsers = useMemo(() => {
     log('signers', signers)
     return signers.some(signer => !signer.ethAddress)
   }, [signers])
 
   const buttonText = useMemo(() => {
-    if (isInviteUsers) {
-      return 'Invite Unregistered Users'
-    }
-
     if (mode === 'edit') {
       return 'Update Wallet Settings'
     }
     return 'Create Wallet'
-  }, [mode, isInviteUsers])
+  }, [mode])
 
   // Handle adding a new signer
   const handleAddSigner = () => {
@@ -227,8 +223,8 @@ export function MultisigWalletFormContent({
   };
 
   // Handle removing a signer
-  const handleRemoveSigner = (ethAddress: string) => {
-    setSigners(signers.filter(signer => signer.ethAddress !== ethAddress));
+  const handleRemoveSigner = (email: string) => {
+    setSigners(signers.filter(signer => signer.email !== email));
   };
 
   // Handle threshold change when signers array changes
@@ -269,6 +265,47 @@ export function MultisigWalletFormContent({
     setIsLimitValid(isValid);
   }, []);
 
+  // Handle wallet invitations for unregistered users
+  const handleWalletInvitations = async (
+    walletId: string,
+    otherSigners: any[],
+    targetThreshold: number,
+    targetSignersCount: number
+  ) => {
+    try {
+      // Call API to create wallet invitations
+      const response = await fetch('/api/invitation/create-wallet-invitations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authMethod.accessToken}`
+        },
+        body: JSON.stringify({
+          walletId,
+          inviterAuthMethodId: authMethodId,
+          inviterEmail: currentUserEmail,
+          inviterEthAddress: userPkp.ethAddress,
+          walletName,
+          otherSigners,
+          targetThreshold,
+          targetSignersCount
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create wallet invitations');
+      }
+
+      const result = await response.json();
+
+      console.log(`Created wallet invitations for ${result.data.totalInvitations} users, sent emails to ${result.data.emailsSent} unregistered users`);
+    } catch (error) {
+      console.error('Failed to handle wallet invitations:', error);
+      toast.error('Failed to send invitations to some users');
+    }
+  };
+
   // Create new multisig wallet (create mode)
   const handleCreateMultisigWallet = async () => {
     if (!userPkp || !dailyLimits) {
@@ -277,7 +314,7 @@ export function MultisigWalletFormContent({
     }
 
     const authMethodType = authMethod.authMethodType
-    
+
     // Check for unconfirmed new signer
     if (showAddSignerForm && newSignerEmail.trim() !== '') {
       toast.error('Please confirm or cancel the new signer before creating the wallet');
@@ -287,19 +324,20 @@ export function MultisigWalletFormContent({
       }
       return;
     }
-    
+
     // Verify Google token before proceeding
     if (!authMethod || !authMethod.accessToken) {
       toast.error('Authentication information is missing');
       return;
     }
-    
-    // Validate signers data
-    const invalidSigners = signers.filter(s => !s.ethAddress || !s.email);
-    if (invalidSigners.length > 0) {
-      toast.error('Some signers have incomplete information. Please check all signers.');
-      return;
-    }
+
+    // Determine if we need to use invitation mechanism
+    const otherSigners = signers.filter(s => s.email !== currentUserEmail);
+    const hasUnregisteredUsers = otherSigners.some(signer => !signer.ethAddress);
+
+    // Store original threshold for invitation mechanism
+    const originalThreshold = threshold;
+    const originalSignersCount = signers.length;
     
     try {
       setIsLoading(true);
@@ -317,15 +355,34 @@ export function MultisigWalletFormContent({
       const multisigTransactionIpfsIdHex = await getMultisigTransactionIpfsId('hex')
       const createWalletIpfsId = await getCreateWalletIpfsId("base58");
 
-      // Collect all authMethodIds from signers
-      const signerAuthMethodIds = signers
+      // Determine actual signers for wallet creation
+      let actualSigners;
+      let actualThreshold;
+
+      if (hasUnregisteredUsers) {
+        // Invitation mechanism: only include creator
+        actualSigners = [{
+          email: currentUserEmail,
+          ethAddress: userPkp.ethAddress,
+          publicKey: userPkp.publicKey,
+          authMethodId: authMethodId
+        }];
+        actualThreshold = 1;
+      } else {
+        // Normal flow: include all signers
+        actualSigners = signers;
+        actualThreshold = threshold;
+      }
+
+      // Collect all authMethodIds from actual signers
+      const signerAuthMethodIds = actualSigners
         .filter(s => s.authMethodId)
         .map(s => s.authMethodId);
       
       // Combine system authMethodIds with signer authMethodIds
       const allAuthMethodIds = [
-        createWalletIpfsIdHex, 
-        updateWalletIpfsIdHex, 
+        createWalletIpfsIdHex,
+        updateWalletIpfsIdHex,
         multisigTransactionIpfsIdHex,
         authMethodId,
         ...signerAuthMethodIds.filter(id => id !== authMethodId) // Avoid duplicates
@@ -339,9 +396,9 @@ export function MultisigWalletFormContent({
         authMethodType,
         ...signerAuthMethodIds.filter(id => id !== authMethodId).map(() => authMethodType)
       ];
-      
+
       const allAuthMethodPubkeys = allAuthMethodIds.map(() => '0x');
-      
+
       const allAuthMethodScopes = [
         [AUTH_METHOD_SCOPE.SignAnything],
         [AUTH_METHOD_SCOPE.SignAnything],
@@ -372,13 +429,13 @@ export function MultisigWalletFormContent({
       // Prepare data to encrypt for new wallet
       const dataToEncrypt = {
         name: walletName,
-        signers, // Use all signers from state
-        threshold, // Use threshold from state
+        signers: actualSigners, // Use actual signers for wallet creation
+        threshold: actualThreshold, // Use actual threshold for wallet creation
         mfaSettings,
       };
-      
+
       // Add log to check threshold value
-      console.log('Creating the team wallet with threshold:', threshold, 'and signers:', signers.length);
+      console.log('Creating the team wallet with threshold:', actualThreshold, 'and signers:', actualSigners.length);
       console.log('Data to encrypt:', JSON.stringify(dataToEncrypt, null, 2));
 
       // Connect to Lit node if not already connected
@@ -459,31 +516,37 @@ export function MultisigWalletFormContent({
         metadata,
         dataToEncryptHashSignature,
         authMethodId,
-        signers, // Include all signers
-        threshold, // Include threshold
+        signers: actualSigners, // Include actual signers for wallet creation
+        threshold: actualThreshold, // Include actual threshold for wallet creation
         name: walletName, // Add wallet name as top-level field
       });
 
       if (response.data.success) {
-        // Build wallet link
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
-        const walletLink = appUrl;
-        
-        // Send email notifications to other signers
-        await sendEmailToSigners(
-          currentUserEmail,
-          signers,
-          pkpForMultisig.ethAddress,
-          threshold,
-          walletLink,
-          walletName,
-        ).catch(error => {
-          console.error('Failed to send notification emails:', error);
-        });
-        
+        const walletId = response.data.walletId;
+
+        if (hasUnregisteredUsers) {
+          // Handle invitation mechanism
+          await handleWalletInvitations(walletId, otherSigners, originalThreshold, originalSignersCount);
+        } else {
+          // Normal flow: send email notifications to other signers
+          const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
+          const walletLink = appUrl;
+
+          await sendEmailToSigners(
+            currentUserEmail,
+            actualSigners,
+            pkpForMultisig.ethAddress,
+            actualThreshold,
+            walletLink,
+            walletName,
+          ).catch(error => {
+            console.error('Failed to send notification emails:', error);
+          });
+        }
+
         // Clear form
         setDailyLimits({} as Record<TokenType, string>);
-        
+
         // Call success callback
         if (onSuccess) {
           onSuccess();
@@ -661,7 +724,7 @@ export function MultisigWalletFormContent({
         return;
       }
       
-      // For changes other than just the name, create a proposal
+      // Create a proposal for changes
       const response = await axios.post('/api/multisig/messages', {
         walletId: wallet.id,
         createdBy: {
@@ -694,53 +757,8 @@ export function MultisigWalletFormContent({
     }
   };
 
-  const handleInviteUsers = async () => {
-    try {
-      setIsLoading(true)
-
-      const unregisteredSigners = signers.filter(signer => !signer.ethAddress)
-
-      for (const signer of unregisteredSigners) {
-        const response = await fetch('/api/invitation', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authMethod.accessToken}`
-          },
-          body: JSON.stringify({
-            recipientEmail: signer.email,
-            tokenType: 'ETH',
-            amount: '0',
-            authMethodId,
-          })
-        })
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || `Failed to create invitation: ${response.status}`);
-        }
-
-        toast.success(`Invitation sent to ${signer.email}`);
-      }
-
-      if (onSuccess) {
-        onSuccess();
-      }
-    } catch (error) {
-      console.error('Error inviting user:', error);
-      alert(`Failed to send invitation: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
   // Handle form submission based on mode
   const handleSubmit = async () => {
-    if (isInviteUsers) {
-      await handleInviteUsers();
-      return;
-    }
-
     if (mode === 'create') {
       await handleCreateMultisigWallet();
     } else {
@@ -785,11 +803,11 @@ export function MultisigWalletFormContent({
             />
             
             {/* Only allow removing signers that are not the current user */}
-            {signer.ethAddress !== userPkp.ethAddress && (
+            {signer.email !== currentUserEmail && (
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => handleRemoveSigner(signer.ethAddress)}
+                onClick={() => handleRemoveSigner(signer.email)}
                 className="text-red-500 hover:text-red-600 hover:bg-red-50"
               >
                 <Trash2 className="h-5 w-5" />

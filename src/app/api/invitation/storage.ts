@@ -1,5 +1,5 @@
 import { connectToDatabase } from '../user/models';
-import { PendingInvitation, PendingInvitationModel } from './models';
+import { PendingInvitation, PendingInvitationModel, PendingWalletInvitation, PendingWalletInvitationModel } from './models';
 import crypto from 'crypto';
 
 // Helper function to extract invitation data safely from Mongoose document
@@ -16,6 +16,25 @@ function extractInvitationData(doc: any): PendingInvitation | null {
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
     expiresAt: doc.expiresAt
+  };
+}
+
+// Helper function to extract wallet invitation data safely from Mongoose document
+function extractWalletInvitationData(doc: any): PendingWalletInvitation | null {
+  if (!doc) return null;
+  return {
+    id: doc.id || doc._id?.toString(),
+    walletId: doc.walletId,
+    inviterAuthMethodId: doc.inviterAuthMethodId,
+    inviterEmail: doc.inviterEmail,
+    inviterEthAddress: doc.inviterEthAddress,
+    walletName: doc.walletName,
+    pendingInvitees: doc.pendingInvitees || [],
+    targetThreshold: doc.targetThreshold,
+    targetSignersCount: doc.targetSignersCount,
+    status: doc.status,
+    createdAt: doc.createdAt,
+    updatedAt: doc.updatedAt
   };
 }
 
@@ -121,24 +140,187 @@ export async function getPendingInvitationsBySender(authMethodId: string): Promi
  * Update a pending invitation status
  */
 export async function updatePendingInvitationStatus(
-  id: string, 
+  id: string,
   status: PendingInvitation['status']
 ): Promise<PendingInvitation | null> {
   try {
     await connectToDatabase();
-    
+
     const updatedInvitation = await PendingInvitationModel.findOneAndUpdate(
       { id },
-      { 
+      {
         status,
         updatedAt: new Date()
       },
       { new: true }
     ).lean();
-    
+
+    if (!updatedInvitation) {
+      console.error(`Failed to update invitation status: Invitation not found for id ${id}`);
+      return null;
+    }
+
     return extractInvitationData(updatedInvitation);
   } catch (error) {
     console.error('Failed to update pending invitation status:', error);
     return null;
   }
-} 
+}
+
+/**
+ * Create a new pending wallet invitation
+ */
+export async function createPendingWalletInvitation({
+  walletId,
+  inviterAuthMethodId,
+  inviterEmail,
+  inviterEthAddress,
+  walletName,
+  pendingInvitees,
+  targetThreshold,
+  targetSignersCount
+}: {
+  walletId: string;
+  inviterAuthMethodId: string;
+  inviterEmail: string;
+  inviterEthAddress: string;
+  walletName: string;
+  pendingInvitees: {
+    email: string;
+    invitationId: string;
+    isRegistered: boolean;
+    authMethodId?: string;
+  }[];
+  targetThreshold: number;
+  targetSignersCount: number;
+}): Promise<PendingWalletInvitation> {
+  try {
+    await connectToDatabase();
+
+    // Generate unique ID for the wallet invitation
+    const id = crypto.randomUUID();
+
+    const walletInvitationData = {
+      id,
+      walletId,
+      inviterAuthMethodId,
+      inviterEmail,
+      inviterEthAddress,
+      walletName,
+      pendingInvitees,
+      targetThreshold,
+      targetSignersCount,
+      status: 'pending'
+    };
+
+    const newWalletInvitation = await PendingWalletInvitationModel.create(walletInvitationData);
+    return extractWalletInvitationData(newWalletInvitation) as PendingWalletInvitation;
+  } catch (error) {
+    console.error('Failed to create pending wallet invitation:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get a pending wallet invitation by wallet ID
+ */
+export async function getPendingWalletInvitationByWalletId(walletId: string): Promise<PendingWalletInvitation | null> {
+  try {
+    await connectToDatabase();
+    const walletInvitation = await PendingWalletInvitationModel.findOne({
+      walletId,
+      status: 'pending'
+    }).lean();
+    return extractWalletInvitationData(walletInvitation);
+  } catch (error) {
+    console.error('Failed to get pending wallet invitation by wallet id:', error);
+    return null;
+  }
+}
+
+/**
+ * Update a pending wallet invitation - mark an invitee as registered
+ */
+export async function updatePendingWalletInvitationInvitee(
+  walletId: string,
+  inviteeEmail: string,
+  isRegistered: boolean,
+  authMethodId?: string
+): Promise<PendingWalletInvitation | null> {
+  try {
+    await connectToDatabase();
+
+    const updateFields: any = {
+      'pendingInvitees.$.isRegistered': isRegistered,
+      updatedAt: new Date()
+    };
+
+    // Add authMethodId if provided
+    if (authMethodId) {
+      updateFields['pendingInvitees.$.authMethodId'] = authMethodId;
+    }
+
+    const updatedWalletInvitation = await PendingWalletInvitationModel.findOneAndUpdate(
+      {
+        walletId,
+        'pendingInvitees.email': inviteeEmail
+      },
+      {
+        $set: updateFields
+      },
+      { new: true }
+    ).lean();
+
+    return extractWalletInvitationData(updatedWalletInvitation);
+  } catch (error) {
+    console.error('Failed to update pending wallet invitation invitee:', error);
+    return null;
+  }
+}
+
+/**
+ * Update a pending wallet invitation status
+ */
+export async function updatePendingWalletInvitationStatus(
+  walletId: string,
+  status: PendingWalletInvitation['status']
+): Promise<PendingWalletInvitation | null> {
+  try {
+    await connectToDatabase();
+
+    const updatedWalletInvitation = await PendingWalletInvitationModel.findOneAndUpdate(
+      { walletId },
+      {
+        status,
+        updatedAt: new Date()
+      },
+      { new: true }
+    ).lean();
+
+    return extractWalletInvitationData(updatedWalletInvitation);
+  } catch (error) {
+    console.error('Failed to update pending wallet invitation status:', error);
+    return null;
+  }
+}
+
+/**
+ * Find pending wallet invitations that contain a specific invitation ID
+ */
+export async function findPendingWalletInvitationsByInvitationId(invitationId: string): Promise<PendingWalletInvitation[]> {
+  try {
+    await connectToDatabase();
+
+    const walletInvitations = await PendingWalletInvitationModel.find({
+      'pendingInvitees.invitationId': invitationId,
+      status: 'pending'
+    }).lean();
+
+    return walletInvitations
+      .map(invitation => extractWalletInvitationData(invitation))
+      .filter((invitation): invitation is PendingWalletInvitation => invitation !== null);
+  } catch (error) {
+    console.error('Failed to find pending wallet invitations by invitation id:', error);
+    return [];
+  }
+}
