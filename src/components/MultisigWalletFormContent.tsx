@@ -31,6 +31,7 @@ import { MessageProposal } from '@/app/api/multisig/storage'
 import { signProposal } from '@/app/wallet/[walletId]/details/proposals/utils/sign-proposal'
 import { fetchProposal } from '@/app/wallet/[walletId]/details/proposals/utils/proposal'
 import { executeWalletSettingsProposal } from '@/app/wallet/[walletId]/details/proposals/utils/execute-proposal'
+import { generateWalletChangeDescriptions } from './MultisigWalletFormContent/wallet-changes'
 
 interface MultisigWalletFormContentProps {
   mode: 'create' | 'edit'
@@ -300,9 +301,11 @@ export function MultisigWalletFormContent({
       const result = await response.json();
 
       console.log(`Created wallet invitations for ${result.data.totalInvitations} users, sent emails to ${result.data.emailsSent} unregistered users`);
+      return result.data;
     } catch (error) {
       console.error('Failed to handle wallet invitations:', error);
       toast.error('Failed to send invitations to some users');
+      throw error;
     }
   };
 
@@ -527,6 +530,10 @@ export function MultisigWalletFormContent({
         if (hasUnregisteredUsers) {
           // Handle invitation mechanism
           await handleWalletInvitations(walletId, otherSigners, originalThreshold, originalSignersCount);
+
+          // Show success message for invitation flow
+          const unregisteredCount = otherSigners.filter(s => !s.ethAddress).length;
+          toast.success(`Wallet created successfully! Invitations sent to ${unregisteredCount} unregistered user(s). `);
         } else {
           // Normal flow: send email notifications to other signers
           const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
@@ -605,63 +612,7 @@ export function MultisigWalletFormContent({
     }
   };
 
-  // Generate change descriptions for wallet settings updates
-  const generateChangeDescriptions = (
-    originalWallet: MultisigWallet,
-    newSettings: {
-      name?: string;
-      threshold?: number;
-      signers?: any[];
-      mfaSettings?: MFASettings;
-    },
-    options?: {
-      addedSignersCount?: number;
-      removedSignersCount?: number;
-      customMfaMessage?: string;
-    }
-  ): string[] => {
-    const descriptions = [];
 
-    // Name changes
-    if (newSettings.name && newSettings.name !== originalWallet.name) {
-      descriptions.push(`Change name from "${originalWallet.name}" to "${newSettings.name}"`);
-    }
-
-    // Threshold changes
-    if (newSettings.threshold !== undefined && newSettings.threshold !== originalWallet.threshold) {
-      descriptions.push(`Change threshold from ${originalWallet.threshold} to ${newSettings.threshold}`);
-    }
-
-    // Signer changes
-    if (newSettings.signers) {
-      if (options?.addedSignersCount !== undefined && options.addedSignersCount > 0) {
-        descriptions.push(`Add ${options.addedSignersCount} signer(s)`);
-      }
-      if (options?.removedSignersCount !== undefined && options.removedSignersCount > 0) {
-        descriptions.push(`Remove ${options.removedSignersCount} signer(s)`);
-      }
-
-      // If no custom counts provided, calculate them
-      if (options?.addedSignersCount === undefined && options?.removedSignersCount === undefined) {
-        const addedCount = newSettings.signers.filter(s =>
-          !originalWallet.signers.some((os: any) => os.ethAddress === s.ethAddress)
-        ).length;
-        const removedCount = originalWallet.signers.filter((os: any) =>
-          !newSettings.signers!.some(s => s.ethAddress === os.ethAddress)
-        ).length;
-
-        if (addedCount > 0) descriptions.push(`Add ${addedCount} signer(s)`);
-        if (removedCount > 0) descriptions.push(`Remove ${removedCount} signer(s)`);
-      }
-    }
-
-    // MFA changes
-    if (newSettings.mfaSettings) {
-      descriptions.push(options?.customMfaMessage || 'Update MFA settings');
-    }
-
-    return descriptions;
-  };
 
   // Create settings data object with original state
   const createSettingsData = (originalWallet: MultisigWallet) => {
@@ -747,13 +698,13 @@ export function MultisigWalletFormContent({
       const result = await response.json();
 
       console.log(`Created wallet invitations for ${result.data.totalInvitations} users, sent emails to ${result.data.emailsSent} unregistered users`);
+      return result.data;
     } catch (error) {
       console.error('Failed to handle wallet invitations:', error);
       toast.error('Failed to send invitations to some users');
+      throw error;
     }
   };
-
-
 
   // Handle wallet edit with unified invitation mechanism
   // Wait for all unregistered users to register before applying any changes
@@ -791,16 +742,6 @@ export function MultisigWalletFormContent({
     const mfaChanged = JSON.stringify(currentMfa.dailyLimits) !== JSON.stringify(dailyLimits);
     const targetMfaSettings = mfaChanged ? { dailyLimits } as MFASettings : undefined;
 
-    console.log('Wallet edit analysis:', {
-      currentSigners: currentSignerEmails,
-      newSigners: newSignerEmails,
-      signersToRemove: signersToRemove.map(s => s.email),
-      signersToAdd: signersToAdd.map(s => s.email),
-      targetWalletName,
-      mfaChanged,
-      targetMfaSettings
-    });
-
     // Use the enhanced handleWalletInvitations with all settings
     // This will wait for all unregistered users to register before creating any proposals
     await handleWalletInvitationsWithSettings(
@@ -812,6 +753,12 @@ export function MultisigWalletFormContent({
       targetMfaSettings,
       signersToRemove // Pass signers to be removed
     );
+
+    // Show success message for invitation flow
+    const unregisteredCount = signersToAdd.filter(s => !s.ethAddress).length;
+    if (unregisteredCount > 0) {
+      toast.success(`Invitations sent to ${unregisteredCount} unregistered user(s).`);
+    }
 
     // Close the modal
     if (onCancel) {
@@ -857,15 +804,15 @@ export function MultisigWalletFormContent({
     }
 
     // Generate change descriptions using the reusable function
-    const changeDescriptions = generateChangeDescriptions(
-      wallet,
-      {
+    const changeDescriptions = generateWalletChangeDescriptions({
+      originalWallet: wallet,
+      newSettings: {
         name: nameChanged ? walletName : undefined,
         threshold: thresholdChanged ? threshold : undefined,
         signers: signersChanged ? signers : undefined,
         mfaSettings: mfaChanged ? { dailyLimits } as MFASettings : undefined
       }
-    );
+    });
 
     settingsData.changeDescription = changeDescriptions.join(', ');
 

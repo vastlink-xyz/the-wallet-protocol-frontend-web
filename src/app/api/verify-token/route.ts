@@ -95,8 +95,6 @@ async function verifyStytchToken(token: string): Promise<VerificationResult | nu
     const response = await stytchClient.sessions.authenticateJwt({
       session_jwt: token
     });
-
-    console.log('res', response)
     
     return {
       valid: true,

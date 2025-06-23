@@ -223,28 +223,11 @@ export async function createPendingWalletInvitation({
 }
 
 /**
- * Get a pending wallet invitation by wallet ID
- */
-export async function getPendingWalletInvitationByWalletId(walletId: string): Promise<PendingWalletInvitation | null> {
-  try {
-    await connectToDatabase();
-    const walletInvitation = await PendingWalletInvitationModel.findOne({
-      walletId,
-      status: 'pending'
-    }).lean();
-    return extractWalletInvitationData(walletInvitation);
-  } catch (error) {
-    console.error('Failed to get pending wallet invitation by wallet id:', error);
-    return null;
-  }
-}
-
-/**
  * Update a pending wallet invitation - mark an invitee as registered
  */
 export async function updatePendingWalletInvitationInvitee(
   walletId: string,
-  inviteeEmail: string,
+  invitationId: string,
   isRegistered: boolean,
   authMethodId?: string
 ): Promise<PendingWalletInvitation | null> {
@@ -264,7 +247,7 @@ export async function updatePendingWalletInvitationInvitee(
     const updatedWalletInvitation = await PendingWalletInvitationModel.findOneAndUpdate(
       {
         walletId,
-        'pendingInvitees.email': inviteeEmail
+        'pendingInvitees.invitationId': invitationId
       },
       {
         $set: updateFields
@@ -283,14 +266,14 @@ export async function updatePendingWalletInvitationInvitee(
  * Update a pending wallet invitation status
  */
 export async function updatePendingWalletInvitationStatus(
-  walletId: string,
+  id: string,
   status: PendingWalletInvitation['status']
 ): Promise<PendingWalletInvitation | null> {
   try {
     await connectToDatabase();
 
     const updatedWalletInvitation = await PendingWalletInvitationModel.findOneAndUpdate(
-      { walletId },
+      { id },
       {
         status,
         updatedAt: new Date()

@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
   updatePendingInvitationStatus,
-  getPendingWalletInvitationByWalletId,
   updatePendingWalletInvitationInvitee,
   updatePendingWalletInvitationStatus,
   findPendingWalletInvitationsByInvitationId
 } from '../storage';
 import { getWalletById } from '../../multisig/storage';
 import { getUser } from '../../user/storage';
+import { log } from '@/lib/utils';
+import { generateWalletChangeDescriptions } from '@/components/MultisigWalletFormContent/wallet-changes';
 
 /**
  * Process user registration completion for multisig wallet invitations
@@ -37,26 +38,39 @@ export async function POST(request: NextRequest) {
     const pendingWalletInvitations = await findPendingWalletInvitationsByInvitationId(invitationId);
     
     for (const walletInvitation of pendingWalletInvitations) {
-      // Update the invitee's registration status and authMethodId
-      await updatePendingWalletInvitationInvitee(
+      // Update the invitee's registration status and authMethodId using invitationId
+      const updateResult = await updatePendingWalletInvitationInvitee(
         walletInvitation.walletId,
-        userEmail,
+        invitationId,
         true,
         authMethodId
       );
-      
-      // Check if all invitees are now registered
-      const updatedWalletInvitation = await getPendingWalletInvitationByWalletId(walletInvitation.walletId);
-      if (!updatedWalletInvitation) continue;
-      
+
+      if (!updateResult) {
+        log('❌ Failed to update invitee registration status');
+        continue;
+      }
+      log('✅ Successfully updated invitee registration status');
+
+      // Use the updated result directly instead of re-querying to avoid stale data
+      log('🔍 Using updated wallet invitation data from update operation');
+      const updatedWalletInvitation = updateResult;
+      if (!updatedWalletInvitation) {
+        log('❌ Update result is null');
+        continue;
+      }
+
       const allRegistered = updatedWalletInvitation.pendingInvitees.every(invitee => invitee.isRegistered);
-      
+      log(`🎯 All invitees registered: ${allRegistered} for walletId: ${walletInvitation.walletId}`);
+
       if (allRegistered) {
         // All users are registered, create a settings change proposal
         await createSettingsChangeProposal(updatedWalletInvitation);
-        
+
         // Mark the wallet invitation as completed
-        await updatePendingWalletInvitationStatus(walletInvitation.walletId, 'completed');
+        await updatePendingWalletInvitationStatus(updatedWalletInvitation.id, 'completed');
+      } else {
+        log('⏳ Not all users are registered yet for walletId:', walletInvitation.walletId);
       }
     }
     
@@ -83,6 +97,7 @@ async function createSettingsChangeProposal(walletInvitation: any) {
     // Get the wallet
     const wallet = await getWalletById(walletInvitation.walletId);
     if (!wallet) {
+      log('❌ Wallet not found for walletId:', walletInvitation.walletId);
       throw new Error('Wallet not found');
     }
     
@@ -167,32 +182,28 @@ async function createSettingsChangeProposal(walletInvitation: any) {
       console.log('- Applied MFA settings to proposal:', settingsData.mfaSettings);
     }
 
-    // Generate change descriptions using the same logic as normal flow
-    const changeDescriptions = [];
-    if (settingsData.name) {
-      changeDescriptions.push(`Change name from "${wallet.name}" to "${walletInvitation.targetWalletName}"`);
-    }
-    if (settingsData.threshold !== undefined) {
-      changeDescriptions.push(`Change threshold from ${wallet.threshold} to ${walletInvitation.targetThreshold}`);
-    }
-    if (settingsData.signers) {
-      // Calculate added and removed counts using finalSigners vs original signers
-      const addedCount = finalSigners.filter(s => !wallet.signers.some((os: any) => os.ethAddress === s.ethAddress)).length;
-      const removedCount = wallet.signers.filter((os: any) => !finalSigners.some(s => s.ethAddress === os.ethAddress)).length;
-
-      if (addedCount > 0) changeDescriptions.push(`Add ${addedCount} signer(s)`);
-      if (removedCount > 0) changeDescriptions.push(`Remove ${removedCount} signer(s)`);
-    }
-    if (settingsData.mfaSettings) {
-      changeDescriptions.push('Update MFA settings');
-    }
+    // Generate change descriptions using the unified utility function
+    const changeDescriptions = generateWalletChangeDescriptions({
+      originalWallet: wallet,
+      newSettings: {
+        name: settingsData.name,
+        threshold: settingsData.threshold,
+        signers: settingsData.signers,
+        mfaSettings: settingsData.mfaSettings
+      }
+    });
 
     settingsData.changeDescription = changeDescriptions.join(', ') || 'Wallet settings updated';
 
     // Only proceed if there are actual changes
-    if (Object.keys(settingsData).length <= 2) { // originalState and changeDescription only
+    const settingsKeys = Object.keys(settingsData).filter(key => key !== 'originalState' && key !== 'changeDescription');
+
+    if (settingsKeys.length === 0) {
+      log('❌ No changes detected in wallet invitation processing');
       throw new Error('No changes detected in wallet invitation processing');
     }
+
+    log('✅ Changes detected, proceeding with proposal creation');
 
     // Use the unified api/multisig/messages POST endpoint for consistency
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
