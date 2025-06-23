@@ -19,7 +19,10 @@ export async function POST(request: NextRequest) {
       walletName,
       otherSigners,
       targetThreshold,
-      targetSignersCount
+      targetSignersCount,
+      targetWalletName,
+      targetMfaSettings,
+      signersToRemove
     } = body;
     
     // Validate required fields
@@ -65,7 +68,10 @@ export async function POST(request: NextRequest) {
       walletName,
       pendingInvitees,
       targetThreshold,
-      targetSignersCount
+      targetSignersCount,
+      targetWalletName,
+      targetMfaSettings,
+      signersToRemove
     });
     
     // Send invitation emails to unregistered users

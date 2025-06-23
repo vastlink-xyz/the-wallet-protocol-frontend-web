@@ -605,7 +605,285 @@ export function MultisigWalletFormContent({
     }
   };
 
-  // Update existing multisig wallet (edit mode)
+  // Generate change descriptions for wallet settings updates
+  const generateChangeDescriptions = (
+    originalWallet: MultisigWallet,
+    newSettings: {
+      name?: string;
+      threshold?: number;
+      signers?: any[];
+      mfaSettings?: MFASettings;
+    },
+    options?: {
+      addedSignersCount?: number;
+      removedSignersCount?: number;
+      customMfaMessage?: string;
+    }
+  ): string[] => {
+    const descriptions = [];
+
+    // Name changes
+    if (newSettings.name && newSettings.name !== originalWallet.name) {
+      descriptions.push(`Change name from "${originalWallet.name}" to "${newSettings.name}"`);
+    }
+
+    // Threshold changes
+    if (newSettings.threshold !== undefined && newSettings.threshold !== originalWallet.threshold) {
+      descriptions.push(`Change threshold from ${originalWallet.threshold} to ${newSettings.threshold}`);
+    }
+
+    // Signer changes
+    if (newSettings.signers) {
+      if (options?.addedSignersCount !== undefined && options.addedSignersCount > 0) {
+        descriptions.push(`Add ${options.addedSignersCount} signer(s)`);
+      }
+      if (options?.removedSignersCount !== undefined && options.removedSignersCount > 0) {
+        descriptions.push(`Remove ${options.removedSignersCount} signer(s)`);
+      }
+
+      // If no custom counts provided, calculate them
+      if (options?.addedSignersCount === undefined && options?.removedSignersCount === undefined) {
+        const addedCount = newSettings.signers.filter(s =>
+          !originalWallet.signers.some((os: any) => os.ethAddress === s.ethAddress)
+        ).length;
+        const removedCount = originalWallet.signers.filter((os: any) =>
+          !newSettings.signers!.some(s => s.ethAddress === os.ethAddress)
+        ).length;
+
+        if (addedCount > 0) descriptions.push(`Add ${addedCount} signer(s)`);
+        if (removedCount > 0) descriptions.push(`Remove ${removedCount} signer(s)`);
+      }
+    }
+
+    // MFA changes
+    if (newSettings.mfaSettings) {
+      descriptions.push(options?.customMfaMessage || 'Update MFA settings');
+    }
+
+    return descriptions;
+  };
+
+  // Create settings data object with original state
+  const createSettingsData = (originalWallet: MultisigWallet) => {
+    return {
+      originalState: {
+        name: originalWallet.name,
+        threshold: originalWallet.threshold,
+        signers: originalWallet.signers,
+        mfaSettings: originalWallet.metadata?.mfaSettings,
+      }
+    };
+  };
+
+  // Create and submit a wallet settings proposal
+  const createWalletSettingsProposal = async (settingsData: any, autoSign: boolean = true) => {
+    if (!wallet) return null;
+
+    const response = await axios.post('/api/multisig/messages', {
+      walletId: wallet.id,
+      createdBy: {
+        authMethodId: authMethodId,
+        ethAddress: userPkp.ethAddress,
+        email: currentUserEmail,
+      },
+      message: JSON.stringify(settingsData),
+      type: 'walletSettings',
+      settingsData,
+      sendEmail: true,
+      signers: wallet.signers,
+      walletName: wallet.name,
+      proposer: currentUserEmail,
+    });
+
+    if (response.data.success) {
+      const proposal = response.data.data;
+      if (autoSign) {
+        await autoSignProposal(proposal);
+      }
+      return proposal;
+    }
+
+    return null;
+  };
+
+  // Enhanced wallet invitations handler that supports all settings changes
+  const handleWalletInvitationsWithSettings = async (
+    walletId: string,
+    allSigners: any[],
+    targetThreshold: number,
+    targetSignersCount: number,
+    targetWalletName?: string,
+    targetMfaSettings?: MFASettings,
+    signersToRemove?: any[]
+  ) => {
+    try {
+      // Call API to create wallet invitations with enhanced settings
+      const response = await fetch('/api/invitation/create-wallet-invitations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authMethod.accessToken}`
+        },
+        body: JSON.stringify({
+          walletId,
+          inviterAuthMethodId: authMethodId,
+          inviterEmail: currentUserEmail,
+          inviterEthAddress: userPkp.ethAddress,
+          walletName: wallet?.name || '', // Current wallet name
+          otherSigners: allSigners.filter(s => s.email !== currentUserEmail), // Exclude current user
+          targetThreshold,
+          targetSignersCount,
+          targetWalletName, // New wallet name if changed
+          targetMfaSettings, // New MFA settings if changed
+          signersToRemove // Signers to be removed
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create wallet invitations');
+      }
+
+      const result = await response.json();
+
+      console.log(`Created wallet invitations for ${result.data.totalInvitations} users, sent emails to ${result.data.emailsSent} unregistered users`);
+    } catch (error) {
+      console.error('Failed to handle wallet invitations:', error);
+      toast.error('Failed to send invitations to some users');
+    }
+  };
+
+
+
+  // Handle wallet edit with unified invitation mechanism
+  // Wait for all unregistered users to register before applying any changes
+  const handleWalletEditWithUnifiedInvitations = async () => {
+    if (!wallet) return;
+
+    // Validate signers data - allow unregistered signers for invitation flow
+    const invalidSigners = signers.filter(s => !s.email);
+    if (invalidSigners.length > 0) {
+      toast.error('Some signers have incomplete email information. Please check all signers.');
+      return;
+    }
+
+    // Analyze signer changes to determine what needs to be done
+    const currentSignerEmails = wallet.signers.map((s: any) => s.email);
+    const newSignerEmails = signers.map(s => s.email);
+
+    // Find signers to be removed
+    const signersToRemove = wallet.signers.filter((s: any) => !newSignerEmails.includes(s.email));
+
+    // Find signers to be added (both registered and unregistered)
+    const signersToAdd = signers.filter(s => !currentSignerEmails.includes(s.email));
+
+    // Prepare all signers for invitation mechanism (only new signers need invitations)
+    const allSignersForInvitation = signersToAdd.map(signer => ({
+      email: signer.email,
+      ethAddress: signer.ethAddress || '', // Empty for unregistered users
+      publicKey: signer.publicKey || '',
+      authMethodId: signer.authMethodId || ''
+    }));
+
+    // Determine target settings for the invitation
+    const targetWalletName = walletName !== wallet.name ? walletName : undefined;
+    const currentMfa = wallet.metadata?.mfaSettings || {};
+    const mfaChanged = JSON.stringify(currentMfa.dailyLimits) !== JSON.stringify(dailyLimits);
+    const targetMfaSettings = mfaChanged ? { dailyLimits } as MFASettings : undefined;
+
+    console.log('Wallet edit analysis:', {
+      currentSigners: currentSignerEmails,
+      newSigners: newSignerEmails,
+      signersToRemove: signersToRemove.map(s => s.email),
+      signersToAdd: signersToAdd.map(s => s.email),
+      targetWalletName,
+      mfaChanged,
+      targetMfaSettings
+    });
+
+    // Use the enhanced handleWalletInvitations with all settings
+    // This will wait for all unregistered users to register before creating any proposals
+    await handleWalletInvitationsWithSettings(
+      wallet.id,
+      allSignersForInvitation.filter(s => s.email !== currentUserEmail), // Exclude current user from invitations
+      threshold,
+      signers.length, // Target total signers count
+      targetWalletName,
+      targetMfaSettings,
+      signersToRemove // Pass signers to be removed
+    );
+
+    // Close the modal
+    if (onCancel) {
+      onCancel();
+    }
+  };
+
+  // Handle standard wallet update (all signers are registered)
+  const handleStandardWalletUpdate = async () => {
+    if (!wallet) return;
+
+    // Validate signers data
+    const invalidSigners = signers.filter(s => !s.ethAddress || !s.email);
+    if (invalidSigners.length > 0) {
+      toast.error('Some signers have incomplete information. Please check all signers.');
+      return;
+    }
+
+    // Create settings data object
+    const settingsData: any = createSettingsData(wallet);
+
+    // Check and apply changes
+    const nameChanged = walletName !== wallet.name;
+    if (nameChanged) {
+      settingsData.name = walletName;
+    }
+
+    const signersChanged = JSON.stringify(signers.map((s: any) => s.ethAddress).sort()) !==
+        JSON.stringify(wallet.signers.map((s: any) => s.ethAddress).sort());
+    if (signersChanged) {
+      settingsData.signers = signers;
+    }
+
+    const thresholdChanged = threshold !== wallet.threshold;
+    if (thresholdChanged) {
+      settingsData.threshold = threshold;
+    }
+
+    const currentMfa = wallet.metadata?.mfaSettings || {};
+    const mfaChanged = JSON.stringify(currentMfa.dailyLimits) !== JSON.stringify(dailyLimits);
+    if (mfaChanged) {
+      settingsData.mfaSettings = { dailyLimits } as MFASettings;
+    }
+
+    // Generate change descriptions using the reusable function
+    const changeDescriptions = generateChangeDescriptions(
+      wallet,
+      {
+        name: nameChanged ? walletName : undefined,
+        threshold: thresholdChanged ? threshold : undefined,
+        signers: signersChanged ? signers : undefined,
+        mfaSettings: mfaChanged ? { dailyLimits } as MFASettings : undefined
+      }
+    );
+
+    settingsData.changeDescription = changeDescriptions.join(', ');
+
+    // Only proceed if there are actual changes
+    if (Object.keys(settingsData).length <= 2) { // originalState and changeDescription only
+      toast.error('No changes detected. Please make changes before submitting.');
+      return;
+    }
+
+    // Create and submit proposal for changes
+    const proposal = await createWalletSettingsProposal(settingsData);
+
+    if (proposal && onCancel) {
+      // Close the modal when update is successful
+      onCancel();
+    }
+  };
+
   const handleUpdateWalletSettings = async () => {
     if (!wallet) {
       return
@@ -622,135 +900,61 @@ export function MultisigWalletFormContent({
         }
         return;
       }
-      
+
       setIsLoading(true);
-      
+
       // Verify access token before proceeding
       if (!authMethod || !authMethod.accessToken) {
         toast.error('Authentication information is missing');
         setIsLoading(false);
         return;
       }
-      
+
       const isValid = await isTokenValid(authMethod);
       if (!isValid) {
         handleExpiredAuth();
         setIsLoading(false);
         return;
       }
-      
-      // Validate signers data
-      const invalidSigners = signers.filter(s => !s.ethAddress || !s.email);
-      if (invalidSigners.length > 0) {
-        toast.error('Some signers have incomplete information. Please check all signers.');
-        setIsLoading(false);
-        return;
-      }
-      
+
       // Ensure at least one signer
       if (signers.length === 0) {
         toast.error('At least one signer is required');
         setIsLoading(false);
         return;
       }
-      
-      // Create an empty settings change data object
-      const settingsData: any = {};
-      
-      // Save original state for comparison after changes are applied
-      settingsData.originalState = {
-        name: wallet.name,
-        threshold: wallet.threshold,
-        signers: wallet.signers,
-        mfaSettings: wallet.metadata?.mfaSettings,
-      };
 
-      // check if name has changed
-      const nameChanged = walletName !== wallet.name;
-      if (nameChanged) {
-        settingsData.name = walletName;
-      }
-      
       // Check if signers list has changed (added or removed signers)
-      const signersChanged = JSON.stringify(signers.map((s: any) => s.ethAddress).sort()) !== 
+      const signersChanged = JSON.stringify(signers.map((s: any) => s.ethAddress).sort()) !==
           JSON.stringify(wallet.signers.map((s: any) => s.ethAddress).sort());
-      
-      if (signersChanged) {
-        settingsData.signers = signers;
-      }
-      
-      // Check if threshold has changed
+
+      // Check for any changes that require proposals
+      const nameChanged = walletName !== wallet.name;
       const thresholdChanged = threshold !== wallet.threshold;
-      if (thresholdChanged) {
-        settingsData.threshold = threshold;
-      }
-      
-      // Check if MFA settings have changed
       const currentMfa = wallet.metadata?.mfaSettings || {};
-      const mfaChanged = 
-        JSON.stringify(currentMfa.dailyLimits) !== JSON.stringify(dailyLimits);
-        
-      if (mfaChanged) {
-        settingsData.mfaSettings = {
-          dailyLimits
-        } as MFASettings;
-      }
-      
-      // Store a summary of changes for display after proposal completion
-      const changeDescriptions = [];
-      if (settingsData.name) {
-        changeDescriptions.push(`Change name from ${wallet.name} to ${walletName}`);
-      }
-      if (settingsData.threshold !== undefined) {
-        changeDescriptions.push(`Change threshold from ${wallet.threshold} to ${threshold}`);
-      }
-      if (settingsData.signers) {
-        const addedCount = signers.filter(s => !wallet.signers.some((os: any) => os.ethAddress === s.ethAddress)).length;
-        const removedCount = wallet.signers.filter((os: any) => !signers.some(s => s.ethAddress === os.ethAddress)).length;
-        
-        if (addedCount > 0) changeDescriptions.push(`Add ${addedCount} signer(s)`);
-        if (removedCount > 0) changeDescriptions.push(`Remove ${removedCount} signer(s)`);
-      }
-      if (mfaChanged) {
-        changeDescriptions.push('Update MFA settings');
-      }
-      
-      settingsData.changeDescription = changeDescriptions.join(', ');
-      
-      // Only proceed if there are actual changes
-      if (Object.keys(settingsData).length <= 2) { // originalState and changeDescription only
+      const mfaChanged = JSON.stringify(currentMfa.dailyLimits) !== JSON.stringify(dailyLimits);
+
+      const hasAnyChanges = nameChanged || thresholdChanged || signersChanged || mfaChanged;
+
+      if (!hasAnyChanges) {
         toast.error('No changes detected. Please make changes before submitting.');
-        setIsLoading(false);
         return;
       }
-      
-      // Create a proposal for changes
-      const response = await axios.post('/api/multisig/messages', {
-        walletId: wallet.id,
-        createdBy: {
-          authMethodId: authMethodId,
-          ethAddress: userPkp.ethAddress,
-          email: currentUserEmail,
-        },
-        message: JSON.stringify(settingsData),
-        type: 'walletSettings', // Use new type field
-        settingsData, // Only includes changed fields
-        sendEmail: true,
-        signers: wallet.signers,
-        walletName: wallet.name, // Use the original wallet name
-        proposer: currentUserEmail,
-      });
-      
-      if (response.data.success) {
-        const proposal = response.data.data;
-        await autoSignProposal(proposal);
-        // Close the modal when update is successful
-        if (onCancel) {
-          onCancel();
-        }
+
+      // Check if any new signers are unregistered
+      const currentSignerEmails = wallet.signers.map((s: any) => s.email);
+      const newSigners = signers.filter(s => !currentSignerEmails.includes(s.email));
+      const hasUnregisteredNewSigners = newSigners.some(s => !s.ethAddress);
+
+      if (hasUnregisteredNewSigners) {
+        // Use unified invitation mechanism for all changes
+        await handleWalletEditWithUnifiedInvitations();
+      } else {
+        // Normal flow: all signers are registered, proceed with standard update
+        await handleStandardWalletUpdate();
       }
     } catch (error) {
-      console.error('Failed to create wallet settings proposal:', error);
+      console.error('Failed to update wallet settings:', error);
       toast.error('Failed to update wallet settings');
     } finally {
       setIsLoading(false);

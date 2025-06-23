@@ -40,6 +40,13 @@ const PendingWalletInvitationSchema = new mongoose.Schema({
   targetThreshold: { type: Number, required: true },
   targetSignersCount: { type: Number, required: true },
 
+  // Additional target settings for wallet editing (optional)
+  targetWalletName: { type: String }, // New wallet name if changed
+  targetMfaSettings: { type: mongoose.Schema.Types.Mixed }, // New MFA settings if changed
+
+  // Signers to be removed (for wallet editing)
+  signersToRemove: [{ type: mongoose.Schema.Types.Mixed }], // Array of signers to remove
+
   // Status tracking
   status: {
     type: String,
@@ -88,6 +95,13 @@ export interface PendingWalletInvitation {
 
   targetThreshold: number;
   targetSignersCount: number;
+
+  // Additional target settings for wallet editing (optional)
+  targetWalletName?: string; // New wallet name if changed
+  targetMfaSettings?: any; // New MFA settings if changed
+
+  // Signers to be removed (for wallet editing)
+  signersToRemove?: any[]; // Array of signers to remove
 
   status: 'pending' | 'completed';
   createdAt: Date;

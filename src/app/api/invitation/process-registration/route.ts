@@ -6,10 +6,8 @@ import {
   updatePendingWalletInvitationStatus,
   findPendingWalletInvitationsByInvitationId
 } from '../storage';
-import { getWalletById, saveMessageProposal } from '../../multisig/storage';
-import { sendTeamNotification } from '@/lib/notification/team-notificatioin';
+import { getWalletById } from '../../multisig/storage';
 import { getUser } from '../../user/storage';
-import { randomUUID } from 'crypto';
 
 /**
  * Process user registration completion for multisig wallet invitations
@@ -76,9 +74,9 @@ export async function POST(request: NextRequest) {
 }
 
 
-
 /**
  * Create a settings change proposal to add all registered invitees to the wallet
+ * Uses the unified api/multisig/messages POST endpoint for consistency and automatic email handling
  */
 async function createSettingsChangeProposal(walletInvitation: any) {
   try {
@@ -112,28 +110,31 @@ async function createSettingsChangeProposal(walletInvitation: any) {
       }
     }
 
-    const newSigners = [
-      ...wallet.signers,
-      ...invitedSigners
-    ];
+    // ===== FOLLOW NORMAL FLOW LOGIC EXACTLY =====
+    // Build the final target state exactly like normal flow does
 
-    // Debug logging
-    console.log('Debug - Wallet invitation processing:');
-    console.log('- Wallet signers count:', wallet.signers.length);
-    console.log('- Invited signers count:', invitedSigners.length);
-    console.log('- New signers count:', newSigners.length);
-    console.log('- Wallet signers:', wallet.signers.map(s => ({ email: s.email, ethAddress: s.ethAddress })));
-    console.log('- Invited signers:', invitedSigners.map(s => ({ email: s.email, ethAddress: s.ethAddress })));
-    console.log('- Pending invitees:', walletInvitation.pendingInvitees.map((inv: any) => ({
-      email: inv.email,
-      isRegistered: inv.isRegistered,
-      hasAuthMethodId: !!inv.authMethodId
-    })));
+    // 1. Start with current wallet signers
+    let finalSigners = [...wallet.signers];
 
-    // Prepare settings data for the proposal following handleUpdateWalletSettings pattern
+    // 2. Remove signers that should be removed
+    if (walletInvitation.signersToRemove && walletInvitation.signersToRemove.length > 0) {
+      const removedEmails = walletInvitation.signersToRemove.map((s: any) => s.email);
+      finalSigners = finalSigners.filter((s: any) => !removedEmails.includes(s.email));
+    }
+
+    // 3. Add new signers (invited signers that just registered)
+    for (const invitedSigner of invitedSigners) {
+      // Check if signer already exists (avoid duplicates)
+      const exists = finalSigners.some((s: any) => s.email === invitedSigner.email);
+      if (!exists) {
+        finalSigners.push(invitedSigner);
+      }
+    }
+
+    // Create settings data object exactly like normal flow
     const settingsData: any = {};
 
-    // Save original state for comparison after changes are applied
+    // Save original state for comparison
     settingsData.originalState = {
       name: wallet.name,
       threshold: wallet.threshold,
@@ -141,35 +142,49 @@ async function createSettingsChangeProposal(walletInvitation: any) {
       mfaSettings: wallet.metadata?.mfaSettings,
     };
 
-    // Check if signers list has changed (added or removed signers)
-    const signersChanged = JSON.stringify(newSigners.map((s: any) => s.ethAddress).sort()) !==
-        JSON.stringify(wallet.signers.map((s: any) => s.ethAddress).sort());
+    // Apply changes exactly like normal flow does
 
-    console.log('- Signers changed:', signersChanged);
-    console.log('- Original signers ethAddresses:', wallet.signers.map((s: any) => s.ethAddress).sort());
-    console.log('- New signers ethAddresses:', newSigners.map((s: any) => s.ethAddress).sort());
-
-    if (signersChanged) {
-      settingsData.signers = newSigners;
+    // 1. Name change
+    if (walletInvitation.targetWalletName && walletInvitation.targetWalletName !== wallet.name) {
+      settingsData.name = walletInvitation.targetWalletName;
     }
 
-    // Check if threshold has changed
-    const thresholdChanged = walletInvitation.targetThreshold !== wallet.threshold;
-    if (thresholdChanged) {
+    // 2. Signers change - use final signers list (like normal flow: settingsData.signers = signers)
+    const signersChanged = JSON.stringify(finalSigners.map((s: any) => s.ethAddress).sort()) !==
+        JSON.stringify(wallet.signers.map((s: any) => s.ethAddress).sort());
+    if (signersChanged) {
+      settingsData.signers = finalSigners;
+    }
+
+    // 3. Threshold change
+    if (walletInvitation.targetThreshold !== wallet.threshold) {
       settingsData.threshold = walletInvitation.targetThreshold;
     }
 
-    // Store a summary of changes for display
+    // 4. MFA settings change - use exact same format as normal flow
+    if (walletInvitation.targetMfaSettings) {
+      settingsData.mfaSettings = walletInvitation.targetMfaSettings;
+      console.log('- Applied MFA settings to proposal:', settingsData.mfaSettings);
+    }
+
+    // Generate change descriptions using the same logic as normal flow
     const changeDescriptions = [];
+    if (settingsData.name) {
+      changeDescriptions.push(`Change name from "${wallet.name}" to "${walletInvitation.targetWalletName}"`);
+    }
     if (settingsData.threshold !== undefined) {
       changeDescriptions.push(`Change threshold from ${wallet.threshold} to ${walletInvitation.targetThreshold}`);
     }
     if (settingsData.signers) {
-      const addedCount = newSigners.filter(s => !wallet.signers.some((os: any) => os.ethAddress === s.ethAddress)).length;
-      const removedCount = wallet.signers.filter((os: any) => !newSigners.some(s => s.ethAddress === os.ethAddress)).length;
+      // Calculate added and removed counts using finalSigners vs original signers
+      const addedCount = finalSigners.filter(s => !wallet.signers.some((os: any) => os.ethAddress === s.ethAddress)).length;
+      const removedCount = wallet.signers.filter((os: any) => !finalSigners.some(s => s.ethAddress === os.ethAddress)).length;
 
       if (addedCount > 0) changeDescriptions.push(`Add ${addedCount} signer(s)`);
       if (removedCount > 0) changeDescriptions.push(`Remove ${removedCount} signer(s)`);
+    }
+    if (settingsData.mfaSettings) {
+      changeDescriptions.push('Update MFA settings');
     }
 
     settingsData.changeDescription = changeDescriptions.join(', ') || 'Wallet settings updated';
@@ -179,130 +194,45 @@ async function createSettingsChangeProposal(walletInvitation: any) {
       throw new Error('No changes detected in wallet invitation processing');
     }
 
-    // Create the settings change proposal directly using storage function
-    const proposalId = randomUUID();
-
-    const proposal = {
-      id: proposalId,
-      walletId: walletInvitation.walletId,
-      status: 'pending' as const,
-      createdBy: {
-        authMethodId: walletInvitation.inviterAuthMethodId,
-        ethAddress: walletInvitation.inviterEthAddress,
-        email: walletInvitation.inviterEmail,
+    // Use the unified api/multisig/messages POST endpoint for consistency
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const response = await fetch(`${baseUrl}/api/multisig/messages`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
       },
-      message: JSON.stringify(settingsData),
-      signatures: [],
-      type: 'walletSettings' as const,
-      transactionData: undefined,
-      settingsData
-    };
-
-    // Save the proposal directly to storage
-    await saveMessageProposal(proposal);
-
-    // Send notifications to all current signers about the new proposal
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
-    const walletLink = `${appUrl}/wallet/${walletInvitation.walletId}/details/proposals`;
-
-    for (const signer of wallet.signers) {
-      if (signer.email) {
-        await sendWalletSettingsNotification({
-          to: signer.email,
-          proposalId: proposalId,
-          settingsData,
-          walletLink,
-          walletName: wallet.name,
-          proposer: walletInvitation.inviterEmail,
-        });
-      }
-    }
-
-    console.log(`Created settings change proposal ${proposal.id} for wallet ${walletInvitation.walletId}`);
-
-    return proposal;
-  } catch (error) {
-    console.error('Failed to create settings change proposal:', error);
-    throw error;
-  }
-}
-
-/**
- * Helper function specifically for wallet settings change notifications
- */
-async function sendWalletSettingsNotification({
-  to,
-  proposalId,
-  settingsData,
-  walletLink,
-  walletName,
-  proposer,
-}: {
-  to: string
-  proposalId: string
-  settingsData: any
-  walletLink: string
-  walletName: string
-  proposer: string
-}) {
-  try {
-    // Generate detailed change description
-    const changes = [];
-
-    if (settingsData.threshold !== undefined) {
-      changes.push(`Threshold changed to ${settingsData.threshold}`);
-    }
-
-    if (settingsData.signers) {
-      // Count added/removed signers by comparing with original state
-      const originalSigners = settingsData.originalState?.signers || [];
-      const newSigners = settingsData.signers || [];
-
-      const addedCount = newSigners.filter((s: any) =>
-        !originalSigners.some((os: any) => os.ethAddress === s.ethAddress)
-      ).length;
-      const removedCount = originalSigners.filter((os: any) =>
-        !newSigners.some((s: any) => s.ethAddress === os.ethAddress)
-      ).length;
-
-      if (addedCount > 0) changes.push(`Added ${addedCount} signer(s)`);
-      if (removedCount > 0) changes.push(`Removed ${removedCount} signer(s)`);
-    }
-
-    if (settingsData.mfaSettings) {
-      changes.push('MFA settings updated');
-    }
-
-    // Use the provided change description if available, or generate one
-    const changeDescription = settingsData.changeDescription || changes.join(', ') || 'Wallet settings updated';
-
-    // Use the new sendTeamNotification function
-    const result = await sendTeamNotification({
-      to,
-      proposalId,
-      recipientAddress: 'Wallet Settings',
-      amount: changeDescription,
-      walletLink,
-      notificationType: 'wallet-settings-change',
-      // Include additional details about the changes
-      settingsChanges: {
-        changeDescription,
-        threshold: settingsData.threshold,
-        signerChanges: settingsData.signers ? true : false,
-        mfaChanges: settingsData.mfaSettings ? true : false,
-        nameChanges: settingsData.name ? true : false,
-      },
-      walletName,
-      proposer,
+      body: JSON.stringify({
+        walletId: walletInvitation.walletId,
+        createdBy: {
+          authMethodId: walletInvitation.inviterAuthMethodId,
+          ethAddress: walletInvitation.inviterEthAddress,
+          email: walletInvitation.inviterEmail,
+        },
+        message: JSON.stringify(settingsData),
+        type: 'walletSettings',
+        settingsData,
+        signers: wallet.signers, // Pass current signers for email notifications
+        sendEmail: true, // Enable automatic email sending
+        walletName: wallet.name,
+        proposer: walletInvitation.inviterEmail,
+      })
     });
 
-    if (!result.success) {
-      throw new Error(result.error || 'Failed to send wallet settings notification');
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(`Failed to create proposal via unified API: ${response.status} ${response.statusText}. ${errorData.error || ''}`);
     }
 
-    return result.response;
+    const result = await response.json();
+    if (!result.success) {
+      throw new Error(`API returned error: ${result.error || 'Unknown error'}`);
+    }
+
+    console.log(`Created settings change proposal ${result.data.id} for wallet ${walletInvitation.walletId} via unified API`);
+
+    return result.data;
   } catch (error) {
-    console.error('Error sending wallet settings notification:', error);
+    console.error('Failed to create settings change proposal:', error);
     throw error;
   }
 }

@@ -5,36 +5,21 @@ import crypto from 'crypto';
 // Helper function to extract invitation data safely from Mongoose document
 function extractInvitationData(doc: any): PendingInvitation | null {
   if (!doc) return null;
+
   return {
-    id: doc.id || doc._id?.toString(),
-    senderAuthMethodId: doc.senderAuthMethodId,
-    senderEmail: doc.senderEmail,
-    recipientEmail: doc.recipientEmail,
-    tokenType: doc.tokenType,
-    amount: doc.amount,
-    status: doc.status,
-    createdAt: doc.createdAt,
-    updatedAt: doc.updatedAt,
-    expiresAt: doc.expiresAt
+    ...doc.toObject?.() || doc,
+    id: doc.id || doc._id?.toString()
   };
 }
 
 // Helper function to extract wallet invitation data safely from Mongoose document
 function extractWalletInvitationData(doc: any): PendingWalletInvitation | null {
   if (!doc) return null;
+
   return {
+    ...doc.toObject?.() || doc,
     id: doc.id || doc._id?.toString(),
-    walletId: doc.walletId,
-    inviterAuthMethodId: doc.inviterAuthMethodId,
-    inviterEmail: doc.inviterEmail,
-    inviterEthAddress: doc.inviterEthAddress,
-    walletName: doc.walletName,
-    pendingInvitees: doc.pendingInvitees || [],
-    targetThreshold: doc.targetThreshold,
-    targetSignersCount: doc.targetSignersCount,
-    status: doc.status,
-    createdAt: doc.createdAt,
-    updatedAt: doc.updatedAt
+    pendingInvitees: doc.pendingInvitees || []
   };
 }
 
@@ -178,7 +163,10 @@ export async function createPendingWalletInvitation({
   walletName,
   pendingInvitees,
   targetThreshold,
-  targetSignersCount
+  targetSignersCount,
+  targetWalletName,
+  targetMfaSettings,
+  signersToRemove
 }: {
   walletId: string;
   inviterAuthMethodId: string;
@@ -193,6 +181,9 @@ export async function createPendingWalletInvitation({
   }[];
   targetThreshold: number;
   targetSignersCount: number;
+  targetWalletName?: string;
+  targetMfaSettings?: any;
+  signersToRemove?: any[];
 }): Promise<PendingWalletInvitation> {
   try {
     await connectToDatabase();
@@ -210,8 +201,18 @@ export async function createPendingWalletInvitation({
       pendingInvitees,
       targetThreshold,
       targetSignersCount,
+      ...(targetWalletName && { targetWalletName }),
+      ...(targetMfaSettings && { targetMfaSettings }),
+      ...(signersToRemove && signersToRemove.length > 0 && { signersToRemove }),
       status: 'pending'
     };
+
+    console.log('Creating PendingWalletInvitation with data:', {
+      ...walletInvitationData,
+      targetWalletName,
+      targetMfaSettings,
+      signersToRemove
+    });
 
     const newWalletInvitation = await PendingWalletInvitationModel.create(walletInvitationData);
     return extractWalletInvitationData(newWalletInvitation) as PendingWalletInvitation;
