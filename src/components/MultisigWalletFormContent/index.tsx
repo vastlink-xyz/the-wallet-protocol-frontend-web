@@ -364,11 +364,8 @@ export function MultisigWalletFormContent({
       const createWalletIpfsId = await getCreateWalletIpfsId("base58");
 
       // Determine actual signers for wallet creation
-      let actualSigners;
-      let actualThreshold;
-
-      actualSigners = signers.filter(s => !!s.ethAddress)
-      actualThreshold = Math.min(threshold, actualSigners.length);
+      const actualSigners = signers.filter(s => !!s.ethAddress)
+      const actualThreshold = Math.min(threshold, actualSigners.length);
 
       // Collect all authMethodIds from actual signers
       const signerAuthMethodIds = actualSigners
