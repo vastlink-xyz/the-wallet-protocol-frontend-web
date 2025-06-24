@@ -17,16 +17,15 @@ export async function POST(request: NextRequest) {
       inviterEmail,
       inviterEthAddress,
       walletName,
-      otherSigners,
+      unregisteredUsers,
       targetThreshold,
-      targetSignersCount,
       targetWalletName,
       targetMfaSettings,
       signersToRemove
     } = body;
     
     // Validate required fields
-    if (!walletId || !inviterAuthMethodId || !inviterEmail || !inviterEthAddress || !walletName || !otherSigners || !Array.isArray(otherSigners)) {
+    if (!walletId || !inviterAuthMethodId || !inviterEmail || !inviterEthAddress || !walletName || !unregisteredUsers || !Array.isArray(unregisteredUsers)) {
       return NextResponse.json(
         { success: false, error: 'Missing required fields' },
         { status: 400 }
@@ -41,7 +40,7 @@ export async function POST(request: NextRequest) {
       authMethodId?: string;
     }[] = [];
     
-    for (const signer of otherSigners) {
+    for (const signer of unregisteredUsers) {
       // Create PendingInvitation for each signer (0 ETH transfer)
       const invitation = await createPendingInvitation({
         senderAuthMethodId: inviterAuthMethodId,
@@ -68,16 +67,12 @@ export async function POST(request: NextRequest) {
       walletName,
       pendingInvitees,
       targetThreshold,
-      targetSignersCount,
       targetWalletName,
       targetMfaSettings,
       signersToRemove
     });
-    
-    // Send invitation emails to unregistered users
-    const unregisteredSigners = otherSigners.filter(signer => !signer.ethAddress);
 
-    for (const signer of unregisteredSigners) {
+    for (const signer of unregisteredUsers) {
       const invitationId = pendingInvitees.find(inv => inv.email === signer.email)?.invitationId;
       if (invitationId) {
         try {
@@ -103,9 +98,9 @@ export async function POST(request: NextRequest) {
       success: true,
       message: 'Wallet invitations created and emails sent successfully',
       data: {
-        totalInvitations: otherSigners.length,
-        emailsSent: unregisteredSigners.length,
-        unregisteredSigners: unregisteredSigners.map(signer => ({
+        totalInvitations: unregisteredUsers.length,
+        emailsSent: unregisteredUsers.length,
+        unregisteredSigners: unregisteredUsers.map(signer => ({
           email: signer.email,
           invitationId: pendingInvitees.find(inv => inv.email === signer.email)?.invitationId
         }))

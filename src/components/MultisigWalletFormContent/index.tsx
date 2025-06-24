@@ -269,9 +269,8 @@ export function MultisigWalletFormContent({
   // Handle wallet invitations for unregistered users
   const handleWalletInvitations = async (
     walletId: string,
-    otherSigners: any[],
+    unregisteredUsers: any[],
     targetThreshold: number,
-    targetSignersCount: number
   ) => {
     try {
       // Call API to create wallet invitations
@@ -287,9 +286,8 @@ export function MultisigWalletFormContent({
           inviterEmail: currentUserEmail,
           inviterEthAddress: userPkp.ethAddress,
           walletName,
-          otherSigners,
+          unregisteredUsers,
           targetThreshold,
-          targetSignersCount
         })
       });
 
@@ -337,10 +335,10 @@ export function MultisigWalletFormContent({
     // Determine if we need to use invitation mechanism
     const otherSigners = signers.filter(s => s.email !== currentUserEmail);
     const hasUnregisteredUsers = otherSigners.some(signer => !signer.ethAddress);
+    const unregisteredUsers = otherSigners.filter(signer => !signer.ethAddress);
 
     // Store original threshold for invitation mechanism
     const originalThreshold = threshold;
-    const originalSignersCount = signers.length;
     
     try {
       setIsLoading(true);
@@ -362,20 +360,8 @@ export function MultisigWalletFormContent({
       let actualSigners;
       let actualThreshold;
 
-      if (hasUnregisteredUsers) {
-        // Invitation mechanism: only include creator
-        actualSigners = [{
-          email: currentUserEmail,
-          ethAddress: userPkp.ethAddress,
-          publicKey: userPkp.publicKey,
-          authMethodId: authMethodId
-        }];
-        actualThreshold = 1;
-      } else {
-        // Normal flow: include all signers
-        actualSigners = signers;
-        actualThreshold = threshold;
-      }
+      actualSigners = signers.filter(s => !!s.ethAddress)
+      actualThreshold = Math.min(threshold, actualSigners.length);
 
       // Collect all authMethodIds from actual signers
       const signerAuthMethodIds = actualSigners
@@ -529,7 +515,7 @@ export function MultisigWalletFormContent({
 
         if (hasUnregisteredUsers) {
           // Handle invitation mechanism
-          await handleWalletInvitations(walletId, otherSigners, originalThreshold, originalSignersCount);
+          await handleWalletInvitations(walletId, unregisteredUsers, originalThreshold);
 
           // Show success message for invitation flow
           const unregisteredCount = otherSigners.filter(s => !s.ethAddress).length;
@@ -662,7 +648,6 @@ export function MultisigWalletFormContent({
     walletId: string,
     allSigners: any[],
     targetThreshold: number,
-    targetSignersCount: number,
     targetWalletName?: string,
     targetMfaSettings?: MFASettings,
     signersToRemove?: any[]
@@ -683,7 +668,6 @@ export function MultisigWalletFormContent({
           walletName: wallet?.name || '', // Current wallet name
           otherSigners: allSigners.filter(s => s.email !== currentUserEmail), // Exclude current user
           targetThreshold,
-          targetSignersCount,
           targetWalletName, // New wallet name if changed
           targetMfaSettings, // New MFA settings if changed
           signersToRemove // Signers to be removed
@@ -748,7 +732,6 @@ export function MultisigWalletFormContent({
       wallet.id,
       allSignersForInvitation.filter(s => s.email !== currentUserEmail), // Exclude current user from invitations
       threshold,
-      signers.length, // Target total signers count
       targetWalletName,
       targetMfaSettings,
       signersToRemove // Pass signers to be removed

@@ -163,7 +163,6 @@ export async function createPendingWalletInvitation({
   walletName,
   pendingInvitees,
   targetThreshold,
-  targetSignersCount,
   targetWalletName,
   targetMfaSettings,
   signersToRemove
@@ -180,7 +179,6 @@ export async function createPendingWalletInvitation({
     authMethodId?: string;
   }[];
   targetThreshold: number;
-  targetSignersCount: number;
   targetWalletName?: string;
   targetMfaSettings?: any;
   signersToRemove?: any[];
@@ -200,7 +198,6 @@ export async function createPendingWalletInvitation({
       walletName,
       pendingInvitees,
       targetThreshold,
-      targetSignersCount,
       ...(targetWalletName && { targetWalletName }),
       ...(targetMfaSettings && { targetMfaSettings }),
       ...(signersToRemove && signersToRemove.length > 0 && { signersToRemove }),

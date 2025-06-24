@@ -38,7 +38,6 @@ const PendingWalletInvitationSchema = new mongoose.Schema({
 
   // Target wallet configuration after all invitees join
   targetThreshold: { type: Number, required: true },
-  targetSignersCount: { type: Number, required: true },
 
   // Additional target settings for wallet editing (optional)
   targetWalletName: { type: String }, // New wallet name if changed
@@ -94,7 +93,6 @@ export interface PendingWalletInvitation {
   }[];
 
   targetThreshold: number;
-  targetSignersCount: number;
 
   // Additional target settings for wallet editing (optional)
   targetWalletName?: string; // New wallet name if changed
