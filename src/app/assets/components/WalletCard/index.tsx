@@ -97,7 +97,7 @@ export function WalletCard({
           className="relative flex flex-col items-center justify-center p-2 bg-gray-50 hover:bg-gray-100 rounded-md text-sm font-medium text-gray-700 cursor-pointer"
         >
           <FileText size={18} className="mb-1"/>
-          Transaction
+          Transactions
           {unsignedProposalsCount && unsignedProposalsCount > 0 ? (
             <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
           ) : null}

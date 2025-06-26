@@ -6,6 +6,7 @@ import { getTransactionDetails, hasUserSigned } from "../utils/proposal";
 import { formatEthAmount } from "@/lib/utils";
 import { SUPPORTED_TOKENS_INFO, TokenType } from "@/lib/web3/token";
 import { IRelayPKP } from "@lit-protocol/types";
+import { useMemo } from "react";
 
 interface ProposalProps {
   proposal: MessageProposal;
@@ -20,6 +21,26 @@ interface ProposalProps {
 
 export function Proposal({ proposal, selectedWallet, handleSignProposal, executeMultisigLitAction, userPkp, isSigningProposal, isLoading, isDisabled }: ProposalProps) {
   const txDetails = getTransactionDetails(proposal, selectedWallet);
+
+  const displayThreshold = useMemo(() => {
+    if (proposal.status === 'completed') {
+      // if proposal is completed, display the threshold from the original state
+      return proposal.settingsData?.originalState?.threshold
+    }
+
+    // if proposal is pending, display the current threshold from the wallet
+    return selectedWallet?.threshold
+  }, [selectedWallet, proposal])
+
+  const displaySigners = useMemo(() => {
+    if (proposal.status === 'completed') {
+      // if proposal is completed, display the signers from the original state
+      return proposal.settingsData?.originalState?.signers as MultisigWallet['signers']
+    }
+
+    // if proposal is pending, display the current signers from the wallet
+    return selectedWallet?.signers
+  }, [selectedWallet, proposal])
 
   return <div key={proposal.id} className="p-4 bg-gray-50 rounded-lg">
     <div className="mb-2">
@@ -47,9 +68,7 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
     </div>
     <div className="text-sm text-gray-500 mb-1">
       <span className="font-medium text-gray-700">Threshold:</span>
-      {selectedWallet?.threshold && (
-        <span> {selectedWallet.threshold}</span>
-      )}
+      <span> {displayThreshold}</span>
     </div>
     {(proposal as any).createdAt && (
       <div className="text-sm text-gray-500 mb-1">
@@ -65,7 +84,7 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
     <div className="mb-2">
       <div className="text-sm font-medium text-gray-700 mb-1">Signers:</div>
       <div className="pl-2 border-l-2 border-gray-200 space-y-1">
-        {selectedWallet?.signers?.map(signer => {
+        {displaySigners?.map(signer => {
           const hasSigned = proposal.signatures.some(sig => sig.signer.toLowerCase() === signer.ethAddress.toLowerCase());
           
           return (
