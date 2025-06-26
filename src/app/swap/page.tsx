@@ -436,7 +436,7 @@ export default function SwapPage() {
         const ETH_TESTNET_ETHERS_PROVIDER = new ethers.providers.JsonRpcProvider(
             'https://ethereum-sepolia-rpc.publicnode.com',
             ethTestNetwork,
-        )
+        ) as any;
         const testnetHaskoinProvider = new HaskoinProvider(
             'https://api.haskoin.com',
             BTCChain,
