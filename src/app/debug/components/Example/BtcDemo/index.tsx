@@ -9,7 +9,7 @@ import * as ecc from "@bitcoin-js/tiny-secp256k1-asmjs";
 import elliptic from "elliptic";
 import * as bip66 from "bip66";
 import BN from "bn.js";
-import { fetchBtc24HourOutflow } from "@/lib/web3/btc";
+import { fetchBtcTodayOutflow } from "@/lib/web3/btc";
 // btc dependencies
 
 // Testnet transaction broadcast URL
@@ -259,10 +259,10 @@ export function BtcDemo({ authMethod, litactionPkp, sessionSigs }: BtcDemoProps)
     }
   };
 
-  const handleFetch24HourOutflow = async () => {
+  const handleFetchTodayOutflow = async () => {
     if (!btcAddress) return;
-    const outflow = await fetchBtc24HourOutflow(btcAddress);
-    log('24 Hour Outflow', outflow);
+    const outflow = await fetchBtcTodayOutflow(btcAddress);
+    log('Today Outflow', outflow);
   }
 
   return (
@@ -285,9 +285,9 @@ export function BtcDemo({ authMethod, litactionPkp, sessionSigs }: BtcDemoProps)
       </Button>
 
       <Button
-        onClick={handleFetch24HourOutflow}
+        onClick={handleFetchTodayOutflow}
       >
-        24 Hour Outflow
+        Today Outflow
       </Button>
 
       {status && <p className="mt-2">{status}</p>}

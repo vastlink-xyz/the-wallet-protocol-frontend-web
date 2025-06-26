@@ -78,7 +78,7 @@ export const fetchBtc24HourOutflow = async (btcAddress: string) => {
       const isOutgoing = tx.vin.some((input: any) =>
         input.prevout && input.prevout.scriptpubkey_address === btcAddress
       );
-      
+
       if (isOutgoing) {
         // Calculate the amount sent out
         // We need to find outputs that are not back to our address (change outputs)
@@ -90,11 +90,74 @@ export const fetchBtc24HourOutflow = async (btcAddress: string) => {
         }
       }
     }
-    
+
     // Convert from satoshis to BTC
     return totalOutflow / 100000000;
   } catch (error) {
     console.error("Error calculating BTC 24-hour outflow:", error);
+    return 0;
+  }
+};
+
+export const fetchBtcTodayOutflow = async (btcAddress: string) => {
+  try {
+    // Fetch transactions for the address using Blockstream API via our proxy
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/btc/mempool?address=${btcAddress}&endpoint=txs`);
+
+    if (!response.ok) {
+      throw new Error(`API returned ${response.status}: ${response.statusText}`);
+    }
+
+    const transactions = await response.json();
+
+    if (!Array.isArray(transactions)) {
+      return 0;
+    }
+
+    // Get today's start time in UTC (00:00:00 UTC)
+    const todayStartTimestamp = new Date().setUTCHours(0, 0, 0, 0);
+    const todayStart = new Date(todayStartTimestamp);
+
+    // Filter transactions from today (UTC 0:00 to now) and sum outgoing amounts
+    let totalOutflow = 0;
+
+    for (const tx of transactions) {
+      // Check if transaction has a timestamp
+      if (!tx.status || !tx.status.block_time) {
+        // Skip transactions without timestamps (pending transactions)
+        continue;
+      }
+
+      // Convert block_time (Unix timestamp) to Date
+      const txTime = new Date(tx.status.block_time * 1000);
+
+      // Skip transactions older than today's start
+      if (txTime < todayStart) {
+        continue;
+      }
+
+      // Check if this is an outgoing transaction
+      // In Blockstream API, vin contains inputs and vout contains outputs
+      const isOutgoing = tx.vin.some((input: any) =>
+        input.prevout && input.prevout.scriptpubkey_address === btcAddress
+      );
+
+      if (isOutgoing) {
+        // Calculate the amount sent out
+        // We need to find outputs that are not back to our address (change outputs)
+        for (const output of tx.vout) {
+          if (output.scriptpubkey_address && output.scriptpubkey_address !== btcAddress) {
+            // Add the value (in satoshis) to our total
+            totalOutflow += output.value;
+          }
+        }
+      }
+    }
+
+    // Convert from satoshis to BTC
+    return totalOutflow / 100000000;
+  } catch (error) {
+    console.error("Error calculating BTC today outflow:", error);
     return 0;
   }
 };

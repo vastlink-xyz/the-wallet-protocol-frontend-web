@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stytchClient } from '@/app/api/stytch/client';
 import { AuthenticatedSession, authenticateStytchSession } from '@/app/api/stytch/sessionAuth';
-import { log } from '@/lib/utils';
 
 export async function GET(req: NextRequest) {
   try {
     const session: AuthenticatedSession = await authenticateStytchSession(req);
-    log('Authenticated session in get-user-phone:', session);
 
     // Fetch user information from Stytch to get phone numbers
     const userResponse = await stytchClient.users.get({ user_id: session.user_id });

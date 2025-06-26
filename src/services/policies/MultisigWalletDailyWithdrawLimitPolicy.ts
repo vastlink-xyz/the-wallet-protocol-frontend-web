@@ -6,7 +6,7 @@ import { EvmChain } from "moralis/common-evm-utils";
 import { initializeMoralis } from '@/lib/moralis';
 import { MultisigWallet } from '@/app/api/multisig/storage';
 import { SUPPORTED_TOKENS_INFO, TokenType } from '@/lib/web3/token';
-import { fetchBtc24HourOutflow } from '@/lib/web3/btc';
+import { fetchBtcTodayOutflow } from '@/lib/web3/btc';
 import { LIT_CHAINS } from '@lit-protocol/constants';
 
 // Context specific to transaction operations
@@ -19,7 +19,7 @@ export interface MultisigWalletTransactionOperationContext extends BaseOperation
 async function getUserWithdrawalAmountToday(walletData: MultisigWallet, tokenType: TokenType): Promise<number> {
   if (tokenType === 'BTC') {
     const address = walletData.addresses.btc;
-    const outflow = await fetchBtc24HourOutflow(address);
+    const outflow = await fetchBtcTodayOutflow(address);
     return outflow;
   }
 
@@ -29,7 +29,8 @@ async function getUserWithdrawalAmountToday(walletData: MultisigWallet, tokenTyp
     await initializeMoralis();
 
     const currentTimestamp = Date.now();
-    const yesterdayTimestamp = Date.now() - 24 * 60 * 60 * 1000;
+    // Get today's start time in UTC (00:00:00 UTC)
+    const todayStartTimestamp = new Date().setUTCHours(0, 0, 0, 0);
 
     const tokenInfo = SUPPORTED_TOKENS_INFO[tokenType]
     const chainName = tokenInfo.chainName;
@@ -38,7 +39,7 @@ async function getUserWithdrawalAmountToday(walletData: MultisigWallet, tokenTyp
     if (tokenInfo.chainType === 'EVM' && tokenInfo.contractAddress) {
       const response = await Moralis.EvmApi.token.getWalletTokenTransfers({
         chain: chainId,
-        fromDate: new Date(yesterdayTimestamp),
+        fromDate: new Date(todayStartTimestamp),
         toDate: new Date(currentTimestamp),
         contractAddresses: [tokenInfo.contractAddress],
         address,
@@ -54,7 +55,7 @@ async function getUserWithdrawalAmountToday(walletData: MultisigWallet, tokenTyp
       const response = await Moralis.EvmApi.transaction.getWalletTransactions({
         // "chain": EvmChain.SEPOLIA,
         "chain": chainId,
-        "fromDate": new Date(yesterdayTimestamp),
+        "fromDate": new Date(todayStartTimestamp),
         "toDate": new Date(currentTimestamp),
         "order": "DESC",
         "address": address,
