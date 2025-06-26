@@ -375,17 +375,17 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
   };
 
   return (
-    <div className="p-4 flex flex-col items-center gap-4 w-full">
+    <div className="flex flex-col items-center gap-4 w-full">
       {isLoading ? (
         <LogoLoading />
       ) : (
         <>
           {hasMultisigWallets ? (
-            <div className="w-full max-w-5xl">
+            <div className="w-full">
               <p className="text-center mb-6 text-lg">You have {wallets.length} team wallet(s)</p>
               <div className="flex flex-col items-center gap-6 w-full">
                 {wallets.map(wallet => (
-                  <div key={wallet.id} className="w-full max-w-3xl mb-6">
+                  <div key={wallet.id} className="w-full mb-6">
                     <WalletCard
                       walletId={wallet.id}
                       avatars={wallet.signers.map(signer => ({ email: signer.email }))}

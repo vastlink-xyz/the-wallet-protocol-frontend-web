@@ -60,7 +60,7 @@ export function TableList({ data, tokenType, isLoading }: ITableListProps) {
               "px-0 py-6",
               'desktop:w-[121px] laptop:w-[121px] tablet:w-[100px]'
             )}>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1">
                 <img src={SUPPORTED_TOKENS_INFO[tokenType].iconUrl} className="w-[28px] h-[28px]" />
                 <span className={cn(
                   'font-bold leading-tight text-[#3d3d3d]',
@@ -89,9 +89,13 @@ export function TableList({ data, tokenType, isLoading }: ITableListProps) {
               "hidden tablet:table-cell px-0 py-6",
               'text-[#929292] font-medium leading-none',
               'text-xs desktop:text-sm',
-              'tablet:w-[70px] laptop:w-[90px] desktop:w-[120px]',
             )}>
-              {SUPPORTED_TOKENS_INFO[tokenType].network}
+              <p className={cn(
+                "truncate",
+                'tablet:w-[70px] laptop:w-[100px] desktop:w-[120px]'
+              )}>
+                {SUPPORTED_TOKENS_INFO[tokenType].network}
+              </p>
             </TableCell>
 
             {/* from */}
@@ -102,28 +106,9 @@ export function TableList({ data, tokenType, isLoading }: ITableListProps) {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger className={cn(
-                    "hidden tablet:block laptop:hidden",
-                    'max-w-[104px] mr-[10px]',
-                  )}>
-                    <div className="cursor-pointer truncate">
-                      {transaction.from}
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <CopyAddress
-                      textToCopy={transaction.from}
-                      className="text-white text-xs"
-                      iconSize={14}
-                    />
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger className={cn(
-                    "hidden laptop:block",
-                    'laptop:w-[131px] desktop:w-[216px]',
-                    'laptop:mr-[10px] desktop:mr-[30px]'
+                    "hidden tablet:block",
+                    'tablet:w-[111px] laptop:w-[131px] desktop:w-[216px]',
+                    'tablet:mr-[5px] laptop:mr-[10px] desktop:mr-[30px]'
                   )}>
                     <div className="cursor-pointer truncate">
                       {transaction.from}
@@ -148,28 +133,9 @@ export function TableList({ data, tokenType, isLoading }: ITableListProps) {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger className={cn(
-                    "hidden tablet:block laptop:hidden",
-                    "w-[140px] mr-[10px]"
-                  )}>
-                    <div className="cursor-pointer truncate">
-                      {transaction.to}
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <CopyAddress
-                      textToCopy={transaction.to}
-                      className="text-white text-xs"
-                      iconSize={14}
-                    />
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger className={cn(
-                    "hidden laptop:block",
-                    'laptop:w-[131px] desktop:w-[216px]',
-                    'laptop:mr-[10px] desktop:mr-[30px]'
+                    "hidden tablet:block",
+                    'tablet:w-[111px] laptop:w-[131px] desktop:w-[216px]',
+                    'tablet:mr-[5px] laptop:mr-[10px] desktop:mr-[30px]'
                   )}>
                     <div className="cursor-pointer truncate">
                       {transaction.to}
@@ -191,7 +157,8 @@ export function TableList({ data, tokenType, isLoading }: ITableListProps) {
               'hidden tablet:table-cell px-0 py-6',
               'text-xs text-[#929292] font-medium leading-none break-all',
             )}>
-              <div className={cn(
+              <CopyAddress textToCopy={transaction.txid} isTruncate />
+              {/* <div className={cn(
                 "hidden tablet:block laptop:hidden",
                 'w-[140px] mr-[5px]',
                 "cursor-pointer truncate"
@@ -209,7 +176,7 @@ export function TableList({ data, tokenType, isLoading }: ITableListProps) {
                 onClick={() => openTxPage(transaction)}
               >
                 {transaction.txid}
-              </div>
+              </div> */}
             </TableCell>
 
             {/* time */}
@@ -272,14 +239,15 @@ export function TableList({ data, tokenType, isLoading }: ITableListProps) {
                       </Tooltip>
                     </TooltipProvider>
                     <div className="w-[300px]">
-                      <div className="truncate cursor-pointer" onClick={() => openTxPage(transaction)}>
+                      {/* <div className="truncate cursor-pointer" onClick={() => openTxPage(transaction)}>
                         Transaction Hash: {transaction.txid}
-                      </div>
+                      </div> */}
+                      <CopyAddress textToCopy={transaction.txid} />
                     </div>
                   </div>
 
                   <div className="flex justify-between mt-[20px]">
-                    <p><span className="text-[#929292]">Network:</span> {SUPPORTED_TOKENS_INFO[tokenType].network}</p>
+                    <p className="truncate"><span className="text-[#929292]">Network:</span> {SUPPORTED_TOKENS_INFO[tokenType].network}</p>
                     <div className="text-right">
                       <p className={cn(
                         "text-lg font-bold leading-tight",

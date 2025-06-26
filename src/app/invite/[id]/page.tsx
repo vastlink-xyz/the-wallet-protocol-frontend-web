@@ -57,7 +57,7 @@ export default function InvitePage() {
 
   if (error || !invitation) {
     return (
-      <div className="container max-w-md mx-auto p-4 mt-12">
+      <div className="max-w-md mx-auto p-4 mt-12">
         <Card>
           <CardHeader>
             <CardTitle className="text-red-600">Invitation Error</CardTitle>
@@ -76,7 +76,7 @@ export default function InvitePage() {
   }
 
   return (
-    <div className="container max-w-md mx-auto p-4 mt-12">
+    <div className="max-w-md mx-auto p-4 mt-12">
       {invitation && (
         <>
           <Card className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50">

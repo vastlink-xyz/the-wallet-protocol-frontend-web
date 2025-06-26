@@ -31,7 +31,7 @@ export default function AppNavbar() {
   
   return (
     <nav className="bg-white shadow-sm py-2 px-4 w-full">
-      <div className="container mx-auto flex justify-between items-center">
+      <div className="mx-auto flex justify-between items-center">
         <Link href="/assets/personal" className="font-medium text-xl">
           <Image src="/Vastbase_logo.svg" alt="Vastbase" width={64} height={64} />
         </Link>

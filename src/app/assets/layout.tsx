@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useAuthExpiration } from '@/hooks/useAuthExpiration'
 import { useEffect } from 'react'
 import { User, Users } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 export default function AssetsLayout({
   children,
@@ -19,7 +20,10 @@ export default function AssetsLayout({
   }, [])
 
   return (
-    <div className="container mx-auto px-4 py-8">  
+    <div className={cn(
+      'max-w-[650px]',
+      "mx-auto py-8 px-4",
+    )}>
       <div className="flex space-x-1 rounded-xl bg-gray-100 p-1 mb-6">
         <Link
           href="/assets/personal"

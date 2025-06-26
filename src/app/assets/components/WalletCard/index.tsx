@@ -37,8 +37,8 @@ export function WalletCard({
   console.log('unsignedProposalsCount', unsignedProposalsCount)
 
   return (
-    <div className="bg-white rounded-lg border p-6 shadow-sm relative max-w-[800px] mx-auto">
-      <header className="flex items-center justify-between">
+    <div className="bg-white rounded-lg border p-6 shadow-sm relative">
+      <header className="flex items-center justify-between gap-1">
         <div className="flex -space-x-3">
           {avatars.map((avatar, index) => (
             <div
@@ -55,7 +55,7 @@ export function WalletCard({
         <div className="flex flex-col">
           <h3 className="font-medium text-xl">{walletName}</h3>
           {walletId && (
-            <p className="text-gray-500 text-xs">ID: {walletId}</p>
+            <p className="text-gray-500 text-xs break-words">ID: {walletId}</p>
           )}
         </div>
 

@@ -108,7 +108,7 @@ export function TokenAssets({ btcAddress, ethAddress }: TokenAssetsProps) {
   return (
     <div className="space-y-3 py-2 my-12">
       {tokenDataList.map((token) => (
-        <div key={token.symbol} className="flex items-center justify-between py-1 w-[600px] mx-auto">
+        <div key={token.symbol} className="flex items-center justify-between py-1 mx-auto">
           <div className="flex items-center space-x-2 mb-2">
             <img 
               src={token.iconUrl} 
