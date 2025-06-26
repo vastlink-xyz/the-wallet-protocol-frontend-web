@@ -105,7 +105,7 @@ export class LitEvmKeystoreSigner implements ISigner {
         }
         console.log('in signTransfer tx', tx)
         const toSign = ethers.utils.arrayify(
-            ethers.utils.keccak256(ethers.utils.serializeTransaction(tx))
+            ethers.utils.keccak256(ethers.utils.serializeTransaction(tx as any))
         )
         console.log('tx and tosign', tx, toSign);
 
@@ -152,7 +152,7 @@ export class LitEvmKeystoreSigner implements ISigner {
         console.log('lit NodeClient sig:', sig)
 
         const signedAndSerializedTx = ethers.utils.serializeTransaction(
-            tx,
+            tx as any,
             ethers.utils.joinSignature({
                 r: '0x' + sig.r.substring(2),
                 s: '0x' + sig.s,
@@ -168,7 +168,7 @@ export class LitEvmKeystoreSigner implements ISigner {
             await litNodeClient.connect()
         }
         const toSign = ethers.utils.arrayify(
-            ethers.utils.keccak256(ethers.utils.serializeTransaction(tx))
+            ethers.utils.keccak256(ethers.utils.serializeTransaction(tx as any))
         )
 
         const ipfsId = await getPersonalTransactionIpfsId('base58')
@@ -200,7 +200,7 @@ export class LitEvmKeystoreSigner implements ISigner {
         }
 
         const signedAndSerializedTx = ethers.utils.serializeTransaction(
-            tx,
+            tx as any,
             ethers.utils.joinSignature({
                 r: '0x' + sig.r.substring(2),
                 s: '0x' + sig.s,
