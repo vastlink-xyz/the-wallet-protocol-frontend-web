@@ -71,9 +71,9 @@ export function UnsignedProposalsNotification() {
   }
 
   return (
-    <div className="w-full h-[45px] py-[9px] bg-[#e6f7ff] rounded-sm border border-[#91d5ff] justify-between items-center gap-1.5 inline-flex px-8">
+    <div className="w-full py-[9px] bg-[#e6f7ff] rounded-sm border border-[#91d5ff] justify-between items-center gap-1.5 inline-flex px-8">
       <div className="flex-1 text-center">
-        <div className="grow shrink basis-0 text-center text-black/90 text-sm font-normal leading-snug flex items-center justify-center">
+        <div className="grow shrink basis-0 text-left text-black/90 text-sm font-normal leading-snug flex items-center justify-center">
           <Bell className="w-4 h-4 text-blue-500 mr-2" />
           <span>
             You have <span className="font-medium">{unsignedProposals}</span> pending proposal{unsignedProposals > 1 ? 's' : ''} waiting for your approval. 
