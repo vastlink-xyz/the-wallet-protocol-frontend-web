@@ -6,6 +6,7 @@ import { MultisigWalletFormContent } from '@/components/MultisigWalletFormConten
 import { MultisigWallet } from '@/app/api/multisig/storage'
 import { useState } from 'react'
 import { useEffect } from 'react'
+import { LogoLoading } from '@/components/LogoLoading'
 
 interface MultisigSettingProps {
   mode: 'create' | 'edit'
@@ -27,13 +28,21 @@ export function MultisigSetting({
   onSuccess 
 }: MultisigSettingProps) {
   const [wallet, setWallet] = useState<MultisigWallet | undefined>()
+  const [isWalletLoading, setIsWalletLoading] = useState(!!walletId)
 
   useEffect(() => {
     const fetchWallet = async () => {
       if (walletId) {
-        const response = await fetch(`/api/multisig?id=${walletId}`)
-        const data = await response.json()
-        setWallet(data.data)
+        setIsWalletLoading(true)
+        try {
+          const response = await fetch(`/api/multisig?id=${walletId}`)
+          const data = await response.json()
+          setWallet(data.data)
+        } catch (error) {
+          console.error('Failed to fetch wallet:', error)
+        } finally {
+          setIsWalletLoading(false)
+        }
       }
     }
     fetchWallet()
@@ -58,8 +67,11 @@ export function MultisigSetting({
         
         {/* Scrollable content area */}
         <div className="p-6 overflow-y-auto">
-          
-          {
+          {isWalletLoading ? (
+            <div className="flex justify-center items-center py-8">
+              <LogoLoading className='mt-[0px]' />
+            </div>
+          ) : (
             ((wallet && mode === 'edit') || mode === 'create') && (
               <MultisigWalletFormContent
                 mode={mode}
@@ -75,7 +87,8 @@ export function MultisigSetting({
                   onClose();
                 }}
               />
-            )}
+            )
+          )}
         </div>
       </div>
     </div>
