@@ -74,19 +74,6 @@ export const SUPPORTED_TOKENS_INFO = {
     gasFeeSymbol: 'ETH',
     network: 'Ethereum'
   },
-  VAST: { // (ERC-20 on baseSepolia)
-    symbol: 'VAST',
-    name: 'VAST (ERC-20)',
-    decimals: 18,
-    chainType: 'EVM',
-    chainName: 'baseSepolia',
-    iconUrl: '/cryptocurrency/vast.png',
-    contractAddress: VAST_CONTRACT_ADDRESS,
-    addressKey: 'eth',
-    defaultWithdrawLimit: '10',
-    gasFeeSymbol: 'ETH',
-    network: 'Base'
-  },
   TSTLPX: { // (Chronicle Yellowstone - Lit Protocol Testnet)
     symbol: 'TSTLPX',
     name: 'Chronicle Yellowstone - Lit Protocol Testnet',
@@ -99,6 +86,19 @@ export const SUPPORTED_TOKENS_INFO = {
     defaultWithdrawLimit: '10',
     gasFeeSymbol: 'TSTLPX',
     network: 'Chronicle Yellowstone'
+  },
+  VAST: { // (ERC-20 on baseSepolia)
+    symbol: 'VAST',
+    name: 'VAST (ERC-20)',
+    decimals: 18,
+    chainType: 'EVM',
+    chainName: 'baseSepolia',
+    iconUrl: '/cryptocurrency/vast.png',
+    contractAddress: VAST_CONTRACT_ADDRESS,
+    addressKey: 'eth',
+    defaultWithdrawLimit: '10',
+    gasFeeSymbol: 'ETH',
+    network: 'Base'
   },
 } as const;
 
