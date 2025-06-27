@@ -3,10 +3,10 @@ import { WalletSettingsProposal } from "./WalletSettingsProposal"
 import { Button } from "@/components/ui/button"
 import { Loader2 } from "lucide-react"
 import { getTransactionDetails, hasUserSigned } from "../utils/proposal";
-import { formatEthAmount } from "@/lib/utils";
 import { SUPPORTED_TOKENS_INFO, TokenType } from "@/lib/web3/token";
 import { IRelayPKP } from "@lit-protocol/types";
 import { useMemo } from "react";
+import { formatBalance } from "@/lib/web3/format";
 
 interface ProposalProps {
   proposal: MessageProposal;
@@ -54,7 +54,7 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
           <div><span className="font-medium">Recipient:</span> {txDetails.to}</div>
           {
             txDetails.tokenType &&
-            <div><span className="font-medium">Amount:</span> {formatEthAmount(txDetails.value)} {SUPPORTED_TOKENS_INFO[txDetails.tokenType as TokenType].symbol}</div>
+            <div><span className="font-medium">Amount:</span> {formatBalance(txDetails.value)} {SUPPORTED_TOKENS_INFO[txDetails.tokenType as TokenType].symbol}</div>
           }
           {txDetails.data && txDetails.data !== '0x' && (
             <div><span className="font-medium">Data:</span> {txDetails.data}</div>
