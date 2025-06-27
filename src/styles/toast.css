@@ -1,0 +1,38 @@
+/* Toast responsive styles - Mobile first approach */
+:root {
+  --toastify-toast-width: 90vw;
+}
+
+/* Toast container adjustments */
+.Toastify__toast-container {
+  width: auto !important;
+  padding: 0 16px !important;
+}
+
+/* Mobile specific adjustments */
+@media (max-width: 767px) {
+  .Toastify__toast-container {
+    padding: 0 8px !important;
+  }
+}
+
+/* Toast styling with proper width control */
+.Toastify__toast {
+  width: var(--toastify-toast-width) !important;
+  /* max-width: 600px !important; */
+  min-width: 280px !important;
+  margin: 0 auto !important;
+  word-break: break-word !important;
+  white-space: normal !important;
+  line-height: 1.5 !important;
+  box-sizing: border-box !important;
+}
+
+/* Toast body styling for proper text handling */
+.Toastify__toast-body {
+  word-break: break-word !important;
+  white-space: normal !important;
+  line-height: 1.5 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}

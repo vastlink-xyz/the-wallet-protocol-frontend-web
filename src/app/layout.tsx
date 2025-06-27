@@ -4,6 +4,7 @@ import "./globals.css";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import "../styles/toast.css";
 import AppNavbar from "@/components/AppNavbar";
 import { UnsignedProposalsNotification } from "@/components/UnsignedProposalsNotification";
 import AuthGuard from "@/components/AuthGuard";
