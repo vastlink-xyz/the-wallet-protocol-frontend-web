@@ -6,6 +6,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import AppNavbar from "@/components/AppNavbar";
 import { UnsignedProposalsNotification } from "@/components/UnsignedProposalsNotification";
+import AuthGuard from "@/components/AuthGuard";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -48,6 +49,7 @@ export default function RootLayout({
           <UnsignedProposalsNotification />
 
           <AppNavbar />
+          <AuthGuard />
           <main>
             {children}
           </main>

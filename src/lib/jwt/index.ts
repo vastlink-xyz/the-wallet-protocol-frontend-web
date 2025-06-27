@@ -41,23 +41,43 @@ async function isGoogleTokenValid(token: string): Promise<boolean> {
 }
 
 /**
- * Verify if a stytch ID token is still valid
- * @param token Google ID token to verify
+ * Verify if a stytch session token is still valid by checking session expiration
+ * @param token Stytch JWT token to verify
  * @returns Promise resolving to true if token is valid, false otherwise
  */
 async function isStytchTokenValid(token: string): Promise<boolean> {
   if (!token) return false;
   
-  const verifyTokenRes = await fetch(`/api/verify-token`, {
-    method: 'POST',
-    body: JSON.stringify({
-      authMethodType: AUTH_METHOD_TYPE.StytchEmailFactorOtp,
-      accessToken: token,
-    }),
-  })
-  const data = await verifyTokenRes.json()
-  log('is token valid', data)
-  return data.valid
+  try {
+    // Decode JWT token
+    const decoded = jwtDecode<{ 
+      'https://stytch.com/session'?: {
+        expires_at?: string;
+      }
+    }>(token);
+    
+    // Check if session and expires_at field exists
+    const session = decoded['https://stytch.com/session'];
+    if (!session || !session.expires_at) {
+      console.error('Stytch JWT token missing session expires_at field');
+      return false;
+    }
+    
+    // Parse expires_at ISO string and compare with current time
+    const expiresAt = new Date(session.expires_at);
+    const currentTime = new Date();
+    const isValid = expiresAt > currentTime;
+    
+    log('Stytch session token validation:', { 
+      expires_at: session.expires_at, 
+      currentTime: currentTime.toISOString(), 
+      isValid 
+    });
+    return isValid;
+  } catch (error) {
+    console.error('Failed to decode Stytch JWT token:', error);
+    return false;
+  }
 }
 
 /**

@@ -1,28 +1,22 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { AuthMethod } from '@lit-protocol/types'
 import TeamAssets from './components/TeamAssets'
 import { getAuthMethodFromStorage } from '@/lib/storage/authmethod'
+import { LogoLoading } from '@/components/LogoLoading'
 
 export default function TeamAssetsPage() {
-  const router = useRouter()
   const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null)
 
-  // Check if user is logged in
+  // Load auth method from storage
   useEffect(() => {
     const storedAuthMethod = getAuthMethodFromStorage()
-    if (storedAuthMethod) {
-      setAuthMethod(storedAuthMethod)
-    } else {
-      // Redirect to homepage if not logged in
-      router.push('/')
-    }
-  }, [router])
+    setAuthMethod(storedAuthMethod)
+  }, [])
 
   if (!authMethod) {
-    return null // No need to render anything, will be redirected
+    return <LogoLoading />
   }
 
   return <TeamAssets authMethod={authMethod} />

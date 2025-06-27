@@ -110,21 +110,12 @@ export default function SwapPage() {
     const [pendingSwapData, setPendingSwapData] = useState<any>(null);
 
 
-    // Check if user is logged in
+    // Load auth method from storage
     useEffect(() => {
-
-
         const storedAuthMethod = getAuthMethodFromStorage()
         console.log('Stored auth method:', storedAuthMethod)
-        if (storedAuthMethod) {
-            setAuthMethod(storedAuthMethod)
-
-
-        } else {
-            // Redirect to homepage if not logged in
-            router.push('/')
-        }
-    }, [router])
+        setAuthMethod(storedAuthMethod)
+    }, [])
 
     useEffect(() => {
         const fetchUserData = async () => {
