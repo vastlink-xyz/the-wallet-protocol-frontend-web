@@ -519,7 +519,8 @@ export function MultisigWalletFormContent({
 
         if (hasUnregisteredUsers) {
           // Handle invitation mechanism
-          await handleWalletInvitations(walletId, unregisteredUsers, originalThreshold);
+          const targetThreshold = actualThreshold + unregisteredUsers.length; // Include unregistered users in the threshold
+          await handleWalletInvitations(walletId, unregisteredUsers, targetThreshold);
 
           // Show success message for invitation flow
           const unregisteredCount = otherSigners.filter(s => !s.ethAddress).length;
@@ -756,7 +757,8 @@ export function MultisigWalletFormContent({
       const unregisteredUsers = otherSigners.filter(signer => !signer.ethAddress);
       const unregisteredCount = otherSigners.filter(s => !s.ethAddress).length;
 
-      await handleWalletInvitations(wallet.id, unregisteredUsers, threshold)
+      const targetThreshold = actualThreshold + unregisteredUsers.length; // Include unregistered users in the threshold
+      await handleWalletInvitations(wallet.id, unregisteredUsers, targetThreshold)
       toast.success(`Invitations sent to ${unregisteredCount} unregistered user(s). `);
     }
 
@@ -845,7 +847,7 @@ export function MultisigWalletFormContent({
 
   // Check if threshold options need to be adjusted
   const thresholdOptions = Array.from(
-    { length: signers.length }, 
+    { length: registeredSigners.length }, 
     (_, i) => i + 1
   );
 
@@ -984,7 +986,7 @@ export function MultisigWalletFormContent({
             >
               {thresholdOptions.map((num) => (
                 <option key={num} value={num}>
-                  {num} of {signers.length}
+                  {num} of {registeredSigners.length}
                 </option>
               ))}
             </select>
