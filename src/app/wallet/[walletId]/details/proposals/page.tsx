@@ -38,7 +38,7 @@ export default function ProposalsPage() {
   const [executingStates, setExecutingStates] = useState<Record<string, boolean>>({});
   const [isDisabled, setIsDisabled] = useState(false);
   
-  const { handleExpiredAuth } = useAuthExpiration();
+  const { handleExpiredAuth, verifyAuthOrRedirect } = useAuthExpiration();
 
   // Unsigned proposals hook for cache invalidation
   const { invalidateProposalRelatedData } = useUnsignedProposals({
@@ -256,6 +256,12 @@ export default function ProposalsPage() {
     if (!walletPkp || !authMethod || !wallet || !userPkp || !authMethodId) {
       console.error('Missing required information for signing')
       return
+    }
+    
+    // Verify JWT token before proceeding with signing
+    const isAuthValid = await verifyAuthOrRedirect();
+    if (!isAuthValid) {
+      return; // verifyAuthOrRedirect will handle the redirect and toast message
     }
     
     try {
