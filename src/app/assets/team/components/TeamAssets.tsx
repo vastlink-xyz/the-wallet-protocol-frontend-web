@@ -372,7 +372,7 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
         <>
           {hasMultisigWallets ? (
             <div className="w-full">
-              <p className="text-center mb-6 text-lg">You have {wallets.length} team wallet(s)</p>
+              <p className="text-center mb-6 text-sm">You have {wallets.length} team wallet(s)</p>
               <div className="flex flex-col items-center gap-6 w-full">
                 {wallets.map(wallet => (
                   <div key={wallet.id} className="w-full mb-6">

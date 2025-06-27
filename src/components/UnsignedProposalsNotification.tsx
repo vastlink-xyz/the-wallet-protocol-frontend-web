@@ -62,7 +62,7 @@ export function UnsignedProposalsNotification() {
         <div className="grow shrink basis-0 text-left text-black/90 text-sm font-normal leading-snug flex items-center justify-center">
           <Bell className="w-4 h-4 text-blue-500 mr-2" />
           <span>
-            You have {unsignedProposals} pending proposals, go to  transaction {'>'} proposal
+            You have {unsignedProposals} pending proposals, go to Transactions {'>'} Proposals
           </span>
         </div>
       </div>
