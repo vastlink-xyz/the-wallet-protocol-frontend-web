@@ -2,7 +2,7 @@
 
 import { AuthMethod, IRelayPKP } from '@lit-protocol/types'
 import { Plus, Settings } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import axios from 'axios'
 import { MultisigSetting } from './MultisigSetting'
 import { getProviderByAuthMethodType, getSessionSigsByPkp } from '@/lib/lit'
@@ -21,6 +21,8 @@ import { log } from '@/lib/utils'
 import { SUPPORTED_TOKENS_INFO } from '@/lib/web3/token'
 import { broadcastTransactionByTokenType } from '@/lib/web3/transaction'
 import { sendProposalExecutedNotification } from '@/lib/notification/proposal-executed-notification'
+import { useUnsignedProposals } from '@/hooks/useUnsignedProposals'
+import { useTeamWallets } from '@/hooks/useTeamWallets'
 
 interface TeamAssetsProps {
   authMethod: AuthMethod
@@ -32,9 +34,6 @@ interface MultisigWalletWithUnsignedProposalsCount extends MultisigWallet {
 
 export default function TeamAssets({ authMethod }: TeamAssetsProps) {
   const router = useRouter()
-  const [isLoading, setIsLoading] = useState(true)
-  const [hasMultisigWallets, setHasMultisigWallets] = useState(false)
-  const [wallets, setWallets] = useState<MultisigWalletWithUnsignedProposalsCount[]>([])
   const [userPkp, setUserPkp] = useState<IRelayPKP | null>(null)
   const [user, setUser] = useState<User | null>(null)
   const [showMultisigSetting, setShowMultisigSetting] = useState(false)
@@ -48,12 +47,35 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
   const [showMfaDialog, setShowMfaDialog] = useState(false);
   const [currentProposal, setCurrentProposal] = useState<MessageProposal | null>(null)
 
+  // Unsigned proposals hook for cache invalidation
+  const { invalidateProposalRelatedData } = useUnsignedProposals({
+    authMethodId,
+    enabled: false, // only need the invalidate function
+  });
+
+  // Handler to refresh team wallets data
+  const handleRefreshWallets = useCallback(() => {
+    invalidateProposalRelatedData(authMethodId, userPkp?.ethAddress);
+  }, [invalidateProposalRelatedData, authMethodId, userPkp?.ethAddress]);
+
+  // Team wallets data using React Query
+  const { 
+    data: wallets = [], 
+    isLoading, 
+    error 
+  } = useTeamWallets({
+    userEthAddress: userPkp?.ethAddress || null,
+    enabled: !!userPkp?.ethAddress,
+  });
+
+  const hasMultisigWallets = wallets.length > 0;
+
   useEffect(() => {
     const fetchUserData = async () => {
       if (!authMethod) return
       
       try {
-        setIsLoading(true)
+        // User data loading is handled separately from wallet loading
         // Get user's authMethodId
         const provider = getProviderByAuthMethodType(authMethod.authMethodType)
         const authMethodId = await provider.getAuthMethodId(authMethod)
@@ -80,44 +102,6 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
 
     fetchUserData()
   }, [authMethod])
-
-  // Check for multisig wallets once we have the user's PKP
-  useEffect(() => {
-    const checkMultisigWallets = async () => {
-      if (!userPkp) return
-      
-      try {
-        const { data } = await axios.get(`/api/multisig?address=${userPkp.ethAddress}`)
-        if (data.success) {
-          setWallets(data.data)
-          setHasMultisigWallets(data.data.length > 0)
-        }
-      } catch (error) {
-        console.error('Failed to fetch team wallets:', error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    checkMultisigWallets()
-  }, [userPkp])
-
-  const handleRefreshWallets = async () => {
-    if (!userPkp) return
-    
-    try {
-      setIsLoading(true)
-      const { data } = await axios.get(`/api/multisig?address=${userPkp.ethAddress}`)
-      if (data.success) {
-        setWallets(data.data)
-        setHasMultisigWallets(data.data.length > 0)
-      }
-    } catch (error) {
-      console.error('Failed to refresh multisig wallets:', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   const handleWalletSettingsClick = (wallet: MultisigWalletWithUnsignedProposalsCount) => {
     setSelectedWallet(wallet)
@@ -176,6 +160,9 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
 
         if (res.data.success) {
           const updatedProposal = await fetchProposal(proposal.id, selectedWallet.id)
+          
+          // Invalidate proposal related data after signing
+          invalidateProposalRelatedData(authMethodId, userPkp?.ethAddress);
           
           // Check if signatures have reached the threshold
           if (updatedProposal && updatedProposal.signatures.length >= selectedWallet.threshold) {
@@ -285,6 +272,9 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
         txHash: txHash
       })
       toast.success(`Transaction completed`);
+
+      // Invalidate proposal related data after execution
+      invalidateProposalRelatedData(authMethodId, userPkp?.ethAddress);
 
       // Close dialogs
       setShowSendDialog(false)

@@ -7,6 +7,7 @@ import "react-toastify/dist/ReactToastify.css";
 import AppNavbar from "@/components/AppNavbar";
 import { UnsignedProposalsNotification } from "@/components/UnsignedProposalsNotification";
 import AuthGuard from "@/components/AuthGuard";
+import { QueryProvider } from "@/providers/QueryProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,36 +38,38 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}>
-          {/* testnet warning */}
-          <div className="w-full h-[45px] py-[9px] bg-[#fffbe6] rounded-sm border border-[#ffe58f] justify-between items-center gap-1.5 inline-flex px-8">
-            <div className="flex-1 text-center">
-              <div className="grow shrink basis-0 text-center text-black/90 text-sm font-normal leading-snug">All assets on this platform are on testnets only</div>
+        <QueryProvider>
+          <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}>
+            {/* testnet warning */}
+            <div className="w-full h-[45px] py-[9px] bg-[#fffbe6] rounded-sm border border-[#ffe58f] justify-between items-center gap-1.5 inline-flex px-8">
+              <div className="flex-1 text-center">
+                <div className="grow shrink basis-0 text-center text-black/90 text-sm font-normal leading-snug">All assets on this platform are on testnets only</div>
+              </div>
             </div>
-          </div>
-          
-          {/* Unsigned proposals notification */}
-          <UnsignedProposalsNotification />
+            
+            {/* Unsigned proposals notification */}
+            <UnsignedProposalsNotification />
 
-          <AppNavbar />
-          <AuthGuard />
-          <main>
-            {children}
-          </main>
-          
-          <ToastContainer
-            position="top-center"
-            autoClose={5000}
-            hideProgressBar={false}
-            newestOnTop={false}
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-            theme="colored"
-          />
-        </GoogleOAuthProvider>
+            <AppNavbar />
+            <AuthGuard />
+            <main>
+              {children}
+            </main>
+            
+            <ToastContainer
+              position="top-center"
+              autoClose={5000}
+              hideProgressBar={false}
+              newestOnTop={false}
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+              theme="colored"
+            />
+          </GoogleOAuthProvider>
+        </QueryProvider>
       </body>
     </html>
   );

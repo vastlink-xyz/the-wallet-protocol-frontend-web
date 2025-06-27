@@ -19,6 +19,7 @@ import { SUPPORTED_TOKENS_INFO, TokenType } from "@/lib/web3/token";
 import { LogoLoading } from "@/components/LogoLoading";
 import { signProposal } from "./utils/sign-proposal";
 import { executeTransactionProposal, executeWalletSettingsProposal } from "./utils/execute-proposal";
+import { useUnsignedProposals } from "@/hooks/useUnsignedProposals";
 
 export default function ProposalsPage() {
   // Get walletId from params
@@ -38,6 +39,12 @@ export default function ProposalsPage() {
   const [isDisabled, setIsDisabled] = useState(false);
   
   const { handleExpiredAuth } = useAuthExpiration();
+
+  // Unsigned proposals hook for cache invalidation
+  const { invalidateProposalRelatedData } = useUnsignedProposals({
+    authMethodId,
+    enabled: false, // only need the invalidate function
+  });
 
   // mfa
   const [showMfaDialog, setShowMfaDialog] = useState(false);
@@ -83,6 +90,9 @@ export default function ProposalsPage() {
         // Refresh data
         const newProposals = await fetchProposals(walletId);
         setProposals(newProposals)
+
+        // Invalidate proposal related data to update notification and red dots
+        invalidateProposalRelatedData(authMethodId, userPkp?.ethAddress);
 
         toast.success('Wallet settings updated successfully')
       }
@@ -185,6 +195,9 @@ export default function ProposalsPage() {
       // Refresh proposals
       const newProposals = await fetchProposals(walletId)
       setProposals(newProposals)
+
+      // Invalidate proposal related data to update notification and red dots
+      invalidateProposalRelatedData(authMethodId, userPkp?.ethAddress);
     }
   }
 
@@ -259,6 +272,9 @@ export default function ProposalsPage() {
       if (response.data.success) {
         const newProposals = await fetchProposals(walletId) // Refresh proposals list
         setProposals(newProposals)
+        
+        // Invalidate proposal related data to update notification and red dots
+        invalidateProposalRelatedData(authMethodId, userPkp?.ethAddress);
         
         // Find the updated proposal
         const updatedProposal = newProposals.find((p: MessageProposal) => p.id === proposal.id)

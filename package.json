@@ -27,6 +27,7 @@
     "@radix-ui/react-tooltip": "^1.2.7",
     "@react-oauth/google": "^0.12.1",
     "@simplewebauthn/browser": "^13.1.0",
+    "@tanstack/react-query": "^5.81.2",
     "@types/elliptic": "^6.4.18",
     "@walletconnect/modal": "^2.7.0",
     "axios": "^1.8.4",

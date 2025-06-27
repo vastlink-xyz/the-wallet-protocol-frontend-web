@@ -1,15 +1,14 @@
 'use client'
 
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { Bell } from 'lucide-react';
-import axios from 'axios';
 import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
 import { getProviderByAuthMethodType } from '@/lib/lit';
+import { useUnsignedProposals } from '@/hooks/useUnsignedProposals';
 
 export function UnsignedProposalsNotification() {
   const pathname = usePathname();
-  const [unsignedProposals, setUnsignedProposals] = useState<number>(0);
   const [authMethodId, setAuthMethodId] = useState<string | null>(null);
 
   const shouldShowOnCurrentPath = useMemo(() => {
@@ -46,24 +45,11 @@ export function UnsignedProposalsNotification() {
     }
   }, [shouldShowOnCurrentPath]);
 
-  // Check for unsigned proposals
-  useEffect(() => {
-    if (!authMethodId || !shouldShowOnCurrentPath) return;
-
-    const checkUnsignedProposals = async () => {
-      try {
-        const response = await axios.get(`/api/multisig/messages/unsigned?authMethodId=${authMethodId}`);
-        
-        if (response.data.success) {
-          setUnsignedProposals(response.data.data.count);
-        }
-      } catch (error) {
-        console.error('Error checking for unsigned proposals:', error);
-      }
-    };
-
-    checkUnsignedProposals();
-  }, [authMethodId, shouldShowOnCurrentPath, pathname]);
+  // Use custom hook to fetch unsigned proposals
+  const { data: unsignedProposals = 0, invalidateUnsignedProposals } = useUnsignedProposals({
+    authMethodId,
+    enabled: shouldShowOnCurrentPath,
+  });
 
   // Don't render anything if we shouldn't show on this path or there are no proposals
   if (!shouldShowOnCurrentPath || unsignedProposals === 0) {
