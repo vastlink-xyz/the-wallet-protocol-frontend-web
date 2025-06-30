@@ -46,6 +46,7 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
 
   const [showMfaDialog, setShowMfaDialog] = useState(false);
   const [currentProposal, setCurrentProposal] = useState<MessageProposal | null>(null)
+  const [isLoadingUserData, setIsLoadingUserData] = useState(true)
 
   // Unsigned proposals hook for cache invalidation
   const { invalidateProposalRelatedData } = useUnsignedProposals({
@@ -72,9 +73,13 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      if (!authMethod) return
+      if (!authMethod) {
+        setIsLoadingUserData(false)
+        return
+      }
       
       try {
+        setIsLoadingUserData(true)
         // User data loading is handled separately from wallet loading
         // Get user's authMethodId
         const provider = getProviderByAuthMethodType(authMethod.authMethodType)
@@ -97,6 +102,8 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
         }
       } catch (error) {
         console.error("Error fetching user data:", error)
+      } finally {
+        setIsLoadingUserData(false)
       }
     }
 
@@ -366,7 +373,7 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
 
   return (
     <div className="flex flex-col items-center gap-4 w-full">
-      {isLoading ? (
+      {isLoadingUserData || isLoading ? (
         <LogoLoading />
       ) : (
         <>
@@ -393,7 +400,7 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
             </div>
           ) : (
             <div className="text-center mb-4">
-              <p>You don&apos;t have any team wallets yet.</p>
+              <p>{"You don't have any team wallets yet."}</p>
               <p className="text-sm text-gray-500 mt-2">Create your first team wallet / multisig wallet by clicking the button below.</p>
             </div>
           )}
@@ -425,6 +432,7 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
 
       {(showMultisigSetting && userPkp) && (
         <MultisigSetting
+          open={showMultisigSetting}
           mode={mode}
           walletId={selectedWallet?.id}
           authMethod={authMethod}

@@ -21,6 +21,7 @@ import { LitAccessControlConditionResource } from "@lit-protocol/auth-helpers";
 import { LitContracts } from "@lit-protocol/contracts-sdk";
 import { PKPEthersWallet } from "@lit-protocol/pkp-ethers";
 import { litActionCodeForCommonUpgradableProxy } from "@/lib/lit-action-code/common-upgradable-proxy.lit";
+import { toast } from "react-toastify";
 
 // const pkp = {
 //   "tokenId": "0x4db47d93f4544bce5325db9c5f0aa502e9b404caf882115df84ec6c1ca6708c8",
@@ -311,11 +312,18 @@ export default function DebugPage() {
     setSessionSigs(sessionSigs)
   }
 
+  const handleShowToast = () => {
+    toast.success('Hello, world! This is a very long message that should wrap to the next line. This is a very long message that should wrap to the next line.', {
+      autoClose: false,
+    })
+  }
+
 
   return (
     <div className="space-y-8 p-4">
       <div className="flex flex-wrap gap-2">
         <Button onClick={handleGetAllPKPs}>All PKPs</Button>
+        <Button onClick={handleShowToast}>toast</Button>
       </div>
 
       <div className="border rounded-lg p-6 bg-white">

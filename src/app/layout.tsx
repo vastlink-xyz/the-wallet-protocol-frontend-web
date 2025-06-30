@@ -68,6 +68,8 @@ export default function RootLayout({
               draggable
               pauseOnHover
               theme="colored"
+              style={{ width: 'fit-content' }}
+              toastStyle={{ width: 'fit-content', maxWidth: '100%' }}
             />
           </GoogleOAuthProvider>
         </QueryProvider>

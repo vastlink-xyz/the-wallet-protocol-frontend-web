@@ -15,7 +15,11 @@ export function useAuthExpiration(enablePeriodicCheck = false, checkInterval = 5
   
   const handleExpiredAuth = useCallback((message?: string) => {
     const defaultMessage = 'Your access token has expired. Please log in again.';
-    toast.error(message || defaultMessage);
+    
+    // Use toastId to prevent duplicate toast messages
+    toast.error(message || defaultMessage, {
+      toastId: 'auth-expired', // Same toastId ensures only one toast is shown
+    });
     
     // Redirect to home page after a short delay to allow toast to be visible
     setTimeout(() => {

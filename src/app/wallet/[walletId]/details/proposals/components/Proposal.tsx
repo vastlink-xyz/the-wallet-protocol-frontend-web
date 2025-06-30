@@ -1,6 +1,7 @@
 import { MessageProposal, MultisigWallet } from "@/app/api/multisig/storage"
 import { WalletSettingsProposal } from "./WalletSettingsProposal"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Loader2 } from "lucide-react"
 import { getTransactionDetails, hasUserSigned } from "../utils/proposal";
 import { SUPPORTED_TOKENS_INFO, TokenType } from "@/lib/web3/token";
@@ -21,6 +22,7 @@ interface ProposalProps {
 
 export function Proposal({ proposal, selectedWallet, handleSignProposal, executeMultisigLitAction, userPkp, isSigningProposal, isLoading, isDisabled }: ProposalProps) {
   const txDetails = getTransactionDetails(proposal, selectedWallet);
+
 
   const displayThreshold = useMemo(() => {
     if (proposal.status === 'completed') {
@@ -63,8 +65,21 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
       )}
     </div>
 
-    <div className="text-sm text-gray-500 mb-1">
-      <span className="font-medium text-gray-700">Status:</span> {proposal.status}
+    <div className="text-sm text-gray-500 mb-1 flex items-center">
+      <span className="font-medium text-gray-700">Status:</span> 
+      {proposal.status === 'pending' ? (
+        <Badge variant="outline" className="ml-2 text-yellow-600 bg-yellow-50 border-yellow-300">
+          {proposal.status}
+        </Badge>
+      ) : proposal.status === 'completed' ? (
+        <Badge variant="secondary" className="ml-2 text-green-600 bg-green-50 border-green-300">
+          {proposal.status}
+        </Badge>
+      ) : (
+        <Badge variant="outline" className="ml-2">
+          {proposal.status}
+        </Badge>
+      )}
     </div>
     <div className="text-sm text-gray-500 mb-1">
       <span className="font-medium text-gray-700">Threshold:</span>

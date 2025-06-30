@@ -273,7 +273,7 @@ export function PersonalWalletSettings() {
           </Tooltip>
         </DialogTrigger>
 
-        <DialogContent className="p-0">
+        <DialogContent className="p-0 max-w-[660px] sm:max-w-[660px]">
           <DialogHeader className="border-b px-8 py-6">
             <DialogTitle>Personal Wallet Settings</DialogTitle>
           </DialogHeader>

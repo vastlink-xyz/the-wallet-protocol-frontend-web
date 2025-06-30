@@ -1,14 +1,21 @@
 'use client'
 
 import { AuthMethod, IRelayPKP } from '@lit-protocol/types'
-import { X } from 'lucide-react'
 import { MultisigWalletFormContent } from '@/components/MultisigWalletFormContent'
 import { MultisigWallet } from '@/app/api/multisig/storage'
 import { useState } from 'react'
 import { useEffect } from 'react'
 import { LogoLoading } from '@/components/LogoLoading'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 
 interface MultisigSettingProps {
+  open: boolean
   mode: 'create' | 'edit'
   walletId?: string
   authMethod: AuthMethod
@@ -19,6 +26,7 @@ interface MultisigSettingProps {
 }
 
 export function MultisigSetting({ 
+  open,
   mode,
   walletId,
   authMethod, 
@@ -49,24 +57,16 @@ export function MultisigSetting({
   }, [walletId])
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg max-w-[600px] w-full relative flex flex-col max-h-[90vh]">
-        {/* Fixed header */}
-        <div className="sticky top-0 px-6 py-4 border-b flex justify-between items-center">
-          <div className="flex flex-col gap-2">
-            <h2 className="text-xl font-semibold">Team Wallet Settings</h2>
-            <p className="text-sm text-gray-500">A team wallet requires approval from multiple signers to execute any transaction.</p>
-          </div>
-          <button 
-            onClick={onClose} 
-              className="text-gray-500 hover:text-gray-800"
-          >
-            <X size={20} />
-          </button>
-        </div>
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <DialogContent className="p-0 max-w-[660px] sm:max-w-[660px]">
+        <DialogHeader className="border-b px-8 py-6">
+          <DialogTitle>Team Wallet Settings</DialogTitle>
+          <DialogDescription>
+            A team wallet requires approval from multiple signers to execute any transaction.
+          </DialogDescription>
+        </DialogHeader>
         
-        {/* Scrollable content area */}
-        <div className="p-6 overflow-y-auto">
+        <div className="max-h-[60vh] overflow-y-auto p-8 pt-4">
           {isWalletLoading ? (
             <div className="flex justify-center items-center py-8">
               <LogoLoading className='mt-[0px]' />
@@ -90,7 +90,7 @@ export function MultisigSetting({
             )
           )}
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }

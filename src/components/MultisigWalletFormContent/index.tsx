@@ -995,7 +995,7 @@ export function MultisigWalletFormContent({
       )}
       
       {/* MFA Settings */}
-      <LabeledContainer label="Daily Transfer Limits">
+      <LabeledContainer label="Daily Withdraw Limits">
         {
           dailyLimits && (
             <DailyWithdrawLimits
