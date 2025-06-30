@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Loader2 } from 'lucide-react';
 import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
 import { log } from '@/lib/utils';
 import { MFAPhoneWhatsApp } from './MFAPhoneWhatsApp';
@@ -26,7 +25,6 @@ interface MFASettingsContentProps {
 export function MFASettingsContent({ isOpen, onPhoneUpdated }: MFASettingsContentProps) {
   // Main component state
   const [phoneNumbers, setPhoneNumbers] = useState<StytchPhoneNumber[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
 
   const prevIsOpen = useRef(isOpen);
   const sessionJwt = getStytchSessionJwt();
@@ -38,13 +36,10 @@ export function MFASettingsContent({ isOpen, onPhoneUpdated }: MFASettingsConten
 
   // Fetch MFA status from API
   const fetchMFAStatus = useCallback(async () => {
-    setIsLoading(true);
-    
     const token = getStytchSessionJwt();
     log('MFASettingsContent: Session JWT token present:', !!token);
     
     if (!token) {
-      setIsLoading(false);
       return;
     }
 
@@ -74,8 +69,6 @@ export function MFASettingsContent({ isOpen, onPhoneUpdated }: MFASettingsConten
       }
     } catch (err: any) {
       toast.error('MFASettingsContent: Error fetching mfa status');
-    } finally {
-      setIsLoading(false);
     }
   }, []);
 
@@ -84,10 +77,7 @@ export function MFASettingsContent({ isOpen, onPhoneUpdated }: MFASettingsConten
     if (isOpen) {
       // Always fetch MFA status when dialog is open
       log('MFASettingsContent: Dialog is open, fetching status');
-      // Ensure fetch is called after component is fully mounted
-      setTimeout(() => {
-        fetchMFAStatus();
-      }, 100);
+      fetchMFAStatus();
     }
     prevIsOpen.current = isOpen;
   }, [isOpen, fetchMFAStatus]);
@@ -97,23 +87,13 @@ export function MFASettingsContent({ isOpen, onPhoneUpdated }: MFASettingsConten
 
   return (
     <div className="space-y-4">
-      {/* Loading indicator */}
-      {isLoading ? (
-        <div className="flex justify-center items-center p-2">
-          <Loader2 className="h-5 w-5 animate-spin" />
-        </div>
-      ) : (
-        <>
-          {/* Phone WhatsApp MFA */}
-          <MFAPhoneWhatsApp 
-            verifiedPhone={verifiedPhone}
-            sessionJwt={sessionJwt}
-            onSuccess={refreshMFAStatus}
-            onPhoneUpdated={onPhoneUpdated}
-          />
-        </>
-      )}
-
+      {/* Phone WhatsApp MFA */}
+      <MFAPhoneWhatsApp 
+        verifiedPhone={verifiedPhone}
+        sessionJwt={sessionJwt}
+        onSuccess={refreshMFAStatus}
+        onPhoneUpdated={onPhoneUpdated}
+      />
     </div>
   );
 } 

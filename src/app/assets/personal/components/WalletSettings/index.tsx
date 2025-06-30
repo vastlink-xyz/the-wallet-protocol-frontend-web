@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -22,6 +22,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { MFAOtpDialog } from '@/components/Transaction/MFAOtpDialog';
 import { LabeledContainer } from '@/components/LabeledContainer';
 import { DailyWithdrawLimits, getDefaultDailyWithdrawLimits } from '@/components/Transaction/DailyWithdrawLimits';
+import { LogoLoading } from '@/components/LogoLoading';
 
 export function PersonalWalletSettings() {
   const [isOpen, setIsOpen] = useState(false);
@@ -29,6 +30,7 @@ export function PersonalWalletSettings() {
   const [isLimitValid, setIsLimitValid] = useState<boolean>(true);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [authMethodId, setAuthMethodId] = useState<string | null>(null);
+  const [isMfaLoading, setIsMfaLoading] = useState<boolean>(false);
 
   // State for real MFA Dialog
   const [showMfaDialog, setShowMfaDialog] = useState(false);
@@ -44,6 +46,7 @@ export function PersonalWalletSettings() {
   useEffect(() => {
     const fetchAuthMethodId = async () => {
       try {
+        setIsMfaLoading(true);
         // Get auth method directly from storage 
         const authMethod = getAuthMethodFromStorage();
         if (!authMethod) {
@@ -62,6 +65,8 @@ export function PersonalWalletSettings() {
       } catch (error) {
         console.error('Error getting auth method ID:', error);
         setAuthMethodId(null);
+      } finally {
+        setIsMfaLoading(false);
       }
     };
     
@@ -70,6 +75,7 @@ export function PersonalWalletSettings() {
     } else {
       // Reset other states if needed when main dialog closes
       setShowMfaDialog(false);
+      setIsMfaLoading(false);
     }
   }, [isOpen]);
   
@@ -106,7 +112,7 @@ export function PersonalWalletSettings() {
   };
 
   // Fetch user's phone number for MFA
-  const fetchUserPhone = async () => {
+  const fetchUserPhone = useCallback(async () => {
     if (!sessionJwt) return;
     
     try {
@@ -131,7 +137,7 @@ export function PersonalWalletSettings() {
     } catch (error) {
       console.error('Error fetching user phone:', error);
     }
-  };
+  }, [sessionJwt]);
   
   // Handle limits change from DailyWithdrawLimits component
   const handleLimitsChange = (newLimits: Record<TokenType, string>, isValid: boolean) => {
@@ -279,32 +285,40 @@ export function PersonalWalletSettings() {
           </DialogHeader>
 
           <div className="max-h-[60vh] overflow-y-auto p-8 pt-4">
-            <LabeledContainer label="Daily Withdraw Limits" className="mb-8">
-              {
-                tokenLimits && (
-                  <DailyWithdrawLimits
-                    initialLimits={tokenLimits}
-                    onChange={handleLimitsChange}
+            {isMfaLoading ? (
+              <div className="flex justify-center items-center py-8">
+                <LogoLoading className='mt-0' />
+              </div>
+            ) : (
+              <>
+                <LabeledContainer label="Daily Withdraw Limits" className="mb-8">
+                  {
+                    tokenLimits && (
+                      <DailyWithdrawLimits
+                        initialLimits={tokenLimits}
+                        onChange={handleLimitsChange}
+                      />
+                    )
+                  }
+                </LabeledContainer>
+
+                <LabeledContainer label="MFA Settings">
+                  <MFASettingsContent 
+                    isOpen={isOpen} 
+                    onPhoneUpdated={fetchUserPhone}
                   />
-                )
-              }
-            </LabeledContainer>
+                </LabeledContainer>
 
-            <LabeledContainer label="MFA Settings">
-              <MFASettingsContent 
-                isOpen={isOpen} 
-                onPhoneUpdated={fetchUserPhone}
-              />
-            </LabeledContainer>
-
-            <DialogFooter className="pt-4 space-x-2">
-              <Button 
-                onClick={saveSettings} 
-                disabled={!isLimitValid || isSaving}
-              >
-                {isSaving ? 'Saving...' : 'Save Settings'}
-              </Button>
-            </DialogFooter>
+                <DialogFooter className="pt-4 space-x-2">
+                  <Button 
+                    onClick={saveSettings} 
+                    disabled={!isLimitValid || isSaving}
+                  >
+                    {isSaving ? 'Saving...' : 'Save Settings'}
+                  </Button>
+                </DialogFooter>
+              </>
+            )}
           </div>
         </DialogContent>
       </Dialog>
