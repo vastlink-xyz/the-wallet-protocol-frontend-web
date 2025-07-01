@@ -61,6 +61,9 @@ export async function POST(request: NextRequest) {
 
     const proposalId = randomUUID()
     
+    // Get current wallet state for originalState reference
+    const currentWallet = await getWalletById(walletId);
+    
     const proposal = {
       id: proposalId,
       walletId,
@@ -70,7 +73,12 @@ export async function POST(request: NextRequest) {
       signatures: [],
       type: type || 'transaction', // Default to transaction type
       transactionData: type === 'walletSettings' ? undefined : transactionData,
-      settingsData: type === 'walletSettings' ? settingsData : undefined
+      settingsData: type === 'walletSettings' 
+        ? settingsData 
+        : currentWallet 
+          // For transaction proposals, include originalState so UI components can display correct threshold/signers
+          ? { originalState: { threshold: currentWallet.threshold, signers: currentWallet.signers } }
+          : undefined
     }
 
     await saveMessageProposal({...proposal, status: 'pending' as const})
