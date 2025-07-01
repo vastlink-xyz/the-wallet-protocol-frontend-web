@@ -13,6 +13,7 @@ export interface TokenInfo {
   addressKey: string;
   defaultWithdrawLimit: string;
   network: string;
+  explorerBaseUrl: string;
 }
 
 export const SUPPORTED_TOKENS_INFO = {
@@ -27,7 +28,8 @@ export const SUPPORTED_TOKENS_INFO = {
     addressKey: 'btc',
     defaultWithdrawLimit: '0.001',
     gasFeeSymbol: 'BTC',
-    network: 'Bitcoin'
+    network: 'Bitcoin',
+    explorerBaseUrl: 'https://mempool.space/testnet'
   },
   ETH: {
     symbol: 'ETH',
@@ -40,7 +42,8 @@ export const SUPPORTED_TOKENS_INFO = {
     addressKey: 'eth',
     defaultWithdrawLimit: '0.001',
     gasFeeSymbol: 'ETH',
-    network: 'Ethereum'
+    network: 'Ethereum',
+    explorerBaseUrl: 'https://sepolia.etherscan.io'
   },
   // SOL: {
   //   symbol: 'SOL',
@@ -59,7 +62,8 @@ export const SUPPORTED_TOKENS_INFO = {
     addressKey: 'eth',
     defaultWithdrawLimit: '100',
     gasFeeSymbol: 'ETH',
-    network: 'Ethereum'
+    network: 'Ethereum',
+    explorerBaseUrl: 'https://sepolia.etherscan.io'
   },
   USDC: { // (ERC-20 on sepolia)
     symbol: 'USDC',
@@ -72,7 +76,8 @@ export const SUPPORTED_TOKENS_INFO = {
     addressKey: 'eth',
     defaultWithdrawLimit: '100',
     gasFeeSymbol: 'ETH',
-    network: 'Ethereum'
+    network: 'Ethereum',
+    explorerBaseUrl: 'https://sepolia.etherscan.io'
   },
   TSTLPX: { // (Chronicle Yellowstone - Lit Protocol Testnet)
     symbol: 'TSTLPX',
@@ -85,7 +90,8 @@ export const SUPPORTED_TOKENS_INFO = {
     addressKey: 'eth',
     defaultWithdrawLimit: '10',
     gasFeeSymbol: 'TSTLPX',
-    network: 'Chronicle Yellowstone'
+    network: 'Chronicle Yellowstone',
+    explorerBaseUrl: 'https://yellowstone-explorer.litprotocol.com'
   },
   VAST: { // (ERC-20 on baseSepolia)
     symbol: 'VAST',
@@ -98,7 +104,8 @@ export const SUPPORTED_TOKENS_INFO = {
     addressKey: 'eth',
     defaultWithdrawLimit: '10',
     gasFeeSymbol: 'ETH',
-    network: 'Base'
+    network: 'Base',
+    explorerBaseUrl: 'https://sepolia.basescan.org'
   },
 } as const;
 

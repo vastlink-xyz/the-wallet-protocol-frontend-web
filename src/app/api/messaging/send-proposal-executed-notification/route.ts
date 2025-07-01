@@ -12,7 +12,7 @@ interface ProposalExecutedNotificationRequest {
     recipientAddress?: string
     amount?: string
     symbol?: string
-    transactionHash?: string
+    transactionUrl?: string
     
     // Settings change type details
     changeDescription?: string

@@ -230,6 +230,7 @@ export const broadcastTransactionByTokenType = async ({
     const provider = new ethers.providers.JsonRpcProvider(LIT_CHAINS[tokenInfo.chainName as keyof typeof LIT_CHAINS]?.rpcUrls[0]);
 
     const txReceipt = await provider.sendTransaction(signedAndSerializedTx);
+    log('vast txReceipt', txReceipt)
     return txReceipt.hash
   } else if (tokenType === 'BTC') {
     const { sig, publicKey, tx } = options

@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { MessageProposal, MultisigWallet } from '@/app/api/multisig/storage';
 import { log } from '@/lib/utils';
+import { SUPPORTED_TOKENS_INFO } from '@/lib/web3/token';
 
 interface ProposalExecutedNotificationParams {
   proposalType: 'transaction' | 'settings'; 
@@ -35,11 +36,20 @@ export const sendProposalExecutedNotification = async (params: ProposalExecutedN
     
     if (proposalType === 'transaction' && proposal.transactionData) {
       // Transaction type proposal
+      const tokenSymbol = proposal.transactionData.tokenType || 'ETH';
+      const hash = txHash || proposal.txHash;
+      const tokenInfo = SUPPORTED_TOKENS_INFO[tokenSymbol as keyof typeof SUPPORTED_TOKENS_INFO];
+      
+      let transactionUrl = hash;
+      if (hash && tokenInfo?.explorerBaseUrl) {
+        transactionUrl = `${tokenInfo.explorerBaseUrl}/tx/${hash}`;
+      }
+      
       executionDetails = {
         recipientAddress: proposal.transactionData.to,
         amount: proposal.transactionData.value,
-        symbol: proposal.transactionData.tokenType || 'ETH',
-        transactionHash: txHash || proposal.txHash
+        symbol: tokenSymbol,
+        transactionUrl
       };
     } else if (proposalType === 'settings' && proposal.settingsData) {
       // Settings change type proposal
