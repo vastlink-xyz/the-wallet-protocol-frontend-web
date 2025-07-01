@@ -212,9 +212,10 @@ export const broadcastTransactionByTokenType = async ({
   options: any;
 }) => {
   if (tokenType === 'VAST') {
-    return broadcastTransactionForVAST({
+    const data = await broadcastTransactionForVAST({
       options,
     })
+    return data?.hash
   } else if (SUPPORTED_TOKENS_INFO[tokenType].chainType === 'EVM') {
     const { unsignedTransaction, sig } = options
     const signedAndSerializedTx = ethers.utils.serializeTransaction(
@@ -230,7 +231,6 @@ export const broadcastTransactionByTokenType = async ({
     const provider = new ethers.providers.JsonRpcProvider(LIT_CHAINS[tokenInfo.chainName as keyof typeof LIT_CHAINS]?.rpcUrls[0]);
 
     const txReceipt = await provider.sendTransaction(signedAndSerializedTx);
-    log('vast txReceipt', txReceipt)
     return txReceipt.hash
   } else if (tokenType === 'BTC') {
     const { sig, publicKey, tx } = options
