@@ -36,6 +36,7 @@ interface SendTransactionDialogProps {
   onMFAVerify?: (state: SendTransactionDialogState) => Promise<void>
   onDialogOpenChange: (open: boolean) => void
   addresses: MultisigWalletAddresses | null
+  walletName?: string
 }
 
 export function SendTransactionDialog({
@@ -49,6 +50,7 @@ export function SendTransactionDialog({
   onMFAVerify,
   onDialogOpenChange,
   addresses,
+  walletName,
 }: SendTransactionDialogProps) {
   // transaction state
   const [to, setTo] = useState('') // email or wallet address
@@ -312,7 +314,7 @@ export function SendTransactionDialog({
     <Dialog open={showSendDialog} onOpenChange={onDialogOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Send</DialogTitle>
+          <DialogTitle>{walletName ? `Send from ${walletName}` : 'Send'}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-2">

@@ -49,7 +49,7 @@ export function ReceiveModal({
       )}>
         <div className="bg-background text-primary rounded-[6px] w-full">
           <header className="flex justify-between items-center px-5 py-[14px] border-b border-[#EBEBEB]">
-            <p className="text-black text-lg font-medium">Receive</p>
+            <p className="text-black text-lg font-medium">{footerText ? `Receive to ${footerText}` : 'Receive'}</p>
             <button
               onClick={() => onClose(false)}
               className="text-[#929292] hover:text-[#929292]/80"

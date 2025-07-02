@@ -16,6 +16,7 @@ import { useAuthExpiration } from '@/hooks/useAuthExpiration'
 import { MultisigWalletAddresses } from '@/app/api/multisig/storage'
 import { LogoLoading } from '@/components/LogoLoading'
 import { WalletCard } from '@/app/assets/components/WalletCard'
+import { WalletCardSkeleton } from '@/app/assets/components/WalletCard/WalletCardSkeleton'
 
 interface PersonalAssetsProps {
   authMethod: AuthMethod
@@ -262,9 +263,7 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
   }
 
   if (isLoading) {
-    return (
-      <LogoLoading />
-    )
+    return <WalletCardSkeleton />
   }
 
   // Display wallet information
@@ -300,6 +299,7 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
             onMFAVerify={handleMfaVerify}
             onDialogOpenChange={setShowSendDialog}
             addresses={addresses}
+            walletName={email || ''}
           />
         )
       }

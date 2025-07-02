@@ -22,6 +22,7 @@ import { sendProposalExecutedNotification } from '@/lib/notification/proposal-ex
 import { useUnsignedProposals } from '@/hooks/useUnsignedProposals'
 import { useTeamWallets } from '@/hooks/useTeamWallets'
 import { WalletCard } from '@/app/assets/components/WalletCard'
+import { WalletCardSkeleton } from '@/app/assets/components/WalletCard/WalletCardSkeleton'
 
 interface TeamAssetsProps {
   authMethod: AuthMethod
@@ -393,7 +394,10 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ authMethod }, r
   return (
     <>
       {isLoadingUserData || isLoading ? (
-        <LogoLoading />
+        <>
+          <WalletCardSkeleton />
+          <WalletCardSkeleton />
+        </>
       ) : (
         <>
           {wallets.map(wallet => (
@@ -448,6 +452,7 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ authMethod }, r
         onMFACancel={handleMfaCancel}
         onMFAVerify={handleMfaVerify}
         addresses={selectedWallet?.addresses || null}
+        walletName={selectedWallet?.name}
       />
     </>
   )
