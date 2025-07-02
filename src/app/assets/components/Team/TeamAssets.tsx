@@ -36,7 +36,7 @@ interface MultisigWalletWithUnsignedProposalsCount extends MultisigWallet {
   unsignedProposalsCount: number
 }
 
-export const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ authMethod }, ref) => {
+const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ authMethod }, ref) => {
   const router = useRouter()
   const [userPkp, setUserPkp] = useState<IRelayPKP | null>(null)
   const [user, setUser] = useState<User | null>(null)
@@ -453,3 +453,7 @@ export const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ authMeth
     </>
   )
 })
+
+TeamAssets.displayName = 'TeamAssets'
+
+export { TeamAssets }
