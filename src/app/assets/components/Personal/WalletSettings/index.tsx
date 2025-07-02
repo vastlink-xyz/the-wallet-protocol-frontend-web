@@ -270,7 +270,7 @@ export function PersonalWalletSettings() {
         <DialogTrigger asChild>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Settings onClick={() => setIsOpen(true)} className="cursor-pointer" size={16} />
+              <Settings onClick={() => setIsOpen(true)} className="cursor-pointer w-5 h-5" />
             </TooltipTrigger>
             <TooltipContent>
               Settings

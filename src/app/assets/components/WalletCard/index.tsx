@@ -1,10 +1,9 @@
-import { ArrowDownCircle, Send, History, Settings } from "lucide-react"
+import { Settings, ChevronRightCircle, ArrowUpRightFromCircle, ArrowDownLeftFromCircle, Plus, PlusCircle } from "lucide-react"
 import { getAvatarColor, getInitials } from "./helpers"
-import { TokenAssets } from "./TokenAssets"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import { FileText } from "lucide-react"
 import { ReceiveModal } from "./ReceiveModal"
 import { useState } from "react"
+import { cn } from "@/lib/utils"
 
 interface WalletCardProps {
   avatars: {
@@ -19,6 +18,9 @@ interface WalletCardProps {
   ethAddress: string
   onWalletSettingsClick?: () => void
   unsignedProposalsCount?: number
+  variant?: 'personal' | 'team' | 'create'
+  maxAvatars?: number
+  onCreateClick?: () => void
 }
 
 export function WalletCard({
@@ -32,38 +34,48 @@ export function WalletCard({
   ethAddress,
   onWalletSettingsClick,
   unsignedProposalsCount,
+  variant = 'personal',
+  maxAvatars = 2,
+  onCreateClick,
 }: WalletCardProps) {
   const [receiveModalOpen, setReceiveModalOpen] = useState(false);
   console.log('unsignedProposalsCount', unsignedProposalsCount)
 
+  const isPersonal = variant === 'personal'
+  const isCreate = variant === 'create'
+  const visibleAvatars = avatars.slice(0, maxAvatars)
+  const remainingCount = Math.max(0, avatars.length - maxAvatars)
+
+  // Create variant renders a simplified card
+  if (isCreate) {
+    return (
+      <div 
+        className={cn(
+          "p-4 w-[343px] h-[326px] rounded-[12px] relative",
+          "bg-[#f5f5f5] flex flex-col items-center justify-center",
+        )}
+      >
+        <div className="text-center cursor-pointer" onClick={onCreateClick}>
+          <PlusCircle className="w-6 h-6 text-black mx-auto" />
+          <p
+            className="text-black bg-white px-4 py-2.5 rounded-[20px] text-sm font-medium mt-6"
+          >Create team wallets</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="bg-white rounded-lg border p-6 shadow-sm relative">
-      <header className="flex items-center justify-between gap-1">
-        <div className="flex -space-x-3">
-          {avatars.map((avatar, index) => (
-            <div
-              key={index}
-              className="h-10 w-10 rounded-full flex items-center justify-center text-white text-base font-medium shadow-sm"
-              style={{ backgroundColor: getAvatarColor(avatar.email) }}
-              title={avatar.email}
-            >
-              {getInitials(avatar.email)}
-            </div>
-          ))}
-        </div>
-
-        <div className="flex flex-col">
-          <h3 className="font-medium text-xl">{walletName}</h3>
-          {walletId && (
-            <p className="text-gray-500 text-xs break-words">ID: {walletId}</p>
-          )}
-        </div>
-
-        <div className="text-gray-500">
+    <div className={cn(
+      "p-4 w-[343px] rounded-[12px] relative",
+      isPersonal ? "bg-[#181818]" : "bg-[#f5f5f5]"
+    )}>
+      <div className="flex items-center justify-end">
+        <div className={cn("text-[#979797]")}>
           {WalletSettings || (
             <Tooltip>
               <TooltipTrigger asChild>
-                <Settings className="cursor-pointer" onClick={onWalletSettingsClick} size={16} />
+                <Settings className="w-5 h-5 cursor-pointer" onClick={onWalletSettingsClick} />
               </TooltipTrigger>
               <TooltipContent>
                 Settings
@@ -71,38 +83,80 @@ export function WalletCard({
             </Tooltip>
           )}
         </div>
-      </header>
-      
-      <div>
-        <TokenAssets btcAddress={btcAddress} ethAddress={ethAddress} />
       </div>
-      
-      <div className="grid grid-cols-3 gap-2 pt-2">
-        <button 
-          onClick={onSendClick} 
-          className="flex flex-col items-center justify-center p-2 bg-gray-50 hover:bg-gray-100 rounded-md text-sm font-medium text-gray-700 cursor-pointer"
-        >
-          <Send size={18} className="mb-1"/>
-          Send
-        </button>
-        <button 
-          onClick={() => setReceiveModalOpen(true)  } 
-          className="flex flex-col items-center justify-center p-2 bg-gray-50 hover:bg-gray-100 rounded-md text-sm font-medium text-gray-700 cursor-pointer"
-        >
-          <ArrowDownCircle size={18} className="mb-1"/>
-          Receive
-        </button>
-        <button 
-          onClick={onDetailsClick} 
-          className="relative flex flex-col items-center justify-center p-2 bg-gray-50 hover:bg-gray-100 rounded-md text-sm font-medium text-gray-700 cursor-pointer"
-        >
-          <FileText size={18} className="mb-1"/>
-          Transactions
-          {unsignedProposalsCount && unsignedProposalsCount > 0 ? (
-            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-          ) : null}
-        </button>
-      </div>  
+
+      <div className="h-[150px]">
+        <p className={cn(
+          "text-sm text-center mb-[6px]",
+          isPersonal ? "text-[#a3a3a3]" : "text-[#666666]"
+        )}>{walletName}</p>
+        
+        {variant === 'team' && avatars.length > 0 && (
+          <div className="flex justify-center items-center gap-1 mb-4">
+            <div className="flex -space-x-2">
+              {visibleAvatars.map((avatar, index) => (
+                <div
+                  key={index}
+                  className="h-8 w-8 bg-[#dadada] rounded-full flex items-center justify-center text-[16px] font-bold shadow-[0_4px_12px_rgba(0,0,0,0.25)]"
+                  title={avatar.email}
+                >
+                  {getInitials(avatar.email)}
+                </div>
+              ))}
+              {remainingCount > 0 && (
+                <div className="h-6 w-6 rounded-full flex items-center justify-center text-black text-[10px] font-medium bg-[#d9d9d9] border-3 border-white translate-y-3 -ml-1">
+                  +{remainingCount}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        
+        {/* <p className={cn(
+          "mb-[65px] text-3xl font-bold text-center",
+          isPersonal ? "text-white" : "text-black"
+        )}>$12,324</p> */}
+      </div>
+
+      <div className="flex justify-center gap-[40px]">
+        <div className="w-16 text-center cursor-pointer" onClick={onSendClick}>
+          <div className={cn(
+            "w-16 h-16 p-3 rounded-full border flex items-center justify-center",
+            isPersonal ? "border-white/20" : "border-black/20"
+          )}>
+            <ArrowUpRightFromCircle className={cn(isPersonal ? "text-white" : "text-black")} />
+          </div>
+          <p className={cn(
+            "text-xs font-medium mt-1",
+            isPersonal ? "text-white" : "text-black"
+          )}>Send</p>
+        </div>
+
+        <div className="w-16 text-center cursor-pointer" onClick={() => setReceiveModalOpen(true)}>
+          <div className={cn(
+            "w-16 h-16 p-3 rounded-full border flex items-center justify-center",
+            isPersonal ? "border-white/20" : "border-black/20"
+          )}>
+            <ArrowDownLeftFromCircle className={cn(isPersonal ? "text-white" : "text-black")} />
+          </div>
+          <p className={cn(
+            "text-xs font-medium mt-1",
+            isPersonal ? "text-white" : "text-black"
+          )}>Receive</p>
+        </div>
+      </div>
+
+      <div className="flex justify-end mt-4">
+        <ChevronRightCircle className={cn(
+          "cursor-pointer",
+          isPersonal ? "text-[#979797]" : "text-[#666666]"
+        )} onClick={onDetailsClick} />
+      </div>
+
+      {/* Notification badge for unsigned proposals */}
+      {(unsignedProposalsCount && unsignedProposalsCount > 0) ? (
+        <span className="absolute top-2 left-2 w-3 h-3 bg-red-500 rounded-full"></span>
+      ) : null}
 
       <ReceiveModal
         addresses={{

@@ -2,7 +2,7 @@
 
 import { AuthMethod, IRelayPKP } from '@lit-protocol/types'
 import { Plus, Settings } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, forwardRef, useImperativeHandle } from 'react'
 import axios from 'axios'
 import { MultisigSetting } from './MultisigSetting'
 import { getProviderByAuthMethodType, getSessionSigsByPkp } from '@/lib/lit'
@@ -28,11 +28,15 @@ interface TeamAssetsProps {
   authMethod: AuthMethod
 }
 
+export interface TeamAssetsRef {
+  createTeamWallet: () => void
+}
+
 interface MultisigWalletWithUnsignedProposalsCount extends MultisigWallet {
   unsignedProposalsCount: number
 }
 
-export default function TeamAssets({ authMethod }: TeamAssetsProps) {
+export const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ authMethod }, ref) => {
   const router = useRouter()
   const [userPkp, setUserPkp] = useState<IRelayPKP | null>(null)
   const [user, setUser] = useState<User | null>(null)
@@ -125,6 +129,22 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
   const handleDetailsClick = (walletId: string) => {
     window.open(`/wallet/${walletId}/details`, '_blank')
   }
+
+  // Create team wallet function exposed via ref
+  const handleCreateTeamWallet = () => {
+    if (userPkp && authMethodId) {
+      setMode('create')
+      setSelectedWallet(undefined)
+      setShowMultisigSetting(true)
+    } else {
+      console.error('Missing userPkp or authMethodId')
+    }
+  }
+
+  // Expose methods via ref
+  useImperativeHandle(ref, () => ({
+    createTeamWallet: handleCreateTeamWallet
+  }))
 
   const handleCreateAndApproveTransactionProposal = async (state: SendTransactionDialogState) => {
     const { to, recipientAddress, amount, tokenType } = state
@@ -372,63 +392,38 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
   };
 
   return (
-    <div className="flex flex-col items-center gap-4 w-full">
+    <>
       {isLoadingUserData || isLoading ? (
         <LogoLoading />
       ) : (
         <>
-          {hasMultisigWallets ? (
-            <div className="w-full">
-              <p className="text-center mb-6 text-sm">You have {wallets.length} team wallet(s)</p>
-              <div className="flex flex-col items-center gap-6 w-full">
-                {wallets.map(wallet => (
-                  <div key={wallet.id} className="w-full mb-6">
-                    <WalletCard
-                      walletId={wallet.id}
-                      avatars={wallet.signers.map(signer => ({ email: signer.email }))}
-                      walletName={wallet.name}
-                      onSendClick={() => handleSendClick(wallet)}
-                      onWalletSettingsClick={() => handleWalletSettingsClick(wallet)}
-                      onDetailsClick={() => handleDetailsClick(wallet.id)}
-                      btcAddress={wallet.addresses.btc}
-                      ethAddress={wallet.addresses.eth}
-                      unsignedProposalsCount={wallet.unsignedProposalsCount}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-center mb-4">
-              <p>{"You don't have any team wallets yet."}</p>
-              <p className="text-sm text-gray-500 mt-2">Create your first team wallet / multisig wallet by clicking the button below.</p>
-            </div>
-          )}
+          {wallets.map(wallet => (
+            <WalletCard
+              key={wallet.id}
+              walletId={wallet.id}
+              avatars={wallet.signers.map(signer => ({ email: signer.email }))}
+              walletName={wallet.name}
+              onSendClick={() => handleSendClick(wallet)}
+              onWalletSettingsClick={() => handleWalletSettingsClick(wallet)}
+              onDetailsClick={() => handleDetailsClick(wallet.id)}
+              btcAddress={wallet.addresses.btc}
+              ethAddress={wallet.addresses.eth}
+              unsignedProposalsCount={wallet.unsignedProposalsCount}
+              variant="team"
+            />
+          ))}
+          <WalletCard
+            avatars={[]}
+            walletName=""
+            onSendClick={() => {}}
+            onDetailsClick={() => {}}
+            btcAddress=""
+            ethAddress=""
+            variant="create"
+            onCreateClick={handleCreateTeamWallet}
+          />
         </>
       )}
-
-      {/* fixed button */}
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <button
-            className="fixed bottom-8 right-8 flex items-center justify-center w-14 h-14 text-sm font-medium text-white bg-black rounded-full hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-700 focus:ring-offset-2 shadow-lg z-10 cursor-pointer"
-            onClick={() => {
-              if (userPkp && authMethodId) {
-                setMode('create')
-                setSelectedWallet(undefined)
-                setShowMultisigSetting(true)
-              } else {
-                console.error('Missing userPkp or authMethodId')
-              }
-            }}
-          >
-            <Plus className="w-7 h-7" />
-          </button>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>Create a new team wallet</p>
-        </TooltipContent>
-      </Tooltip>
 
       {(showMultisigSetting && userPkp) && (
         <MultisigSetting
@@ -455,6 +450,6 @@ export default function TeamAssets({ authMethod }: TeamAssetsProps) {
         onMFAVerify={handleMfaVerify}
         addresses={selectedWallet?.addresses || null}
       />
-    </div>
+    </>
   )
-} 
+})

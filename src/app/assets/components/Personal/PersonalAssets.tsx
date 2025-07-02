@@ -267,18 +267,26 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
     )
   }
 
-  // If no PKP exists yet
-  if (!litActionPkp) {
-    return (
-      <div className="bg-card p-6 rounded-lg border text-center">
-        <p className="text-muted-foreground">No wallet information available</p>
-      </div>
-    )
-  }
-
   // Display wallet information
   return (
-    <div className="space-y-6">
+    <>
+      {
+        (email && btcAddress && litActionPkp) && (
+          <WalletCard
+            avatars={[{ email }]}
+            walletName={email}
+            WalletSettings={<PersonalWalletSettings />}
+            onSendClick={() => {
+              setShowSendDialog(true)
+            }}
+            onDetailsClick={handleDetailsClick}
+            btcAddress={btcAddress}
+            ethAddress={litActionPkp?.ethAddress}
+            variant="personal"
+          />
+        )
+      }
+
       {
         (authMethodId && addresses && showSendDialog) && (
           <SendTransactionDialog
@@ -295,22 +303,6 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
           />
         )
       }
-
-      {
-        (email && btcAddress) && (
-          <WalletCard
-            avatars={[{ email }]}
-            walletName={email}
-            WalletSettings={<PersonalWalletSettings />}
-            onSendClick={() => {
-              setShowSendDialog(true)
-            }}
-            onDetailsClick={handleDetailsClick}
-            btcAddress={btcAddress}
-            ethAddress={litActionPkp.ethAddress}
-          />
-        )
-      }
-    </div>
+    </>
   )
 } 
