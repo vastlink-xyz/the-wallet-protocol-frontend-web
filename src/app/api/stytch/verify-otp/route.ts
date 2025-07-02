@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     const response = await stytchClient.otps.authenticate({
       method_id: methodId,
       code,
-      session_duration_minutes: 60 * 24, // 24 hour session
+      session_duration_minutes: 60 * 24 * 7, // 7 days session
     });
 
     // Get session info to return the session JWT

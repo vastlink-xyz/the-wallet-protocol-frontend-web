@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     const response = await stytchClient.otps.authenticate({
       method_id: methodId,
       code,
-      session_duration_minutes: 60, // Session valid for 1 hour
+      session_duration_minutes: 60 * 24 * 7, // Session valid for 7 days
     });
 
     return NextResponse.json({

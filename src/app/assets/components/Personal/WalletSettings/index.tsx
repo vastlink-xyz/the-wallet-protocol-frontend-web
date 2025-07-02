@@ -11,7 +11,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { MFASettingsContent } from './MFASettingsContent';
-import { Input } from "@/components/ui/input";
 import { getProviderByAuthMethodType } from '@/lib/lit';
 import { toast } from 'react-toastify';
 import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
@@ -21,7 +20,7 @@ import { Settings } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { MFAOtpDialog } from '@/components/Transaction/MFAOtpDialog';
 import { LabeledContainer } from '@/components/LabeledContainer';
-import { DailyWithdrawLimits, getDefaultDailyWithdrawLimits } from '@/components/Transaction/DailyWithdrawLimits';
+import { DailyWithdrawLimits } from '@/components/Transaction/DailyWithdrawLimits';
 import { LogoLoading } from '@/components/LogoLoading';
 
 export function PersonalWalletSettings() {

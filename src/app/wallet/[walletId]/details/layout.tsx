@@ -52,7 +52,7 @@ export default function WalletDetailsLayoutClient({
         <div className="mb-4 flex items-center">
           {/* <h1 className="text-2xl font-bold">Wallet Details</h1> */}
           <button 
-            onClick={() => router.push('/assets/team')}
+            onClick={() => router.push('/assets')}
             className="flex items-center text-sm font-medium text-gray-600 hover:text-gray-900 cursor-pointer"
           >
             <ArrowLeft className="h-5 w-5 mr-1" />

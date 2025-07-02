@@ -6,7 +6,6 @@ import { useCallback, useEffect, useState } from 'react'
 import axios from 'axios'
 import { MultisigSetting } from './MultisigSetting'
 import { getProviderByAuthMethodType, getSessionSigsByPkp } from '@/lib/lit'
-import { WalletCard } from '../../components/WalletCard'
 import { MessageProposal, MultisigWallet } from '@/app/api/multisig/storage'
 import { useRouter } from 'next/navigation'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
@@ -23,6 +22,7 @@ import { broadcastTransactionByTokenType } from '@/lib/web3/transaction'
 import { sendProposalExecutedNotification } from '@/lib/notification/proposal-executed-notification'
 import { useUnsignedProposals } from '@/hooks/useUnsignedProposals'
 import { useTeamWallets } from '@/hooks/useTeamWallets'
+import { WalletCard } from '@/app/assets/components/WalletCard'
 
 interface TeamAssetsProps {
   authMethod: AuthMethod

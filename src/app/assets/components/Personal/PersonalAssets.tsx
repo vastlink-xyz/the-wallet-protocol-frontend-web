@@ -5,7 +5,6 @@ import { AuthMethod, IRelayPKP } from '@lit-protocol/types'
 import { Loader2 } from 'lucide-react'
 import { getProviderByAuthMethodType, litNodeClient } from '@/lib/lit/providers'
 import { PersonalWalletSettings } from './WalletSettings'
-import { WalletCard } from '../../components/WalletCard'
 import { SendTransactionDialog, SendTransactionDialogState } from '@/components/Transaction/SendTransactionDialog'
 import { broadcastTransactionByTokenType, getToSignTransactionByTokenType } from '@/lib/web3/transaction'
 import { SUPPORTED_TOKENS_INFO, TokenType } from '@/lib/web3/token'
@@ -16,6 +15,7 @@ import { toast } from 'react-toastify'
 import { useAuthExpiration } from '@/hooks/useAuthExpiration'
 import { MultisigWalletAddresses } from '@/app/api/multisig/storage'
 import { LogoLoading } from '@/components/LogoLoading'
+import { WalletCard } from '@/app/assets/components/WalletCard'
 
 interface PersonalAssetsProps {
   authMethod: AuthMethod

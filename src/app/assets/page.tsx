@@ -1,15 +1,27 @@
 'use client'
 
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState } from "react";
+import PersonalAssets from "./components/Personal/PersonalAssets";
+import { AuthMethod } from "@lit-protocol/types";
+import { getAuthMethodFromStorage } from "@/lib/storage";
+import { LogoLoading } from "@/components/LogoLoading";
+import TeamAssets from "./components/Team/TeamAssets";
 
-export default function AssetsDefaultPage() {
-  const router = useRouter()
-
-  // Default redirect to personal wallet page
+export default function PortfolioPage() {
+  const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null)
+  
+  // Load auth method from storage
   useEffect(() => {
-    router.replace('/assets/personal')
-  }, [router])
+    const storedAuthMethod = getAuthMethodFromStorage()
+    setAuthMethod(storedAuthMethod)
+  }, [])
 
-  return null // No need to render anything, will redirect immediately
-} 
+  if (!authMethod) {
+    return <LogoLoading />
+  }
+
+  return <div>
+    <PersonalAssets authMethod={authMethod} />
+    <TeamAssets authMethod={authMethod} />
+  </div>;
+}

@@ -150,7 +150,7 @@ export default function StytchCallbackPage() {
       }
       
       // Redirect to assets page
-      router.push('/assets/personal');
+      router.push('/assets');
     } catch (error) {
       console.error('Error in processAuthentication:', error);
       setError('Failed to process authentication');
@@ -181,7 +181,7 @@ export default function StytchCallbackPage() {
           recipientEmail: userEmail,
           tokenType: invitation.tokenType,
           amount: invitation.amount,
-          completeUrl: `${process.env.NEXT_PUBLIC_APP_URL}/assets/personal`
+          completeUrl: `${process.env.NEXT_PUBLIC_APP_URL}/assets`
         });
       }
     } catch (error) {

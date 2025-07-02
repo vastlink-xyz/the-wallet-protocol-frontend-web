@@ -105,7 +105,7 @@ export default function GoogleCallbackPage() {
         }
         
         // Redirect to assets page
-        router.push('/assets/personal')
+        router.push('/assets')
       } catch (error) {
         console.error('Error in redirectAfterAuthentication:', error);
         setLoading(false);
