@@ -1,4 +1,4 @@
-import { Settings, ChevronRightCircle, ArrowUpRightFromCircle, ArrowDownLeftFromCircle, Plus, PlusCircle } from "lucide-react"
+import { Settings, ChevronRightCircle, ArrowUpRightFromCircle, ArrowDownLeftFromCircle, Plus, PlusCircle, MoreHorizontal } from "lucide-react"
 import { getAvatarColor, getInitials } from "./helpers"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { ReceiveModal } from "./ReceiveModal"
@@ -35,7 +35,7 @@ export function WalletCard({
   onWalletSettingsClick,
   unsignedProposalsCount,
   variant = 'personal',
-  maxAvatars = 2,
+  maxAvatars = 5,
   onCreateClick,
 }: WalletCardProps) {
   const [receiveModalOpen, setReceiveModalOpen] = useState(false);
@@ -55,11 +55,13 @@ export function WalletCard({
           "bg-[#f5f5f5] flex flex-col items-center justify-center",
         )}
       >
-        <div className="text-center cursor-pointer" onClick={onCreateClick}>
-          <PlusCircle className="w-6 h-6 text-black mx-auto" />
+        <div className="text-center cursor-pointer flex items-center" onClick={onCreateClick}>
           <p
-            className="text-black bg-white px-4 py-2.5 rounded-[20px] text-sm font-medium mt-6"
-          >Create team wallets</p>
+            className="text-black bg-white px-4 py-2.5 rounded-[20px] text-sm font-medium flex items-center"
+          >
+            <PlusCircle className="w-4 h-4 text-black mr-1" />
+            <span>Create a team wallet</span>
+          </p>
         </div>
       </div>
     )
@@ -87,24 +89,24 @@ export function WalletCard({
 
       <div className="h-[150px]">
         <p className={cn(
-          "text-sm text-center mb-[6px]",
-          isPersonal ? "text-[#a3a3a3]" : "text-[#666666]"
+          "text-lg text-center mb-[6px] font-bold",
+          isPersonal ? "text-[#ffffff]" : "text-[#000000]"
         )}>{walletName}</p>
         
         {variant === 'team' && avatars.length > 0 && (
-          <div className="flex justify-center items-center gap-1 mb-4">
+          <div className="flex justify-center items-center gap-1 mb-4 mt-4">
             <div className="flex -space-x-2">
               {visibleAvatars.map((avatar, index) => (
                 <div
                   key={index}
-                  className="h-8 w-8 bg-[#dadada] rounded-full flex items-center justify-center text-[16px] font-bold shadow-[0_4px_12px_rgba(0,0,0,0.25)]"
+                  className="h-8 w-8 bg-[#dadada] rounded-full flex items-center justify-center text-[16px] shadow-[-2px_4px_12px_rgba(0,0,0,0.25)]"
                   title={avatar.email}
                 >
                   {getInitials(avatar.email)}
                 </div>
               ))}
               {remainingCount > 0 && (
-                <div className="h-6 w-6 rounded-full flex items-center justify-center text-black text-[10px] font-medium bg-[#d9d9d9] border-3 border-white translate-y-3 -ml-1">
+                <div className="h-6 w-6 rounded-full flex items-center justify-center text-black text-[10px] font-medium bg-[#d9d9d9] border-3 border-[#f5f5f5] translate-y-3 -ml-1">
                   +{remainingCount}
                 </div>
               )}
@@ -119,9 +121,9 @@ export function WalletCard({
       </div>
 
       <div className="flex justify-center gap-[40px]">
-        <div className="w-16 text-center cursor-pointer" onClick={onSendClick}>
+        <div className="w-14 text-center cursor-pointer" onClick={onSendClick}>
           <div className={cn(
-            "w-16 h-16 p-3 rounded-full border flex items-center justify-center",
+            "w-14 h-14 p-3 rounded-full border flex items-center justify-center",
             isPersonal ? "border-white/20" : "border-black/20"
           )}>
             <ArrowUpRightFromCircle className={cn(isPersonal ? "text-white" : "text-black")} />
@@ -132,9 +134,9 @@ export function WalletCard({
           )}>Send</p>
         </div>
 
-        <div className="w-16 text-center cursor-pointer" onClick={() => setReceiveModalOpen(true)}>
+        <div className="w-14 text-center cursor-pointer" onClick={() => setReceiveModalOpen(true)}>
           <div className={cn(
-            "w-16 h-16 p-3 rounded-full border flex items-center justify-center",
+            "w-14 h-14 p-3 rounded-full border flex items-center justify-center",
             isPersonal ? "border-white/20" : "border-black/20"
           )}>
             <ArrowDownLeftFromCircle className={cn(isPersonal ? "text-white" : "text-black")} />
@@ -149,13 +151,13 @@ export function WalletCard({
       <div className="flex justify-end mt-4">
         <Tooltip>
           <TooltipTrigger asChild>
-            <ChevronRightCircle className={cn(
+            <MoreHorizontal className={cn(
               "cursor-pointer",
               isPersonal ? "text-[#979797]" : "text-[#666666]"
             )} onClick={onDetailsClick} />
           </TooltipTrigger>
           <TooltipContent>
-            Transactions
+            Details
           </TooltipContent>
         </Tooltip>
       </div>

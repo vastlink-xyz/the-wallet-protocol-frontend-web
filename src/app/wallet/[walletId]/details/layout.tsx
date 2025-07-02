@@ -6,6 +6,7 @@ import { History, FileText, ArrowLeft, Wallet } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WalletProvider, useWallet } from "./context/WalletContext";
 import { cn } from "@/lib/utils";
+import { TokenAssets } from "@/app/assets/components/WalletCard/TokenAssets";
 
 // Inner component that can use the wallet context
 function WalletName() {
@@ -56,13 +57,15 @@ export default function WalletDetailsLayoutClient({
             className="flex items-center text-sm font-medium text-gray-600 hover:text-gray-900 cursor-pointer"
           >
             <ArrowLeft className="h-5 w-5 mr-1" />
-            Back to Team Wallet(s)
+            Back
           </button>
         </div>
 
         <div className="flex items-center justify-center">
           <WalletName />
         </div>
+
+        {/* <TokenAssets btcAddress="xxx" ethAddress="xxx" /> */}
         
         <Tabs value={getActiveTab()} className="mb-6">
           <TabsList className="grid w-full grid-cols-2">

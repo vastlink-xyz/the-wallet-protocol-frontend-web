@@ -274,7 +274,7 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
         (email && btcAddress && litActionPkp) && (
           <WalletCard
             avatars={[{ email }]}
-            walletName={email}
+            walletName={email + ' (Personal)'}
             WalletSettings={<PersonalWalletSettings />}
             onSendClick={() => {
               setShowSendDialog(true)
