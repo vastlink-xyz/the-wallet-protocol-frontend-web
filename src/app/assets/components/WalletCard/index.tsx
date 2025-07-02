@@ -147,10 +147,17 @@ export function WalletCard({
       </div>
 
       <div className="flex justify-end mt-4">
-        <ChevronRightCircle className={cn(
-          "cursor-pointer",
-          isPersonal ? "text-[#979797]" : "text-[#666666]"
-        )} onClick={onDetailsClick} />
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <ChevronRightCircle className={cn(
+              "cursor-pointer",
+              isPersonal ? "text-[#979797]" : "text-[#666666]"
+            )} onClick={onDetailsClick} />
+          </TooltipTrigger>
+          <TooltipContent>
+            Transactions
+          </TooltipContent>
+        </Tooltip>
       </div>
 
       {/* Notification badge for unsigned proposals */}
