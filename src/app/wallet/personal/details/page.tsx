@@ -7,10 +7,13 @@ import { useEffect } from "react";
 import { useState } from "react";
 import { MultisigWalletAddresses } from "@/app/api/multisig/storage";
 import { log } from "@/lib/utils";
+import { TokenAssets } from "@/app/assets/components/WalletCard/TokenAssets";
 
 export default function PersonalWalletDetailsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [addresses, setAddresses] = useState<MultisigWalletAddresses | null>(null)
+  const [btcAddress, setBtcAddress] = useState('')
+  const [ethAddress, setEthAddress] = useState('')
 
   // Fetch user data
   useEffect(() => {
@@ -31,6 +34,8 @@ export default function PersonalWalletDetailsPage() {
         
         const userData = await userResponse.json()
         setAddresses(userData.addresses)
+        setBtcAddress(userData.addresses?.btc)
+        setEthAddress(userData.addresses?.eth)
       } catch (error) {
         console.error("Error fetching data from database:", error)
       } finally {
@@ -48,8 +53,14 @@ export default function PersonalWalletDetailsPage() {
   return (
     <div className="p-6">
       {
+        (btcAddress && ethAddress) && (
+          <TokenAssets btcAddress={btcAddress} ethAddress={ethAddress} />
+        )
+      }
+
+      {
         addresses && (
-          <div>
+          <div className="mt-6">
             <TransactionHistory
               addresses={addresses}
             />

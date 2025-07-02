@@ -106,7 +106,7 @@ export function TokenAssets({ btcAddress, ethAddress }: TokenAssetsProps) {
   }, [tokenDataList.length]); // Only trigger when tokenDataList length changes to avoid circular dependency
 
   return (
-    <div className="space-y-3 py-2 my-12">
+    <div className="space-y-3 py-2">
       {tokenDataList.map((token) => (
         <div key={token.symbol} className="flex items-center justify-between py-1 mx-auto">
           <div className="flex items-center space-x-2 mb-2">

@@ -15,10 +15,23 @@ function WalletName() {
   if (isLoading || !wallet) return null;
   
   return (
-    <div className="flex items-center text-gray-600 text-lg font-medium mb-6">
-      <Wallet className="h-5 w-5 mr-2" />
+    <div className="flex items-center text-gray-600 text-2xl font-medium mb-6">
       {wallet.name || "Unnamed Wallet"}
     </div>
+  );
+}
+
+// Component that renders TokenAssets with wallet context
+function WalletTokenAssets() {
+  const { wallet, isLoading } = useWallet();
+  
+  if (isLoading || !wallet) return null;
+  
+  return (
+    <TokenAssets 
+      btcAddress={wallet.addresses.btc}
+      ethAddress={wallet.addresses.eth}
+    />
   );
 }
 
@@ -65,9 +78,9 @@ export default function WalletDetailsLayoutClient({
           <WalletName />
         </div>
 
-        {/* <TokenAssets btcAddress="xxx" ethAddress="xxx" /> */}
+        <WalletTokenAssets />
         
-        <Tabs value={getActiveTab()} className="mb-6">
+        <Tabs value={getActiveTab()} className="mb-6 mt-6">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="transactions" asChild>
               <Link href={`/wallet/${walletId}/details/transactions`}>
