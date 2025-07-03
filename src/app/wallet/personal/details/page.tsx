@@ -6,7 +6,7 @@ import { getAuthIdByAuthMethod } from "@lit-protocol/lit-auth-client";
 import { useEffect } from "react";
 import { useState } from "react";
 import { MultisigWalletAddresses } from "@/app/api/multisig/storage";
-import { log } from "@/lib/utils";
+import { cn, log } from "@/lib/utils";
 import { TokenAssets } from "@/app/assets/components/WalletCard/TokenAssets";
 
 export default function PersonalWalletDetailsPage() {
@@ -51,7 +51,10 @@ export default function PersonalWalletDetailsPage() {
   }
 
   return (
-    <div className="p-6">
+    <div className={cn(
+        "mx-auto p-6",
+        'w-[342px] tablet:w-[725px] laptop:w-[908px] desktop:w-[1224px]',
+      )}>
       {
         (btcAddress && ethAddress) && (
           <TokenAssets btcAddress={btcAddress} ethAddress={ethAddress} />

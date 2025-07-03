@@ -217,6 +217,7 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
   }
 
   const handleDetailsClick = () => {
+    console.log('PersonalAssets handleDetailsClick triggered')
     window.open(`/wallet/personal/details`, '_blank')
   }
 

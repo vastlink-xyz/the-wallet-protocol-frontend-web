@@ -127,6 +127,7 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ authMethod }, r
   }
 
   const handleDetailsClick = (walletId: string) => {
+    console.log('TeamAssets handleDetailsClick triggered for wallet:', walletId)
     window.open(`/wallet/${walletId}/details`, '_blank')
   }
 
