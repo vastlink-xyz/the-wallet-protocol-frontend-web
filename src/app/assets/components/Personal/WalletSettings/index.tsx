@@ -2,13 +2,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { MFASettingsContent } from './MFASettingsContent';
 import { getProviderByAuthMethodType } from '@/lib/lit';
@@ -16,15 +13,17 @@ import { toast } from 'react-toastify';
 import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
 import { log } from '@/lib/utils';
 import { SUPPORTED_TOKENS_INFO, TokenType, SUPPORTED_TOKEN_SYMBOLS } from '@/lib/web3/token';
-import { Settings } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { MFAOtpDialog } from '@/components/Transaction/MFAOtpDialog';
 import { LabeledContainer } from '@/components/LabeledContainer';
 import { DailyWithdrawLimits } from '@/components/Transaction/DailyWithdrawLimits';
 import { LogoLoading } from '@/components/LogoLoading';
 
-export function PersonalWalletSettings() {
-  const [isOpen, setIsOpen] = useState(false);
+interface PersonalWalletSettingsProps {
+  isOpen: boolean
+  onClose: () => void
+}
+
+export function PersonalWalletSettings({ isOpen, onClose }: PersonalWalletSettingsProps) {
   const [tokenLimits, setTokenLimits] = useState<Record<TokenType, string> | undefined>();
   const [isLimitValid, setIsLimitValid] = useState<boolean>(true);
   const [isSaving, setIsSaving] = useState<boolean>(false);
@@ -186,7 +185,7 @@ export function PersonalWalletSettings() {
       } else if (response.ok) {
         // If API returned success and no MFA required, settings were updated
         toast.success("Your wallet settings have been updated successfully.");
-        setIsOpen(false);
+        onClose();
       } else {
         // Handle other error cases
         throw new Error(responseData.error || 'Failed to save settings');
@@ -261,22 +260,12 @@ export function PersonalWalletSettings() {
 
     setShowMfaDialog(false);
     toast.success("Your wallet settings have been updated successfully.");
-    setIsOpen(false); // Close the settings dialog
+    onClose(); // Close the settings dialog
   };
 
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogTrigger asChild>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Settings onClick={() => setIsOpen(true)} className="cursor-pointer w-5 h-5" />
-            </TooltipTrigger>
-            <TooltipContent>
-              Settings
-            </TooltipContent>
-          </Tooltip>
-        </DialogTrigger>
+      <Dialog open={isOpen} onOpenChange={onClose}>
 
         <DialogContent className="p-0 max-w-[660px] sm:max-w-[660px]">
           <DialogHeader className="border-b px-8 py-6">

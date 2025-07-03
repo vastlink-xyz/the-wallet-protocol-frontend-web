@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { AuthMethod, IRelayPKP } from '@lit-protocol/types'
 import { Loader2 } from 'lucide-react'
 import { getProviderByAuthMethodType, litNodeClient } from '@/lib/lit/providers'
-import { PersonalWalletSettings } from './WalletSettings'
 import { SendTransactionDialog, SendTransactionDialogState } from '@/components/Transaction/SendTransactionDialog'
 import { broadcastTransactionByTokenType, getToSignTransactionByTokenType } from '@/lib/web3/transaction'
 import { SUPPORTED_TOKENS_INFO, TokenType } from '@/lib/web3/token'
@@ -14,9 +13,9 @@ import { log } from '@/lib/utils'
 import { toast } from 'react-toastify'
 import { useAuthExpiration } from '@/hooks/useAuthExpiration'
 import { MultisigWalletAddresses } from '@/app/api/multisig/storage'
-import { LogoLoading } from '@/components/LogoLoading'
 import { WalletCard } from '@/app/assets/components/WalletCard'
 import { WalletCardSkeleton } from '@/app/assets/components/WalletCard/WalletCardSkeleton'
+import { PersonalWalletSettings } from './WalletSettings'
 
 interface PersonalAssetsProps {
   authMethod: AuthMethod
@@ -35,6 +34,7 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
   const [showMfa, setShowMfa] = useState(false)
   const [showSendDialog, setShowSendDialog] = useState(false)
   const [isSending, setIsSending] = useState(false)
+  const [showSettingsDialog, setShowSettingsDialog] = useState(false)
 
   // Fetch user data
   useEffect(() => {
@@ -74,6 +74,7 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
     fetchUserData()
   }, [authMethod])
 
+
   // MFA cancellation callback
   const handleMfaCancel = () => {
     setShowMfa(false)
@@ -102,7 +103,6 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
     amount,
     tokenType,
     mfaMethodId,
-    mfaPhoneNumber,
     otpCode,
   }: SendTransactionDialogState) => {
     if (!litActionPkp) {
@@ -221,6 +221,12 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
     window.open(`/wallet/personal/details`, '_blank')
   }
 
+  const handleWalletSettingsClick = () => {
+    console.log('PersonalAssets handleWalletSettingsClick triggered')
+    setShowSettingsDialog(true)
+  }
+
+
   const handleInviteUser = async ({
     to,
     amount,
@@ -263,6 +269,7 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
     }
   }
 
+
   if (isLoading) {
     return <WalletCardSkeleton />
   }
@@ -275,10 +282,10 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
           <WalletCard
             avatars={[{ email }]}
             walletName={email + ' (Personal)'}
-            WalletSettings={<PersonalWalletSettings />}
             onSendClick={() => {
               setShowSendDialog(true)
             }}
+            onWalletSettingsClick={handleWalletSettingsClick}
             onDetailsClick={handleDetailsClick}
             btcAddress={btcAddress}
             ethAddress={litActionPkp?.ethAddress}
@@ -304,6 +311,12 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
           />
         )
       }
+
+      {/* Personal Wallet Settings */}
+      <PersonalWalletSettings 
+        isOpen={showSettingsDialog}
+        onClose={() => setShowSettingsDialog(false)}
+      />
     </>
   )
 } 
