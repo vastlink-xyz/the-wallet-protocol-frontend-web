@@ -137,6 +137,8 @@ const sendAddressByTokenType = ({
   } else if (SUPPORTED_TOKENS_INFO[tokenType].chainType === 'EVM') {
     return walletPkp?.ethAddress
   }
+  
+  throw new Error(`Unsupported token type: ${tokenType}`)
 }
 
 // Function to execute transaction proposal

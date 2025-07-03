@@ -95,6 +95,8 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
     } else if (SUPPORTED_TOKENS_INFO[tokenType].chainType === 'EVM') {
       return litActionPkp?.ethAddress
     }
+    
+    throw new Error(`Unsupported token type: ${tokenType}`)
   }
 
   const handleExecuteTransaction = async ({

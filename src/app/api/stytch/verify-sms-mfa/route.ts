@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stytchClient } from '../client';
+import { STYTCH_SESSION_DURATION_MINUTES } from '@/lib/stytch/constants';
 
 export async function POST(req: NextRequest) {
   try {
@@ -17,7 +18,7 @@ export async function POST(req: NextRequest) {
     const response = await stytchClient.otps.authenticate({
       method_id: methodId,
       code,
-      session_duration_minutes: 60 * 24 * 7, // Session valid for 7 days
+      session_duration_minutes: STYTCH_SESSION_DURATION_MINUTES,
     });
 
     return NextResponse.json({

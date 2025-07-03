@@ -15,6 +15,7 @@ import { AUTH_METHOD_TYPE } from '@lit-protocol/constants';
 import { toast } from 'react-toastify';
 import { parseError } from '@/lib/error';
 import { setUserDataToStorage } from '@/lib/storage/user';
+import { STYTCH_SESSION_DURATION_MINUTES } from '@/lib/stytch/constants';
 
 type OtpStep = 'submit' | 'verify';
 
@@ -71,10 +72,12 @@ const StytchOTP = ({
       
       // Use the session JWT and user ID to authenticate with Lit Protocol
       const provider = await getProviderByAuthMethodType(AUTH_METHOD_TYPE.StytchEmailFactorOtp);
+      // Note: session_duration_minutes must be set here to sync with the Stytch session duration
+      // This ensures the provider's session duration matches the Stytch session duration
       const authMethod = await provider?.authenticate({
         accessToken: data.session_jwt,
         userId: data.user_id,
-        session_duration_minutes: 60 * 24 * 7, // 7 days session
+        session_duration_minutes: STYTCH_SESSION_DURATION_MINUTES,
       });
       
       log('authMethod from stytch', authMethod);
