@@ -37,6 +37,7 @@ interface SendTransactionDialogProps {
   onDialogOpenChange: (open: boolean) => void
   addresses: MultisigWalletAddresses | null
   walletName?: string
+  resetAmount?: boolean
 }
 
 export function SendTransactionDialog({
@@ -51,6 +52,7 @@ export function SendTransactionDialog({
   onDialogOpenChange,
   addresses,
   walletName,
+  resetAmount,
 }: SendTransactionDialogProps) {
   // transaction state
   const [to, setTo] = useState('') // email or wallet address
@@ -139,6 +141,13 @@ export function SendTransactionDialog({
       setFeeEstimation(null);
     }
   }, [showSendDialog])
+
+  // Reset amount when parent signals success
+  useEffect(() => {
+    if (resetAmount) {
+      setAmount('')
+    }
+  }, [resetAmount])
 
   useEffect(() => {
     if (isValidEmail(to) && !recipientAddress) {

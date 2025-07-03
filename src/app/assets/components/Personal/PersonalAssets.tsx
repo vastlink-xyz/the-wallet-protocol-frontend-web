@@ -35,6 +35,7 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
   const [showSendDialog, setShowSendDialog] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const [showSettingsDialog, setShowSettingsDialog] = useState(false)
+  const [resetAmount, setResetAmount] = useState(false)
 
   // Fetch user data
   useEffect(() => {
@@ -193,6 +194,11 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
         toast.success(`Successfully sent ${amount} ${tokenInfo.symbol} to ${to}`)
         // Don't auto-close dialog - let user close manually
         setShowMfa(false)
+        
+        // Reset amount in SendTransactionDialog
+        setResetAmount(true)
+        // Reset the trigger immediately to allow future resets
+        setTimeout(() => setResetAmount(false), 100)
       } else {
         if (result.requireMFA) {
           // Show MFA flow
@@ -260,6 +266,11 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
       if (data.success) {
         toast.success(`Invitation sent to ${to}`);
         
+        // Reset amount in SendTransactionDialog
+        setResetAmount(true)
+        // Reset the trigger immediately to allow future resets
+        setTimeout(() => setResetAmount(false), 100)
+        
         // Close the dialog
         setShowSendDialog(false);
       }
@@ -310,6 +321,7 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
             onDialogOpenChange={setShowSendDialog}
             addresses={addresses || null}
             walletName={email || ''}
+            resetAmount={resetAmount}
           />
         )
       }
