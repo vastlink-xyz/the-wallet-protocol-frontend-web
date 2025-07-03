@@ -191,7 +191,7 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
         log('txReceipt', txReceipt)
         // Show success message with transaction hash
         toast.success(`Successfully sent ${amount} ${tokenInfo.symbol} to ${to}`)
-        setShowSendDialog(false)
+        // Don't auto-close dialog - let user close manually
         setShowMfa(false)
       } else {
         if (result.requireMFA) {

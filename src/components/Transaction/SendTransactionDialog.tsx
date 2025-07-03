@@ -288,32 +288,40 @@ export function SendTransactionDialog({
     }
   }, [tokenType]);
 
-  const onSendClick = () => {
-    if (isInviteUser) {
-      // if there is no recipient address, invite user
-      onInviteUser({ to, recipientAddress, amount, tokenType, mfaMethodId, mfaPhoneNumber });
-    } else {
-      // if there is a recipient address, send transaction to recipient
-      onSendTransaction({ to, recipientAddress, amount, tokenType, mfaMethodId, mfaPhoneNumber })
+
+  const onSendClick = async () => {
+    try {
+      if (isInviteUser) {
+        // if there is no recipient address, invite user
+        await onInviteUser({ to, recipientAddress, amount, tokenType, mfaMethodId, mfaPhoneNumber });
+      } else {
+        // if there is a recipient address, send transaction to recipient
+        await onSendTransaction({ to, recipientAddress, amount, tokenType, mfaMethodId, mfaPhoneNumber });
+      }
+      // Reset amount after successful transaction (keep to/recipient for easy retry)
+      setAmount('');
+    } catch (error) {
+      // Reset amount even on failure (user can easily re-enter amount for retry)
+      setAmount('');
     }
   }
 
-  // Display MFA component
-  if (showMfa && mfaPhoneNumber) {
-    return (
-      <MFAOtpDialog
-        isOpen={showMfa}
-        onClose={onMFACancel || (() => {})}
-        onOtpVerify={handleOtpVerify}
-        sendOtp={handleSendOtp}
-        identifier={mfaPhoneNumber}
-        title="Transaction Verification"
-        description={`Please verify your transaction of ${amount} ${tokenInfo.symbol} to ${to}`}
-      />
-    );
-  }
-
   return (
+    <>
+      {/* MFA Dialog - overlays on top of main dialog */}
+      {showMfa && mfaPhoneNumber && (
+        <MFAOtpDialog
+          isOpen={showMfa}
+          onClose={onMFACancel || (() => {})}
+          onOtpVerify={handleOtpVerify}
+          sendOtp={handleSendOtp}
+          identifier={mfaPhoneNumber}
+          title="Transaction Verification"
+          description={`Please verify your transaction of ${amount} ${tokenInfo.symbol} to ${to}`}
+        />
+      )}
+
+      {/* Main Send Transaction Dialog */}
     <Dialog open={showSendDialog} onOpenChange={onDialogOpenChange}>
       <DialogContent>
         <DialogHeader>
@@ -410,5 +418,6 @@ export function SendTransactionDialog({
         </div>
       </DialogContent>
     </Dialog>
+    </>
   )
 }

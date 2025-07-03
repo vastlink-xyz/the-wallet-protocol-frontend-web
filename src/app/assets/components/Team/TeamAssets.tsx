@@ -442,19 +442,23 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ authMethod }, r
         />
       )}
 
-      <SendTransactionDialog
-        authMethod={authMethod}
-        showSendDialog={showSendDialog}
-        showMfa={showMfaDialog}
-        onInviteUser={handleInviteUser}
-        onSendTransaction={handleCreateAndApproveTransactionProposal}
-        isSending={isSending}
-        onDialogOpenChange={setShowSendDialog}
-        onMFACancel={handleMfaCancel}
-        onMFAVerify={handleMfaVerify}
-        addresses={selectedWallet?.addresses || null}
-        walletName={selectedWallet?.name}
-      />
+      {
+        showSendDialog && (
+          <SendTransactionDialog
+            authMethod={authMethod}
+            showSendDialog={showSendDialog}
+            showMfa={showMfaDialog}
+            onInviteUser={handleInviteUser}
+            onSendTransaction={handleCreateAndApproveTransactionProposal}
+            isSending={isSending}
+            onDialogOpenChange={setShowSendDialog}
+            onMFACancel={handleMfaCancel}
+            onMFAVerify={handleMfaVerify}
+            addresses={selectedWallet?.addresses || null}
+            walletName={selectedWallet?.name}
+          />
+        )
+      }
     </>
   )
 })
