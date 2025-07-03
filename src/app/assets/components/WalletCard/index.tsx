@@ -69,21 +69,16 @@ export function WalletCard({
 
   return (
     <div className={cn(
-        "p-4 w-[343px] h-[326px] rounded-[12px] relative cursor-pointer transition-all duration-200",
-        isPersonal ? "bg-[#181818] hover:bg-[#252525]" : "bg-[#f5f5f5] hover:bg-[#eeeeee]",
-        "hover:shadow-lg hover:scale-[1.02]"
+        "p-4 w-[343px] h-[326px] rounded-[12px] relative transition-all duration-200",
+        isPersonal ? "bg-[#181818]" : "bg-[#f5f5f5]"
       )}
-      onClick={onDetailsClick}
     >
       <div className="flex items-center justify-end">
         <div className={cn("text-[#979797]")}>
           {WalletSettings || (
             <Tooltip>
               <TooltipTrigger asChild>
-                <Settings className="w-5 h-5 cursor-pointer" onClick={(e) => {
-                  e.stopPropagation();
-                  onWalletSettingsClick?.();
-                }} />
+                <Settings className="w-5 h-5 cursor-pointer" onClick={onWalletSettingsClick} />
               </TooltipTrigger>
               <TooltipContent>
                 Settings
@@ -95,9 +90,9 @@ export function WalletCard({
 
       <div className="h-[150px]">
         <p className={cn(
-          "text-lg text-center mb-[6px] font-bold",
+          "text-lg text-center mb-[6px] font-bold cursor-pointer hover:opacity-80 transition-opacity",
           isPersonal ? "text-[#ffffff]" : "text-[#000000]"
-        )}>{walletName}</p>
+        )} onClick={onDetailsClick}>{walletName}</p>
         
         {variant === 'team' && avatars.length > 0 && (
           <div className="flex justify-center items-center gap-1 mb-4 mt-4">
@@ -127,10 +122,7 @@ export function WalletCard({
       </div>
 
       <div className="flex justify-center gap-[40px]">
-        <div className="w-14 text-center cursor-pointer" onClick={(e) => {
-          e.stopPropagation();
-          onSendClick();
-        }}>
+        <div className="w-14 text-center cursor-pointer" onClick={onSendClick}>
           <div className={cn(
             "w-14 h-14 p-3 rounded-full border flex items-center justify-center",
             isPersonal ? "border-white/20" : "border-black/20"
@@ -143,10 +135,7 @@ export function WalletCard({
           )}>Send</p>
         </div>
 
-        <div className="w-14 text-center cursor-pointer" onClick={(e) => {
-          e.stopPropagation();
-          setReceiveModalOpen(true);
-        }}>
+        <div className="w-14 text-center cursor-pointer" onClick={() => setReceiveModalOpen(true)}>
           <div className={cn(
             "w-14 h-14 p-3 rounded-full border flex items-center justify-center",
             isPersonal ? "border-white/20" : "border-black/20"
@@ -168,10 +157,7 @@ export function WalletCard({
                 "cursor-pointer",
                 isPersonal ? "text-[#979797]" : "text-[#666666]"
               )} 
-              onClick={(e) => {
-                e.stopPropagation();
-                onDetailsClick();
-              }}
+              onClick={onDetailsClick}
             />
           </TooltipTrigger>
           <TooltipContent>

@@ -70,9 +70,11 @@ const StytchOTP = ({
       });
       
       // Use the session JWT and user ID to authenticate with Lit Protocol
-      const authMethod = await getProviderByAuthMethodType(AUTH_METHOD_TYPE.StytchEmailFactorOtp)?.authenticate({
+      const provider = await getProviderByAuthMethodType(AUTH_METHOD_TYPE.StytchEmailFactorOtp);
+      const authMethod = await provider?.authenticate({
         accessToken: data.session_jwt,
         userId: data.user_id,
+        session_duration_minutes: 60 * 24 * 7, // 7 days session
       });
       
       log('authMethod from stytch', authMethod);
