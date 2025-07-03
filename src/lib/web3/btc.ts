@@ -19,6 +19,20 @@ export const getBtcAddressByPublicKey = (publicKey: string) => {
 
 export const fetchBtcBalance = async (btcAddress: string): Promise<number> => {
   try {
+    // First try to get balance from UTXO endpoint (more accurate for spendable balance)
+    const utxoResponse = await fetch(`https://blockstream.info/testnet/api/address/${btcAddress}/utxo`);
+    if (utxoResponse.ok) {
+      const utxos = await utxoResponse.json();
+      if (Array.isArray(utxos)) {
+        // Sum all UTXO values to get spendable balance
+        const totalSatoshis = utxos.reduce((sum: number, utxo: any) => sum + utxo.value, 0);
+        const balanceInBTC = totalSatoshis / 100000000;
+        // Return with max 8 decimal places, removing trailing zeros
+        return parseFloat(balanceInBTC.toFixed(8));
+      }
+    }
+
+    // Fallback to address stats if UTXO endpoint fails
     const response = await fetch(`https://blockstream.info/testnet/api/address/${btcAddress}`);
     if (!response.ok) {
       if (response.status === 404) {
@@ -28,8 +42,10 @@ export const fetchBtcBalance = async (btcAddress: string): Promise<number> => {
       throw new Error(`Blockstream API returned ${response.status}: ${response.statusText}`);
     }
     const data = await response.json();
-    const balance = data.chain_stats.funded_txo_sum - data.chain_stats.spent_txo_sum;
-    return balance / 100000000; // Convert satoshis to BTC
+    const balanceSatoshis = data.chain_stats.funded_txo_sum - data.chain_stats.spent_txo_sum;
+    const balanceInBTC = balanceSatoshis / 100000000;
+    // Return with max 8 decimal places, removing trailing zeros
+    return parseFloat(balanceInBTC.toFixed(8));
   } catch (error) {
     console.error("Error fetching BTC balance:", error);
     return 0;
@@ -91,8 +107,9 @@ export const fetchBtc24HourOutflow = async (btcAddress: string) => {
       }
     }
 
-    // Convert from satoshis to BTC
-    return totalOutflow / 100000000;
+    // Convert from satoshis to BTC with proper precision
+    const outflowInBTC = totalOutflow / 100000000;
+    return parseFloat(outflowInBTC.toFixed(8));
   } catch (error) {
     console.error("Error calculating BTC 24-hour outflow:", error);
     return 0;
@@ -154,8 +171,9 @@ export const fetchBtcTodayOutflow = async (btcAddress: string) => {
       }
     }
 
-    // Convert from satoshis to BTC
-    return totalOutflow / 100000000;
+    // Convert from satoshis to BTC with proper precision
+    const outflowInBTC = totalOutflow / 100000000;
+    return parseFloat(outflowInBTC.toFixed(8));
   } catch (error) {
     console.error("Error calculating BTC today outflow:", error);
     return 0;
@@ -241,8 +259,8 @@ export const fetchBtcTransactionHistory = async ({
         }
       }
       
-      // Format value from satoshis to BTC
-      const valueInBTC = (value / 100000000).toFixed(8);
+      // Format value from satoshis to BTC with proper precision (max 8 decimals)
+      const valueInBTC = (value / 100000000).toFixed(8).replace(/\.?0+$/, '');
       
       return {
         txid: tx.txid,

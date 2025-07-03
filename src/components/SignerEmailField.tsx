@@ -107,22 +107,6 @@ export function SignerEmailField({
     setInternalInputType(inputType || null);
   }, [inputType])
 
-  // When tokenType changes, re-trigger address lookup if we have a valid input
-  useEffect(() => {
-    if (input.value && lookupOnChange) {
-      if (isValidEmail(input.value)) {
-        // Re-fetch address for the new token type
-        fetchAddressByEmail(input.value);
-      } else if (!emailOnly && addressInfo?.addresses) {
-        // If current input is an address, we need to notify parent about the address for new token type
-        const newAddressForToken = addressInfo.addresses[SUPPORTED_TOKENS_INFO[tokenType].addressKey] || '';
-        if (onAddressFound) {
-          onAddressFound(newAddressForToken ? addressInfo : null);
-        }
-      }
-    }
-  }, [tokenType])
-
   // Function to validate an address based on token type
   const isValidAddress = (value: string, type: TokenType): boolean => {
     // Add validation for different address types

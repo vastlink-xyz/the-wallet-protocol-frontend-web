@@ -101,6 +101,14 @@ export const getToSignTransactionByTokenType = async ({
       const utxoValue = utxo.value;
       const amountSats = Math.floor(Number(amount) * 100000000);
 
+      // Dust limit constant
+      const DUST_LIMIT = 546;
+
+      // Check if the amount to send is dust
+      if (amountSats < DUST_LIMIT) {
+        throw new Error(`Amount too small. Minimum amount is ${DUST_LIMIT} satoshis (0.00000546 BTC)`);
+      }
+
       // Get dynamic fee rate
       let feeSats = 10000; // Default fallback
       try {
@@ -116,19 +124,28 @@ export const getToSignTransactionByTokenType = async ({
 
       // Calculate change amount
       const changeAmount = utxoValue - amountSats - feeSats;
-      
+
+      // Check if we have sufficient funds
+      if (changeAmount < 0) {
+        throw new Error(`Insufficient funds. Available: ${utxoValue} sats, Required: ${amountSats + feeSats} sats (amount + fee)`);
+      }
+
       // Add output for the amount to be sent
       tx.addOutput(
         bitcoinjs.address.toOutputScript(recipientAddress!, network),
         amountSats
       );
-      
-      // If there's change, add it back to the sender
-      if (changeAmount > 546) { // 546 sats is the "dust limit" in Bitcoin
+
+      // If there's change and it's not dust, add it back to the sender
+      if (changeAmount > DUST_LIMIT) {
         tx.addOutput(
           bitcoinjs.address.toOutputScript(sendAddress, network),
           changeAmount
         );
+      } else if (changeAmount > 0) {
+        // If change is dust, add it to the fee instead
+        feeSats += changeAmount;
+        log(`Change amount ${changeAmount} sats is dust, adding to fee. New fee: ${feeSats} sats`);
       }
       
       const scriptPubKeyBuffer = Buffer.from(scriptPubKey, "hex");
@@ -384,7 +401,7 @@ export const estimateGasFee = async ({
         // Simple transaction size estimate: 250 bytes (covers most P2PKH transactions)
         const txSize = 250;
         const feeSats = Math.ceil(feeRate * txSize);
-        const estimatedFee = (feeSats / 100000000).toFixed(8); // Convert to BTC
+        const estimatedFee = parseFloat((feeSats / 100000000).toFixed(8)).toString(); // Convert to BTC with proper precision
 
         const numBalance = parseFloat(balance);
         const numFee = parseFloat(estimatedFee);

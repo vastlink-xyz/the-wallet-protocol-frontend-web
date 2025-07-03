@@ -54,15 +54,15 @@ export function BtcDemo({ authMethod, litactionPkp, sessionSigs }: BtcDemoProps)
 
   const fetchBalance = async () => {
     if (!btcAddress) return;
-    
+
     try {
       setIsLoading(true);
       // Using BlockCypher API for testnet
       const response = await fetch(`https://api.blockcypher.com/v1/btc/test3/addrs/${btcAddress}/balance`);
       const data = await response.json();
-      
-      // BlockCypher returns balance in satoshis, converting to BTC (1 BTC = 100,000,000 satoshis)
-      const balanceInBtc = data.final_balance / 100000000;
+
+      // BlockCypher returns balance in satoshis, converting to BTC with proper precision
+      const balanceInBtc = parseFloat((data.final_balance / 100000000).toFixed(8));
       setBalance(balanceInBtc);
       log('BTC Balance', balanceInBtc);
     } catch (error) {
@@ -105,10 +105,18 @@ export function BtcDemo({ authMethod, litactionPkp, sessionSigs }: BtcDemoProps)
       const amountToSend = 10000; // 0.0001 BTC = 10000 satoshis
       // Set a reasonable miner fee
       const minimumFee = 1000; // 0.00001 BTC = 1000 satoshis
-      
+
+      // Dust limit constant
+      const DUST_LIMIT = 546;
+
+      // Check if the amount to send is dust
+      if (amountToSend < DUST_LIMIT) {
+        throw new Error(`Amount too small. Minimum amount is ${DUST_LIMIT} satoshis (0.00000546 BTC)`);
+      }
+
       // Calculate change amount
       const changeAmount = utxoValue - amountToSend - minimumFee;
-      
+
       // Check if balance is sufficient
       if (changeAmount < 0) {
         throw new Error(`Insufficient funds. UTXO value: ${utxoValue / 100000000} BTC, trying to send: ${amountToSend / 100000000} BTC plus fees`);
@@ -131,13 +139,16 @@ export function BtcDemo({ authMethod, litactionPkp, sessionSigs }: BtcDemoProps)
         bitcoinjs.address.toOutputScript(toAddress!, network),
         amountToSend
       );
-      
-      // if there's change, add it back to the sender
-      if (changeAmount > 546) { // 546 sats is the "dust limit" in Bitcoin
+
+      // if there's change and it's not dust, add it back to the sender
+      if (changeAmount > DUST_LIMIT) {
         tx.addOutput(
           bitcoinjs.address.toOutputScript(btcAddress, network),
           changeAmount
         );
+      } else if (changeAmount > 0) {
+        // If change is dust, add it to the fee instead
+        console.log(`Change amount ${changeAmount} sats is dust, adding to fee. New fee: ${minimumFee + changeAmount} sats`);
       }
       
       const scriptPubKeyBuffer = Buffer.from(scriptPubKey, "hex");

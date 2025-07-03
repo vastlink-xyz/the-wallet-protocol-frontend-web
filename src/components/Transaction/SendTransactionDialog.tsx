@@ -293,16 +293,13 @@ export function SendTransactionDialog({
     try {
       if (isInviteUser) {
         // if there is no recipient address, invite user
-        await onInviteUser({ to, recipientAddress, amount, tokenType, mfaMethodId, mfaPhoneNumber });
+        onInviteUser({ to, recipientAddress, amount, tokenType, mfaMethodId, mfaPhoneNumber });
       } else {
+        log('amount is', amount)
         // if there is a recipient address, send transaction to recipient
-        await onSendTransaction({ to, recipientAddress, amount, tokenType, mfaMethodId, mfaPhoneNumber });
+        onSendTransaction({ to, recipientAddress, amount, tokenType, mfaMethodId, mfaPhoneNumber });
       }
-      // Reset amount after successful transaction (keep to/recipient for easy retry)
-      setAmount('');
     } catch (error) {
-      // Reset amount even on failure (user can easily re-enter amount for retry)
-      setAmount('');
     }
   }
 
