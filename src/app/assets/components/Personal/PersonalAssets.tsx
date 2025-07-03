@@ -297,7 +297,7 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
       }
 
       {
-        (authMethodId && addresses && showSendDialog) && (
+        (authMethodId && showSendDialog) && (
           <SendTransactionDialog
             authMethod={authMethod}
             showSendDialog={showSendDialog}
@@ -308,7 +308,7 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
             onMFACancel={handleMfaCancel}
             onMFAVerify={handleMfaVerify}
             onDialogOpenChange={setShowSendDialog}
-            addresses={addresses}
+            addresses={addresses || null}
             walletName={email || ''}
           />
         )

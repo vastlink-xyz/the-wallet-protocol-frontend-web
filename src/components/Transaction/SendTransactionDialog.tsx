@@ -89,7 +89,10 @@ export function SendTransactionDialog({
       }
       
       try {
+        // Reset balance immediately when token changes to prevent showing wrong balance
+        setBalance("0");
         setIsLoadingBalance(true);
+        
         let newBalance: string = "0";
 
         const tokenInfo = SUPPORTED_TOKENS_INFO[tokenType]
