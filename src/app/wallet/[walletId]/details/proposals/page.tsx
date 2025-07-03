@@ -1,11 +1,11 @@
 "use client";
 
 import { MessageProposal } from "@/app/api/multisig/storage";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Proposal } from "./components/Proposal";
 import { fetchProposals, fetchUpdatedWallet, getTransactionDetails, sendNotificationsToNewSigners } from "./utils/proposal";
 import { useWallet } from "../context/WalletContext";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { getMultisigTransactionIpfsId, getPersonalSignIpfsId, getUpdateWalletIpfsId } from "@/lib/lit/ipfs-id-env";
 import { getSessionSigsByPkp, litNodeClient } from "@/lib/lit";
 import { log } from "@/lib/utils";
@@ -25,6 +25,13 @@ export default function ProposalsPage() {
   // Get walletId from params
   const params = useParams();
   const walletId = params.walletId as string;
+  
+  // Get URL search params for proposal targeting
+  const searchParams = useSearchParams();
+  const targetProposalId = searchParams.get('proposalId');
+  
+  // Ref for proposal scrolling
+  const proposalRefs = useRef<{[key: string]: HTMLDivElement | null}>({});
   
   // Get wallet data from context
   const { wallet, isLoading: isWalletLoading, authMethod, walletPkp, userPkp, authMethodId, userPhone } = useWallet();
@@ -70,6 +77,46 @@ export default function ProposalsPage() {
       getProposals();
     }
   }, [walletId]);
+
+  // Scroll to target proposal when URL parameter is provided
+  useEffect(() => {
+    if (!targetProposalId || isLoadingProposals || proposals.length === 0) return;
+    
+    // Check if target proposal exists in current proposals
+    const targetProposal = proposals.find(p => p.id === targetProposalId);
+    if (!targetProposal) {
+      console.log('Target proposal not found in proposals:', targetProposalId);
+      return;
+    }
+    
+    // Wait for refs to be set and DOM to be updated
+    const checkAndScroll = () => {
+      const targetElement = proposalRefs.current[targetProposalId];
+      
+      if (targetElement) {
+        console.log('Scrolling to proposal:', targetProposalId);
+        targetElement.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center' 
+        });
+        // Add a highlight effect
+        targetElement.style.boxShadow = '0 0 0 2px #3b82f6';
+        targetElement.style.borderRadius = '8px';
+        // Remove highlight after 3 seconds
+        setTimeout(() => {
+          targetElement.style.boxShadow = '';
+          targetElement.style.borderRadius = '';
+        }, 3000);
+      } else {
+        // If element not found, retry after a short delay
+        console.log('Retrying scroll, element not ready yet');
+        setTimeout(checkAndScroll, 100);
+      }
+    };
+    
+    // Start checking after a short delay to ensure DOM is updated
+    setTimeout(checkAndScroll, 100);
+  }, [targetProposalId, proposals, isLoadingProposals]);
 
   // Function to execute wallet settings change proposal
   const handleExecuteWalletSettingsProposal = async (proposal: MessageProposal, settingsData: any, sessionSigs: any) => {
@@ -391,17 +438,24 @@ export default function ProposalsPage() {
           proposals.map((proposal) => {
             if (!userPkp || !wallet) return null
             return (
-              <Proposal
+              <div
                 key={proposal.id}
-                proposal={proposal}
-                selectedWallet={wallet}
-                handleSignProposal={handleSignProposal}
-                executeMultisigLitAction={executeMultisigLitAction}
-                userPkp={userPkp}
-                isSigningProposal={signingStates[proposal.id] || false}
-                isLoading={executingStates[proposal.id] || false}
-                isDisabled={isDisabled}
-              />
+                ref={(el) => {
+                  proposalRefs.current[proposal.id] = el;
+                }}
+                className="transition-all duration-300"
+              >
+                <Proposal
+                  proposal={proposal}
+                  selectedWallet={wallet}
+                  handleSignProposal={handleSignProposal}
+                  executeMultisigLitAction={executeMultisigLitAction}
+                  userPkp={userPkp}
+                  isSigningProposal={signingStates[proposal.id] || false}
+                  isLoading={executingStates[proposal.id] || false}
+                  isDisabled={isDisabled}
+                />
+              </div>
             )
           })
         )}
