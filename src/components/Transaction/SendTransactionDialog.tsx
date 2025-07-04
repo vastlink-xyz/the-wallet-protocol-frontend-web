@@ -208,10 +208,24 @@ export function SendTransactionDialog({
       try {
         setIsLoadingFee(true);
         
-        // Call the fee estimation function
+        // Get the send address for fee estimation
+        const tokenInfo = SUPPORTED_TOKENS_INFO[tokenType];
+        let sendAddress = "";
+        if (addresses) {
+          if (tokenInfo.chainType === 'EVM') {
+            sendAddress = addresses[tokenInfo.addressKey];
+          } else if (tokenInfo.chainType === 'UTXO') {
+            sendAddress = addresses.btc;
+          }
+        }
+        
+        // Call the fee estimation function with send address for more accurate estimation
         const estimation = await estimateGasFee({
           tokenType,
-          balance
+          balance,
+          sendAddress,
+          recipientAddress,
+          amount
         });
         
         setFeeEstimation(estimation);
@@ -228,7 +242,7 @@ export function SendTransactionDialog({
     }
     
     calculateFees();
-  }, [tokenType, isValidAmount, balance, amount]);
+  }, [tokenType, isValidAmount, balance, amount, recipientAddress, addresses]); // Added dependencies to ensure no caching
 
   // Check if balance is sufficient for amount + fees
   const isBalanceSufficient = useMemo(() => {
@@ -387,7 +401,11 @@ export function SendTransactionDialog({
                   </p>
                 )} */}
                 
-                {!feeEstimation.isSufficientForFee && (
+                {feeEstimation.error && (
+                  <p className="text-red-500">{feeEstimation.error}</p>
+                )}
+                
+                {!feeEstimation.isSufficientForFee && !feeEstimation.error && (
                   <p className="text-red-500">Insufficient funds for network fee</p>
                 )}
               </div>

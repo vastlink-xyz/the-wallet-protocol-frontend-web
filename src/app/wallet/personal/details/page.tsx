@@ -8,12 +8,15 @@ import { useState } from "react";
 import { MultisigWalletAddresses } from "@/app/api/multisig/storage";
 import { cn, log } from "@/lib/utils";
 import { TokenAssets } from "@/app/assets/components/WalletCard/TokenAssets";
+import { WalletSendReceiveActions } from "@/app/assets/components/WalletCard/WalletSendReceiveActions";
+import { WalletSettingsActions } from "@/app/assets/components/WalletCard/WalletSettingsActions";
 
 export default function PersonalWalletDetailsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [addresses, setAddresses] = useState<MultisigWalletAddresses | null>(null)
   const [btcAddress, setBtcAddress] = useState('')
   const [ethAddress, setEthAddress] = useState('')
+  const [email, setEmail] = useState<string | null>(null)
 
   // Fetch user data
   useEffect(() => {
@@ -36,6 +39,7 @@ export default function PersonalWalletDetailsPage() {
         setAddresses(userData.addresses)
         setBtcAddress(userData.addresses?.btc)
         setEthAddress(userData.addresses?.eth)
+        setEmail(userData.email)
       } catch (error) {
         console.error("Error fetching data from database:", error)
       } finally {
@@ -52,12 +56,27 @@ export default function PersonalWalletDetailsPage() {
 
   return (
     <div className={cn(
-        "mx-auto p-6",
+        "mx-auto p-6 relative",
         'w-[342px] tablet:w-[725px] laptop:w-[908px] desktop:w-[1224px]',
       )}>
       {
         (btcAddress && ethAddress) && (
           <TokenAssets btcAddress={btcAddress} ethAddress={ethAddress} />
+        )
+      }
+
+      {/* Settings Button - Top Right */}
+      <WalletSettingsActions className="absolute top-6 right-6" />
+
+      {/* Send/Receive Buttons - After TokenAssets */}
+      {
+        (btcAddress && ethAddress && email) && (
+          <WalletSendReceiveActions
+            btcAddress={btcAddress}
+            ethAddress={ethAddress}
+            walletName={email + ' (Personal)'}
+            addresses={addresses}
+          />
         )
       }
 

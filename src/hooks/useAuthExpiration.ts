@@ -1,5 +1,5 @@
 import { useRouter } from 'next/navigation';
-import { useEffect, useCallback } from 'react';
+import { useCallback } from 'react';
 import { toast } from 'react-toastify';
 import { isTokenValid } from '@/lib/jwt';
 import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
@@ -7,10 +7,9 @@ import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
 /**
  * Hook for handling authentication expiration
  * Shows a toast message and redirects to the home page
- * @param enablePeriodicCheck - Whether to enable periodic token validation (default: false)
- * @param checkInterval - Interval in milliseconds for periodic checks (default: 5 minutes)
+ * Note: Periodic checking is now handled globally by AuthGuard component
  */
-export function useAuthExpiration(enablePeriodicCheck = false, checkInterval = 5 * 60 * 1000) {
+export function useAuthExpiration() {
   const router = useRouter();
   
   const handleExpiredAuth = useCallback((message?: string) => {
@@ -43,16 +42,7 @@ export function useAuthExpiration(enablePeriodicCheck = false, checkInterval = 5
     return true;
   }, [handleExpiredAuth]);
 
-  // Enable periodic check
-  useEffect(() => {
-    if (!enablePeriodicCheck) return;
-
-    const interval = setInterval(() => {
-      verifyAuthOrRedirect();
-    }, checkInterval);
-
-    return () => clearInterval(interval);
-  }, [enablePeriodicCheck, checkInterval, verifyAuthOrRedirect]);
+  // Periodic checking is now handled globally by AuthGuard component
   
   return { handleExpiredAuth, verifyAuthOrRedirect };
 } 

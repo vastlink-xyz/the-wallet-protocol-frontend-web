@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { useAuthExpiration } from '@/hooks/useAuthExpiration'
 
 // Define routes that require authentication
@@ -40,7 +40,19 @@ function isProtectedRoute(pathname: string): boolean {
  */
 export default function AuthGuard() {
   const pathname = usePathname()
-  const { verifyAuthOrRedirect } = useAuthExpiration(true, 5 * 60 * 1000) // Enable periodic check every 5 minutes
+  const { verifyAuthOrRedirect } = useAuthExpiration() // No longer handles periodic checks
+
+  // Global periodic authentication check (only one timer for the entire app)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Only check if we're on a protected route
+      if (isProtectedRoute(pathname)) {
+        verifyAuthOrRedirect()
+      }
+    }, 5 * 60 * 1000) // Check every 5 minutes
+
+    return () => clearInterval(interval)
+  }, [pathname, verifyAuthOrRedirect])
 
   useEffect(() => {
     // Check if current route requires authentication

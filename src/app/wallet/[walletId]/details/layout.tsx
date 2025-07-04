@@ -7,6 +7,8 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WalletProvider, useWallet } from "./context/WalletContext";
 import { cn } from "@/lib/utils";
 import { TokenAssets } from "@/app/assets/components/WalletCard/TokenAssets";
+import { TeamWalletSendReceiveActions } from "@/app/assets/components/Team/TeamWalletSendReceiveActions";
+import { TeamWalletSettingsActions } from "@/app/assets/components/Team/TeamWalletSettingsActions";
 
 // Inner component that can use the wallet context
 function WalletName() {
@@ -31,6 +33,31 @@ function WalletTokenAssets() {
     <TokenAssets 
       btcAddress={wallet.addresses.btc}
       ethAddress={wallet.addresses.eth}
+    />
+  );
+}
+
+// Component that renders send/receive actions with wallet context
+function WalletSendReceiveSection() {
+  const { wallet, isLoading } = useWallet();
+  
+  if (isLoading || !wallet) return null;
+  
+  return (
+    <TeamWalletSendReceiveActions wallet={wallet} />
+  );
+}
+
+// Component that renders settings actions with wallet context
+function WalletSettingsSection() {
+  const { wallet, isLoading } = useWallet();
+  
+  if (isLoading || !wallet) return null;
+  
+  return (
+    <TeamWalletSettingsActions 
+      wallet={wallet} 
+      className="absolute top-8 right-8" 
     />
   );
 }
@@ -60,7 +87,7 @@ export default function WalletDetailsLayoutClient({
   return (
     <WalletProvider walletId={walletId}>
       <div className={cn(
-        "mx-auto py-8",
+        "mx-auto py-8 relative",
         'w-[342px] tablet:w-[725px] laptop:w-[908px] desktop:w-[1224px]',
       )}>
         <div className="mb-4 flex items-center">
@@ -79,6 +106,12 @@ export default function WalletDetailsLayoutClient({
         </div>
 
         <WalletTokenAssets />
+        
+        {/* Settings Button - Top Right */}
+        <WalletSettingsSection />
+        
+        {/* Send/Receive Buttons - After TokenAssets */}
+        <WalletSendReceiveSection />
         
         <Tabs value={getActiveTab()} className="mb-6 mt-6">
           <TabsList className="grid w-full grid-cols-2">
