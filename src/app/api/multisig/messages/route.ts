@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
     // Send email notifications if requested
     if (sendEmail === true && signers && signers.length > 0) {
       try {
-        const walletLink = `${process.env.NEXT_PUBLIC_APP_URL}/wallet/${walletId}/details/proposals`;
+        const walletLink = `${process.env.NEXT_PUBLIC_APP_URL}/wallet/${walletId}/details/proposals?proposalId=${proposalId}`;
         
         // Send notifications based on proposal type
         if (type === 'walletSettings') {

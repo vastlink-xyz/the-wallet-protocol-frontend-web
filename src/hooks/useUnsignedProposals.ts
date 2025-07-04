@@ -1,15 +1,19 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
 import axios from 'axios';
+import { MessageProposal } from '@/app/api/multisig/storage';
 
 // Fetch unsigned proposals function
-const fetchUnsignedProposals = async (authMethodId: string): Promise<number> => {
+const fetchUnsignedProposals = async (authMethodId: string): Promise<{ proposals: MessageProposal[], count: number }> => {
   const response = await axios.get(`/api/multisig/messages/unsigned?authMethodId=${authMethodId}`);
-  
+
   if (response.data.success) {
-    return response.data.data.count;
+    return {
+      proposals: response.data.data.proposals,
+      count: response.data.data.count
+    };
   }
-  return 0;
+  return { proposals: [], count: 0 };
 };
 
 interface UseUnsignedProposalsOptions {
