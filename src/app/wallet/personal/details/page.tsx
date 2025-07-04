@@ -1,5 +1,6 @@
 'use client'
 
+import { usePathname, useParams, useRouter } from "next/navigation";
 import { TransactionHistory } from "@/components/Transaction/TransactionHistory";
 import { getAuthMethodFromStorage } from "@/lib/storage/authmethod";
 import { getAuthIdByAuthMethod } from "@lit-protocol/lit-auth-client";
@@ -10,8 +11,10 @@ import { cn, log } from "@/lib/utils";
 import { TokenAssets } from "@/app/assets/components/WalletCard/TokenAssets";
 import { WalletSendReceiveActions } from "@/app/assets/components/WalletCard/WalletSendReceiveActions";
 import { WalletSettingsActions } from "@/app/assets/components/WalletCard/WalletSettingsActions";
+import { ArrowLeft } from "lucide-react";
 
 export default function PersonalWalletDetailsPage() {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(true)
   const [addresses, setAddresses] = useState<MultisigWalletAddresses | null>(null)
   const [btcAddress, setBtcAddress] = useState('')
@@ -58,27 +61,48 @@ export default function PersonalWalletDetailsPage() {
     <div className={cn(
         "mx-auto p-6 relative",
         'w-[342px] tablet:w-[725px] laptop:w-[908px] desktop:w-[1224px]',
+      )}
+    >
+      <div className="flex items-center justify-between">
+        <button 
+            onClick={() => router.push('/assets')}
+            className="flex items-center text-sm font-medium text-gray-600 hover:text-gray-900 cursor-pointer"
+          >
+            <ArrowLeft className="h-5 w-5 mr-1" />
+            Back
+          </button>
+        <p className={cn(
+          "text-lg text-center font-bold",
+          "text-black"
+        )}>
+          {email}
+        </p>
+        <WalletSettingsActions className="" />
+      </div>
+
+      <div className={cn(
+        'w-[342px] tablet:w-[640px]',
+        'mx-auto mb-[80px] mt-[24px]',
       )}>
-      {
-        (btcAddress && ethAddress) && (
-          <TokenAssets btcAddress={btcAddress} ethAddress={ethAddress} />
-        )
-      }
 
-      {/* Settings Button - Top Right */}
-      <WalletSettingsActions className="absolute top-6 right-6" />
+        {
+          (btcAddress && ethAddress) && (
+            <TokenAssets btcAddress={btcAddress} ethAddress={ethAddress} />
+          )
+        }
 
-      {/* Send/Receive Buttons - After TokenAssets */}
-      {
-        (btcAddress && ethAddress && email) && (
-          <WalletSendReceiveActions
-            btcAddress={btcAddress}
-            ethAddress={ethAddress}
-            walletName={email + ' (Personal)'}
-            addresses={addresses}
-          />
-        )
-      }
+        {/* Send/Receive Buttons - After TokenAssets */}
+        {
+          (btcAddress && ethAddress && email) && (
+            <WalletSendReceiveActions
+              btcAddress={btcAddress}
+              ethAddress={ethAddress}
+              walletName={email + ' (Personal)'}
+              addresses={addresses}
+            />
+          )
+        }
+      </div>
 
       {
         addresses && (

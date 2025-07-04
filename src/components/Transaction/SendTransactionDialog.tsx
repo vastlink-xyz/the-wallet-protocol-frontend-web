@@ -1,5 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { Button } from "../ui/button";
 import { SignerEmailField } from "../SignerEmailField";
 import { SUPPORTED_TOKENS_INFO, TokenType } from "@/lib/web3/token";
@@ -65,6 +65,9 @@ export function SendTransactionDialog({
   const [balance, setBalance] = useState("0");
   const [isLoadingBalance, setIsLoadingBalance] = useState(false);
 
+  // Ref to track the current balance request to prevent race conditions
+  const currentBalanceRequestRef = useRef<string | null>(null);
+
   // MFA state
   const [mfaMethodId, setMfaMethodId] = useState<string | null>(null);
   const [mfaPhoneNumber, setMfaPhoneNumber] = useState<string | null>(null);
@@ -89,16 +92,20 @@ export function SendTransactionDialog({
         setBalance("0");
         return;
       }
-      
+
+      // Create a unique request ID to track this specific request
+      const requestId = `${tokenType}-${Date.now()}`;
+      currentBalanceRequestRef.current = requestId;
+
       try {
         // Reset balance immediately when token changes to prevent showing wrong balance
         setBalance("0");
         setIsLoadingBalance(true);
-        
+
         let newBalance: string = "0";
 
         const tokenInfo = SUPPORTED_TOKENS_INFO[tokenType]
-        
+
         if (tokenInfo.chainType === 'EVM' && !tokenInfo.contractAddress) {
           newBalance = await fetchEthBalance(addresses[tokenInfo.addressKey], tokenInfo.chainName);
         } else if (tokenInfo.chainType === 'UTXO') {
@@ -112,16 +119,25 @@ export function SendTransactionDialog({
             decimals: tokenInfo.decimals
           });
         }
-        
-        setBalance(newBalance);
+
+        // Only update balance if this is still the current request
+        if (currentBalanceRequestRef.current === requestId) {
+          setBalance(newBalance);
+        }
       } catch (error) {
         console.error(`Failed to fetch ${tokenType} balance:`, error);
-        setBalance("0");
+        // Only update balance if this is still the current request
+        if (currentBalanceRequestRef.current === requestId) {
+          setBalance("0");
+        }
       } finally {
-        setIsLoadingBalance(false);
+        // Only update loading state if this is still the current request
+        if (currentBalanceRequestRef.current === requestId) {
+          setIsLoadingBalance(false);
+        }
       }
     }
-    
+
     loadBalance();
   }, [tokenType, addresses]);
 
@@ -207,25 +223,10 @@ export function SendTransactionDialog({
       
       try {
         setIsLoadingFee(true);
-        
-        // Get the send address for fee estimation
-        const tokenInfo = SUPPORTED_TOKENS_INFO[tokenType];
-        let sendAddress = "";
-        if (addresses) {
-          if (tokenInfo.chainType === 'EVM') {
-            sendAddress = addresses[tokenInfo.addressKey];
-          } else if (tokenInfo.chainType === 'UTXO') {
-            sendAddress = addresses.btc;
-          }
-        }
-        
-        // Call the fee estimation function with send address for more accurate estimation
+        // Call the fee estimation function
         const estimation = await estimateGasFee({
           tokenType,
-          balance,
-          sendAddress,
-          recipientAddress,
-          amount
+          balance
         });
         
         setFeeEstimation(estimation);

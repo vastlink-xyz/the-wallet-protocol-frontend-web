@@ -17,9 +17,12 @@ function WalletName() {
   if (isLoading || !wallet) return null;
   
   return (
-    <div className="flex items-center text-gray-600 text-2xl font-medium mb-6">
-      {wallet.name || "Unnamed Wallet"}
-    </div>
+    <p className={cn(
+      "text-lg text-center font-bold",
+      "text-[#000000]"
+    )}>
+      {wallet.name}
+    </p>
   );
 }
 
@@ -57,7 +60,6 @@ function WalletSettingsSection() {
   return (
     <TeamWalletSettingsActions 
       wallet={wallet} 
-      className="absolute top-8 right-8" 
     />
   );
 }
@@ -90,8 +92,7 @@ export default function WalletDetailsLayoutClient({
         "mx-auto py-8 relative",
         'w-[342px] tablet:w-[725px] laptop:w-[908px] desktop:w-[1224px]',
       )}>
-        <div className="mb-4 flex items-center">
-          {/* <h1 className="text-2xl font-bold">Wallet Details</h1> */}
+        <div className="flex items-center justify-between">
           <button 
             onClick={() => router.push('/assets')}
             className="flex items-center text-sm font-medium text-gray-600 hover:text-gray-900 cursor-pointer"
@@ -99,19 +100,20 @@ export default function WalletDetailsLayoutClient({
             <ArrowLeft className="h-5 w-5 mr-1" />
             Back
           </button>
-        </div>
-
-        <div className="flex items-center justify-center">
           <WalletName />
+          <WalletSettingsSection />
         </div>
 
-        <WalletTokenAssets />
-        
-        {/* Settings Button - Top Right */}
-        <WalletSettingsSection />
-        
-        {/* Send/Receive Buttons - After TokenAssets */}
-        <WalletSendReceiveSection />
+        <div className={cn(
+          'w-[342px] tablet:w-[640px]',
+          'mx-auto mb-[80px] mt-[24px]',
+        )}>
+
+          <WalletTokenAssets />
+          
+          {/* Send/Receive Buttons - After TokenAssets */}
+          <WalletSendReceiveSection />
+        </div>
         
         <Tabs value={getActiveTab()} className="mb-6 mt-6">
           <TabsList className="grid w-full grid-cols-2">
