@@ -33,6 +33,9 @@ export default function ProposalsPage() {
   // Ref for proposal scrolling
   const proposalRefs = useRef<{[key: string]: HTMLDivElement | null}>({});
   
+  // Track if initial scroll has been performed
+  const hasScrolledRef = useRef(false);
+  
   // Get wallet data from context
   const { wallet, isLoading: isWalletLoading, authMethod, walletPkp, userPkp, authMethodId, userPhone } = useWallet();
   
@@ -78,9 +81,9 @@ export default function ProposalsPage() {
     }
   }, [walletId]);
 
-  // Scroll to target proposal when URL parameter is provided
+  // Scroll to target proposal when URL parameter is provided (only on initial load)
   useEffect(() => {
-    if (!targetProposalId || isLoadingProposals || proposals.length === 0) return;
+    if (!targetProposalId || isLoadingProposals || proposals.length === 0 || hasScrolledRef.current) return;
     
     // Check if target proposal exists in current proposals
     const targetProposal = proposals.find(p => p.id === targetProposalId);
@@ -107,6 +110,9 @@ export default function ProposalsPage() {
           targetElement.style.boxShadow = '';
           targetElement.style.borderRadius = '';
         }, 3000);
+        
+        // Mark that we've performed the initial scroll
+        hasScrolledRef.current = true;
       } else {
         // If element not found, retry after a short delay
         console.log('Retrying scroll, element not ready yet');
