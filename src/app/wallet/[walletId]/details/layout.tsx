@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { TokenAssets } from "@/app/assets/components/WalletCard/TokenAssets";
 import { TeamWalletSendReceiveActions } from "@/app/assets/components/Team/TeamWalletSendReceiveActions";
 import { TeamWalletSettingsActions } from "@/app/assets/components/Team/TeamWalletSettingsActions";
+import { LogoLoading } from "@/components/LogoLoading";
 
 // Inner component that can use the wallet context
 function WalletName() {
@@ -64,6 +65,37 @@ function WalletSettingsSection() {
   );
 }
 
+// Component that handles authorization check
+function AuthorizedWalletContent({ children }: { children: React.ReactNode }) {
+  const { wallet, isLoading, userPkp } = useWallet();
+  
+  // Show loading state if wallet is still loading
+  if (isLoading) {
+    return <LogoLoading />;
+  }
+
+  // If wallet is not available, show an error
+  if (!wallet) {
+    return <div className="mt-4 text-center">Wallet not found</div>;
+  }
+
+  // Check if current user is authenticated
+  if (!userPkp) {
+    return <div className="mt-4 text-center">User not authenticated</div>;
+  }
+
+  // Check if current user is authorized to view this wallet
+  const isUserAuthorized = wallet.signers.some(signer => 
+    signer.ethAddress.toLowerCase() === userPkp.ethAddress.toLowerCase()
+  );
+
+  if (!isUserAuthorized) {
+    return <div className="mt-4 text-center">You are not authorized to view this wallet</div>;
+  }
+
+  return <>{children}</>;
+}
+
 export default function WalletDetailsLayoutClient({
   children,
 }: {
@@ -88,51 +120,53 @@ export default function WalletDetailsLayoutClient({
 
   return (
     <WalletProvider walletId={walletId}>
-      <div className={cn(
-        "mx-auto py-8 relative",
-        'w-[342px] tablet:w-[725px] laptop:w-[908px] desktop:w-[1224px]',
-      )}>
-        <div className="flex items-center justify-between">
-          <button 
-            onClick={() => router.push('/assets')}
-            className="flex items-center text-sm font-medium text-gray-600 hover:text-gray-900 cursor-pointer"
-          >
-            <ArrowLeft className="h-5 w-5 mr-1" />
-            Back
-          </button>
-          <WalletName />
-          <WalletSettingsSection />
-        </div>
-
+      <AuthorizedWalletContent>
         <div className={cn(
-          'w-[342px] tablet:w-[640px]',
-          'mx-auto mb-[80px] mt-[24px]',
+          "mx-auto py-8 relative",
+          'w-[342px] tablet:w-[725px] laptop:w-[908px] desktop:w-[1224px]',
         )}>
+          <div className="flex items-center justify-between">
+            <button 
+              onClick={() => router.push('/assets')}
+              className="flex items-center text-sm font-medium text-gray-600 hover:text-gray-900 cursor-pointer"
+            >
+              <ArrowLeft className="h-5 w-5 mr-1" />
+              Back
+            </button>
+            <WalletName />
+            <WalletSettingsSection />
+          </div>
 
-          <WalletTokenAssets />
+          <div className={cn(
+            'w-[342px] tablet:w-[640px]',
+            'mx-auto mb-[80px] mt-[24px]',
+          )}>
+
+            <WalletTokenAssets />
+            
+            {/* Send/Receive Buttons - After TokenAssets */}
+            <WalletSendReceiveSection />
+          </div>
           
-          {/* Send/Receive Buttons - After TokenAssets */}
-          <WalletSendReceiveSection />
+          <Tabs value={getActiveTab()} className="mb-6 mt-6">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="transactions" asChild>
+                <Link href={`/wallet/${walletId}/details/transactions`}>
+                  <History className="w-4 h-4 mr-2" />
+                  Transaction History
+                </Link>
+              </TabsTrigger>
+              <TabsTrigger value="proposals" asChild>
+                <Link href={`/wallet/${walletId}/details/proposals`}>
+                  <FileText className="w-4 h-4 mr-2" />
+                  Proposals
+                </Link>
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+          {children}
         </div>
-        
-        <Tabs value={getActiveTab()} className="mb-6 mt-6">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="transactions" asChild>
-              <Link href={`/wallet/${walletId}/details/transactions`}>
-                <History className="w-4 h-4 mr-2" />
-                Transaction History
-              </Link>
-            </TabsTrigger>
-            <TabsTrigger value="proposals" asChild>
-              <Link href={`/wallet/${walletId}/details/proposals`}>
-                <FileText className="w-4 h-4 mr-2" />
-                Proposals
-              </Link>
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
-        {children}
-      </div>
+      </AuthorizedWalletContent>
     </WalletProvider>
   );
 } 
