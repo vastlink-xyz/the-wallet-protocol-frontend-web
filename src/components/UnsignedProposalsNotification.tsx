@@ -8,6 +8,10 @@ import { getProviderByAuthMethodType } from '@/lib/lit';
 import { useUnsignedProposals } from '@/hooks/useUnsignedProposals';
 import { MessageProposal } from '@/app/api/multisig/storage';
 
+interface MessageProposalWithWalletName extends MessageProposal {
+  walletName: string;
+}
+
 export function UnsignedProposalsNotification() {
   const pathname = usePathname();
   const [authMethodId, setAuthMethodId] = useState<string | null>(null);
@@ -52,7 +56,7 @@ export function UnsignedProposalsNotification() {
     enabled: shouldShowOnCurrentPath,
   });
 
-  const proposals = unsignedProposalsData?.proposals || [];
+  const proposals = (unsignedProposalsData?.proposals || []) as MessageProposalWithWalletName[];
   const count = unsignedProposalsData?.count || 0;
 
   // Don't render anything if we shouldn't show on this path or there are no proposals
@@ -61,21 +65,24 @@ export function UnsignedProposalsNotification() {
   }
 
   // Helper function to get proposal description
-  const getProposalDescription = (proposal: MessageProposal) => {
+  const getProposalDescription = (proposal: MessageProposalWithWalletName) => {
+    const walletName = proposal.walletName
+    let description = ''
     if (proposal.type === 'transaction') {
       const transactionData = proposal.transactionData;
       if (transactionData) {
-        return `Transaction: Send ${transactionData.value} ${transactionData.tokenType} to ${transactionData.to?.slice(0, 6)}...${transactionData.to?.slice(-4)}`;
+        description = `Transaction: Send ${transactionData.value} ${transactionData.tokenType} to ${transactionData.to?.slice(0, 6)}...${transactionData.to?.slice(-4)}`;
+      } else {
+        description = 'Transaction proposal';
       }
-      return 'Transaction proposal';
     } else if (proposal.type === 'walletSettings') {
-      return 'Wallet settings update';
+      description = 'Wallet settings update';
     }
-    return 'Proposal';
+    return `${walletName} > ${description}`
   };
 
   // Helper function to get wallet link
-  const getWalletLink = (proposal: MessageProposal) => {
+  const getWalletLink = (proposal: MessageProposalWithWalletName) => {
     return `/wallet/${proposal.walletId}/details/proposals?proposalId=${proposal.id}`;
   };
 
@@ -84,13 +91,13 @@ export function UnsignedProposalsNotification() {
       {proposals.map((proposal) => (
         <div
           key={proposal.id}
-          className="w-full py-[9px] bg-[#e6f7ff] rounded-sm border border-[#91d5ff] justify-between items-center gap-1.5 inline-flex px-6"
+          className="w-full py-[9px] bg-[#e6f7ff] rounded-sm border border-[#91d5ff] flex justify-center items-center px-6"
         >
-          <div className="text-left text-black/90 text-sm font-normal leading-snug flex items-center justify-between">
+          <div className="text-black/90 text-sm font-normal leading-snug">
             <div className="flex items-center">
               <Bell className="w-4 h-4 text-blue-500 mr-2" />
               <div className='flex items-center'>
-                {getProposalDescription(proposal)} -
+                {getProposalDescription(proposal)} {'>'}
                 <p
                   className="text-blue-600 hover:text-blue-800 ml-1 underline cursor-pointer"
                   onClick={() => window.open(getWalletLink(proposal), '_blank')}

@@ -57,9 +57,9 @@ export function WalletCard({
       >
         <div className="text-center cursor-pointer flex items-center" onClick={onCreateClick}>
           <p
-            className="text-black bg-white px-4 py-2.5 rounded-[20px] text-sm font-medium flex items-center"
+            className="text-white bg-black px-4 py-2.5 rounded-[20px] text-sm font-medium flex items-center cursor-pointer"
           >
-            <PlusCircle className="w-4 h-4 text-black mr-1" />
+            <PlusCircle className="w-4 h-4 text-white mr-1" />
             <span>Create a team wallet</span>
           </p>
         </div>

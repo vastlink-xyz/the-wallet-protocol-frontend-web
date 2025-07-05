@@ -163,7 +163,16 @@ export async function getUnsignedProposalsByUser(userAddress: string): Promise<M
       )
     );
 
-    return unsignedProposals as unknown as MessageProposal[];
+    // Add wallet name to each proposal
+    const proposalsWithWalletName = unsignedProposals.map(proposal => {
+      const wallet = wallets.find(w => w.id === proposal.walletId);
+      return {
+        ...proposal,
+        walletName: wallet?.name || 'Unknown Wallet'
+      };
+    });
+
+    return proposalsWithWalletName as unknown as MessageProposal[];
   } catch (error) {
     console.error('Failed to get unsigned proposals for user:', error);
     return [];
