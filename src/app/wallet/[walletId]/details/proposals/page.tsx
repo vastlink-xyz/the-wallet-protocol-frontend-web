@@ -317,6 +317,7 @@ export default function ProposalsPage() {
 
       const response = await signProposal({
         proposal,
+        wallet,
         userPkp,
         authMethod,
         authMethodId,

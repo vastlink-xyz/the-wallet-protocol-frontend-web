@@ -7,6 +7,7 @@ import axios from "axios";
 
 interface ISignPrposalParams {
   proposal: MessageProposal;
+  wallet: MultisigWallet;
   userPkp: IRelayPKP;
   authMethod: AuthMethod;
   authMethodId: string;
@@ -14,10 +15,20 @@ interface ISignPrposalParams {
 
 export const signProposal = async ({
   proposal,
+  wallet,
   userPkp,
   authMethod,
   authMethodId,
 }: ISignPrposalParams) => {
+  // Validate that the current user is a signer of the wallet
+  const isUserSigner = wallet.signers.some(signer => 
+    signer.ethAddress.toLowerCase() === userPkp.ethAddress.toLowerCase()
+  );
+
+  if (!isUserSigner) {
+    throw new Error('User is not authorized to sign proposals for this wallet');
+  }
+
   const litActionIpfsId = await getPersonalSignIpfsId('base58')
   log('litActionIpfsId', litActionIpfsId)
 

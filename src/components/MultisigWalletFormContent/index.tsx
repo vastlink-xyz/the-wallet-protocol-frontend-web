@@ -564,6 +564,7 @@ export function MultisigWalletFormContent({
 
     const response = await signProposal({
       proposal,
+      wallet,
       userPkp,
       authMethod,
       authMethodId,

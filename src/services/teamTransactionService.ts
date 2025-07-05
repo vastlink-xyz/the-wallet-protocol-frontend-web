@@ -76,6 +76,7 @@ export const createAndApproveTransactionProposal = async ({
       
       const res = await signProposal({
         proposal,
+        wallet,
         userPkp,
         authMethod,
         authMethodId,
