@@ -17,6 +17,7 @@ import { MFAOtpDialog } from '@/components/Transaction/MFAOtpDialog';
 import { LabeledContainer } from '@/components/LabeledContainer';
 import { DailyWithdrawLimits } from '@/components/Transaction/DailyWithdrawLimits';
 import { LogoLoading } from '@/components/LogoLoading';
+import { useNotifications } from '@/hooks/useNotifications';
 
 interface PersonalWalletSettingsProps {
   isOpen: boolean
@@ -24,6 +25,7 @@ interface PersonalWalletSettingsProps {
 }
 
 export function PersonalWalletSettings({ isOpen, onClose }: PersonalWalletSettingsProps) {
+  const { invalidateMFANotifications } = useNotifications({ enabled: false });
   const [tokenLimits, setTokenLimits] = useState<Record<TokenType, string> | undefined>();
   const [isLimitValid, setIsLimitValid] = useState<boolean>(true);
   const [isSaving, setIsSaving] = useState<boolean>(false);
@@ -185,6 +187,7 @@ export function PersonalWalletSettings({ isOpen, onClose }: PersonalWalletSettin
       } else if (response.ok) {
         // If API returned success and no MFA required, settings were updated
         toast.success("Your wallet settings have been updated successfully.");
+        invalidateMFANotifications();
         onClose();
       } else {
         // Handle other error cases
@@ -303,6 +306,7 @@ export function PersonalWalletSettings({ isOpen, onClose }: PersonalWalletSettin
                   <MFASettingsContent 
                     isOpen={isOpen} 
                     onPhoneUpdated={fetchUserPhone}
+                    onMFAStatusChanged={invalidateMFANotifications}
                   />
                 </LabeledContainer>
 

@@ -20,19 +20,15 @@ const getStytchSessionJwt = (): string | null => {
 interface MFASettingsContentProps {
   isOpen: boolean;
   onPhoneUpdated?: () => Promise<void>;
+  onMFAStatusChanged?: () => void;
 }
 
-export function MFASettingsContent({ isOpen, onPhoneUpdated }: MFASettingsContentProps) {
+export function MFASettingsContent({ isOpen, onPhoneUpdated, onMFAStatusChanged }: MFASettingsContentProps) {
   // Main component state
   const [phoneNumbers, setPhoneNumbers] = useState<StytchPhoneNumber[]>([]);
 
   const prevIsOpen = useRef(isOpen);
   const sessionJwt = getStytchSessionJwt();
-
-  // Helper to trigger a refresh of MFA methods
-  const refreshMFAStatus = () => {
-    fetchMFAStatus();
-  };
 
   // Fetch MFA status from API
   const fetchMFAStatus = useCallback(async () => {
@@ -71,6 +67,14 @@ export function MFASettingsContent({ isOpen, onPhoneUpdated }: MFASettingsConten
       toast.error('MFASettingsContent: Error fetching mfa status');
     }
   }, []);
+
+  // Helper to trigger a refresh of MFA methods and notify parent of changes
+  const refreshMFAStatus = useCallback(async () => {
+    await fetchMFAStatus();
+    if (onMFAStatusChanged) {
+      onMFAStatusChanged();
+    }
+  }, [fetchMFAStatus, onMFAStatusChanged]);
 
   // Effect to handle dialog open/close
   useEffect(() => {

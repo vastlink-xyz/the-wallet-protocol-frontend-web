@@ -2,7 +2,7 @@ import { MessageProposal, MultisigWallet } from "@/app/api/multisig/storage"
 import { WalletSettingsProposal } from "./WalletSettingsProposal"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Loader2 } from "lucide-react"
+import { Loader2, Settings, ArrowUpRightFromCircle } from "lucide-react"
 import { getTransactionDetails, hasUserSigned } from "../utils/proposal";
 import { SUPPORTED_TOKENS_INFO, TokenType } from "@/lib/web3/token";
 import { IRelayPKP } from "@lit-protocol/types";
@@ -47,17 +47,25 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
   return <div key={proposal.id} className="p-4 bg-gray-50 rounded-lg">
     <div className="mb-2">
       {proposal.type === 'walletSettings' ? (
-        <WalletSettingsProposal
-          proposal={proposal}
-          selectedWallet={selectedWallet}
-        />
+        <>
+          <div className="flex items-center gap-2 mb-2">
+            <Settings className="w-4 h-4" />
+            <span className="font-medium">Type:</span> Wallet Settings
+          </div>
+          <WalletSettingsProposal
+            proposal={proposal}
+            selectedWallet={selectedWallet}
+          />
+        </>
       ) : (
         <>
-          <div><span className="font-medium">Recipient:</span> {txDetails.to}</div>
-          {
-            txDetails.tokenType &&
-            <div><span className="font-medium">Amount:</span> {formatBalance(txDetails.value)} {SUPPORTED_TOKENS_INFO[txDetails.tokenType as TokenType].symbol}</div>
-          }
+          <div className="flex items-center gap-2 mb-2">
+            <ArrowUpRightFromCircle className="w-4 h-4" />
+            <span className="font-medium">Type:</span> Transfer
+          </div>
+          <div className="flex items-center gap-2 pl-6">
+            <span className="font-medium">Details:</span> Transfer {formatBalance(txDetails.value)} {txDetails.tokenType && SUPPORTED_TOKENS_INFO[txDetails.tokenType as TokenType].symbol} to {txDetails.to?.slice(0, 6)}...{txDetails.to?.slice(-4)}
+          </div>
           {txDetails.data && txDetails.data !== '0x' && (
             <div><span className="font-medium">Data:</span> {txDetails.data}</div>
           )}

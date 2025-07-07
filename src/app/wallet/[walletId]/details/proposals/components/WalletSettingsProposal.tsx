@@ -106,8 +106,7 @@ export function WalletSettingsProposal({ proposal, selectedWallet }: WalletSetti
 
   return (
     <div>
-      <div><span className="font-medium">Type:</span> Wallet Settings Change</div>
-      <div><span className="font-medium">Changes:</span> {descriptions.join(', ')}</div>
+      <div className='pl-6'><span className="font-medium">Details:</span> {descriptions.join(', ')}</div>
       
       {/* Display detailed settings changes if available */}
       {settingsData && (
