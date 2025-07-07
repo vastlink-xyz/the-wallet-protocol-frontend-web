@@ -40,7 +40,7 @@ export const SUPPORTED_TOKENS_INFO = {
     iconUrl: '/cryptocurrency/eth.png',
     contractAddress: '',
     addressKey: 'eth',
-    defaultWithdrawLimit: '0.001',
+    defaultWithdrawLimit: '0.1',
     gasFeeSymbol: 'ETH',
     network: 'Ethereum',
     explorerBaseUrl: 'https://sepolia.etherscan.io'
@@ -88,7 +88,7 @@ export const SUPPORTED_TOKENS_INFO = {
     iconUrl: '/cryptocurrency/tstlpx.png',
     contractAddress: '',
     addressKey: 'eth',
-    defaultWithdrawLimit: '10',
+    defaultWithdrawLimit: '100',
     gasFeeSymbol: 'TSTLPX',
     network: 'Chronicle Yellowstone',
     explorerBaseUrl: 'https://yellowstone-explorer.litprotocol.com'
@@ -102,7 +102,7 @@ export const SUPPORTED_TOKENS_INFO = {
     iconUrl: '/cryptocurrency/vast.png',
     contractAddress: VAST_CONTRACT_ADDRESS,
     addressKey: 'eth',
-    defaultWithdrawLimit: '10',
+    defaultWithdrawLimit: '100',
     gasFeeSymbol: 'ETH',
     network: 'Base',
     explorerBaseUrl: 'https://sepolia.basescan.org'

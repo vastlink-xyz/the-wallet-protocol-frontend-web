@@ -333,7 +333,7 @@ export const handleTeamMfaVerify = async ({
       mfaMethodId,
     })
   } catch (error) {
-    console.error('Error executing transaction:', error)
-    toast.error('Failed to execute transaction')
+    console.error('Error executing the transaction:', error)
+    toast.error('Failed to execute the transaction')
   }
 }

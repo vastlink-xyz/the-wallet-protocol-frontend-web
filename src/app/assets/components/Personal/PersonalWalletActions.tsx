@@ -129,7 +129,7 @@ export function PersonalWalletActions({
 
       const ipfsId = await getPersonalTransactionIpfsId('base58')
 
-      // Execute transaction
+      // Execute the transaction
       const response = await litNodeClient.executeJs({
         ipfsId,
         sessionSigs,

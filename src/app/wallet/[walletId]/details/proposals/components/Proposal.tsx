@@ -130,7 +130,7 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
           disabled={isSigningProposal}
         >
           {isSigningProposal && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Approve Proposal
+          Approve the proposal
         </Button>
       )}
 
@@ -148,7 +148,7 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
             className="bg-blue-600 hover:bg-blue-700"
           >
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Execute Transaction
+            Executing the transaction
           </Button>
         )}
     </div>
