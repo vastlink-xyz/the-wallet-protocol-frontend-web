@@ -282,10 +282,19 @@ export function PersonalWalletSettings({ isOpen, onClose }: PersonalWalletSettin
                 <LabeledContainer label="Daily Withdraw Limits" className="mb-8">
                   {
                     tokenLimits && (
-                      <DailyWithdrawLimits
-                        initialLimits={tokenLimits}
-                        onChange={handleLimitsChange}
-                      />
+                      <>
+                        {!verifiedPhone && (
+                          <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-md">
+                            <p className="text-amber-800 text-sm">
+                              Please note that daily withdrawal limits work only when MFA has been set up.
+                            </p>
+                          </div>
+                        )}
+                        <DailyWithdrawLimits
+                          initialLimits={tokenLimits}
+                          onChange={handleLimitsChange}
+                        />
+                      </>
                     )
                   }
                 </LabeledContainer>

@@ -19,7 +19,7 @@ import { SUPPORTED_TOKENS_INFO, TokenType } from "@/lib/web3/token";
 import { LogoLoading } from "@/components/LogoLoading";
 import { signProposal } from "./utils/sign-proposal";
 import { executeTransactionProposal, executeWalletSettingsProposal } from "./utils/execute-proposal";
-import { useUnsignedProposals } from "@/hooks/useUnsignedProposals";
+import { useNotifications } from "@/hooks/useNotifications";
 
 export default function ProposalsPage() {
   // Get walletId from params
@@ -50,10 +50,9 @@ export default function ProposalsPage() {
   
   const { handleExpiredAuth, verifyAuthOrRedirect } = useAuthExpiration();
 
-  // Unsigned proposals hook for cache invalidation
-  const { invalidateProposalRelatedData } = useUnsignedProposals({
-    authMethodId,
-    enabled: false, // only need the invalidate function
+  // Notifications hook for UI refresh
+  const { refreshProposalUI } = useNotifications({
+    enabled: false, // only need the refresh function
   });
 
   // mfa
@@ -145,7 +144,7 @@ export default function ProposalsPage() {
         setProposals(newProposals)
 
         // Invalidate proposal related data to update notification and red dots
-        invalidateProposalRelatedData(authMethodId, userPkp?.ethAddress);
+        refreshProposalUI(authMethodId, userPkp?.ethAddress);
 
         toast.success('Wallet settings updated successfully')
       }
@@ -249,8 +248,8 @@ export default function ProposalsPage() {
       const newProposals = await fetchProposals(walletId)
       setProposals(newProposals)
 
-      // Invalidate proposal related data to update notification and red dots
-      invalidateProposalRelatedData(authMethodId, userPkp?.ethAddress);
+      // Refresh proposal UI to update notification and red dots
+      refreshProposalUI(authMethodId, userPkp?.ethAddress);
     }
   }
 
@@ -334,7 +333,7 @@ export default function ProposalsPage() {
         setProposals(newProposals)
         
         // Invalidate proposal related data to update notification and red dots
-        invalidateProposalRelatedData(authMethodId, userPkp?.ethAddress);
+        refreshProposalUI(authMethodId, userPkp?.ethAddress);
         
         // Find the updated proposal
         const updatedProposal = newProposals.find((p: MessageProposal) => p.id === proposal.id)

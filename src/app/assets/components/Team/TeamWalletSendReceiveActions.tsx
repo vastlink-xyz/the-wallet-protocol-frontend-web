@@ -4,7 +4,7 @@ import { SendTransactionDialog, SendTransactionDialogState } from "@/components/
 import { getAuthMethodFromStorage } from "@/lib/storage/authmethod"
 import { getProviderByAuthMethodType } from "@/lib/lit"
 import { AuthMethod, IRelayPKP } from "@lit-protocol/types"
-import { useUnsignedProposals } from "@/hooks/useUnsignedProposals"
+import { useNotifications } from "@/hooks/useNotifications"
 import { User } from "@/app/api/user/storage"
 import { MessageProposal, MultisigWallet } from "@/app/api/multisig/storage"
 import { createAndApproveTransactionProposal, executeTeamTransactionProposal, inviteTeamUser, handleTeamMfaVerify } from "@/services/teamTransactionService"
@@ -27,10 +27,9 @@ export function TeamWalletSendReceiveActions({
   const [user, setUser] = useState<User | null>(null)
   const [currentProposal, setCurrentProposal] = useState<MessageProposal | null>(null)
   
-  // Unsigned proposals hook for cache invalidation
-  const { invalidateProposalRelatedData } = useUnsignedProposals({
-    authMethodId,
-    enabled: false, // only need the invalidate function
+  // Notifications hook for UI refresh
+  const { refreshProposalUI } = useNotifications({
+    enabled: false, // only need the refresh function
   })
   
   useEffect(() => {
@@ -79,7 +78,7 @@ export function TeamWalletSendReceiveActions({
       authMethodId,
       user,
       setIsSending,
-      invalidateProposalRelatedData,
+      refreshProposalUI,
       onProposalChange,
       setShowSendDialog,
       executeTransactionHandler: handleExecuteTransactionProposal,
@@ -107,7 +106,7 @@ export function TeamWalletSendReceiveActions({
       userPkp,
       authMethod,
       authMethodId,
-      invalidateProposalRelatedData,
+      refreshProposalUI,
       onProposalChange,
       setShowSendDialog,
       setShowMfaDialog,

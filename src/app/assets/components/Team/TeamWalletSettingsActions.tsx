@@ -4,7 +4,7 @@ import { MultisigSetting } from "@/app/assets/components/Team/MultisigSetting"
 import { getAuthMethodFromStorage } from "@/lib/storage/authmethod"
 import { getProviderByAuthMethodType } from "@/lib/lit"
 import { AuthMethod, IRelayPKP } from "@lit-protocol/types"
-import { useUnsignedProposals } from "@/hooks/useUnsignedProposals"
+import { useNotifications } from "@/hooks/useNotifications"
 import { MultisigWallet } from "@/app/api/multisig/storage"
 
 interface TeamWalletSettingsActionsProps {
@@ -23,10 +23,9 @@ export function TeamWalletSettingsActions({
   const [authMethodId, setAuthMethodId] = useState<string>('')
   const [userPkp, setUserPkp] = useState<IRelayPKP | null>(null)
   
-  // Unsigned proposals hook for cache invalidation
-  const { invalidateProposalRelatedData } = useUnsignedProposals({
-    authMethodId,
-    enabled: false, // only need the invalidate function
+  // Notifications hook for UI refresh
+  const { refreshProposalUI } = useNotifications({
+    enabled: false, // only need the refresh function
   })
   
   useEffect(() => {
@@ -63,7 +62,7 @@ export function TeamWalletSettingsActions({
 
   const handleSettingsSuccess = () => {
     // Refresh data after settings change
-    invalidateProposalRelatedData(authMethodId, userPkp?.ethAddress)
+    refreshProposalUI(authMethodId, userPkp?.ethAddress)
     onSettingsChange?.()
   }
 

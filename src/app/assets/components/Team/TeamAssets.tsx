@@ -10,7 +10,7 @@ import { useRouter } from 'next/navigation'
 import { SendTransactionDialog, SendTransactionDialogState } from '@/components/Transaction/SendTransactionDialog'
 import { LogoLoading } from '@/components/LogoLoading'
 import { User } from '@/app/api/user/storage'
-import { useUnsignedProposals } from '@/hooks/useUnsignedProposals'
+import { useNotifications } from '@/hooks/useNotifications'
 import { useTeamWallets } from '@/hooks/useTeamWallets'
 import { WalletCard } from '@/app/assets/components/WalletCard'
 import { WalletCardSkeleton } from '@/app/assets/components/WalletCard/WalletCardSkeleton'
@@ -44,16 +44,15 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ authMethod }, r
   const [currentProposal, setCurrentProposal] = useState<MessageProposal | null>(null)
   const [isLoadingUserData, setIsLoadingUserData] = useState(true)
 
-  // Unsigned proposals hook for cache invalidation
-  const { invalidateProposalRelatedData } = useUnsignedProposals({
-    authMethodId,
-    enabled: false, // only need the invalidate function
+  // Notifications hook for UI refresh
+  const { refreshProposalUI } = useNotifications({
+    enabled: false, // only need the refresh function
   });
 
   // Handler to refresh team wallets data
   const handleRefreshWallets = useCallback(() => {
-    invalidateProposalRelatedData(authMethodId, userPkp?.ethAddress);
-  }, [invalidateProposalRelatedData, authMethodId, userPkp?.ethAddress]);
+    refreshProposalUI(authMethodId, userPkp?.ethAddress);
+  }, [refreshProposalUI, authMethodId, userPkp?.ethAddress]);
 
   // Team wallets data using React Query
   const { 
@@ -152,7 +151,7 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ authMethod }, r
       authMethodId,
       user,
       setIsSending,
-      invalidateProposalRelatedData,
+      refreshProposalUI,
       setShowSendDialog,
       executeTransactionHandler: handleExecuteTransactionProposal,
     })
@@ -179,7 +178,7 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ authMethod }, r
       userPkp,
       authMethod,
       authMethodId,
-      invalidateProposalRelatedData,
+      refreshProposalUI,
       setShowSendDialog,
       setShowMfaDialog,
       otpCode,

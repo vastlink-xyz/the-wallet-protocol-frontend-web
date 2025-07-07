@@ -21,7 +21,7 @@ interface CreateAndApproveTransactionProposalParams {
   authMethodId: string
   user: User
   setIsSending: (sending: boolean) => void
-  invalidateProposalRelatedData: (authMethodId: string, ethAddress?: string) => void
+  refreshProposalUI: (authMethodId: string, ethAddress?: string) => void
   onProposalChange?: () => void
   setShowSendDialog: (show: boolean) => void
   executeTransactionHandler: (params: {
@@ -40,7 +40,7 @@ export const createAndApproveTransactionProposal = async ({
   authMethodId,
   user,
   setIsSending,
-  invalidateProposalRelatedData,
+  refreshProposalUI,
   onProposalChange,
   setShowSendDialog,
   executeTransactionHandler,
@@ -86,7 +86,7 @@ export const createAndApproveTransactionProposal = async ({
         const updatedProposal = await fetchProposal(proposal.id, wallet.id)
         
         // Invalidate proposal related data after signing
-        invalidateProposalRelatedData(authMethodId, userPkp?.ethAddress)
+        refreshProposalUI(authMethodId, userPkp?.ethAddress)
         
         // Call callback to refresh data
         onProposalChange?.()
@@ -117,7 +117,7 @@ interface ExecuteTransactionProposalParams {
   userPkp: IRelayPKP
   authMethod: AuthMethod
   authMethodId: string
-  invalidateProposalRelatedData: (authMethodId: string, ethAddress?: string) => void
+  refreshProposalUI: (authMethodId: string, ethAddress?: string) => void
   onProposalChange?: () => void
   setShowSendDialog: (show: boolean) => void
   setShowMfaDialog: (show: boolean) => void
@@ -132,7 +132,7 @@ export const executeTeamTransactionProposal = async ({
   userPkp,
   authMethod,
   authMethodId,
-  invalidateProposalRelatedData,
+  refreshProposalUI,
   onProposalChange,
   setShowSendDialog,
   setShowMfaDialog,
@@ -217,7 +217,7 @@ export const executeTeamTransactionProposal = async ({
     toast.success(`Transaction completed`)
 
     // Invalidate proposal related data after execution
-    invalidateProposalRelatedData(authMethodId, userPkp?.ethAddress)
+    refreshProposalUI(authMethodId, userPkp?.ethAddress)
 
     // Call callback to refresh data
     onProposalChange?.()

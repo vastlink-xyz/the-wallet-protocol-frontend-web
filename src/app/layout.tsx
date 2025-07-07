@@ -6,7 +6,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "../styles/toast.css";
 import AppNavbar from "@/components/AppNavbar";
-import { UnsignedProposalsNotification } from "@/components/UnsignedProposalsNotification";
+import { NotificationContainer } from "@/components/NotificationContainer";
 import AuthGuard from "@/components/AuthGuard";
 import { QueryProvider } from "@/providers/QueryProvider";
 
@@ -41,15 +41,8 @@ export default function RootLayout({
       >
         <QueryProvider>
           <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}>
-            {/* testnet warning */}
-            <div className="w-full h-[45px] py-[9px] bg-[#fffbe6] rounded-sm border border-[#ffe58f] justify-between items-center gap-1.5 inline-flex px-8">
-              <div className="flex-1 text-center">
-                <div className="grow shrink basis-0 text-center text-black/90 text-sm font-normal leading-snug">All assets on this platform are on testnets only</div>
-              </div>
-            </div>
-            
-            {/* Unsigned proposals notification */}
-            <UnsignedProposalsNotification />
+            {/* Unified notification system */}
+            <NotificationContainer />
 
             <AppNavbar />
             <AuthGuard />

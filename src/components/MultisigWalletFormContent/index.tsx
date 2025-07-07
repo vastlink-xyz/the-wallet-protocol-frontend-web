@@ -111,6 +111,7 @@ export function MultisigWalletFormContent({
 }: MultisigWalletFormContentProps) {
   const { handleExpiredAuth } = useAuthExpiration();
   const [isLoading, setIsLoading] = useState(false)
+  const [verifiedPhone, setVerifiedPhone] = useState<string | null>(null)
   
   // Form states - initial values depend on mode
   const [signers, setSigners] = useState<any[]>(
@@ -159,6 +160,39 @@ export function MultisigWalletFormContent({
       currentUserEmail = email;
     }
   }
+
+  // Fetch user's phone number for MFA verification
+  const fetchUserPhone = useCallback(async () => {
+    try {
+      const sessionJwt = localStorage.getItem('sessionJwt');
+      if (!sessionJwt) return;
+      
+      const response = await fetch('/api/mfa/get-user-phone', {
+        headers: {
+          'Authorization': `Bearer ${sessionJwt}`
+        }
+      });
+      
+      if (!response.ok) {
+        console.error('Failed to fetch phone number');
+        return;
+      }
+      
+      const data = await response.json();
+      const phones = data.phones || [];
+      
+      if (phones.length > 0) {
+        setVerifiedPhone(phones[0].phone_number);
+      }
+    } catch (error) {
+      console.error('Error fetching user phone:', error);
+    }
+  }, []);
+
+  // Fetch phone status on mount
+  useEffect(() => {
+    fetchUserPhone();
+  }, [fetchUserPhone]);
 
   // Initialize signers list with current user for create mode
   useEffect(() => {
@@ -999,10 +1033,19 @@ export function MultisigWalletFormContent({
       <LabeledContainer label="Daily Withdraw Limits">
         {
           dailyLimits && (
-            <DailyWithdrawLimits
-              initialLimits={dailyLimits}
-              onChange={handleLimitsChange}
-            />
+            <>
+              {!verifiedPhone && (
+                <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-md">
+                  <p className="text-amber-800 text-sm">
+                    Please note that daily withdrawal limits work only when MFA has been set up.
+                  </p>
+                </div>
+              )}
+              <DailyWithdrawLimits
+                initialLimits={dailyLimits}
+                onChange={handleLimitsChange}
+              />
+            </>
           )
         }
       </LabeledContainer>
