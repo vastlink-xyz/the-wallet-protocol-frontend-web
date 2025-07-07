@@ -41,10 +41,11 @@ export default function RootLayout({
       >
         <QueryProvider>
           <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}>
+            <AppNavbar />
+
             {/* Unified notification system */}
             <NotificationContainer />
 
-            <AppNavbar />
             <AuthGuard />
             <main>
               {children}

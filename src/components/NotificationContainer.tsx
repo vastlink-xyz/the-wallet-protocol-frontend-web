@@ -29,7 +29,7 @@ export function NotificationContainer() {
   }
 
   return (
-    <div className="w-full space-y-2">
+    <div className="w-full">
       {allNotifications.map((notification) => (
         <NotificationBanner 
           key={notification.id} 

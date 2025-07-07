@@ -11,12 +11,14 @@ interface TeamWalletSettingsActionsProps {
   wallet: MultisigWallet
   className?: string
   onSettingsChange?: () => void
+  refreshProposals?: () => Promise<any>
 }
 
 export function TeamWalletSettingsActions({
   wallet,
   className,
   onSettingsChange,
+  refreshProposals,
 }: TeamWalletSettingsActionsProps) {
   const [showSettingsDialog, setShowSettingsDialog] = useState(false)
   const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null)
@@ -60,9 +62,15 @@ export function TeamWalletSettingsActions({
     fetchUserData()
   }, [])
 
-  const handleSettingsSuccess = () => {
+  const handleSettingsSuccess = async () => {
     // Refresh data after settings change
     refreshProposalUI(authMethodId, userPkp?.ethAddress)
+    
+    // Refresh proposals data
+    if (refreshProposals) {
+      await refreshProposals()
+    }
+    
     onSettingsChange?.()
   }
 

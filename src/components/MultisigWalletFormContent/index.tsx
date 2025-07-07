@@ -612,6 +612,10 @@ export function MultisigWalletFormContent({
         // Automatically execute the multisig action once threshold is reached
         await autoExecuteProposal(updatedProposal, wallet)
       } else {
+        // Even if not executing, we should refresh proposals to show the new signature
+        if (onSuccess) {
+          await onSuccess();
+        }
         toast.info('You have approved the proposal. Waiting for other signers to approve.')
       }
     }

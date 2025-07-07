@@ -20,6 +20,8 @@ import { LogoLoading } from "@/components/LogoLoading";
 import { signProposal } from "./utils/sign-proposal";
 import { executeTransactionProposal, executeWalletSettingsProposal } from "./utils/execute-proposal";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useProposals } from "@/hooks/useProposals";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function ProposalsPage() {
   // Get walletId from params
@@ -39,9 +41,11 @@ export default function ProposalsPage() {
   // Get wallet data from context
   const { wallet, isLoading: isWalletLoading, authMethod, walletPkp, userPkp, authMethodId, userPhone } = useWallet();
   
-  // Local state for proposals
-  const [proposals, setProposals] = useState<MessageProposal[]>([]);
-  const [isLoadingProposals, setIsLoadingProposals] = useState(true);
+  // Use React Query for proposals
+  const { data: proposals = [], isLoading: isLoadingProposals, refetch: refetchProposals } = useProposals(walletId);
+  
+  // Query client for cache invalidation
+  const queryClient = useQueryClient();
 
   // Loading states for different operations
   const [signingStates, setSigningStates] = useState<Record<string, boolean>>({});
@@ -61,24 +65,12 @@ export default function ProposalsPage() {
   const [mfaMethodId, setMfaMethodId] = useState<string | null>(null);
 
 
-  // Fetch proposals for this wallet
-  useEffect(() => {
-    async function getProposals() {
-      try {
-        setIsLoadingProposals(true);
-        const fetchedProposals = await fetchProposals(walletId);
-        setProposals(fetchedProposals);
-      } catch (error) {
-        console.error("Failed to fetch proposals:", error);
-      } finally {
-        setIsLoadingProposals(false);
-      }
-    }
-    
-    if (walletId) {
-      getProposals();
-    }
-  }, [walletId]);
+  // Helper function to invalidate and refetch proposals
+  const refreshProposals = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['proposals', walletId] });
+    const result = await refetchProposals();
+    return result.data || [];
+  };
 
   // Scroll to target proposal when URL parameter is provided (only on initial load)
   useEffect(() => {
@@ -139,9 +131,8 @@ export default function ProposalsPage() {
       })
 
       if (response.data.success) {
-        // Refresh data
-        const newProposals = await fetchProposals(walletId);
-        setProposals(newProposals)
+        // Refresh proposals using React Query
+        const newProposals = await refreshProposals();
 
         // Invalidate proposal related data to update notification and red dots
         refreshProposalUI(authMethodId, userPkp?.ethAddress);
@@ -244,9 +235,8 @@ export default function ProposalsPage() {
         }
       }
 
-      // Refresh proposals
-      const newProposals = await fetchProposals(walletId)
-      setProposals(newProposals)
+      // Refresh proposals using React Query
+      const newProposals = await refreshProposals();
 
       // Refresh proposal UI to update notification and red dots
       refreshProposalUI(authMethodId, userPkp?.ethAddress);
@@ -329,8 +319,8 @@ export default function ProposalsPage() {
       })
 
       if (response.data.success) {
-        const newProposals = await fetchProposals(walletId) // Refresh proposals list
-        setProposals(newProposals)
+        // Refresh proposals using React Query
+        const newProposals = await refreshProposals();
         
         // Invalidate proposal related data to update notification and red dots
         refreshProposalUI(authMethodId, userPkp?.ethAddress);

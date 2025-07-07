@@ -10,6 +10,7 @@ import { TokenAssets } from "@/app/assets/components/WalletCard/TokenAssets";
 import { TeamWalletSendReceiveActions } from "@/app/assets/components/Team/TeamWalletSendReceiveActions";
 import { TeamWalletSettingsActions } from "@/app/assets/components/Team/TeamWalletSettingsActions";
 import { LogoLoading } from "@/components/LogoLoading";
+import { useQueryClient } from "@tanstack/react-query";
 
 // Inner component that can use the wallet context
 function WalletName() {
@@ -44,23 +45,38 @@ function WalletTokenAssets() {
 // Component that renders send/receive actions with wallet context
 function WalletSendReceiveSection() {
   const { wallet, isLoading } = useWallet();
+  const queryClient = useQueryClient();
+  const params = useParams();
+  const walletId = params.walletId as string;
+  
+  const refreshProposals = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['proposals', walletId] });
+  };
   
   if (isLoading || !wallet) return null;
   
   return (
-    <TeamWalletSendReceiveActions wallet={wallet} />
+    <TeamWalletSendReceiveActions wallet={wallet} refreshProposals={refreshProposals} />
   );
 }
 
 // Component that renders settings actions with wallet context
 function WalletSettingsSection() {
   const { wallet, isLoading } = useWallet();
+  const queryClient = useQueryClient();
+  const params = useParams();
+  const walletId = params.walletId as string;
+  
+  const refreshProposals = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['proposals', walletId] });
+  };
   
   if (isLoading || !wallet) return null;
   
   return (
     <TeamWalletSettingsActions 
       wallet={wallet} 
+      refreshProposals={refreshProposals}
     />
   );
 }

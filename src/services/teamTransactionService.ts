@@ -22,6 +22,7 @@ interface CreateAndApproveTransactionProposalParams {
   user: User
   setIsSending: (sending: boolean) => void
   refreshProposalUI: (authMethodId: string, ethAddress?: string) => void
+  refreshProposals?: () => Promise<any>
   onProposalChange?: () => void
   setShowSendDialog: (show: boolean) => void
   executeTransactionHandler: (params: {
@@ -41,6 +42,7 @@ export const createAndApproveTransactionProposal = async ({
   user,
   setIsSending,
   refreshProposalUI,
+  refreshProposals,
   onProposalChange,
   setShowSendDialog,
   executeTransactionHandler,
@@ -88,6 +90,11 @@ export const createAndApproveTransactionProposal = async ({
         // Invalidate proposal related data after signing
         refreshProposalUI(authMethodId, userPkp?.ethAddress)
         
+        // Refresh proposals data
+        if (refreshProposals) {
+          await refreshProposals()
+        }
+        
         // Call callback to refresh data
         onProposalChange?.()
         
@@ -118,6 +125,7 @@ interface ExecuteTransactionProposalParams {
   authMethod: AuthMethod
   authMethodId: string
   refreshProposalUI: (authMethodId: string, ethAddress?: string) => void
+  refreshProposals?: () => Promise<any>
   onProposalChange?: () => void
   setShowSendDialog: (show: boolean) => void
   setShowMfaDialog: (show: boolean) => void
@@ -133,6 +141,7 @@ export const executeTeamTransactionProposal = async ({
   authMethod,
   authMethodId,
   refreshProposalUI,
+  refreshProposals,
   onProposalChange,
   setShowSendDialog,
   setShowMfaDialog,
@@ -218,6 +227,11 @@ export const executeTeamTransactionProposal = async ({
 
     // Invalidate proposal related data after execution
     refreshProposalUI(authMethodId, userPkp?.ethAddress)
+
+    // Refresh proposals data
+    if (refreshProposals) {
+      await refreshProposals()
+    }
 
     // Call callback to refresh data
     onProposalChange?.()

@@ -7,6 +7,7 @@ import { clearAuthMethodFromStorage } from '@/lib/storage/authmethod'
 import { useEffect, useState } from 'react'
 import { getAuthMethodFromStorage } from '@/lib/storage/authmethod'
 import Image from 'next/image'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 
 export default function AppNavbar() {
   const router = useRouter()
@@ -30,22 +31,32 @@ export default function AppNavbar() {
   }
   
   return (
-    <nav className="bg-white shadow-sm py-2 px-4 w-full">
-      <div className="mx-auto flex justify-between items-center">
-        <Link href="/assets" className="font-medium text-xl">
-          <Image src="/Vastbase_logo.svg" alt="Vastbase" width={64} height={64} />
-        </Link>
-        
-        {isLoggedIn && (
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-900 cursor-pointer"
-          >
-            <LogOut className="w-4 h-4" />
-            Logout
-          </button>
-        )}
-      </div>
-    </nav>
+    <>
+      <nav className="bg-white shadow-sm py-2 px-4 h-16 w-full fixed top-0 left-0 right-0 z-50">
+        <div className="mx-auto flex justify-between items-center">
+          <Link href="/assets" className="font-medium text-xl">
+            <Image src="/Vastbase_logo.svg" alt="Vastbase" width={64} height={64} />
+          </Link>
+          
+          {isLoggedIn && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={handleLogout}
+                  className="p-2 text-gray-600 hover:text-gray-900 cursor-pointer rounded-md hover:bg-gray-100"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                Logout
+              </TooltipContent>
+            </Tooltip>
+          )}
+        </div>
+      </nav>
+      {/* Spacer div to push content down */}
+      <div className="h-16"></div>
+    </>
   )
 } 

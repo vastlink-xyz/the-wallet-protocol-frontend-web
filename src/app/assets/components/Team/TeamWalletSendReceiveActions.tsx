@@ -12,11 +12,13 @@ import { createAndApproveTransactionProposal, executeTeamTransactionProposal, in
 interface TeamWalletSendReceiveActionsProps {
   wallet: MultisigWallet
   onProposalChange?: () => void
+  refreshProposals?: () => Promise<any>
 }
 
 export function TeamWalletSendReceiveActions({
   wallet,
   onProposalChange,
+  refreshProposals,
 }: TeamWalletSendReceiveActionsProps) {
   const [showSendDialog, setShowSendDialog] = useState(false)
   const [showMfaDialog, setShowMfaDialog] = useState(false)
@@ -79,6 +81,7 @@ export function TeamWalletSendReceiveActions({
       user,
       setIsSending,
       refreshProposalUI,
+      refreshProposals,
       onProposalChange,
       setShowSendDialog,
       executeTransactionHandler: handleExecuteTransactionProposal,
@@ -107,6 +110,7 @@ export function TeamWalletSendReceiveActions({
       authMethod,
       authMethodId,
       refreshProposalUI,
+      refreshProposals,
       onProposalChange,
       setShowSendDialog,
       setShowMfaDialog,
