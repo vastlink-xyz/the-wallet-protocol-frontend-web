@@ -63,12 +63,13 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
             <ArrowUpRightFromCircle className="w-4 h-4" />
             <span className="font-medium">Type:</span> Transfer
           </div>
-          <div className="flex items-center gap-2 pl-6">
-            <span className="font-medium">Details:</span> Transfer {formatBalance(txDetails.value)} {txDetails.tokenType && SUPPORTED_TOKENS_INFO[txDetails.tokenType as TokenType].symbol} to {txDetails.to}
+          <div className="bg-gray-100 rounded-lg p-4 text-sm">
+            Transfer {formatBalance(txDetails.value)} {txDetails.tokenType && SUPPORTED_TOKENS_INFO[txDetails.tokenType as TokenType].symbol} to {txDetails.to}
+            {txDetails.data && txDetails.data !== '0x' && (
+              <div><span className="font-medium">Data:</span> {txDetails.data}</div>
+            )}
           </div>
-          {txDetails.data && txDetails.data !== '0x' && (
-            <div><span className="font-medium">Data:</span> {txDetails.data}</div>
-          )}
+
         </>
       )}
     </div>

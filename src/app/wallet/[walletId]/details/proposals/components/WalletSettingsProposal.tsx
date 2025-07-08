@@ -1,21 +1,6 @@
-import type { MessageProposal, MFASettings, MultisigWallet } from '@/app/api/multisig/storage'
+import type { MessageProposal, MultisigWallet } from '@/app/api/multisig/storage'
 import { log } from '@/lib/utils';
-import { TokenType } from '@/lib/web3/token'
-
-// extend settingsData type to include originalState and changeDescription
-interface ExtendedSettingsData {
-  signers?: {
-    ethAddress: string;
-    publicKey: string;
-    email: string;
-    authMethodId?: string;
-  }[];
-  threshold?: number;
-  mfaSettings?: MFASettings;
-  name?: string;
-  originalState?: any; // original wallet state
-  changeDescription?: string; // change description
-}
+import { generateSettingsChangeDescriptions, ExtendedSettingsData } from '../utils/settingsDescriptionUtils';
 
 interface WalletSettingsProposalProps {
   proposal: MessageProposal
@@ -29,73 +14,17 @@ export function WalletSettingsProposal({ proposal, selectedWallet }: WalletSetti
     return <div>Unable to parse settings data</div>;
   }
   
-  // Get original state from proposal or use selectedWallet as fallback
-  const originalState = settingsData.originalState || selectedWallet;
+  // Get original state from proposal or convert selectedWallet to same structure
+  const originalState = settingsData.originalState || (selectedWallet ? {
+    name: selectedWallet.name,
+    threshold: selectedWallet.threshold,
+    signers: selectedWallet.signers,
+    mfaSettings: selectedWallet.metadata?.mfaSettings,
+  } : null);
   
-  // Prepare descriptions of changes
-  const descriptions = [];
-  
-  // Check for name changes
-  if (settingsData.name !== undefined && originalState?.name !== undefined) {
-    if (settingsData.name !== originalState.name) {
-      descriptions.push(`Change name from "${originalState.name}" to "${settingsData.name}"`);
-    }
-  }
-  
-  // Check for threshold changes
-  if (settingsData.threshold !== undefined && originalState?.threshold !== undefined) {
-    if (settingsData.threshold !== originalState.threshold) {
-      descriptions.push(`Change threshold from ${originalState.threshold} to ${settingsData.threshold}`);
-    }
-  }
-  
-  let newSigners: any[] = [];
-  let removedSigners: any[] = [];
-  
-  // Check for signer changes
-  if (settingsData.signers && originalState?.signers) {
-    const originalSigners = originalState.signers;
-    
-    newSigners = settingsData.signers.filter((s: any) => 
-      !originalSigners.some((os: any) => os.ethAddress === s.ethAddress)
-    );
-    
-    removedSigners = originalSigners.filter((os: any) => 
-      !settingsData.signers?.some((s: any) => s.ethAddress === os.ethAddress)
-    );
-    
-    if (newSigners.length > 0) {
-      descriptions.push(`Add ${newSigners.length} signer(s)`);
-    }
-    
-    if (removedSigners.length > 0) {
-      descriptions.push(`Remove ${removedSigners.length} signer(s)`);
-    }
-  }
-  
-  // Check for MFA setting changes
-  const mfaChanges: string[] = [];
-  if (settingsData.mfaSettings?.dailyLimits && originalState?.mfaSettings?.dailyLimits) {
-    const newLimits = settingsData.mfaSettings.dailyLimits;
-    const oldLimits = originalState.mfaSettings.dailyLimits;
-    
-    // Check which tokens have different limits
-    const tokenTypes = Object.keys(newLimits).concat(
-      Object.keys(oldLimits).filter(key => !Object.keys(newLimits).includes(key))
-    );
-    
-    // For each token type, check if the limit has changed
-    tokenTypes.forEach(token => {
-      const typedToken = token as TokenType;
-      if (newLimits[typedToken] !== oldLimits[typedToken]) {
-        mfaChanges.push(`${token} Daily Limit`);
-      }
-    });
-  }
-  
-  if (mfaChanges.length > 0) {
-    descriptions.push(`Update daily limits (${mfaChanges.join(', ')})`);
-  }
+  // Generate change descriptions using the utility function
+  const changeResult = generateSettingsChangeDescriptions(settingsData, originalState);
+  let descriptions = changeResult.descriptions;
   
   // Handle case when proposal is completed but changes are not detected
   if (descriptions.length === 0 && proposal.status === 'completed') {
@@ -104,51 +33,80 @@ export function WalletSettingsProposal({ proposal, selectedWallet }: WalletSetti
     descriptions.push('No changes detected');
   }
 
-  return (
-    <div>
-      <div className='pl-6'><span className="font-medium">Details:</span> {descriptions.join(', ')}</div>
-      
-      {/* Display detailed settings changes if available */}
-      {settingsData && (
-        <div className="mt-2 p-2 bg-gray-100 rounded-md text-sm">
-          {settingsData.name !== undefined && originalState?.name !== undefined && 
-            settingsData.name !== originalState.name && (
-            <div className="flex gap-2">
-              <span className="font-medium">Name:</span> 
-              {originalState.name} → {settingsData.name}
-            </div>
-          )}
-
-          {settingsData.threshold !== undefined && originalState?.threshold !== undefined && 
-           settingsData.threshold !== originalState.threshold && (
-            <div className="flex gap-2">
-              <span className="font-medium">Threshold:</span> 
-              {originalState.threshold} → {settingsData.threshold} of {settingsData.signers?.length || originalState?.signers?.length || 0}
+  const renderChanges = () => {
+    return (
+      <div className="bg-gray-100 rounded-lg p-4">
+        <div className="space-y-2">
+          {changeResult.changes.name && (
+            <div className="text-sm">
+              <span className="text-gray-600 font-bold">Name:</span> 
+              <span className="text-gray-800 ml-2">"{changeResult.changes.name.from}" → "{changeResult.changes.name.to}"</span>
             </div>
           )}
           
-          {newSigners.length > 0 && (
-            <div className="flex gap-2">
-              <span className="font-medium">New Signers:</span> 
-              {newSigners.map((s: any) => s.email || s.ethAddress).join(', ')}
+          {changeResult.changes.threshold && (
+            <div className="text-sm">
+              <span className="text-gray-600 font-bold">Threshold:</span> 
+              <span className="text-gray-800 ml-2">{changeResult.changes.threshold.from} → {changeResult.changes.threshold.to}</span>
             </div>
           )}
           
-          {removedSigners.length > 0 && (
-            <div className="flex gap-2">
-              <span className="font-medium">Removed Signers:</span> 
-              {removedSigners.map((s: any) => s.email || s.ethAddress).join(', ')}
+          {changeResult.changes.signers && (
+            <div className="text-sm space-y-2">
+              {changeResult.changes.signers.added?.length > 0 && (
+                <div>
+                  <span className="text-gray-600 font-bold">Add signers:</span>
+                  <div className="ml-4 mt-1 space-y-1">
+                    {changeResult.changes.signers.added.map((signer: any, index: number) => (
+                      <div key={index} className="text-gray-800">
+                        • {signer.email} ({signer.ethAddress.slice(0, 6)}...{signer.ethAddress.slice(-4)})
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {changeResult.changes.signers.removed?.length > 0 && (
+                <div>
+                  <span className="text-gray-600 font-bold">Remove signers:</span>
+                  <div className="ml-4 mt-1 space-y-1">
+                    {changeResult.changes.signers.removed.map((signer: any, index: number) => (
+                      <div key={index} className="text-gray-800">
+                        • {signer.email} ({signer.ethAddress.slice(0, 6)}...{signer.ethAddress.slice(-4)})
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
           
-          {mfaChanges.length > 0 && (
-            <div className="flex gap-2">
-              <span className="font-medium">MFA Changes:</span> 
-              {mfaChanges.join(', ')}
+          {changeResult.changes.mfaSettings && (
+            <div className="text-sm">
+              <span className="text-gray-600 font-bold">Daily limits:</span>
+              <div className="ml-4 mt-1 space-y-1">
+                {Object.entries(changeResult.changes.mfaSettings.dailyLimits).map(([token, change]: [string, any]) => (
+                  <div key={token} className="text-xs text-gray-800">
+                    • {token}: {change.from !== undefined ? change.from.toString() : 'undefined'} → {change.to !== undefined ? change.to.toString() : 'undefined'}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {Object.keys(changeResult.changes).length === 0 && (
+            <div className="text-sm text-gray-600">
+              <span className="font-bold">Details:</span> {descriptions.join(', ')}
             </div>
           )}
         </div>
-      )}
+      </div>
+    );
+  };
+
+  return (
+    <div>
+      {renderChanges()}
     </div>
   );
 } 
