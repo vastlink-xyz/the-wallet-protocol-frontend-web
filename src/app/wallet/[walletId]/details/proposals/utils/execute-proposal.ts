@@ -37,6 +37,10 @@ export const executeWalletSettingsProposal = async ({
   authMethod,
   authMethodId,
 }: IExecuteWalletSettingsProposalParams) => {
+  // Check if proposal is still pending
+  if (proposal.status !== 'pending') {
+    throw new Error(`Cannot execute proposal with status: ${proposal.status}`);
+  }
 
   const updateWalletIpfsId = await getUpdateWalletIpfsId("base58")
 
@@ -152,6 +156,10 @@ export const executeTransactionProposal = async ({
   otpCode,
   mfaMethodId,
 }: IExecuteTransactionProposalParams) => {
+  // Check if proposal is still pending
+  if (proposal.status !== 'pending') {
+    throw new Error(`Cannot execute proposal with status: ${proposal.status}`);
+  }
 
   log('Executing Lit Action with multisig PKP', {
     proposalId: proposal.id,

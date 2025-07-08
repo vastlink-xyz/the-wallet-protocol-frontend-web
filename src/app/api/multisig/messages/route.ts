@@ -178,6 +178,70 @@ export async function PUT(request: NextRequest) {
   }
 }
 
+// Cancel a message proposal (only by the creator)
+export async function DELETE(request: NextRequest) {
+  try {
+    const searchParams = request.nextUrl.searchParams
+    const walletId = searchParams.get('walletId')
+    const proposalId = searchParams.get('proposalId')
+    const body = await request.json()
+    const { canceledBy } = body
+    
+    if (!walletId || !proposalId) {
+      return Response.json(
+        { success: false, error: "Wallet ID and Proposal ID are required" },
+        { status: 400 }
+      )
+    }
+
+    if (!canceledBy) {
+      return Response.json(
+        { success: false, error: "canceledBy is required" },
+        { status: 400 }
+      )
+    }
+    
+    const proposals = await getMessageProposals(walletId)
+    const proposal = proposals.find(p => p.id === proposalId)
+    
+    if (!proposal) {
+      return Response.json(
+        { success: false, error: "Message proposal not found" },
+        { status: 404 }
+      )
+    }
+
+    // Check if the proposal is still pending
+    if (proposal.status !== 'pending') {
+      return Response.json(
+        { success: false, error: "Only pending proposals can be canceled" },
+        { status: 400 }
+      )
+    }
+
+    // Check if the user is the creator of the proposal
+    if (proposal.createdBy.authMethodId !== canceledBy.authMethodId || 
+        proposal.createdBy.ethAddress.toLowerCase() !== canceledBy.ethAddress.toLowerCase()) {
+      return Response.json(
+        { success: false, error: "Only the proposal creator can cancel it" },
+        { status: 403 }
+      )
+    }
+
+    // Update proposal status to canceled
+    proposal.status = 'canceled'
+    await saveMessageProposal(proposal)
+    
+    return Response.json({ success: true, data: proposal })
+  } catch (error) {
+    console.error('Failed to cancel message proposal:', error)
+    return Response.json(
+      { success: false, error: "Failed to cancel message proposal" },
+      { status: 500 }
+    )
+  }
+}
+
 // Helper function specifically for wallet settings change notifications
 async function sendWalletSettingsNotification({
   to,

@@ -1,5 +1,4 @@
 import type { MessageProposal, MultisigWallet } from '@/app/api/multisig/storage'
-import { log } from '@/lib/utils';
 import { generateSettingsChangeDescriptions, ExtendedSettingsData } from '../utils/settingsDescriptionUtils';
 
 interface WalletSettingsProposalProps {
@@ -24,7 +23,7 @@ export function WalletSettingsProposal({ proposal, selectedWallet }: WalletSetti
   
   // Generate change descriptions using the utility function
   const changeResult = generateSettingsChangeDescriptions(settingsData, originalState);
-  let descriptions = changeResult.descriptions;
+  const descriptions = changeResult.descriptions;
   
   // Handle case when proposal is completed but changes are not detected
   if (descriptions.length === 0 && proposal.status === 'completed') {

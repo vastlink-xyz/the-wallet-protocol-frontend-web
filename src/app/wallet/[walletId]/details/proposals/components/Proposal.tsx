@@ -14,13 +14,16 @@ interface ProposalProps {
   selectedWallet: MultisigWallet;
   handleSignProposal: (proposal: MessageProposal) => void;
   executeMultisigLitAction: (proposal: MessageProposal) => void;
+  handleCancelProposal: (proposal: MessageProposal) => void;
   userPkp: IRelayPKP;
+  authMethodId: string | null;
   isSigningProposal: boolean;
   isLoading: boolean;
   isDisabled: boolean;
+  isCancelingProposal: boolean;
 }
 
-export function Proposal({ proposal, selectedWallet, handleSignProposal, executeMultisigLitAction, userPkp, isSigningProposal, isLoading, isDisabled }: ProposalProps) {
+export function Proposal({ proposal, selectedWallet, handleSignProposal, executeMultisigLitAction, handleCancelProposal, userPkp, authMethodId, isSigningProposal, isLoading, isDisabled, isCancelingProposal }: ProposalProps) {
   const txDetails = getTransactionDetails(proposal, selectedWallet);
 
 
@@ -43,6 +46,11 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
     // if proposal is pending, display the current signers from the wallet
     return selectedWallet?.signers
   }, [selectedWallet, proposal])
+
+  // Check if current user is the proposal creator
+  const isCreator = useMemo(() => {
+    return authMethodId && proposal.createdBy?.authMethodId === authMethodId
+  }, [authMethodId, proposal.createdBy])
 
   return <div key={proposal.id} className="p-4 bg-gray-50 rounded-lg">
     <div className="mb-2">
@@ -82,6 +90,10 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
         </Badge>
       ) : proposal.status === 'completed' ? (
         <Badge variant="secondary" className="ml-2 text-green-600 bg-green-50 border-green-300">
+          {proposal.status}
+        </Badge>
+      ) : proposal.status === 'canceled' ? (
+        <Badge variant="outline" className="ml-2 text-red-600 bg-red-50 border-red-300">
           {proposal.status}
         </Badge>
       ) : (
@@ -132,6 +144,17 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
         >
           {isSigningProposal && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Approve the proposal
+        </Button>
+      )}
+
+      {proposal.status === 'pending' && isCreator && (
+        <Button
+          variant="destructive"
+          onClick={() => handleCancelProposal(proposal)}
+          disabled={isCancelingProposal}
+        >
+          {isCancelingProposal && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          Cancel
         </Button>
       )}
 

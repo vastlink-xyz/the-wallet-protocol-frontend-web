@@ -103,7 +103,7 @@ const SignatureSchema = new mongoose.Schema({
 const MessageProposalSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true },
   walletId: { type: String, required: true },
-  status: { type: String, enum: ['pending', 'completed', 'failed'], default: 'pending' },
+  status: { type: String, enum: ['pending', 'completed', 'failed', 'canceled'], default: 'pending' },
   createdBy: {
     authMethodId: String,
     ethAddress: String,

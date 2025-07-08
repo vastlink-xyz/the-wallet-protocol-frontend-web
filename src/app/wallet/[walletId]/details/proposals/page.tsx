@@ -50,6 +50,7 @@ export default function ProposalsPage() {
   // Loading states for different operations
   const [signingStates, setSigningStates] = useState<Record<string, boolean>>({});
   const [executingStates, setExecutingStates] = useState<Record<string, boolean>>({});
+  const [cancelingStates, setCancelingStates] = useState<Record<string, boolean>>({});
   const [isDisabled, setIsDisabled] = useState(false);
   
   const { handleExpiredAuth, verifyAuthOrRedirect } = useAuthExpiration();
@@ -415,6 +416,59 @@ export default function ProposalsPage() {
     }
   }
 
+  const handleCancelProposal = async (proposal: MessageProposal) => {
+    if (!authMethodId || !userPkp) {
+      console.error('Missing required information for canceling proposal');
+      return;
+    }
+
+    try {
+      // Set loading state for this specific proposal cancellation
+      setCancelingStates(prev => ({ ...prev, [proposal.id]: true }));
+      
+      const response = await axios.delete(`/api/multisig/messages`, {
+        params: {
+          walletId: proposal.walletId,
+          proposalId: proposal.id
+        },
+        data: {
+          canceledBy: {
+            authMethodId: authMethodId,
+            ethAddress: userPkp.ethAddress
+          }
+        }
+      });
+
+      if (response.data.success) {
+        // Refresh proposals using React Query
+        await refreshProposals();
+        
+        // Invalidate proposal related data to update notification and red dots
+        refreshProposalUI(authMethodId, userPkp.ethAddress);
+        
+        toast.success('Proposal canceled successfully');
+      } else {
+        toast.error(response.data.error || 'Failed to cancel proposal');
+      }
+    } catch (error: any) {
+      console.error('Failed to cancel proposal:', error);
+      
+      // Handle different error types
+      if (error.response?.data?.error) {
+        toast.error(error.response.data.error);
+      } else if (error.response?.status === 403) {
+        toast.error('You can only cancel proposals you created');
+      } else if (error.response?.status === 404) {
+        toast.error('Proposal not found');
+      } else {
+        toast.error('Failed to cancel proposal');
+      }
+    } finally {
+      // Clear loading state for this proposal
+      setCancelingStates(prev => ({ ...prev, [proposal.id]: false }));
+    }
+  }
+
   // Show loading state if wallet or proposals are still loading
   if (isWalletLoading || isLoadingProposals) {
     return <LogoLoading />;
@@ -446,10 +500,13 @@ export default function ProposalsPage() {
                   selectedWallet={wallet}
                   handleSignProposal={handleSignProposal}
                   executeMultisigLitAction={executeMultisigLitAction}
+                  handleCancelProposal={handleCancelProposal}
                   userPkp={userPkp}
+                  authMethodId={authMethodId}
                   isSigningProposal={signingStates[proposal.id] || false}
                   isLoading={executingStates[proposal.id] || false}
                   isDisabled={isDisabled}
+                  isCancelingProposal={cancelingStates[proposal.id] || false}
                 />
               </div>
             )

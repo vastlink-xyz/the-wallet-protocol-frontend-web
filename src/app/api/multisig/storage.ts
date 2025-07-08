@@ -48,7 +48,7 @@ export interface MultisigWallet {
 export interface MessageProposal {
   id: string
   walletId: string      // Reference to the MultisigWallet
-  status: 'pending' | 'completed' | 'failed'
+  status: 'pending' | 'completed' | 'failed' | 'canceled'
   createdAt?: Date
   updatedAt?: Date
   createdBy: MessageProposalCreatedBy     // Address of the proposer
