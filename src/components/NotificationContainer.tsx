@@ -19,7 +19,7 @@ export function NotificationContainer() {
 
   if (isLoading && notifications.length === 0) {
     return (
-      <div className="w-full space-y-2 mt-2">
+      <div className="w-full space-y-2">
         <NotificationBanner 
           key={testnetWarning.id} 
           notification={testnetWarning} 

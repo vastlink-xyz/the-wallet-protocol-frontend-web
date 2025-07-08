@@ -32,10 +32,10 @@ export default function AppNavbar() {
   
   return (
     <>
-      <nav className="bg-white shadow-sm py-2 px-4 h-16 w-full fixed top-0 left-0 right-0 z-50">
+      <nav className="bg-white shadow-sm py-1 px-4 h-10 w-full fixed top-0 left-0 right-0 z-50">
         <div className="mx-auto flex justify-between items-center">
           <Link href="/assets" className="font-medium text-xl">
-            <Image src="/Vastbase_logo.svg" alt="Vastbase" width={64} height={64} />
+            <Image src="/Vastbase_logo.svg" alt="Vastbase" width={48} height={48} />
           </Link>
           
           {isLoggedIn && (
@@ -56,7 +56,7 @@ export default function AppNavbar() {
         </div>
       </nav>
       {/* Spacer div to push content down */}
-      <div className="h-16"></div>
+      <div className="h-10"></div>
     </>
   )
 } 
