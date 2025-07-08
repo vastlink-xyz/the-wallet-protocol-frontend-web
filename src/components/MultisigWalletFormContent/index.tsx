@@ -31,7 +31,7 @@ import { MessageProposal } from '@/app/api/multisig/storage'
 import { signProposal } from '@/app/wallet/[walletId]/details/proposals/utils/sign-proposal'
 import { fetchProposal } from '@/app/wallet/[walletId]/details/proposals/utils/proposal'
 import { executeWalletSettingsProposal } from '@/app/wallet/[walletId]/details/proposals/utils/execute-proposal'
-import { generateWalletChangeDescriptions } from '../MultisigWalletFormContent/wallet-changes'
+import { generateSettingsChangeDescriptions } from '@/app/wallet/[walletId]/details/proposals/utils/settingsDescriptionUtils'
 
 interface MultisigWalletFormContentProps {
   mode: 'create' | 'edit'
@@ -766,18 +766,15 @@ export function MultisigWalletFormContent({
       settingsData.mfaSettings = { dailyLimits } as MFASettings;
     }
 
-    // Generate change descriptions using the reusable function
-    const changeDescriptions = generateWalletChangeDescriptions({
-      originalWallet: wallet,
-      newSettings: {
-        name: nameChanged ? walletName : undefined,
-        threshold: thresholdChanged ? actualThreshold : undefined,
-        signers: signersChanged ? registeredSigners : undefined,
-        mfaSettings: mfaChanged ? { dailyLimits } as MFASettings : undefined
-      }
+    // Generate change descriptions using the unified utility function
+    const changeResult = generateSettingsChangeDescriptions(settingsData, {
+      name: wallet.name,
+      threshold: wallet.threshold,
+      signers: wallet.signers,
+      mfaSettings: wallet.metadata?.mfaSettings
     });
 
-    settingsData.changeDescription = changeDescriptions.join(', ');
+    settingsData.changeDescription = changeResult.descriptions.join(', ');
 
     // Only proceed if there are actual changes
     if (Object.keys(settingsData).length <= 2 && !hasUnregisteredNewSigners) {

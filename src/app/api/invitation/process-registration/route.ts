@@ -8,7 +8,7 @@ import {
 import { getWalletById } from '../../multisig/storage';
 import { getUser } from '../../user/storage';
 import { log } from '@/lib/utils';
-import { generateWalletChangeDescriptions } from '@/components/MultisigWalletFormContent/wallet-changes';
+import { generateSettingsChangeDescriptions } from '@/app/wallet/[walletId]/details/proposals/utils/settingsDescriptionUtils';
 
 /**
  * Process user registration completion for multisig wallet invitations
@@ -183,17 +183,9 @@ async function createSettingsChangeProposal(walletInvitation: any) {
     }
 
     // Generate change descriptions using the unified utility function
-    const changeDescriptions = generateWalletChangeDescriptions({
-      originalWallet: wallet,
-      newSettings: {
-        name: settingsData.name,
-        threshold: settingsData.threshold,
-        signers: settingsData.signers,
-        mfaSettings: settingsData.mfaSettings
-      }
-    });
+    const changeResult = generateSettingsChangeDescriptions(settingsData, settingsData.originalState);
 
-    settingsData.changeDescription = changeDescriptions.join(', ') || 'Wallet settings updated';
+    settingsData.changeDescription = changeResult.descriptions.join(', ') || 'Wallet settings updated';
 
     // Only proceed if there are actual changes
     const settingsKeys = Object.keys(settingsData).filter(key => key !== 'originalState' && key !== 'changeDescription');
