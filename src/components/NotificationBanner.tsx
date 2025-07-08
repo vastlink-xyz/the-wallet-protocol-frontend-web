@@ -54,7 +54,7 @@ export function NotificationBanner({ notification }: NotificationBannerProps) {
   const renderNotificationContent = () => {
     if (notification.type === 'testnet_warning') {
       return (
-        <div className="grow shrink basis-0 text-center text-black/90 text-sm font-normal leading-snug flex items-center justify-center gap-2">
+        <div className="text-black/90 text-sm font-normal leading-snug flex items-center gap-2">
           {icon}
           {notification.message}
         </div>
@@ -63,7 +63,7 @@ export function NotificationBanner({ notification }: NotificationBannerProps) {
 
     if (notification.type === 'mfa_setup') {
       return (
-        <div className="grow shrink basis-0 text-center text-black/90 text-sm font-normal leading-snug flex items-center justify-center gap-2">
+        <div className="text-black/90 text-sm font-normal leading-snug flex items-center gap-2">
           {icon}
           {notification.message}
           <span 
@@ -79,7 +79,7 @@ export function NotificationBanner({ notification }: NotificationBannerProps) {
     if (notification.type === 'unsigned_proposals') {
       return (
         <div className="text-black/90 text-sm font-normal leading-snug">
-          <div className="flex items-center justify-center">
+          <div className="flex items-center">
             {icon}
             <div className="flex items-center ml-2">
               {notification.message} {'>'}
@@ -96,7 +96,7 @@ export function NotificationBanner({ notification }: NotificationBannerProps) {
     }
 
     return (
-      <div className="grow shrink basis-0 text-center text-black/90 text-sm font-normal leading-snug flex items-center justify-center gap-2">
+      <div className="text-black/90 text-sm font-normal leading-snug flex items-center gap-2 pl-[10vw]">
         {icon}
         {notification.message}
       </div>
@@ -105,10 +105,8 @@ export function NotificationBanner({ notification }: NotificationBannerProps) {
 
   return (
     <>
-      <div className={`w-full py-[9px] ${bg} rounded-sm border ${border} justify-between items-center gap-1.5 inline-flex px-8`}>
-        <div className="flex-1 text-center">
-          {renderNotificationContent()}
-        </div>
+      <div className={`w-full py-[9px] ${bg} rounded-sm border ${border} justify-between items-center gap-1.5 inline-flex px-[10vw]`}>
+        {renderNotificationContent()}
       </div>
 
       {/* Settings Dialog for MFA notifications */}
