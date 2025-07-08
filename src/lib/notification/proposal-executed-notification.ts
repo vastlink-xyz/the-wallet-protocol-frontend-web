@@ -2,6 +2,7 @@ import axios from 'axios';
 import { MessageProposal, MultisigWallet } from '@/app/api/multisig/storage';
 import { log } from '@/lib/utils';
 import { SUPPORTED_TOKENS_INFO } from '@/lib/web3/token';
+import { generateSettingsChangeDescriptions } from '@/app/wallet/[walletId]/details/proposals/utils/settingsDescriptionUtils';
 
 interface ProposalExecutedNotificationParams {
   proposalType: 'transaction' | 'settings'; 
@@ -54,31 +55,14 @@ export const sendProposalExecutedNotification = async (params: ProposalExecutedN
     } else if (proposalType === 'settings' && proposal.settingsData) {
       // Settings change type proposal
       const settingsData = proposal.settingsData;
-      const descriptions = [];
       
-      if (settingsData.threshold !== undefined) {
-        descriptions.push(`Updated signing threshold to ${settingsData.threshold}`);
-      }
-      
-      if (settingsData.signers && settingsData.originalState?.signers) {
-        const oldSignersCount = settingsData.originalState.signers.length;
-        const newSignersCount = settingsData.signers.length;
-        if (oldSignersCount !== newSignersCount) {
-          descriptions.push(`Updated signers count from ${oldSignersCount} to ${newSignersCount}`);
-        }
-      }
-      
-      if (settingsData.name && settingsData.originalState?.name && settingsData.name !== settingsData.originalState.name) {
-        descriptions.push(`Updated wallet name to "${settingsData.name}"`);
-      }
-      
-      if (settingsData.mfaSettings) {
-        descriptions.push('Updated MFA settings');
-      }
+      // Use unified description generation
+      const changeResult = generateSettingsChangeDescriptions(settingsData, settingsData.originalState);
       
       // Use custom change description if provided, otherwise use generated descriptions
       executionDetails = {
-        changeDescription: settingsData.changeDescription || descriptions.join(', ') || 'Wallet settings updated'
+        changeDescription: settingsData.changeDescription || 
+                          (changeResult.descriptions.length > 0 ? changeResult.descriptions.join(', ') : 'Wallet settings updated')
       };
     }
     

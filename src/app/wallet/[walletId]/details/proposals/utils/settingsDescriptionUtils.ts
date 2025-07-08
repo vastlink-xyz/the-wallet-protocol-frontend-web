@@ -100,9 +100,9 @@ export function generateSettingsChangeDescriptions(
   }
 
   // MFA settings changes with specific limit details
-  if (settingsData.mfaSettings?.dailyLimits && originalState?.mfaSettings?.dailyLimits) {
+  if (settingsData.mfaSettings?.dailyLimits) {
     const newLimits = settingsData.mfaSettings.dailyLimits;
-    const oldLimits = originalState.mfaSettings.dailyLimits;
+    const oldLimits = originalState?.mfaSettings?.dailyLimits || {} as Record<TokenType, string>;
     
     // Get all token types that exist in either old or new limits
     const tokenTypes = Array.from(new Set([
@@ -129,6 +129,10 @@ export function generateSettingsChangeDescriptions(
     
     if (mfaChanges.length > 0) {
       descriptions.push(`Daily limits - ${mfaChanges.join(', ')}`);
+      changes.mfaSettings = { dailyLimits: mfaChangesObj };
+    } else if (Object.keys(newLimits).length > 0) {
+      // If newLimits exist but no changes detected, it might be initial setup
+      descriptions.push(`Set daily limits - ${Object.entries(newLimits).map(([token, limit]) => `${token}: ${limit}`).join(', ')}`);
       changes.mfaSettings = { dailyLimits: mfaChangesObj };
     }
   }
