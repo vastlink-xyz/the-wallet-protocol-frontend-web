@@ -3,10 +3,8 @@
 import { useRouter, usePathname } from 'next/navigation'
 import { LogOut } from 'lucide-react'
 import Link from 'next/link'
-import { clearAuthMethodFromStorage } from '@/lib/storage/authmethod'
 import { useEffect, useState } from 'react'
 import { getAuthMethodFromStorage } from '@/lib/storage/authmethod'
-import Image from 'next/image'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 
 export default function AppNavbar() {
@@ -32,11 +30,13 @@ export default function AppNavbar() {
   
   return (
     <>
-      <nav className="bg-white shadow-sm py-1 px-4 h-10 w-full fixed top-0 left-0 right-0 z-50">
+      <nav className="bg-[#181818] shadow-sm py-1 px-4 h-13 w-full fixed top-0 left-0 right-0 z-50">
         <div className="mx-auto flex justify-between items-center">
           <Link href="/assets" className="font-medium text-xl">
-            <Image src="/Vastbase_logo.svg" alt="Vastbase" width={48} height={48} />
+            <img src="/vastbase.svg" className='h-13' />
           </Link>
+
+          <p className='text-white'>All assets on this platform are on testnets only</p>
           
           {isLoggedIn && (
             <Tooltip>
@@ -45,7 +45,7 @@ export default function AppNavbar() {
                   onClick={handleLogout}
                   className="p-2 text-gray-600 hover:text-gray-900 cursor-pointer rounded-md hover:bg-gray-100"
                 >
-                  <LogOut className="w-4 h-4" />
+                  <LogOut className="w-4 h-4 text-white" />
                 </button>
               </TooltipTrigger>
               <TooltipContent>
@@ -56,7 +56,7 @@ export default function AppNavbar() {
         </div>
       </nav>
       {/* Spacer div to push content down */}
-      <div className="h-10"></div>
+      <div className="h-13"></div>
     </>
   )
 } 
