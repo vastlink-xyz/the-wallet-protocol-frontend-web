@@ -26,7 +26,7 @@ export function TeamWalletSettingsActions({
   const [userPkp, setUserPkp] = useState<IRelayPKP | null>(null)
   
   // Notifications hook for UI refresh
-  const { refreshProposalUI } = useNotifications({
+  const { refreshNotifications } = useNotifications({
     enabled: false, // only need the refresh function
   })
   
@@ -64,7 +64,7 @@ export function TeamWalletSettingsActions({
 
   const handleSettingsSuccess = async () => {
     // Refresh data after settings change
-    refreshProposalUI(authMethodId, userPkp?.ethAddress)
+    refreshNotifications(authMethodId, userPkp?.ethAddress)
     
     // Refresh proposals data
     if (refreshProposals) {

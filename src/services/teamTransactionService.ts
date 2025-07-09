@@ -21,7 +21,7 @@ interface CreateAndApproveTransactionProposalParams {
   authMethodId: string
   user: User
   setIsSending: (sending: boolean) => void
-  refreshProposalUI: (authMethodId: string, ethAddress?: string) => void
+  refreshNotifications: (authMethodId: string, ethAddress?: string) => void
   refreshProposals?: () => Promise<any>
   onProposalChange?: () => void
   setShowSendDialog: (show: boolean) => void
@@ -41,7 +41,7 @@ export const createAndApproveTransactionProposal = async ({
   authMethodId,
   user,
   setIsSending,
-  refreshProposalUI,
+  refreshNotifications,
   refreshProposals,
   onProposalChange,
   setShowSendDialog,
@@ -88,7 +88,7 @@ export const createAndApproveTransactionProposal = async ({
         const updatedProposal = await fetchProposal(proposal.id, wallet.id)
         
         // Invalidate proposal related data after signing
-        refreshProposalUI(authMethodId, userPkp?.ethAddress)
+        refreshNotifications(authMethodId, userPkp?.ethAddress)
         
         // Refresh proposals data
         if (refreshProposals) {
@@ -124,7 +124,7 @@ interface ExecuteTransactionProposalParams {
   userPkp: IRelayPKP
   authMethod: AuthMethod
   authMethodId: string
-  refreshProposalUI: (authMethodId: string, ethAddress?: string) => void
+  refreshNotifications: (authMethodId: string, ethAddress?: string) => void
   refreshProposals?: () => Promise<any>
   onProposalChange?: () => void
   setShowSendDialog: (show: boolean) => void
@@ -140,7 +140,7 @@ export const executeTeamTransactionProposal = async ({
   userPkp,
   authMethod,
   authMethodId,
-  refreshProposalUI,
+  refreshNotifications,
   refreshProposals,
   onProposalChange,
   setShowSendDialog,
@@ -226,7 +226,7 @@ export const executeTeamTransactionProposal = async ({
     toast.success(`Transaction completed`)
 
     // Invalidate proposal related data after execution
-    refreshProposalUI(authMethodId, userPkp?.ethAddress)
+    refreshNotifications(authMethodId, userPkp?.ethAddress)
 
     // Refresh proposals data
     if (refreshProposals) {

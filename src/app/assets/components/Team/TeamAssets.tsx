@@ -45,14 +45,14 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ authMethod }, r
   const [isLoadingUserData, setIsLoadingUserData] = useState(true)
 
   // Notifications hook for UI refresh
-  const { refreshProposalUI } = useNotifications({
+  const { refreshNotifications } = useNotifications({
     enabled: false, // only need the refresh function
   });
 
   // Handler to refresh team wallets data
   const handleRefreshWallets = useCallback(() => {
-    refreshProposalUI(authMethodId, userPkp?.ethAddress);
-  }, [refreshProposalUI, authMethodId, userPkp?.ethAddress]);
+    refreshNotifications(authMethodId, userPkp?.ethAddress);
+  }, [refreshNotifications, authMethodId, userPkp?.ethAddress]);
 
   // Team wallets data using React Query
   const { 
@@ -151,7 +151,7 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ authMethod }, r
       authMethodId,
       user,
       setIsSending,
-      refreshProposalUI,
+      refreshNotifications,
       setShowSendDialog,
       executeTransactionHandler: handleExecuteTransactionProposal,
     })
@@ -178,7 +178,7 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ authMethod }, r
       userPkp,
       authMethod,
       authMethodId,
-      refreshProposalUI,
+      refreshNotifications,
       setShowSendDialog,
       setShowMfaDialog,
       otpCode,

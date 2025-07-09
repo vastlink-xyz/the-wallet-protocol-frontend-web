@@ -56,7 +56,7 @@ export default function ProposalsPage() {
   const { handleExpiredAuth, verifyAuthOrRedirect } = useAuthExpiration();
 
   // Notifications hook for UI refresh
-  const { refreshProposalUI } = useNotifications({
+  const { refreshNotifications } = useNotifications({
     enabled: false, // only need the refresh function
   });
 
@@ -136,7 +136,7 @@ export default function ProposalsPage() {
         const newProposals = await refreshProposals();
 
         // Invalidate proposal related data to update notification and red dots
-        refreshProposalUI(authMethodId, userPkp?.ethAddress);
+        refreshNotifications(authMethodId, userPkp?.ethAddress);
 
         toast.success('Wallet settings updated successfully')
       }
@@ -240,7 +240,7 @@ export default function ProposalsPage() {
       const newProposals = await refreshProposals();
 
       // Refresh proposal UI to update notification and red dots
-      refreshProposalUI(authMethodId, userPkp?.ethAddress);
+      refreshNotifications(authMethodId, userPkp?.ethAddress);
     }
   }
 
@@ -324,7 +324,7 @@ export default function ProposalsPage() {
         const newProposals = await refreshProposals();
         
         // Invalidate proposal related data to update notification and red dots
-        refreshProposalUI(authMethodId, userPkp?.ethAddress);
+        refreshNotifications(authMethodId, userPkp?.ethAddress);
         
         // Find the updated proposal
         const updatedProposal = newProposals.find((p: MessageProposal) => p.id === proposal.id)
@@ -444,7 +444,7 @@ export default function ProposalsPage() {
         await refreshProposals();
         
         // Invalidate proposal related data to update notification and red dots
-        refreshProposalUI(authMethodId, userPkp.ethAddress);
+        refreshNotifications(authMethodId, userPkp.ethAddress);
         
         toast.success('Proposal canceled successfully');
       } else {

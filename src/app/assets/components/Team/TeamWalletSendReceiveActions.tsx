@@ -30,7 +30,7 @@ export function TeamWalletSendReceiveActions({
   const [currentProposal, setCurrentProposal] = useState<MessageProposal | null>(null)
   
   // Notifications hook for UI refresh
-  const { refreshProposalUI } = useNotifications({
+  const { refreshNotifications } = useNotifications({
     enabled: false, // only need the refresh function
   })
   
@@ -80,7 +80,7 @@ export function TeamWalletSendReceiveActions({
       authMethodId,
       user,
       setIsSending,
-      refreshProposalUI,
+      refreshNotifications,
       refreshProposals,
       onProposalChange,
       setShowSendDialog,
@@ -109,7 +109,7 @@ export function TeamWalletSendReceiveActions({
       userPkp,
       authMethod,
       authMethodId,
-      refreshProposalUI,
+      refreshNotifications,
       refreshProposals,
       onProposalChange,
       setShowSendDialog,
