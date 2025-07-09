@@ -38,12 +38,18 @@ export default function GoogleCallbackPage() {
           const googleProvider = getProviderByAuthMethodType(AUTH_METHOD_TYPE.GoogleJwt);
           const authMethod = await googleProvider.authenticate();
           
+          if (!authMethod) {
+            throw new Error('Authentication failed: No auth method received');
+          }
+          
           // Store authentication method
           setAuthMethodToStorage(authMethod);
 
-          const userEmail = getEmailFromGoogleToken(authMethod.accessToken);
-          setEmail(userEmail);
-          setUserDataToStorage({ email: userEmail })
+          const userEmail = authMethod.accessToken ? getEmailFromGoogleToken(authMethod.accessToken) : null;
+          if (userEmail) {
+            setEmail(userEmail);
+            setUserDataToStorage({ email: userEmail });
+          }
           
           setAuthMethod(authMethod);
 
@@ -63,13 +69,13 @@ export default function GoogleCallbackPage() {
         setAuthMethod(storedAuthMethod);
         
         // get user email
-        const userEmail = getEmailFromGoogleToken(storedAuthMethod.accessToken);
-        setEmail(userEmail);
-        
-        // Store user email in localStorage
+        const userEmail = storedAuthMethod?.accessToken ? getEmailFromGoogleToken(storedAuthMethod.accessToken) : null;
         if (userEmail) {
+          setEmail(userEmail);
+          
+          // Store user email in localStorage
           try {
-            setUserDataToStorage({ email: userEmail })
+            setUserDataToStorage({ email: userEmail });
           } catch (error) {
             console.error('Failed to save user email to localStorage:', error);
           }
@@ -92,8 +98,10 @@ export default function GoogleCallbackPage() {
         const authMethodId = await googleProvider.getAuthMethodId(authMethod);
         
         // Get user email
-        const userEmail = getEmailFromGoogleToken(authMethod.accessToken);
-        setEmail(userEmail);
+        const userEmail = authMethod?.accessToken ? getEmailFromGoogleToken(authMethod.accessToken) : null;
+        if (userEmail) {
+          setEmail(userEmail);
+        }
         
         // Check if user has PKPs
         const hasPkps = await checkUserPkps(authMethodId, userEmail);

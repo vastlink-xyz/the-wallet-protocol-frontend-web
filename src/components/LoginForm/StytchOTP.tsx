@@ -50,6 +50,11 @@ const StytchOTP = ({
       });
       
       console.log('OTP sent successfully:', data);
+      
+      if (!data?.method_id) {
+        throw new Error('Invalid response: method_id not found');
+      }
+      
       setMethodId(data.method_id);
       setStep('verify');
     } catch (err: any) {
@@ -70,11 +75,20 @@ const StytchOTP = ({
         code
       });
       
+      if (!data?.session_jwt || !data?.user_id) {
+        throw new Error('Invalid response: session_jwt or user_id not found');
+      }
+      
       // Use the session JWT and user ID to authenticate with Lit Protocol
-      const provider = await getProviderByAuthMethodType(AUTH_METHOD_TYPE.StytchEmailFactorOtp);
+      const provider = getProviderByAuthMethodType(AUTH_METHOD_TYPE.StytchEmailFactorOtp);
+      
+      if (!provider) {
+        throw new Error('Failed to get Stytch provider');
+      }
+      
       // Note: session_duration_minutes must be set here to sync with the Stytch session duration
       // This ensures the provider's session duration matches the Stytch session duration
-      const authMethod = await provider?.authenticate({
+      const authMethod = await provider.authenticate({
         accessToken: data.session_jwt,
         userId: data.user_id,
         session_duration_minutes: STYTCH_SESSION_DURATION_MINUTES,

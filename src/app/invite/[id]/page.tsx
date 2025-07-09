@@ -28,7 +28,11 @@ export default function InvitePage() {
     const loadInvitation = async () => {
       try {
         setIsLoading(true);
-        log('idid', params.id)
+        log('idid', params?.id || 'undefined')
+        
+        if (!params?.id) {
+          throw new Error('Invalid invitation ID');
+        }
         
         const response = await fetch(`/api/invitation?id=${params.id}`);
         if (!response.ok) {
@@ -37,11 +41,13 @@ export default function InvitePage() {
         }
         
         const data = await response.json();
-        if (data.success && data.data) {
+        if (data?.success && data?.data) {
           setInvitation(data.data);
           
           // Check if user is already logged in with different email
-          await checkEmailMismatch(data.data.recipientEmail);
+          if (data.data.recipientEmail) {
+            await checkEmailMismatch(data.data.recipientEmail);
+          }
         } else {
           throw new Error('Invalid invitation data');
         }
@@ -69,8 +75,12 @@ export default function InvitePage() {
         userEmail = getUserEmailFromStorage();
 
         // If not cached, extract from auth method
-        if (!userEmail && authMethod.authMethodType === AUTH_METHOD_TYPE.GoogleJwt) {
-          userEmail = getEmailFromGoogleToken(authMethod.accessToken);
+        if (!userEmail && authMethod?.authMethodType === AUTH_METHOD_TYPE.GoogleJwt && authMethod?.accessToken) {
+          try {
+            userEmail = getEmailFromGoogleToken(authMethod.accessToken);
+          } catch (error) {
+            console.error('Error extracting email from Google token:', error);
+          }
         }
 
         if (userEmail) {
@@ -139,7 +149,7 @@ export default function InvitePage() {
                   <div className="space-y-2">
                     <p className="font-medium text-orange-800">Email Mismatch Detected</p>
                     <p className="text-sm text-orange-700">
-                      You're currently logged in as <span className="font-medium">{currentUserEmail}</span>, 
+                      You&apos;re currently logged in as <span className="font-medium">{currentUserEmail}</span>, 
                       but this invitation is for <span className="font-medium">{invitation.recipientEmail}</span>.
                     </p>
                     <p className="text-sm text-orange-700">

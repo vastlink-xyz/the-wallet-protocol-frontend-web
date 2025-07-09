@@ -96,6 +96,10 @@ export default function StytchCallbackPage() {
       try {
         const authMethod = JSON.parse(storedAuthMethod);
         
+        if (!authMethod?.accessToken) {
+          throw new Error('No access token found in stored auth method');
+        }
+        
         // Get authMethod ID using token
         const userId = getUserIdFromToken(authMethod.accessToken);
         log('Stytch userId:', userId);
@@ -104,6 +108,10 @@ export default function StytchCallbackPage() {
         try {
           const { data } = await axios.post('/api/stytch/get-user-email', { userId });
           log('User data from API:', data);
+          
+          if (!data?.email) {
+            throw new Error('No email found in user data');
+          }
           
           // Set email from response
           setEmail(data.email);
@@ -115,7 +123,7 @@ export default function StytchCallbackPage() {
         
       } catch (error) {
         console.error('Failed to parse stored auth method:', error);
-        setError('Authentication data is invalid');
+        setError(error instanceof Error ? error.message : 'Authentication data is invalid');
         setLoading(false);
       }
     } else {
