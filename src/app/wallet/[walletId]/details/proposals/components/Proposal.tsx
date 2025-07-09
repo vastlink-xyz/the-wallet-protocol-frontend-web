@@ -104,7 +104,7 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
     </div>
     <div className="text-sm text-gray-500 mb-1">
       <span className="font-medium text-gray-700">Threshold:</span>
-      <span> {displayThreshold}</span>
+      <span> {displayThreshold} of {displaySigners?.length || 0}</span>
     </div>
     {(proposal as any).createdAt && (
       <div className="text-sm text-gray-500 mb-1">

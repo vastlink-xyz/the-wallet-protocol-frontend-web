@@ -57,8 +57,16 @@ export function generateSettingsChangeDescriptions(
   // Threshold changes with old -> new format
   if (settingsData.threshold !== undefined && originalState?.threshold !== undefined) {
     if (settingsData.threshold !== originalState.threshold) {
-      descriptions.push(`Threshold: ${originalState.threshold} → ${settingsData.threshold}`);
-      changes.threshold = { from: originalState.threshold, to: settingsData.threshold };
+      const originalSignersCount = originalState.signers?.length || 0;
+      const newSignersCount = settingsData.signers?.length || originalSignersCount;
+      
+      descriptions.push(`Threshold: ${originalState.threshold} of ${originalSignersCount} → ${settingsData.threshold} of ${newSignersCount}`);
+      changes.threshold = { 
+        from: originalState.threshold, 
+        to: settingsData.threshold,
+        fromSignersCount: originalSignersCount,
+        toSignersCount: newSignersCount
+      };
     }
   }
 

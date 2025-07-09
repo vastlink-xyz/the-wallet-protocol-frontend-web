@@ -46,7 +46,9 @@ export function WalletSettingsProposal({ proposal, selectedWallet }: WalletSetti
           {changeResult.changes.threshold && (
             <div className="text-sm">
               <span className="text-gray-600 font-bold">Threshold:</span> 
-              <span className="text-gray-800 ml-2">{changeResult.changes.threshold.from} → {changeResult.changes.threshold.to}</span>
+              <span className="text-gray-800 ml-2">
+                {changeResult.changes.threshold.from} of {changeResult.changes.threshold.fromSignersCount} → {changeResult.changes.threshold.to} of {changeResult.changes.threshold.toSignersCount}
+              </span>
             </div>
           )}
           
