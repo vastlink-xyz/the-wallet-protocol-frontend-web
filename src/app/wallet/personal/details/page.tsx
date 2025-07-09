@@ -60,7 +60,7 @@ export default function PersonalWalletDetailsPage() {
   return (
     <div className={cn(
         "mx-auto p-6 relative",
-        'w-[342px] tablet:w-[725px] laptop:w-[908px] desktop:w-[1224px]',
+        'w-[342px] laptop:w-[808px] desktop:w-[1224px]',
       )}
     >
       <div className="flex items-center justify-between">
@@ -81,7 +81,7 @@ export default function PersonalWalletDetailsPage() {
       </div>
 
       <div className={cn(
-        'w-[342px] tablet:w-[640px]',
+        'w-[342px] laptop:w-[640px]',
         'mx-auto mb-[80px] mt-[24px]',
       )}>
 

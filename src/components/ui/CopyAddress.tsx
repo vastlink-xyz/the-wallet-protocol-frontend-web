@@ -43,8 +43,8 @@ export function CopyAddress({ textToCopy, className, iconSize = 12, isTruncate =
       )} title={textToCopy}>
         {isTruncate ? truncateMiddle(textToCopy) : (
           <>
-            <span className='hidden tablet:inline'>{textToCopy}</span>
-            <span className='tablet:hidden'>{truncateMiddle(textToCopy)}</span>
+            <span className='hidden laptop:inline'>{textToCopy}</span>
+            <span className='laptop:hidden'>{truncateMiddle(textToCopy)}</span>
           </>
         )}
       </p>

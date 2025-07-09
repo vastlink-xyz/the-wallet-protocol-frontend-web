@@ -26,7 +26,7 @@ export default function PortfolioPage() {
 
   return <div className={cn(
     "mx-auto pb-8",
-    'w-[343px] tablet:w-[726px] laptop:w-[726px] desktop:w-[1109px]',
+    'w-[343px] laptop:w-[726px] desktop:w-[1109px]',
   )}>
     <header className="flex justify-between items-center my-7">
       <p className="text-black text-3xl font-bold">Wallets</p>

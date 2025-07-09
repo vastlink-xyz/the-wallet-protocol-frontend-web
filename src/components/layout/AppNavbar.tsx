@@ -1,17 +1,20 @@
 'use client'
 
 import { useRouter, usePathname } from 'next/navigation'
-import { LogOut } from 'lucide-react'
+import { LogOut, MenuIcon, Sidebar } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { getAuthMethodFromStorage } from '@/lib/storage/authmethod'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { shouldHideNavbar } from '@/constants/routes'
+import { cn } from '@/lib/utils'
+import { SidebarMobile } from './Sidebar'
 
 export default function AppNavbar() {
   const router = useRouter()
   const pathname = usePathname()
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
   
   useEffect(() => {
     // Check if user is logged in
@@ -37,23 +40,38 @@ export default function AppNavbar() {
             <img src="/vastbase.svg" className='h-13' />
           </Link>
 
-          <p className='text-white'>All assets on this platform are on testnets only</p>
-          
-          {isLoggedIn ? (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={handleLogout}
-                  className="p-2 text-gray-600 hover:text-gray-900 cursor-pointer rounded-md hover:bg-gray-100"
-                >
-                  <LogOut className="w-4 h-4 text-white" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>
-                Logout
-              </TooltipContent>
-            </Tooltip>
-          ) : <span></span>}
+          <p className={cn(
+            'text-white',
+            'text-xs tablet:text-base'
+          )}>
+            All assets here are on testnets only
+          </p>
+
+          <div className='flex items-center gap-2'>
+            <div className={cn(
+              'tablet:hidden relative'
+            )}>
+              <MenuIcon 
+                className='w-4 h-4 text-white cursor-pointer' 
+                onClick={() => setIsMobileSidebarOpen(true)}
+              />
+              <SidebarMobile 
+                isOpen={isMobileSidebarOpen} 
+                onClose={() => setIsMobileSidebarOpen(false)} 
+              />
+            </div>
+
+            {isLoggedIn ? (
+              <Tooltip>
+                <TooltipTrigger asChild className='hidden tablet:block'>
+                  <LogOut onClick={handleLogout} className="w-4 h-4 text-white cursor-pointer rounded-md" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  Logout
+                </TooltipContent>
+              </Tooltip>
+            ) : null}
+          </div>
         </div>
       </nav>
       {/* Spacer div to push content down */}

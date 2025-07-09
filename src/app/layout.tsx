@@ -9,7 +9,7 @@ import AppNavbar from "@/components/layout/AppNavbar";
 import { NotificationContainer } from "@/components/layout/NotificationContainer";
 import AuthGuard from "@/components/layout/AuthGuard";
 import { QueryProvider } from "@/providers/QueryProvider";
-import { Sidebar } from "@/components/layout/Sidebar";
+import Sidebar from "@/components/layout/Sidebar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -44,15 +44,19 @@ export default function RootLayout({
           <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}>
             <AppNavbar />
 
-            {/* Unified notification system */}
-            <NotificationContainer />
-
             <AuthGuard />
-            <div className="flex min-h-screen">
-              <Sidebar />
-              <main className="flex-1">
-                {children}
-              </main>
+
+            <div className="h-[calc(100vh-52px)] flex flex-col">
+              {/* Unified notification system */}
+              <NotificationContainer />
+
+              <div className="flex flex-1 min-h-0">
+                <Sidebar />
+                <main className="flex-1 overflow-y-auto relative">
+                  {children}
+                </main>
+              </div>
+
             </div>
             
             <ToastContainer

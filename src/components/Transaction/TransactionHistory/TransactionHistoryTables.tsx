@@ -52,7 +52,7 @@ export function TableList({ data, tokenType, isLoading }: ITableListProps) {
       </TableHeader>
 
       {/* desktop */}
-      <TableBody className="hidden tablet:table-row-group">
+      <TableBody className="hidden laptop:table-row-group">
         {data.map((transaction) => (
           <TableRow key={transaction.txid} className="hover:bg-transparent">
             {/* token */}
@@ -195,7 +195,7 @@ export function TableList({ data, tokenType, isLoading }: ITableListProps) {
       </TableBody>
 
       {/* mobile */}
-      <TableBody className="table-row-group tablet:hidden">
+      <TableBody className="table-row-group laptop:hidden">
         {data.map((transaction) => (
           <TableRow key={transaction.txid} className="hover:bg-transparent">
             <TableCell className={cn(
