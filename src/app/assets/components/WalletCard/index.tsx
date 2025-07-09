@@ -1,6 +1,7 @@
 import { Settings, ChevronRightCircle, ArrowUpRightFromCircle, ArrowDownLeftFromCircle, Plus, PlusCircle, MoreHorizontal } from "lucide-react"
 import { getAvatarColor, getInitials } from "./helpers"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { Balance } from "./Balance"
 import { ReceiveModal } from "./ReceiveModal"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
@@ -93,7 +94,7 @@ export function WalletCard({
           "text-lg text-center mb-[6px] font-bold cursor-pointer hover:opacity-80 transition-opacity",
           isPersonal ? "text-[#ffffff]" : "text-[#000000]"
         )} onClick={onDetailsClick}>{walletName}</p>
-        
+
         {variant === 'team' && avatars.length > 0 && (
           <div className="flex justify-center items-center gap-1 mb-4 mt-4">
             <div className="flex -space-x-2">
@@ -114,11 +115,8 @@ export function WalletCard({
             </div>
           </div>
         )}
-        
-        {/* <p className={cn(
-          "mb-[65px] text-3xl font-bold text-center",
-          isPersonal ? "text-white" : "text-black"
-        )}>$12,324</p> */}
+
+        <Balance className="mb-[65px]" isPersonal={isPersonal} />
       </div>
 
       <div className="flex justify-center gap-[40px]">
