@@ -5,10 +5,11 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "../styles/toast.css";
-import AppNavbar from "@/components/AppNavbar";
-import { NotificationContainer } from "@/components/NotificationContainer";
-import AuthGuard from "@/components/AuthGuard";
+import AppNavbar from "@/components/layout/AppNavbar";
+import { NotificationContainer } from "@/components/layout/NotificationContainer";
+import AuthGuard from "@/components/layout/AuthGuard";
 import { QueryProvider } from "@/providers/QueryProvider";
+import { Sidebar } from "@/components/layout/Sidebar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -47,9 +48,12 @@ export default function RootLayout({
             <NotificationContainer />
 
             <AuthGuard />
-            <main>
-              {children}
-            </main>
+            <div className="flex min-h-screen">
+              <Sidebar />
+              <main className="flex-1">
+                {children}
+              </main>
+            </div>
             
             <ToastContainer
               position="top-center"

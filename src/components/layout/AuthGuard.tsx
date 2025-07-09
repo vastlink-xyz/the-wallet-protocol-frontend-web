@@ -3,35 +3,7 @@
 import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import { useAuthExpiration } from '@/hooks/useAuthExpiration'
-
-// Define routes that require authentication
-const PROTECTED_ROUTES = [
-  '/assets',
-  '/wallet',
-  '/swap',
-  '/debug'
-]
-
-// Define public routes (no authentication required)
-const PUBLIC_ROUTES = [
-  '/',
-  '/invite',
-  '/auth/google-callback',
-  '/auth/stytch-callback'
-]
-
-/**
- * Check if a path requires authentication
- */
-function isProtectedRoute(pathname: string): boolean {
-  // Check if it's a public route
-  if (PUBLIC_ROUTES.some(route => pathname === route || pathname.startsWith(route + '/'))) {
-    return false
-  }
-  
-  // Check if it's a protected route
-  return PROTECTED_ROUTES.some(route => pathname.startsWith(route))
-}
+import { isProtectedRoute } from '@/constants/routes'
 
 /**
  * Global authentication guard component

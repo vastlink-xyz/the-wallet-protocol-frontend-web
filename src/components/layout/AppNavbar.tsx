@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { getAuthMethodFromStorage } from '@/lib/storage/authmethod'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
+import { shouldHideNavbar } from '@/constants/routes'
 
 export default function AppNavbar() {
   const router = useRouter()
@@ -23,8 +24,8 @@ export default function AppNavbar() {
     router.push('/')
   }
 
-  // Don't show navbar on login page
-  if (pathname === '/' || pathname.startsWith('/invite/')) {
+  // Don't show navbar on public routes
+  if (shouldHideNavbar(pathname)) {
     return null
   }
   
@@ -38,7 +39,7 @@ export default function AppNavbar() {
 
           <p className='text-white'>All assets on this platform are on testnets only</p>
           
-          {isLoggedIn && (
+          {isLoggedIn ? (
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
@@ -52,7 +53,7 @@ export default function AppNavbar() {
                 Logout
               </TooltipContent>
             </Tooltip>
-          )}
+          ) : <span></span>}
         </div>
       </nav>
       {/* Spacer div to push content down */}

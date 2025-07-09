@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { usePathname } from 'next/navigation';
 import { useMemo, useCallback } from 'react';
 import { notificationService, BaseNotification, NotificationContext } from '@/services/NotificationService';
+import { shouldShowNotificationOnPath } from '@/constants/routes';
 
 interface UseNotificationsOptions {
   enabled?: boolean;
@@ -13,10 +14,7 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
   const queryClient = useQueryClient();
 
   const shouldShow = useMemo(() => {
-    const excludedPaths = ['/auth/google-callback', '/auth/stytch-callback', '/login', '/invite'];
-    const exactExcludedPaths = ['/'];
-    const isExcluded = excludedPaths.some(excludedPath => pathname.startsWith(excludedPath)) || exactExcludedPaths.includes(pathname);
-    return !isExcluded;
+    return shouldShowNotificationOnPath(pathname);
   }, [pathname]);
 
   // Separate queries for different notification types

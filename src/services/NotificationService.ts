@@ -1,4 +1,6 @@
 
+import { shouldShowNotificationOnPath } from '@/constants/routes';
+
 export type NotificationType = 'mfa_setup';
 
 export interface BaseNotification {
@@ -33,16 +35,7 @@ export class NotificationService {
 
 
   private shouldShowOnPath(path: string): boolean {
-    const excludedPaths = [
-      '/auth/google-callback',
-      '/auth/stytch-callback',
-      '/login',
-      '/invite'
-    ];
-    const exactExcludedPaths = ['/'];
-    
-    const isExcluded = excludedPaths.some(excludedPath => path.startsWith(excludedPath)) || exactExcludedPaths.includes(path);
-    return !isExcluded;
+    return shouldShowNotificationOnPath(path);
   }
 
   public async getNotifications(context: NotificationContext): Promise<BaseNotification[]> {
