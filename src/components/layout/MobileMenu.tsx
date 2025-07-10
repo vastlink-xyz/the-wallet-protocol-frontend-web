@@ -1,12 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Wallet, LogOut, MenuIcon } from 'lucide-react';
+import { Wallet, LogOut, MenuIcon, Server } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
 import { isProtectedRoute } from '@/constants/routes';
 import { cn } from '@/lib/utils';
+import { useNotifications } from '@/hooks/useNotifications';
 
 interface MobileMenuItemProps {
   href: string;
@@ -42,6 +43,7 @@ export function MobileMenu() {
   const [mounted, setMounted] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const { proposalNotifications } = useNotifications();
 
   useEffect(() => {
     setMounted(true);
@@ -98,6 +100,20 @@ export function MobileMenu() {
                   <div className="flex items-center space-x-3">
                     <Wallet className="w-5 h-5" />
                     <span className="font-medium">Wallets</span>
+                  </div>
+                </MobileMenuItem>
+                
+                <MobileMenuItem href="/proposals" onClick={handleLinkClick} className="relative">
+                  <div className="flex items-center justify-between w-full">
+                    <div className="flex items-center space-x-3">
+                      <Server className="w-5 h-5" />
+                      <span className="font-medium">Proposals</span>
+                    </div>
+                    {proposalNotifications.length > 0 && (
+                      <div className="bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                        {proposalNotifications.length}
+                      </div>
+                    )}
                   </div>
                 </MobileMenuItem>
                 
