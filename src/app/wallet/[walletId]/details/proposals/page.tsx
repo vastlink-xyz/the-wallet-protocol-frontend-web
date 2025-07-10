@@ -3,10 +3,8 @@
 import { MessageProposal } from "@/app/api/multisig/storage";
 import { useState, useEffect, useRef } from "react";
 import { Proposal } from "./components/Proposal";
-import { fetchProposals, fetchUpdatedWallet, getTransactionDetails, sendNotificationsToNewSigners } from "./utils/proposal";
 import { useWallet } from "../context/WalletContext";
 import { useParams, useSearchParams } from "next/navigation";
-import { getMultisigTransactionIpfsId, getPersonalSignIpfsId, getUpdateWalletIpfsId } from "@/lib/lit/ipfs-id-env";
 import { getSessionSigsByPkp, litNodeClient } from "@/lib/lit";
 import { log } from "@/lib/utils";
 import axios from "axios";
@@ -331,15 +329,6 @@ export default function ProposalsPage() {
         
         // Check if signatures have reached the threshold
         if (updatedProposal && updatedProposal.signatures.length >= wallet.threshold) {
-          console.log('All required signatures collected for proposal:', proposal.id)
-          log('Multisig proposal complete:', {
-            proposalId: proposal.id,
-            message: proposal.message,
-            signatures: updatedProposal.signatures.length,
-            requiredSignatures: wallet.threshold,
-            status: 'Complete'
-          })
-          
           // Automatically execute the multisig action once threshold is reached
           await executeMultisigLitAction(updatedProposal)
         }

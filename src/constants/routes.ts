@@ -6,6 +6,7 @@
 export const PROTECTED_ROUTES = [
   '/assets',
   '/wallet',
+  '/proposals',
   '/swap',
   '/debug'
 ] as const;

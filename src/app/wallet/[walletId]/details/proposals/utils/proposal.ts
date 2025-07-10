@@ -50,11 +50,6 @@ export const getTransactionDetails = (proposal: MessageProposal, wallet: Multisi
   }
 };
 
-export const fetchProposals = async (walletId: string) => {
-  const { data } = await axios.get(`/api/multisig/messages?walletId=${walletId}`)
-  return data.data
-}
-
 export const fetchProposal = async (proposalId: string, walletId: string) => {
   const { data } = await axios.get(`/api/multisig/messages?proposalId=${proposalId}&walletId=${walletId}`)
   return data.data
