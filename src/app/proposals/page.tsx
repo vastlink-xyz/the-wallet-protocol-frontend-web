@@ -21,7 +21,7 @@ import { SUPPORTED_TOKENS_INFO } from "@/lib/web3/token";
 import { sendProposalExecutedNotification } from "@/lib/notification/proposal-executed-notification";
 import { MFAOtpDialog } from "@/components/Transaction/MFAOtpDialog";
 import { useSearchParams } from "next/navigation";
-import { useRef } from "react";
+import { useRef, Suspense } from "react";
 
 type ProposalStatus = "pending" | "completed" | "canceled";
 
@@ -676,7 +676,9 @@ export default function ProposalsPage() {
       
       {/* Tab Content */}
       <div>
-        <ProposalsList status={activeTab} />
+        <Suspense fallback={null}>
+          <ProposalsList status={activeTab} />
+        </Suspense>
       </div>
     </div>
   );
