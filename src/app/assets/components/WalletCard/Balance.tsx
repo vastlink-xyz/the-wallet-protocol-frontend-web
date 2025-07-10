@@ -2,31 +2,30 @@
 
 import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
-import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
-import { getAuthIdByAuthMethod } from '@lit-protocol/lit-auth-client';
 import { Loader2Icon } from 'lucide-react';
+import { MultisigWalletAddresses } from '@/app/api/multisig/storage';
 
 interface BalanceProps extends React.HTMLAttributes<HTMLDivElement> {
-  isPersonal: boolean;
+  variant?: 'personal' | 'team'
+  addresses: MultisigWalletAddresses
 }
 
-export function Balance({ className, isPersonal }: BalanceProps) {
+export function Balance({ className, variant = 'personal', addresses }: BalanceProps) {
+  const isPersonal = variant === 'personal'
+
   const {
     data: balance,
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['balance'],
+    queryKey: ['balance', addresses.btc, addresses.eth],
     queryFn: async (): Promise<number> => {
-      const storedAuthMethod = getAuthMethodFromStorage();
-      if (!storedAuthMethod) {
-        throw new Error('No auth method found');
-      }
-
-      const authMethodId = await getAuthIdByAuthMethod(storedAuthMethod);
-
-      // Fetch user's information from database API
-      const res = await fetch(`/api/user/balance?authMethodId=${authMethodId}`);
+      const url = "/api/balance"
+      const res = await fetch(url, {
+          method: "PUT",
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(addresses),
+        });
       if (!res.ok) {
         throw new Error('Failed to fetch balance');
       }
@@ -42,17 +41,20 @@ export function Balance({ className, isPersonal }: BalanceProps) {
   return (
     <div
       className={cn(
-        'flex flex-row text-3xl font-bold text-center justify-center items-center',
+        'flex flex-row  text-center justify-center items-center',
         className
       )}
     >
-      {isLoading && <Loader2Icon className="animate-spin text-white w-8 h-8" />}
+      {isLoading && <Loader2Icon className={cn(
+        "animate-spin text-white w-8 h-8",
+        isPersonal ? 'text-white' : 'text-black'
+      )} />}
       {(!isLoading && error) && (
-        <span className="leading-8 text-red-500">Error loading balance</span>
+        <span className="leading-8 text-red-500">Failed to loading balance</span>
       )}
       {(!isLoading && !error && balance) && (
         <span
-          className={cn('leading-8', isPersonal ? 'text-white' : 'text-black')}
+          className={cn('leading-8 text-3xl font-bold', isPersonal ? 'text-white' : 'text-black')}
         >
           ${balance.toFixed(2)}
         </span>
