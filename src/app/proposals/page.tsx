@@ -82,9 +82,6 @@ function ProposalsList({ status }: { status: ProposalStatus }) {
           if (userData.litActionPkp) {
             setUserPkp(userData.litActionPkp);
           }
-          if (userData.phone) {
-            setUserPhone(userData.phone);
-          }
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
@@ -94,6 +91,35 @@ function ProposalsList({ status }: { status: ProposalStatus }) {
     }
 
     fetchUserData();
+  }, []);
+
+  // Fetch user phone number separately
+  useEffect(() => {
+    async function fetchUserPhone() {
+      try {
+        const authMethod = getAuthMethodFromStorage();
+        if (!authMethod) return;
+
+        const phoneResponse = await fetch('/api/mfa/get-user-phone', {
+          headers: {
+            'Authorization': `Bearer ${authMethod.accessToken}`
+          }
+        });
+
+        if (phoneResponse.ok) {
+          const phoneData = await phoneResponse.json();
+          const phones = phoneData.phones || [];
+          
+          if (phones.length > 0) {
+            setUserPhone(phones[0].phone_number);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching user phone:', error);
+      }
+    }
+
+    fetchUserPhone();
   }, []);
 
   // Use new proposals API with user address and status filtering
