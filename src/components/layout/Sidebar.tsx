@@ -3,19 +3,48 @@
 import { useEffect, useState } from 'react';
 import { Wallet, Settings, Server, CreditCard, LucideArrowLeft, ChevronLeft, LogOut } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
 import { isProtectedRoute } from '@/constants/routes';
 import { Badge } from '../ui/badge';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { useMediaQuery } from '@/hooks/useMediaQuery';
+import Link from 'next/link';
 
-interface SidebarItem {
-  icon: React.ReactNode;
-  label: string;
+interface SidebarItemProps {
   href: string;
-  badge?: number;
+  children: React.ReactNode;
+  isCollapsed?: boolean;
+  onClick?: () => void;
+  className?: string;
+}
+
+function SidebarItem({ 
+  href, 
+  children, 
+  isCollapsed = false, 
+  onClick,
+  className 
+}: SidebarItemProps) {
+  const pathname = usePathname();
+  const isActive = pathname === href;
+
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      className={cn(
+        'flex items-center py-2.5 font-medium transition-colors',
+        isCollapsed ? 'justify-center px-3 mx-3' : 'justify-between px-6',
+        isActive 
+          ? 'bg-black/20 text-[#090909]' 
+          : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900',
+        className
+      )}
+    >
+      {children}
+    </Link>
+  );
 }
 
 export function SidebarDesktop() {
@@ -48,25 +77,6 @@ export function SidebarDesktop() {
     return null;
   }
 
-  const sidebarItems: SidebarItem[] = [
-    {
-      icon: <Wallet className="w-5 h-5" />,
-      label: 'Wallets',
-      href: '/assets',
-    },
-    {
-      icon: <Server className="w-5 h-5" />,
-      label: 'Proposal',
-      href: '/proposals',
-      badge: 12,
-    },
-    // {
-    //   icon: <Settings className="w-5 h-5" />,
-    //   label: 'Setting',
-    //   href: '/settings',
-    // },
-  ];
-
   const handleLogout = () => {
     localStorage.clear()
     router.push('/')
@@ -93,30 +103,26 @@ export function SidebarDesktop() {
         </div>
 
         <nav className="space-y-6">
-          {sidebarItems.map((item) => (
-            <Link
-              key={item.label}
-              href={item.href}
-              className={cn(
-                'flex items-center py-2.5 font-medium transition-colors',
-                isCollapsed ? 'justify-center px-3 mx-3' : 'justify-between px-6',
-                pathname === item.href 
-                  ? 'bg-black/20 text-[#090909]' 
-                  : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
-              )}
-            >
-              <div className={cn(
-                'flex items-center',
-                isCollapsed ? 'justify-center' : 'space-x-5'
-              )}>
-                {item.icon}
-                {!isCollapsed && <span>{item.label}</span>}
-              </div>
-              {item.badge && !isCollapsed && (
-                <Badge>12</Badge>
-              )}
-            </Link>
-          ))}
+          <SidebarItem href="/assets" isCollapsed={isCollapsed}>
+            <div className={cn(
+              'flex items-center',
+              isCollapsed ? 'justify-center' : 'space-x-5'
+            )}>
+              <Wallet className="w-5 h-5" />
+              {!isCollapsed && <span>Wallets</span>}
+            </div>
+          </SidebarItem>
+
+          <SidebarItem href="/proposals" isCollapsed={isCollapsed}>
+            <div className={cn(
+              'flex items-center',
+              isCollapsed ? 'justify-center' : 'space-x-5'
+            )}>
+              <Server className="w-5 h-5" />
+              {!isCollapsed && <span>Proposal</span>}
+            </div>
+            {!isCollapsed && <Badge>12</Badge>}
+          </SidebarItem>
         </nav>
       </div>
 
@@ -133,7 +139,3 @@ export function SidebarDesktop() {
     </div>
   );
 }
-
-
-// Export SidebarDesktop as default since mobile is handled by MobileMenu
-export default SidebarDesktop;

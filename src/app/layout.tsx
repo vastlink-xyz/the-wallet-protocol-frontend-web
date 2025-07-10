@@ -9,7 +9,7 @@ import AppNavbar from "@/components/layout/AppNavbar";
 import { NotificationContainer } from "@/components/layout/NotificationContainer";
 import AuthGuard from "@/components/layout/AuthGuard";
 import { QueryProvider } from "@/providers/QueryProvider";
-import Sidebar from "@/components/layout/Sidebar";
+import { SidebarDesktop } from "@/components/layout/Sidebar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -51,7 +51,7 @@ export default function RootLayout({
               <NotificationContainer />
 
               <div className="flex flex-1 min-h-0">
-                <Sidebar />
+                <SidebarDesktop />
                 <main className="flex-1 overflow-y-auto relative">
                   {children}
                 </main>

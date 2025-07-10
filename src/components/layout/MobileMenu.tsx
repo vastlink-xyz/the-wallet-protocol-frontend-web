@@ -6,14 +6,34 @@ import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
 import { isProtectedRoute } from '@/constants/routes';
-import { Badge } from '../ui/badge';
 import { cn } from '@/lib/utils';
 
-interface MobileMenuItem {
-  icon: React.ReactNode;
-  label: string;
+interface MobileMenuItemProps {
   href: string;
-  badge?: number;
+  children: React.ReactNode;
+  onClick?: () => void;
+  className?: string;
+}
+
+function MobileMenuItem({ 
+  href, 
+  children, 
+  onClick,
+  className 
+}: MobileMenuItemProps) {
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      className={cn(
+        'flex items-center justify-between py-3 px-4 mx-2 rounded-md transition-colors',
+        'text-gray-700 hover:bg-gray-100 hover:text-gray-900',
+        className
+      )}
+    >
+      {children}
+    </Link>
+  );
 }
 
 export function MobileMenu() {
@@ -42,14 +62,6 @@ export function MobileMenu() {
   if (!showMenu) {
     return null;
   }
-
-  const menuItems: MobileMenuItem[] = [
-    {
-      icon: <Wallet className="w-5 h-5" />,
-      label: 'Wallets',
-      href: '/assets',
-    },
-  ];
 
   const handleMenuToggle = () => {
     setIsOpen(!isOpen);
@@ -82,25 +94,12 @@ export function MobileMenu() {
           <div className="absolute top-6 right-0 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-50 transform transition-all duration-200">
             <div className="py-2">
               <nav className="space-y-1">
-                {menuItems.map((item) => (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    onClick={handleLinkClick}
-                    className={cn(
-                      'flex items-center justify-between py-3 px-4 mx-2 rounded-md transition-colors',
-                      'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-                    )}
-                  >
-                    <div className="flex items-center space-x-3">
-                      {item.icon}
-                      <span className="font-medium">{item.label}</span>
-                    </div>
-                    {item.badge && (
-                      <Badge>{item.badge}</Badge>
-                    )}
-                  </Link>
-                ))}
+                <MobileMenuItem href="/assets" onClick={handleLinkClick}>
+                  <div className="flex items-center space-x-3">
+                    <Wallet className="w-5 h-5" />
+                    <span className="font-medium">Wallets</span>
+                  </div>
+                </MobileMenuItem>
                 
                 {isLoggedIn && (
                   <>

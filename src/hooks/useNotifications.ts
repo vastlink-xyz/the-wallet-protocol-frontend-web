@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { usePathname } from 'next/navigation';
 import { useMemo, useCallback } from 'react';
-import { notificationService, BaseNotification, NotificationContext } from '@/services/NotificationService';
+import { notificationService, Notification, MFANotification, PendingProposalNotification, NotificationContext } from '@/services/NotificationService';
 import { shouldShowNotificationOnPath } from '@/constants/routes';
 
 interface UseNotificationsOptions {
@@ -20,7 +20,7 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
   // Separate queries for different notification types
   const mfaQuery = useQuery({
     queryKey: ['notifications', 'mfa'],
-    queryFn: async (): Promise<BaseNotification[]> => {
+    queryFn: async (): Promise<MFANotification[]> => {
       try {
         if (!shouldShow) return [];
         return await notificationService.getMFANotifications();
@@ -35,15 +35,37 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
     refetchOnWindowFocus: true,
   });
 
+  const proposalsQuery = useQuery({
+    queryKey: ['notifications', 'proposals'],
+    queryFn: async (): Promise<PendingProposalNotification[]> => {
+      try {
+        if (!shouldShow) return [];
+        return await notificationService.getPendingProposalNotifications();
+      } catch (error) {
+        console.error('Error fetching proposal notifications:', error);
+        return [];
+      }
+    },
+    enabled: enabled && shouldShow,
+    refetchInterval: 30 * 1000, // Refetch every 30 seconds for proposals
+    staleTime: 5 * 1000,
+    refetchOnWindowFocus: true,
+  });
+
   // Combine notifications
   const allNotifications = useMemo(() => {
     const mfaNotifications = mfaQuery.data || [];
-    return [...mfaNotifications];
-  }, [mfaQuery.data]);
+    const proposalNotifications = proposalsQuery.data || [];
+    return [...mfaNotifications, ...proposalNotifications];
+  }, [mfaQuery.data, proposalsQuery.data]);
 
   // Invalidation functions
   const invalidateMFANotifications = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['notifications', 'mfa'] });
+  }, [queryClient]);
+
+  const invalidateProposalNotifications = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['notifications', 'proposals'] });
   }, [queryClient]);
 
   // Refresh notifications and team wallet indicators after proposal operations
@@ -52,20 +74,24 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
     if (userEthAddress) {
       queryClient.invalidateQueries({ queryKey: ['team-wallets', userEthAddress] });
     }
-  }, [queryClient]);
+    // Refresh proposal notifications
+    invalidateProposalNotifications();
+  }, [queryClient, invalidateProposalNotifications]);
 
-  const isLoading = mfaQuery.isLoading
-  const error = mfaQuery.error
+  const isLoading = mfaQuery.isLoading || proposalsQuery.isLoading;
+  const error = mfaQuery.error || proposalsQuery.error;
 
   return {
     notifications: allNotifications,
     mfaNotifications: mfaQuery.data || [],
+    proposalNotifications: proposalsQuery.data || [],
     isLoading,
     error,
-    refetch: () => Promise.all([mfaQuery.refetch()]),
+    refetch: () => Promise.all([mfaQuery.refetch(), proposalsQuery.refetch()]),
     
     // Invalidation functions
     invalidateMFANotifications,
+    invalidateProposalNotifications,
     refreshNotifications,
   };
 }

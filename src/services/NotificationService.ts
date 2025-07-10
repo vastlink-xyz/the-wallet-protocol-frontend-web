@@ -1,16 +1,27 @@
 
 import { shouldShowNotificationOnPath } from '@/constants/routes';
+import { MessageProposal } from '@/app/api/multisig/storage';
 
-export type NotificationType = 'mfa_setup';
+export type NotificationType = 'mfa_setup' | 'pending_proposal';
 
-export interface BaseNotification {
+export interface PendingProposalData {
+  proposals: MessageProposal[];
+  count: number;
+}
+
+export interface BaseNotification<T = any> {
   id: string;
   type: NotificationType;
   title: string;
   message: string;
   component?: React.ComponentType<any>;
-  data?: any;
+  data?: T;
 }
+
+export type MFANotification = BaseNotification<{ hasVerifiedPhone: boolean }>;
+export type PendingProposalNotification = BaseNotification<PendingProposalData>;
+
+export type Notification = MFANotification | PendingProposalNotification;
 
 export interface NotificationContext {
   authMethodId: string | null;
@@ -28,9 +39,54 @@ export class NotificationService {
   }
 
   // Separate methods for getting specific notification types
-  public async getMFANotifications(): Promise<BaseNotification[]> {
+  public async getMFANotifications(): Promise<MFANotification[]> {
     const mfaNotification = await this.checkMFASetup();
     return mfaNotification ? [mfaNotification] : [];
+  }
+
+  public async getPendingProposalNotifications(): Promise<PendingProposalNotification[]> {
+    try {
+      const { getAuthMethodFromStorage } = await import('@/lib/storage/authmethod');
+      const authMethod = getAuthMethodFromStorage();
+      
+      if (!authMethod) {
+        return [];
+      }
+
+      // Get the provider and derive authMethodId
+      const { getProviderByAuthMethodType } = await import('@/lib/lit');
+      const provider = getProviderByAuthMethodType(authMethod.authMethodType);
+      const authMethodId = await provider.getAuthMethodId(authMethod);
+
+      const response = await fetch(`/api/multisig/messages/unsigned?authMethodId=${authMethodId}`, {
+        method: 'GET',
+        headers: { 
+          'Content-Type': 'application/json'
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const proposals: MessageProposal[] = data.data?.proposals || [];
+        const proposalCount: number = data.data?.count || 0;
+
+        if (proposalCount > 0) {
+          const proposalData: PendingProposalData = { proposals, count: proposalCount };
+          
+          return [{
+            id: 'pending_proposals',
+            type: 'pending_proposal' as const,
+            title: `${proposalCount} Pending Proposal${proposalCount > 1 ? 's' : ''}`,
+            message: `You have ${proposalCount} pending proposal${proposalCount > 1 ? 's' : ''} in your team wallets waiting for your approval.`,
+            data: proposalData
+          }];
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching pending proposal notifications:', error);
+    }
+
+    return [];
   }
 
 
@@ -38,12 +94,12 @@ export class NotificationService {
     return shouldShowNotificationOnPath(path);
   }
 
-  public async getNotifications(context: NotificationContext): Promise<BaseNotification[]> {
+  public async getNotifications(context: NotificationContext): Promise<Notification[]> {
     if (!this.shouldShowOnPath(context.currentPath) || !context.authMethodId) {
       return [];
     }
 
-    const notifications: BaseNotification[] = [];
+    const notifications: Notification[] = [];
 
     // Check MFA setup status
     const mfaNotification = await this.checkMFASetup();
@@ -55,7 +111,7 @@ export class NotificationService {
   }
 
 
-  private async checkMFASetup(): Promise<BaseNotification | null> {
+  private async checkMFASetup(): Promise<MFANotification | null> {
     try {
       // Get session JWT from auth method storage
       const { getAuthMethodFromStorage } = await import('@/lib/storage/authmethod');
@@ -84,7 +140,7 @@ export class NotificationService {
             id: 'mfa_setup',
             type: 'mfa_setup',
             title: 'MFA Setup Required',
-            message: 'To make your personal and team wallets more secure, we highly recommend you to set up daily withdrawal limits and MFA in ',
+            message: 'To make your wallets more secure, we highly recommend you to ',
             data: { hasVerifiedPhone }
           };
         }
