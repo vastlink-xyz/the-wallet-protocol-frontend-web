@@ -7,29 +7,19 @@ import {
   TokenType
 } from '@/lib/web3/token';
 import { NextRequest, NextResponse } from 'next/server';
-import { getUser } from '../storage';
 
-export async function GET(request: NextRequest) {
+export async function PUT(request: NextRequest) {
   try {
-    const authMethodId = request.nextUrl.searchParams.get('authMethodId');
+    const addresses = await request.json() as {
+      btc: string;
+      eth: string;
+    };
+
     const currency = request.nextUrl.searchParams.get('currency') || 'usd';
-
-    if (!authMethodId) {
-      return NextResponse.json(
-        { error: 'Missing authMethodId parameter' },
-        { status: 400 }
-      );
-    }
-
-    const user = await getUser(authMethodId);
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
     const price = await getPrice(currency);
 
     const tasks = SUPPORTED_TOKENS_ARRAY.map(async (token) => {
-      const walletAddress = addressByTokenSymbol(token.symbol, user.addresses);
+      const walletAddress = addressByTokenSymbol(token.symbol, addresses);
 
       let balance: number = 0;
 

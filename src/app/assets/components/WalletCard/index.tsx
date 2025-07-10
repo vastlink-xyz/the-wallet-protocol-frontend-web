@@ -116,7 +116,10 @@ export function WalletCard({
           </div>
         )}
 
-        <Balance className="mb-[65px]" isPersonal={isPersonal} />
+        <Balance className="mb-[65px]" variant={variant} addresses={{
+          btc: btcAddress,
+          eth: ethAddress,
+        }} />
       </div>
 
       <div className="flex justify-center gap-[40px]">
