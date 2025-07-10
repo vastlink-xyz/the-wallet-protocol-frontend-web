@@ -1,8 +1,9 @@
 import { CopyAddress } from "@/components/ui/CopyAddress"
+import { addressByTokenSymbol } from "@/lib/web3/address"
 import { fetchBtcBalance } from "@/lib/web3/btc"
 import { fetchERC20TokenBalance, fetchEthBalance } from "@/lib/web3/eth"
 import { formatBalance } from "@/lib/web3/format"
-import { SUPPORTED_TOKENS_INFO, TokenType } from "@/lib/web3/token"
+import { SUPPORTED_TOKENS_INFO } from "@/lib/web3/token"
 import { Loader2, RefreshCcw } from "lucide-react"
 import { useEffect, useState } from "react"
 
@@ -26,13 +27,6 @@ interface TokenAssetsProps {
 
 const supportedTokens = Object.values(SUPPORTED_TOKENS_INFO)
 
-const addressByTokenSymbol = (tokenSymbol: TokenType, btcAddress: string, ethAddress: string) => {
-  const tokenInfo = SUPPORTED_TOKENS_INFO[tokenSymbol]
-  if (tokenInfo.chainType === 'UTXO') return btcAddress
-  if (tokenInfo.chainType === 'EVM') return ethAddress
-  return ''
-}
-
 export function TokenAssets({ btcAddress, ethAddress }: TokenAssetsProps) {
   const [tokenDataList, setTokenDataList] = useState<TokenData[]>([])
 
@@ -44,7 +38,10 @@ export function TokenAssets({ btcAddress, ethAddress }: TokenAssetsProps) {
       name: token.name,
       symbol: token.symbol,
       balance: '0',
-      address: addressByTokenSymbol(token.symbol, btcAddress, ethAddress),
+      address: addressByTokenSymbol(token.symbol, {
+        btc: btcAddress,
+        eth: ethAddress,
+      }),
       chainType: token.chainType,
       chainName: token.chainName,
       contractAddress: token.contractAddress,

@@ -1,10 +1,9 @@
-import { ethers } from "ethers"
-import { LIT_CHAINS } from "@lit-protocol/constants"
-import { log } from "../utils";
+import { TransactionItem } from "@/components/Transaction/TransactionHistory/TransactionHistoryTables";
 import { ERC20_ABI } from "@/constants/abis/erc20";
+import { LIT_CHAINS } from "@lit-protocol/constants";
+import { ethers } from "ethers";
 import Moralis from "moralis";
 import { initializeMoralis } from "../moralis";
-import { TransactionItem } from "@/components/Transaction/TransactionHistory/TransactionHistoryTables";
 
 /**
  * Fetch ETH balance for an address
@@ -24,7 +23,10 @@ export async function fetchEthBalance(address: string, chainName: string = 'sepo
     }
     
     // Create provider
-    const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
+    const provider = new ethers.providers.JsonRpcProvider({
+      skipFetchSetup: true, // fix the could not detect network issue for ethers.js 5.X and api router
+      url: rpcUrl,
+    });
     
     // Get balance in Wei
     const balanceWei = await provider.getBalance(address);
@@ -146,7 +148,10 @@ export const fetchERC20TokenBalance = async ({
   if (!rpcUrl) {
     throw new Error(`Chain ${chainName} not found in LIT_CHAINS`);
   }
-  const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
+  const provider = new ethers.providers.JsonRpcProvider({
+    skipFetchSetup: true, // fix the could not detect network issue for ethers.js 5.X and api router
+    url: rpcUrl,
+  });
   const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, provider);
   const balance = await tokenContract.balanceOf(address)
   return ethers.utils.formatUnits(balance, decimals)
