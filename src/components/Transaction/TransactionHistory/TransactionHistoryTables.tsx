@@ -18,6 +18,7 @@ const openTxPage = (tx: any) => {
 }
 
 export interface TransactionItem {
+  tokenType: TokenType;
   txid: string;
   value: string;
   from: string;
@@ -30,10 +31,9 @@ export interface TransactionItem {
 interface ITableListProps {
   data: TransactionItem[];
   isLoading: boolean;
-  tokenType: TokenType;
 }
 
-export function TableList({ data, tokenType, isLoading }: ITableListProps) {
+export function TableList({ data, isLoading }: ITableListProps) {
 
   return (
     <Table className={cn(
@@ -61,7 +61,7 @@ export function TableList({ data, tokenType, isLoading }: ITableListProps) {
               'desktop:w-[121px] laptop:w-[121px] tablet:w-[100px]'
             )}>
               <div className="flex items-center gap-1">
-                <img src={SUPPORTED_TOKENS_INFO[tokenType].iconUrl} className="w-[28px] h-[28px]" />
+                <img src={SUPPORTED_TOKENS_INFO[transaction.tokenType].iconUrl} className="w-[28px] h-[28px]" />
                 <span className={cn(
                   'font-bold leading-tight text-[#3d3d3d]',
                   'text-xs desktop:text-sm'
@@ -80,7 +80,7 @@ export function TableList({ data, tokenType, isLoading }: ITableListProps) {
                 transaction.type === 'receive' ? 'text-[#00a478]' : 'text-[#ff6363]'
               )}>
                 {transaction.type === 'receive' ? '+' : '-'}
-                {formatBalance(transaction.value)} {SUPPORTED_TOKENS_INFO[tokenType].symbol}
+                {formatBalance(transaction.value)} {SUPPORTED_TOKENS_INFO[transaction.tokenType].symbol}
               </span>
             </TableCell>
 
@@ -94,7 +94,7 @@ export function TableList({ data, tokenType, isLoading }: ITableListProps) {
                 "truncate",
                 'tablet:w-[70px] laptop:w-[100px] desktop:w-[120px]'
               )}>
-                {SUPPORTED_TOKENS_INFO[tokenType].network}
+                {SUPPORTED_TOKENS_INFO[transaction.tokenType].network}
               </p>
             </TableCell>
 
@@ -202,7 +202,7 @@ export function TableList({ data, tokenType, isLoading }: ITableListProps) {
               "px-0 py-6 w-full",
             )}>
               <div className="flex items-start gap-3">
-                <img src={SUPPORTED_TOKENS_INFO[tokenType].iconUrl} className="w-[28px] h-[28px]" />
+                <img src={SUPPORTED_TOKENS_INFO[transaction.tokenType].iconUrl} className="w-[28px] h-[28px]" />
                 <div className="flex flex-col w-[300px]">
                   <span className="text-base font-bold leading-tight text-[#3d3d3d]">{transaction.type}</span>
                   <div className="flex flex-col gap-2 mt-[6px] text-xs text-[#929292] font-medium leading-none">
@@ -247,14 +247,14 @@ export function TableList({ data, tokenType, isLoading }: ITableListProps) {
                   </div>
 
                   <div className="flex justify-between mt-[20px]">
-                    <p className="truncate"><span className="text-[#929292]">Network:</span> {SUPPORTED_TOKENS_INFO[tokenType].network}</p>
+                    <p className="truncate"><span className="text-[#929292]">Network:</span> {SUPPORTED_TOKENS_INFO[transaction.tokenType].network}</p>
                     <div className="text-right">
                       <p className={cn(
                         "text-lg font-bold leading-tight",
                         transaction.type === 'receive' ? 'text-[#00a478]' : 'text-[#ff6363]'
                       )}>
                         {transaction.type === 'receive' ? '+' : '-'}
-                        {formatBalance(transaction.value)} {SUPPORTED_TOKENS_INFO[tokenType].symbol}
+                        {formatBalance(transaction.value)} {SUPPORTED_TOKENS_INFO[transaction.tokenType].symbol}
                       </p>
                       <p>
                         {new Date(transaction.timestamp).toLocaleString('en-US', {
