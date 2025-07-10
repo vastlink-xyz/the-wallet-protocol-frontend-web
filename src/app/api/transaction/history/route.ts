@@ -58,7 +58,10 @@ async function fetchTransactions(
       contractAddress: tokenInfo.contractAddress,
     });
 
-    transactions = ethResult?.transactions || []
+    transactions = (ethResult?.transactions || []).map(tx => ({
+      ...tx,
+      tokenType: tokenType
+    }))
     nextId = ethResult?.cursor || null
   }
 
