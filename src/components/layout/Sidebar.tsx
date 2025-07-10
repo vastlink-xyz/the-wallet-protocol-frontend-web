@@ -24,6 +24,7 @@ export function SidebarDesktop() {
   const [mounted, setMounted] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const isDesktop = useMediaQuery('(min-width: 768px)');
 
   useEffect(() => {
     setMounted(true);
@@ -41,7 +42,7 @@ export function SidebarDesktop() {
   }
 
   const authMethod = getAuthMethodFromStorage();
-  const showSidebar = authMethod && isProtectedRoute(pathname);
+  const showSidebar = authMethod && isProtectedRoute(pathname) && isDesktop;
 
   if (!showSidebar) {
     return null;
@@ -53,12 +54,12 @@ export function SidebarDesktop() {
       label: 'Wallets',
       href: '/assets',
     },
-    // {
-    //   icon: <Server className="w-5 h-5" />,
-    //   label: 'Proposal',
-    //   href: '/proposals',
-    //   badge: 12,
-    // },
+    {
+      icon: <Server className="w-5 h-5" />,
+      label: 'Proposal',
+      href: '/proposals',
+      badge: 12,
+    },
     // {
     //   icon: <Settings className="w-5 h-5" />,
     //   label: 'Setting',
@@ -133,121 +134,6 @@ export function SidebarDesktop() {
   );
 }
 
-interface SidebarMobileProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
 
-export function SidebarMobile({ isOpen, onClose }: SidebarMobileProps) {
-  const pathname = usePathname();
-  const router = useRouter();
-  const [mounted, setMounted] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    // Check if user is logged in
-    const authMethod = getAuthMethodFromStorage();
-    setIsLoggedIn(!!authMethod);
-  }, [pathname]); // Re-check when pathname changes
-
-  if (!mounted) {
-    return null;
-  }
-
-  const authMethod = getAuthMethodFromStorage();
-  const showSidebar = authMethod && isProtectedRoute(pathname);
-
-  if (!showSidebar || !isOpen) {
-    return null;
-  }
-
-  const sidebarItems: SidebarItem[] = [
-    {
-      icon: <Wallet className="w-5 h-5" />,
-      label: 'Wallets',
-      href: '/assets',
-    },
-  ];
-
-  const handleLinkClick = () => {
-    onClose();
-  };
-
-  const handleLogout = () => {
-    localStorage.clear();
-    router.push('/');
-    onClose();
-  };
-
-  return (
-    <>
-      {/* Background overlay */}
-      <div 
-        className="fixed inset-0 bg-transparent z-40"
-        onClick={onClose}
-      />
-      
-      {/* Mobile dropdown sidebar */}
-      <div className="absolute top-6 right-0 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-50 transform transition-all duration-200">
-        <div className="py-2">
-          <nav className="space-y-1">
-            {sidebarItems.map((item) => (
-              <Link
-                key={item.label}
-                href={item.href}
-                onClick={handleLinkClick}
-                className={cn(
-                  'flex items-center justify-between py-3 px-4 mx-2 rounded-md transition-colors',
-                  'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-                )}
-              >
-                <div className="flex items-center space-x-3">
-                  {item.icon}
-                  <span className="font-medium">{item.label}</span>
-                </div>
-                {item.badge && (
-                  <Badge>{item.badge}</Badge>
-                )}
-              </Link>
-            ))}
-            
-            {/* Logout */}
-            {isLoggedIn && (
-              <>
-                <div className="mx-2 my-2 border-t border-gray-200"></div>
-                <button
-                  onClick={handleLogout}
-                  className={cn(
-                    'flex items-center w-full py-3 px-4 mx-2 rounded-md transition-colors',
-                    'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-                  )}
-                >
-                  <div className="flex items-center space-x-3">
-                    <LogOut className="w-5 h-5" />
-                    <span className="font-medium">Logout</span>
-                  </div>
-                </button>
-              </>
-            )}
-          </nav>
-        </div>
-      </div>
-    </>
-  );
-}
-
-export default function Sidebar() {
-  const isDesktop = useMediaQuery('(min-width: 768px)');
-  
-  // Only show desktop sidebar on desktop screens
-  // Mobile sidebar is handled by AppNavbar
-  if (isDesktop) {
-    return <SidebarDesktop />;
-  }
-  
-  return null;
-}
+// Export SidebarDesktop as default since mobile is handled by MobileMenu
+export default SidebarDesktop;

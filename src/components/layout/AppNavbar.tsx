@@ -1,20 +1,19 @@
 'use client'
 
 import { useRouter, usePathname } from 'next/navigation'
-import { AlertTriangleIcon, LogOut, MenuIcon, Sidebar } from 'lucide-react'
+import { AlertTriangleIcon, LogOut } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { getAuthMethodFromStorage } from '@/lib/storage/authmethod'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { shouldHideNavbar } from '@/constants/routes'
 import { cn } from '@/lib/utils'
-import { SidebarMobile } from './Sidebar'
+import { MobileMenu } from './MobileMenu'
 
 export default function AppNavbar() {
   const router = useRouter()
   const pathname = usePathname()
   const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
   
   useEffect(() => {
     // Check if user is logged in
@@ -53,18 +52,7 @@ export default function AppNavbar() {
           </p>
 
           <div className='flex items-center gap-2'>
-            <div className={cn(
-              'tablet:hidden relative'
-            )}>
-              <MenuIcon 
-                className='w-4 h-4 text-white cursor-pointer' 
-                onClick={() => setIsMobileSidebarOpen(true)}
-              />
-              <SidebarMobile 
-                isOpen={isMobileSidebarOpen} 
-                onClose={() => setIsMobileSidebarOpen(false)} 
-              />
-            </div>
+            <MobileMenu />
 
             {isLoggedIn ? (
               <Tooltip>
