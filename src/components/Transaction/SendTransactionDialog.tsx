@@ -352,7 +352,11 @@ export function SendTransactionDialog({
           <div className="space-y-2">
             <Label htmlFor="token-type">Select Token</Label>
             <SelectToken
-              onSelect={(value) => setTokenType(value)}
+              onSelect={(value) => {
+                if (value !== "all") {
+                  setTokenType(value)
+                }
+              }}
               defaultValue={tokenType}
             />
           </div>

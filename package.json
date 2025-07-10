@@ -38,6 +38,7 @@
     "clsx": "^2.1.1",
     "crypto": "^1.0.1",
     "date-fns": "^4.1.0",
+    "dayjs": "^1.11.13",
     "elliptic": "^6.6.1",
     "ethers": "5.8.0",
     "ipfs-helpers": "^0.0.5",
