@@ -4,10 +4,6 @@ import { MessageProposal } from '@/app/api/multisig/storage';
 
 export type NotificationType = 'mfa_setup' | 'pending_proposal';
 
-export interface PendingProposalData {
-  proposals: MessageProposal[];
-  count: number;
-}
 
 export interface BaseNotification<T = any> {
   id: string;
@@ -19,7 +15,7 @@ export interface BaseNotification<T = any> {
 }
 
 export type MFANotification = BaseNotification<{ hasVerifiedPhone: boolean }>;
-export type PendingProposalNotification = BaseNotification<PendingProposalData>;
+export type PendingProposalNotification = BaseNotification<MessageProposal>;
 
 export type Notification = MFANotification | PendingProposalNotification;
 
@@ -68,18 +64,15 @@ export class NotificationService {
       if (response.ok) {
         const data = await response.json();
         const proposals: MessageProposal[] = data.data?.proposals || [];
-        const proposalCount: number = data.data?.count || 0;
 
-        if (proposalCount > 0) {
-          const proposalData: PendingProposalData = { proposals, count: proposalCount };
-          
-          return [{
-            id: 'pending_proposals',
+        if (proposals.length > 0) {
+          return proposals.map(proposal => ({
+            id: `pending_proposal_${proposal.id}`,
             type: 'pending_proposal' as const,
-            title: `${proposalCount} Pending Proposal${proposalCount > 1 ? 's' : ''}`,
-            message: `You have ${proposalCount} pending proposal${proposalCount > 1 ? 's' : ''} in your team wallets waiting for your approval.`,
-            data: proposalData
-          }];
+            title: `${proposal.type === 'transaction' ? 'Transaction' : 'Settings'} Proposal`,
+            message: `New ${proposal.type === 'transaction' ? 'transaction' : 'wallet settings'} proposal in ${proposal.walletId} needs your approval.`,
+            data: proposal
+          }));
         }
       }
     } catch (error) {

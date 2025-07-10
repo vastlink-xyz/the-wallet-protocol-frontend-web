@@ -5,10 +5,10 @@ import { Wallet, Settings, Server, CreditCard, LucideArrowLeft, ChevronLeft, Log
 import { usePathname, useRouter } from 'next/navigation';
 import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
 import { isProtectedRoute } from '@/constants/routes';
-import { Badge } from '../ui/badge';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { useNotifications } from '@/hooks/useNotifications';
 import Link from 'next/link';
 
 interface SidebarItemProps {
@@ -54,6 +54,7 @@ export function SidebarDesktop() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const isDesktop = useMediaQuery('(min-width: 768px)');
+  const { proposalNotifications } = useNotifications();
 
   useEffect(() => {
     setMounted(true);
@@ -113,7 +114,7 @@ export function SidebarDesktop() {
             </div>
           </SidebarItem>
 
-          <SidebarItem href="/proposals" isCollapsed={isCollapsed}>
+          <SidebarItem href="/proposals" isCollapsed={isCollapsed} className='relative'>
             <div className={cn(
               'flex items-center',
               isCollapsed ? 'justify-center' : 'space-x-5'
@@ -121,7 +122,18 @@ export function SidebarDesktop() {
               <Server className="w-5 h-5" />
               {!isCollapsed && <span>Proposal</span>}
             </div>
-            {!isCollapsed && <Badge>12</Badge>}
+            {
+              proposalNotifications.length > 0 && (
+                <>
+                  {isCollapsed ? (
+                    <div className="bg-red-500 rounded-full w-[6px] h-[6px] absolute right-0 top-1"></div>
+                  ) : (
+                    <div className="bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                      {proposalNotifications.length}
+                    </div>
+                  )}</>
+              )
+            }
           </SidebarItem>
         </nav>
       </div>

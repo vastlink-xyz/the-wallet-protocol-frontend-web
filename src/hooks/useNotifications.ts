@@ -31,7 +31,7 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
     },
     enabled: enabled && shouldShow,
     refetchInterval: 60 * 60 * 1000, // Refetch every hour for MFA
-    staleTime: 30 * 1000,
+    staleTime: 5 * 1000,
     refetchOnWindowFocus: true,
   });
 
@@ -47,7 +47,7 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
       }
     },
     enabled: enabled && shouldShow,
-    refetchInterval: 30 * 1000, // Refetch every 30 seconds for proposals
+    refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes for proposals
     staleTime: 5 * 1000,
     refetchOnWindowFocus: true,
   });
