@@ -192,7 +192,7 @@ export function SidebarMobile({ isOpen, onClose }: SidebarMobileProps) {
       />
       
       {/* Mobile dropdown sidebar */}
-      <div className="absolute top-full right-0 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-50 transform transition-all duration-200">
+      <div className="absolute top-6 right-0 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-50 transform transition-all duration-200">
         <div className="py-2">
           <nav className="space-y-1">
             {sidebarItems.map((item) => (

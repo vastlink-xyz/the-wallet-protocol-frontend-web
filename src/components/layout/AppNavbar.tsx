@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter, usePathname } from 'next/navigation'
-import { LogOut, MenuIcon, Sidebar } from 'lucide-react'
+import { AlertTriangleIcon, LogOut, MenuIcon, Sidebar } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { getAuthMethodFromStorage } from '@/lib/storage/authmethod'
@@ -42,9 +42,14 @@ export default function AppNavbar() {
 
           <p className={cn(
             'text-white',
-            'text-xs tablet:text-base'
+            'text-xs tablet:text-base',
+            'flex items-center gap-2'
           )}>
-            All assets here are on testnets only
+            <AlertTriangleIcon className={cn(
+              'w-4 h-4 text-amber-300',
+              'tablet:w-5 h-5'
+            )} />
+            <span>All assets here are on testnets only</span>
           </p>
 
           <div className='flex items-center gap-2'>
