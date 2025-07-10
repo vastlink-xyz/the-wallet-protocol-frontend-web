@@ -68,7 +68,7 @@ export const fetchEthTransactionHistory = async ({
       
       // Map ERC-20 token transfers to our app format
       const tokenTransfers = response.raw.result || [];
-      const formattedTransactions: TransactionItem[] = tokenTransfers.map((tx: any) => {
+      const formattedTransactions: Omit<TransactionItem, 'tokenType'>[] = tokenTransfers.map((tx: any) => {
         const isSender = tx.from_address.toLowerCase() === address.toLowerCase();
         const value = tx.value_decimal || ethers.utils.formatUnits(tx.value, tx.token_decimals || 18);
         
@@ -98,7 +98,7 @@ export const fetchEthTransactionHistory = async ({
       
       // Map native ETH transactions to our app format
       const ethTransactions = response.raw.result || [];
-      const formattedTransactions: TransactionItem[] = ethTransactions
+      const formattedTransactions: Omit<TransactionItem, 'tokenType'>[] = ethTransactions
         .filter((tx: any) => tx.input === '0x')
         .map((tx: any) => {
         const isSender = tx.from_address.toLowerCase() === address.toLowerCase();
