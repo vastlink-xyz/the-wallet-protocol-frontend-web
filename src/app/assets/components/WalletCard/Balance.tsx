@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import { Loader2Icon } from 'lucide-react';
 import { MultisigWalletAddresses } from '@/app/api/multisig/storage';
+import { formatBalance } from '@/lib/web3/format';
 
 interface BalanceProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: 'personal' | 'team'
@@ -52,11 +53,11 @@ export function Balance({ className, variant = 'personal', addresses }: BalanceP
       {(!isLoading && error) && (
         <span className="leading-8 text-red-500">Failed to loading balance</span>
       )}
-      {(!isLoading && !error && balance) && (
+      {(!isLoading && !error && balance !== undefined) && (
         <span
           className={cn('leading-8 text-3xl font-bold', isPersonal ? 'text-white' : 'text-black')}
         >
-          ${balance.toFixed(2)}
+          ${formatBalance(balance.toString(), 2, true)}
         </span>
       )}
     </div>
