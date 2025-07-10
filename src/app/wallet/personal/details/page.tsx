@@ -107,9 +107,7 @@ export default function PersonalWalletDetailsPage() {
       {
         addresses && (
           <div className="mt-6">
-            <TransactionHistory
-              addresses={addresses}
-            />
+            <TransactionHistory addresses={addresses} />
           </div>
         )
       }

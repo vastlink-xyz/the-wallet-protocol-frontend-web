@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { SUPPORTED_TOKENS_INFO, TokenType } from "@/lib/web3/token";
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { SUPPORTED_TOKENS_INFO, TokenType } from '@/lib/web3/token';
 import { MultisigWalletAddresses } from '@/app/api/multisig/storage';
 import { log } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -8,160 +8,227 @@ import { SelectToken } from '@/components/SelectToken';
 import { Loader2 } from 'lucide-react';
 import { LogoLoading } from '@/components/LogoLoading';
 import { TableList, TransactionItem } from './TransactionHistoryTables';
+import { headers } from 'next/headers';
+import { addressByTokenSymbol } from '@/lib/web3/address';
 
 export function TransactionHistory({
   addresses,
 }: {
-  addresses: MultisigWalletAddresses
+  addresses: MultisigWalletAddresses;
 }) {
-  const [selectedToken, setSelectedToken] = useState<TokenType>('BTC');
+  const [selectedToken, setSelectedToken] = useState<TokenType | "all">("all");
   const [transactions, setTransactions] = useState<TransactionItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [lastId, setLastId] = useState<string | null>(null);
-  const [hasMore, setHasMore] = useState(false);
+  const [lastId, setLastId] = useState<{ [key: string]: string | null } | null>(
+    null
+  );
 
-  const address = useMemo(() => {
-    const addressKey = SUPPORTED_TOKENS_INFO[selectedToken].addressKey;
-    return addresses[addressKey as keyof MultisigWalletAddresses] || null;
-  }, [addresses, selectedToken]);
+  const hasMore = useMemo(() => {
+    if (lastId === null) return null;
+
+    if (selectedToken in lastId) {
+      return lastId[selectedToken] !== null;
+    }
+
+    for (const key in lastId) {
+      if (lastId[key] !== null) {
+        return true;
+      }
+    }
+    return false;
+  }, [lastId, selectedToken]);
 
   // initialize the transaction history
   useEffect(() => {
-    if (addresses) {
-      const addressKey = SUPPORTED_TOKENS_INFO[selectedToken].addressKey;
-      if (addressKey in addresses) {
-        const addr = addresses[addressKey as keyof MultisigWalletAddresses] || null;
-        // Reset transactions and lastId when changing token
-        setTransactions([]);
-        setLastId(null);
-        setHasMore(false);
-        if (addr) {
-          fetchTransactions(addr, selectedToken);
-        }
-      }
-    }
+    setTransactions([]);
+    setLastId(null);
+    fetchTransactions();
   }, [addresses]);
 
   useEffect(() => {
-    if (address) {
-      fetchTransactions(address, selectedToken);
-    }
-  }, [address, selectedToken]);
-  
+    fetchTransactions();
+  }, [selectedToken]);
+
   // Fetch transaction history
-  const fetchTransactions = async (address: string, tokenType: TokenType) => {
+  const fetchTransactions = useCallback(async () => {
     try {
+      const params = [];
+      if (selectedToken !== "all") {
+        const address = addressByTokenSymbol(selectedToken, addresses);
+        if (address) {
+          params.push({ address, tokenType: selectedToken, lastId: null });
+        }
+      } else {
+        for (const token in SUPPORTED_TOKENS_INFO) {
+          const address = addressByTokenSymbol(token as TokenType, addresses);
+          if (address) {
+            params.push({ address, tokenType: token as TokenType, lastId: null });
+          }
+        }
+      }
+
+      if (params.length === 0) {
+        return;
+      }
+
       setIsLoading(true);
-      // Build URL with query parameters
-      const params = {
-        address,
-        tokenType,
-      };
-      
-      const url = new URL(`${process.env.NEXT_PUBLIC_APP_URL}/api/transaction/history`);
-      url.search = new URLSearchParams(params as Record<string, string>).toString();
-      
-      const response = await fetch(url.toString());
-      
+
+      const url = `${process.env.NEXT_PUBLIC_APP_URL}/api/transaction/history`;
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: params ? JSON.stringify(params) : null,
+      });
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || `Error: ${response.status}`);
       }
-      
+
       const data = await response.json();
       log('Transaction data:', data);
-      
-      if (data && data.transactions) {
-        setTransactions(data.transactions);
-        setLastId(data.lastId);
-        setHasMore(data.hasMore);
+
+      if (data) {
+        if (data.transactions) {
+          setTransactions(data.transactions);
+        } else {
+          setTransactions([]);
+        }
+
+        if (data.metadata) {
+          setLastId((prev) => {
+            const newValue = prev ? { ...prev } : {};
+
+            for (const item of data.metadata) {
+              newValue[item.tokenType] = item.lastId;
+            }
+            return newValue;
+          });
+        } else {
+          setLastId(null);
+        }
       } else {
         setTransactions([]);
         setLastId(null);
-        setHasMore(false);
       }
     } catch (error) {
-      console.error("Error fetching transaction history:", error);
-      const errorMessage = error instanceof Error ? error.message : "Failed to fetch transactions";
+      console.error('Error fetching transaction history:', error);
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to fetch transactions';
       toast.error(errorMessage);
       setTransactions([]);
       setLastId(null);
-      setHasMore(false);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [selectedToken]);
 
   // Load more transactions
-  const handleLoadMore = async () => {
-    if (!lastId || !address || isLoadingMore) return;
-    
-    setIsLoadingMore(true);
-    
+  const handleLoadMore = useCallback(async () => {
+    if (!lastId || isLoadingMore) return;
+
     try {
-      // Build URL with pagination parameters
-      const params = {
-        address,
-        tokenType: selectedToken,
-        lastId,
-      };
-      
-      const url = new URL(`${process.env.NEXT_PUBLIC_APP_URL}/api/transaction/history`);
-      url.search = new URLSearchParams(params as Record<string, string>).toString();
-      
-      const response = await fetch(url.toString());
-      
+      const params = [];
+      if (selectedToken !== "all") {
+        const address = addressByTokenSymbol(selectedToken, addresses);
+        if (address && lastId[selectedToken]) {
+          params.push({ address, tokenType: selectedToken, lastId: lastId[selectedToken] });
+        }
+      } else {
+        for (const token in SUPPORTED_TOKENS_INFO) {
+          if (lastId[token as TokenType] !== null) {
+            const address = addressByTokenSymbol(token as TokenType, addresses);
+            if (address) {
+              params.push({ address, tokenType: token as TokenType, lastId: lastId[token] });
+            }
+          }
+        }
+      }
+
+      if (params.length === 0) {
+        return
+      }
+
+      setIsLoadingMore(true);
+
+      const url = `${process.env.NEXT_PUBLIC_APP_URL}/api/transaction/history`;
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: params ? JSON.stringify(params) : null,
+      });
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || `Error: ${response.status}`);
       }
-      
+
       const data = await response.json();
       log('More transaction data:', data);
-      
-      if (data && data.transactions && data.transactions.length > 0) {
-        // Format addresses for display
-        const formattedTransactions = data.transactions.map((tx: TransactionItem) => ({
-          ...tx,
-          from: tx.from,
-          to: tx.to
-        }));
-        
-        setTransactions(prev => [...prev, ...formattedTransactions]);
-        setLastId(data.lastId);
-        setHasMore(data.hasMore);
-      } else {
-        setHasMore(false);
+
+      if (data) {
+        if (data.transactions && data.transactions.length > 0) {
+          // Format addresses for display
+          const formattedTransactions = data.transactions.map(
+            (tx: TransactionItem) => ({
+              ...tx,
+              from: tx.from,
+              to: tx.to,
+            })
+          );
+
+          setTransactions((prev) => [...prev, ...formattedTransactions]);
+        }
+
+        if (data.metadata) {
+          setLastId((prev) => {
+            const newValue = prev ? { ...prev } : {};
+
+            for (const item of data.metadata) {
+              newValue[item.tokenType] = item.lastId;
+            }
+            return newValue;
+          });
+        }
       }
     } catch (error) {
-      console.error("Error loading more transactions:", error);
-      const errorMessage = error instanceof Error ? error.message : "Failed to load more transactions";
+      console.error('Error loading more transactions:', error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Failed to load more transactions';
       toast.error(errorMessage);
-      setHasMore(false);
+      setLastId(null);
     } finally {
       setIsLoadingMore(false);
     }
-  };
+  }, [selectedToken, lastId]);
 
   // Handle token change event
-  const handleTokenChange = (tokenSymbol: TokenType) => {
+  const handleTokenChange = (tokenSymbol: TokenType | "all") => {
     setSelectedToken(tokenSymbol);
   };
 
   return (
     <div className="space-y-4">
-      <SelectToken 
+      {lastId !== null && (<SelectToken
+        className="w-[180px]"
         onSelect={handleTokenChange}
         defaultValue={selectedToken}
-        className="w-[180px]"
-      />
+        includeAllOption
+      />)}
 
       {isLoading ? (
         <LogoLoading />
       ) : (
         <div className="space-y-4">
-          
           {transactions.length > 0 ? (
             <div className="space-y-2">
               {/* {transactions.map((transaction) => (
@@ -170,9 +237,9 @@ export function TransactionHistory({
                   transaction={transaction} 
                 />
               ))} */}
-              
-              <TableList data={transactions} tokenType={selectedToken} isLoading={isLoading} />
-              
+
+              <TableList data={transactions} isLoading={isLoading} />
+
               {hasMore && (
                 <div className="pt-4 text-center">
                   <Button
@@ -180,7 +247,11 @@ export function TransactionHistory({
                     onClick={handleLoadMore}
                     disabled={isLoadingMore}
                   >
-                    {isLoadingMore ? <Loader2 className="animate-spin" /> : 'Load More'}
+                    {isLoadingMore ? (
+                      <Loader2 className="animate-spin" />
+                    ) : (
+                      'Load More'
+                    )}
                   </Button>
                 </div>
               )}
