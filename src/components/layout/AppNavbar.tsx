@@ -9,6 +9,7 @@ import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip
 import { shouldHideNavbar } from '@/constants/routes'
 import { cn } from '@/lib/utils'
 import { MobileMenu } from './MobileMenu'
+// import { NotificationMenu } from '../NotificationMenu'
 
 export default function AppNavbar() {
   const router = useRouter()
@@ -53,6 +54,8 @@ export default function AppNavbar() {
 
           <div className='flex items-center gap-2'>
             <MobileMenu />
+
+            {/* <NotificationMenu className='hidden tablet:block' /> */}
 
             {isLoggedIn ? (
               <Tooltip>
