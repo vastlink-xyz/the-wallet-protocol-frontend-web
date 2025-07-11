@@ -41,7 +41,7 @@ function SidebarItem({
         'flex items-center py-2.5 font-medium transition-all duration-300',
         'px-6 justify-between',
         isActive 
-          ? 'bg-black/20 text-[#090909]' 
+          ? 'bg-gray-200 text-[#090909]' 
           : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900',
         className
       )}

@@ -138,7 +138,7 @@ export class NotificationService {
             id: 'mfa_setup',
             type: 'mfa_setup',
             title: 'Set MFA',
-            message: 'To make your wallets more secure, we highly recommend you to ',
+            message: `To make your wallets more secure, we highly recommend you to`,
             data: { hasVerifiedPhone }
           };
         }

@@ -52,12 +52,18 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
     refetchOnWindowFocus: true,
   });
 
+  // Security notifications, currently just MFA
+  const securityNotifications = useMemo(() => {
+    return [
+      ...mfaQuery.data || [],
+    ]
+  }, [mfaQuery.data])
+
   // Combine notifications
   const allNotifications = useMemo(() => {
-    const mfaNotifications = mfaQuery.data || [];
     const proposalNotifications = proposalsQuery.data || [];
-    return [...mfaNotifications, ...proposalNotifications];
-  }, [mfaQuery.data, proposalsQuery.data]);
+    return [...securityNotifications, ...proposalNotifications];
+  }, [securityNotifications, proposalsQuery.data]);
 
   // Invalidation functions
   const invalidateMFANotifications = useCallback(() => {
@@ -84,6 +90,7 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
   return {
     notifications: allNotifications,
     mfaNotifications: mfaQuery.data || [],
+    securityNotifications,
     proposalNotifications: proposalsQuery.data || [],
     isLoading,
     error,

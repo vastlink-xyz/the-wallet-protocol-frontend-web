@@ -7,7 +7,7 @@ import { shouldShowNotificationOnPath } from '@/constants/routes';
 import { PersonalWalletSettings } from '@/app/assets/components/Personal/WalletSettings';
 
 export function NotificationContainer() {
-  const { mfaNotifications, isLoading } = useNotifications();
+  const { securityNotifications, isLoading } = useNotifications();
   const pathname = usePathname();
   const [showSettingsDialog, setShowSettingsDialog] = useState(false);
 
@@ -16,7 +16,7 @@ export function NotificationContainer() {
     return null;
   }
 
-  if (isLoading && mfaNotifications.length === 0) {
+  if (isLoading && securityNotifications.length === 0) {
     return null;
   }
 
@@ -27,7 +27,7 @@ export function NotificationContainer() {
   return (
     <>
       <div className="w-full">
-        {mfaNotifications.map((notification) => (
+        {securityNotifications.map((notification) => (
           <div 
             key={notification.id}
             className="w-full py-[9px] bg-[#ffb117] rounded-sm border border-[#ffe58f] justify-center items-center gap-1.5 inline-flex px-[10vw]"
