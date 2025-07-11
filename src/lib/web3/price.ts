@@ -4,6 +4,8 @@ const priceData = {
     ETH: 0,
     USDT: 0,
     USDC: 0,
+    TSTLPX: 0,
+    VAST: 0,
   },
   updatedAt: 0,
 };
@@ -30,6 +32,8 @@ export const getPrice = async (currency: string = 'usd'): Promise<{ [key: string
     ETH: data.ethereum[currency] as number,
     USDT: data.tether[currency] as number,
     USDC: data['bridged-usdc'][currency] as number,
+    TSTLPX: 0.01,
+    VAST: 0.01,
   };
   priceData.updatedAt = Date.now();
 
