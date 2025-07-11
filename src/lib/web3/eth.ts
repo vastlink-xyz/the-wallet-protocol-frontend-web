@@ -1,5 +1,5 @@
-import { TransactionItem } from "@/components/Transaction/TransactionHistory/TransactionHistoryTables";
 import { ERC20_ABI } from "@/constants/abis/erc20";
+import { TransactionItem } from "@/types/transaction-item";
 import { LIT_CHAINS } from "@lit-protocol/constants";
 import { ethers } from "ethers";
 import Moralis from "moralis";
@@ -85,7 +85,7 @@ export const fetchEthTransactionHistory = async ({
       
       return {
         transactions: formattedTransactions,
-        cursor: response.raw.cursor
+        cursor: response.raw.cursor || null
       };
     } else {
       response = await Moralis.EvmApi.transaction.getWalletTransactions({
@@ -121,7 +121,7 @@ export const fetchEthTransactionHistory = async ({
       
       return {
         transactions: formattedTransactions,
-        cursor: response.raw.cursor
+        cursor: response.raw.cursor || null
       };
     }
   } catch (error) {

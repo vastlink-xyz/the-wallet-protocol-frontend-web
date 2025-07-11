@@ -60,7 +60,7 @@ async function fetchTransactions(
 
     transactions = (ethResult?.transactions || []).map(tx => ({
       ...tx,
-      tokenType: tokenType
+      tokenType,
     }))
     nextId = ethResult?.cursor || null
   }

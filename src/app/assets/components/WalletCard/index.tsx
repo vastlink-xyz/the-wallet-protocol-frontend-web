@@ -95,6 +95,11 @@ export function WalletCard({
           isPersonal ? "text-[#ffffff]" : "text-[#000000]"
         )} onClick={onDetailsClick}>{walletName}</p>
 
+        <Balance variant={variant} addresses={{
+          btc: btcAddress,
+          eth: ethAddress,
+        }} />
+
         {variant === 'team' && avatars.length > 0 && (
           <div className="flex justify-center items-center gap-1 mb-4 mt-4">
             <div className="flex -space-x-2">
@@ -115,11 +120,6 @@ export function WalletCard({
             </div>
           </div>
         )}
-
-        <Balance className="mb-[65px]" variant={variant} addresses={{
-          btc: btcAddress,
-          eth: ethAddress,
-        }} />
       </div>
 
       <div className="flex justify-center gap-[40px]">

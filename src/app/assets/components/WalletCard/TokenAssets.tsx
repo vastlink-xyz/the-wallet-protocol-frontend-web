@@ -32,7 +32,7 @@ export function TokenAssets({ btcAddress, ethAddress }: TokenAssetsProps) {
 
   // Initialize token data
   useEffect(() => {
-    console.log(btcAddress, ethAddress)
+    // console.log(btcAddress, ethAddress)
     setTokenDataList(supportedTokens.map((token) => ({
       iconUrl: token.iconUrl,
       name: token.name,
