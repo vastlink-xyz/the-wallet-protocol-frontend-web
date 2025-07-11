@@ -41,7 +41,7 @@ function SidebarItem({
         'flex items-center py-2.5 font-medium transition-all duration-300',
         'px-6 justify-between',
         isActive 
-          ? 'bg-gray-200 text-[#090909]' 
+          ? 'bg-gray-100 text-[#090909]' 
           : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900',
         className
       )}
@@ -138,7 +138,7 @@ export function SidebarDesktop() {
             {proposalNotifications.length > 0 && (
               <>
                 {isCollapsed ? (
-                  <div className="bg-red-500 rounded-full w-[6px] h-[6px] absolute right-2 top-1"></div>
+                  <div className="bg-red-500 rounded-full w-[6px] h-[6px] absolute right-4 top-2"></div>
                 ) : (
                   <div className="bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                     {proposalNotifications.length}

@@ -147,21 +147,21 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
         </Button>
       )}
 
+      {hasUserSigned(proposal, userPkp) && (
+        <Button disabled className="cursor-not-allowed">
+          You have approved this proposal
+        </Button>
+      )}
+
       {proposal.status === 'pending' && isCreator && (
         <Button
-          variant="destructive"
+          variant="outline"
           onClick={() => handleCancelProposal(proposal)}
           disabled={isCancelingProposal}
         >
           {isCancelingProposal && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Cancel
         </Button>
-      )}
-
-      {hasUserSigned(proposal, userPkp) && (
-        <div className="text-sm text-green-600 flex items-center">
-          You have approved this proposal
-        </div>
       )}
 
       {proposal.status === 'pending' && selectedWallet &&
