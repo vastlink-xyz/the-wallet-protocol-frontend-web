@@ -63,16 +63,21 @@ export class NotificationService {
 
       if (response.ok) {
         const data = await response.json();
-        const proposals: MessageProposal[] = data.data?.proposals || [];
+        const proposals: (MessageProposal & { walletName: string })[] = data.data?.proposals || [];
 
         if (proposals.length > 0) {
-          return proposals.map(proposal => ({
-            id: `pending_proposal_${proposal.id}`,
-            type: 'pending_proposal' as const,
-            title: `${proposal.type === 'transaction' ? 'Transaction' : 'Settings'} Proposal`,
-            message: `New ${proposal.type === 'transaction' ? 'transaction' : 'wallet settings'} proposal in ${proposal.walletId} needs your approval.`,
-            data: proposal
-          }));
+          return proposals.map(proposal => {
+            const titleType = proposal.type === 'transaction' ? 'pending proposal' : 'setting change requested';
+            const title = `${proposal.walletName} - ${titleType}`
+            const message = proposal.type === 'transaction' ? `A ${proposal.transactionData?.value} ${proposal.transactionData?.tokenType} transfer proposal requires your reivew.` : proposal.settingsData?.changeDescription
+            return {
+              id: `pending_proposal_${proposal.id}`,
+              type: 'pending_proposal',
+              title,
+              message: message || 'Pending proposal needs your approval.',
+              data: proposal
+            };
+          });
         }
       }
     } catch (error) {
@@ -132,7 +137,7 @@ export class NotificationService {
           return {
             id: 'mfa_setup',
             type: 'mfa_setup',
-            title: 'MFA Setup Required',
+            title: 'Set MFA',
             message: 'To make your wallets more secure, we highly recommend you to ',
             data: { hasVerifiedPhone }
           };
