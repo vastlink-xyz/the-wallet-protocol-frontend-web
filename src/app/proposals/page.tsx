@@ -227,6 +227,12 @@ function ProposalsList({ status }: { status: ProposalStatus }) {
         if (authMethodId && userPkp?.ethAddress) {
           refreshNotifications(authMethodId, userPkp.ethAddress);
         }
+
+        // Clear loading state for this proposal
+        setExecutingStates(prev => ({ ...prev, [proposal.id]: false }));
+        // make sure the user can sign other proposals
+        setIsDisabled(false);
+
         toast.success('Wallet settings updated successfully');
       }
     } catch (error) {
@@ -316,9 +322,7 @@ function ProposalsList({ status }: { status: ProposalStatus }) {
         status: 'completed',
         txHash: txHash
       });
-      
-      toast.success(`Transaction completed`);
-      
+            
       // Send proposal executed notification
       try {
         await sendProposalExecutedNotification({
@@ -335,6 +339,13 @@ function ProposalsList({ status }: { status: ProposalStatus }) {
       await refreshProposals();
       // Refresh notifications
       refreshNotifications(authMethodId, userPkp.ethAddress);
+
+      // Clear loading state for this proposal
+      setExecutingStates(prev => ({ ...prev, [proposal.id]: false }));
+      // make sure the user can sign other proposals
+      setIsDisabled(false);
+
+      toast.success(`Transaction completed`);
     }
   };
 

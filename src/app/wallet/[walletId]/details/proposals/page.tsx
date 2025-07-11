@@ -136,6 +136,11 @@ export default function ProposalsPage() {
         // Invalidate proposal related data to update notification and red dots
         refreshNotifications(authMethodId, userPkp?.ethAddress);
 
+        // Clear loading state for this proposal
+        setExecutingStates(prev => ({ ...prev, [proposal.id]: false }));
+        // make sure the user can sign other proposals
+        setIsDisabled(false);
+
         toast.success('Wallet settings updated successfully')
       }
     } catch (error) {
@@ -218,7 +223,6 @@ export default function ProposalsPage() {
         status: 'completed',
         txHash: txHash
       })
-      toast.success(`Transaction completed`);
 
       // Send proposal executed notification to all approvers
       if (wallet) {
@@ -239,6 +243,12 @@ export default function ProposalsPage() {
 
       // Refresh proposal UI to update notification and red dots
       refreshNotifications(authMethodId, userPkp?.ethAddress);
+
+      // Clear loading state for this proposal
+      setExecutingStates(prev => ({ ...prev, [proposal.id]: false }));
+      // make sure the user can sign other proposals
+      setIsDisabled(false);
+      toast.success(`Transaction completed`);
     }
   }
 

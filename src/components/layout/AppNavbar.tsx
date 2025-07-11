@@ -34,7 +34,7 @@ export default function AppNavbar() {
   
   return (
     <>
-      <nav className="bg-[#181818] shadow-sm py-1 px-4 h-13 w-full fixed top-0 left-0 right-0 z-50">
+      <nav className="bg-[#181818] shadow-sm py-0 px-4 h-13 w-full fixed top-0 left-0 right-0 z-50">
         <div className="mx-auto flex justify-between items-center">
           <Link href="/assets" className="font-medium text-xl">
             <img src="/vastbase.svg" className='h-13' />
