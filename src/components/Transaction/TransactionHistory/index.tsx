@@ -2,14 +2,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { SUPPORTED_TOKENS_INFO, TokenType } from '@/lib/web3/token';
 import { MultisigWalletAddresses } from '@/app/api/multisig/storage';
 import { log } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
 import { toast } from 'react-toastify';
 import { SelectToken } from '@/components/SelectToken';
-import { Loader2 } from 'lucide-react';
 import { LogoLoading } from '@/components/LogoLoading';
-import { TableList, TransactionItem } from './TransactionHistoryTables';
-import { headers } from 'next/headers';
+import { TransactionHistoryTable } from './TransactionHistoryTable';
 import { addressByTokenSymbol } from '@/lib/web3/address';
+import { TransactionItem } from '@/types/transaction-item';
 
 export function TransactionHistory({
   addresses,
@@ -20,6 +18,7 @@ export function TransactionHistory({
   const [transactions, setTransactions] = useState<TransactionItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isFiltering, setIsFiltering] = useState(false);
   const [lastId, setLastId] = useState<{ [key: string]: string | null } | null>(
     null
   );
@@ -43,11 +42,20 @@ export function TransactionHistory({
   useEffect(() => {
     setTransactions([]);
     setLastId(null);
-    fetchTransactions();
+    setIsLoading(true);
+
+    fetchTransactions()
+      .finally(() => {
+        setIsLoading(false);
+      })
   }, [addresses]);
 
   useEffect(() => {
-    fetchTransactions();
+    setIsFiltering(true)
+    fetchTransactions()
+      .finally(() => {
+        setIsFiltering(false)
+      })
   }, [selectedToken]);
 
   // Fetch transaction history
@@ -71,8 +79,6 @@ export function TransactionHistory({
       if (params.length === 0) {
         return;
       }
-
-      setIsLoading(true);
 
       const url = `${process.env.NEXT_PUBLIC_APP_URL}/api/transaction/history`;
 
@@ -122,8 +128,6 @@ export function TransactionHistory({
       toast.error(errorMessage);
       setTransactions([]);
       setLastId(null);
-    } finally {
-      setIsLoading(false);
     }
   }, [selectedToken]);
 
@@ -214,6 +218,19 @@ export function TransactionHistory({
   // Handle token change event
   const handleTokenChange = (tokenSymbol: TokenType | "all") => {
     setSelectedToken(tokenSymbol);
+    setLastId((prev) => {
+      if (prev === null) return null;
+
+      const newValue = { ...prev };
+      if (tokenSymbol === "all") {
+        for (const key in newValue) {
+          newValue[key] = null;
+        }
+      } else {
+        newValue[tokenSymbol] = null;
+      }
+      return newValue;
+    })
   };
 
   return (
@@ -223,6 +240,7 @@ export function TransactionHistory({
         onSelect={handleTokenChange}
         defaultValue={selectedToken}
         includeAllOption
+        disabled={isFiltering}
       />)}
 
       {isLoading ? (
@@ -230,32 +248,13 @@ export function TransactionHistory({
       ) : (
         <div className="space-y-4">
           {transactions.length > 0 ? (
-            <div className="space-y-2">
-              {/* {transactions.map((transaction) => (
-                <TransactionHistoryItem 
-                  key={transaction.txid} 
-                  transaction={transaction} 
-                />
-              ))} */}
-
-              <TableList data={transactions} isLoading={isLoading} />
-
-              {hasMore && (
-                <div className="pt-4 text-center">
-                  <Button
-                    variant="outline"
-                    onClick={handleLoadMore}
-                    disabled={isLoadingMore}
-                  >
-                    {isLoadingMore ? (
-                      <Loader2 className="animate-spin" />
-                    ) : (
-                      'Load More'
-                    )}
-                  </Button>
-                </div>
-              )}
-            </div>
+            <TransactionHistoryTable
+              isLoading={isFiltering}
+              data={transactions}
+              isLoadingMore={isLoadingMore}
+              hasMore={hasMore === true}
+              onLoadMore={handleLoadMore}
+            />
           ) : (
             <div className="text-center py-8 text-gray-500">
               No transactions found for this token

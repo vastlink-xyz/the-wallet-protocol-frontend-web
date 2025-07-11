@@ -1,5 +1,5 @@
+import { TransactionItem } from "@/types/transaction-item";
 import * as bitcoinjs from "bitcoinjs-lib";
-import { TransactionItem } from "@/components/Transaction/TransactionHistory/TransactionHistoryTables";
 
 export const getBtcAddressByPublicKey = (publicKey: string) => {
   try {

@@ -36,6 +36,11 @@ export interface SelectTokenProps {
    * Whether to include an option for selecting all tokens
    */
   includeAllOption?: boolean;
+
+  /**
+   * Whether the select field is disabled
+   */
+  disabled?: boolean;
 }
 
 /**
@@ -47,6 +52,7 @@ export function SelectToken({
   className,
   label,
   includeAllOption = false,
+  disabled,
 }: SelectTokenProps) {
   const [selectedToken, setSelectedToken] = useState<TokenType | "all">(
     defaultValue
@@ -66,6 +72,7 @@ export function SelectToken({
         </label>
       )}
       <Select
+        disabled={disabled}
         value={selectedToken || 'all'}
         onValueChange={handleChange}
         defaultValue={defaultValue || 'all'}
