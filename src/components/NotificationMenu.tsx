@@ -8,14 +8,17 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 export function NotificationMenu({
   className,
 }: React.HtmlHTMLAttributes<HTMLDivElement>) {
-  const hasUnread = true;
   const { securityNotifications, proposalNotifications } = useNotifications()
   const [showSettingsDialog, setShowSettingsDialog] = useState(false);
+
+  const hasUnread = useMemo(() => {
+    return securityNotifications.length > 0 || proposalNotifications.length > 0;
+  }, [securityNotifications, proposalNotifications])
 
   return (
     <>
@@ -80,7 +83,10 @@ export function NotificationMenu({
             ))}
 
             {/* Proposals */}
-            <div className="h-10 px-4 bg-notification-header text-sm font-semibold content-center">
+            <div className={cn(
+              "h-10 px-4 bg-notification-header text-sm font-semibold content-center",
+              proposalNotifications.length === 0 && 'hidden',
+            )}>
               Proposals
             </div>
             {proposalNotifications.map((proposalNotification, index) => (
@@ -107,6 +113,13 @@ export function NotificationMenu({
                 </div>
               </div>
             ))}
+
+            {/* Empty state */}
+            {securityNotifications.length === 0 && proposalNotifications.length === 0 && (
+              <div className="px-4 py-8 text-center text-gray-500">
+                <p className="text-sm">No new notifications</p>
+              </div>
+            )}
 
             {/* View all */}
             {

@@ -649,8 +649,8 @@ export default function ProposalsPage() {
 
   const tabs = [
     { id: "pending" as ProposalStatus, label: "Pending" },
-    { id: "completed" as ProposalStatus, label: "Complete" },
-    { id: "canceled" as ProposalStatus, label: "Canceled" },
+    { id: "completed" as ProposalStatus, label: "Completed" },
+    { id: "canceled" as ProposalStatus, label: "Cancelled" },
   ];
 
   return (

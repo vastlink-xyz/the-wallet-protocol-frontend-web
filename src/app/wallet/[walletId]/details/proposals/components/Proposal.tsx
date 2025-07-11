@@ -86,19 +86,19 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
       <span className="font-medium text-gray-700">Status:</span> 
       {proposal.status === 'pending' ? (
         <Badge variant="outline" className="ml-2 text-yellow-600 bg-yellow-50 border-yellow-300">
-          {proposal.status}
+          Pending
         </Badge>
       ) : proposal.status === 'completed' ? (
         <Badge variant="secondary" className="ml-2 text-green-600 bg-green-50 border-green-300">
-          {proposal.status}
+          Completed
         </Badge>
       ) : proposal.status === 'canceled' ? (
         <Badge variant="outline" className="ml-2 text-red-600 bg-red-50 border-red-300">
-          {proposal.status}
+          Cancelled
         </Badge>
       ) : (
         <Badge variant="outline" className="ml-2">
-          {proposal.status}
+          Unknown
         </Badge>
       )}
     </div>

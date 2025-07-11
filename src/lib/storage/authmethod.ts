@@ -6,6 +6,11 @@ import { AUTH_METHOD_STORAGE_KEY } from "../lit/config";
  * @returns AuthMethod object or null if not found or invalid
  */
 export function getAuthMethodFromStorage(): AuthMethod | null {
+  // Check if we're in browser environment
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  
   const storedAuthMethod = localStorage.getItem(AUTH_METHOD_STORAGE_KEY);
   if (storedAuthMethod) {
     try {
@@ -38,6 +43,11 @@ export function getAuthMethodTypeFromStorage() {
  * @returns void
  */
 export function setAuthMethodToStorage(authMethod: AuthMethod): void {
+  // Check if we're in browser environment
+  if (typeof window === 'undefined') {
+    return;
+  }
+  
   try {
     localStorage.setItem(AUTH_METHOD_STORAGE_KEY, JSON.stringify(authMethod));
   } catch (error) {
@@ -50,5 +60,10 @@ export function setAuthMethodToStorage(authMethod: AuthMethod): void {
  * @returns void
  */
 export function clearAuthMethodFromStorage(): void {
+  // Check if we're in browser environment
+  if (typeof window === 'undefined') {
+    return;
+  }
+  
   localStorage.removeItem(AUTH_METHOD_STORAGE_KEY);
 }
