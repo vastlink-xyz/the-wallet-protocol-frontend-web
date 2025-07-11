@@ -88,7 +88,7 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
   const error = mfaQuery.error || proposalsQuery.error;
 
   return {
-    notifications: allNotifications,
+    allNotifications,
     mfaNotifications: mfaQuery.data || [],
     securityNotifications,
     proposalNotifications: proposalsQuery.data || [],
