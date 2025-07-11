@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { Check, Copy } from 'lucide-react';
 import { toast } from 'react-toastify';
-import { cn } from '@/lib/utils';
+import { cn, truncateMiddle } from '@/lib/utils';
 
 interface CopyAddressProps {
   textToCopy: string;
@@ -27,14 +27,6 @@ export function CopyAddress({ textToCopy, className, iconSize = 12, isTruncate =
       });
     }
   }, [textToCopy]);
-
-  // Function to truncate text in the middle
-  const truncateMiddle = (text: string, maxLength: number = 20) => {
-    if (text.length <= maxLength) return text;
-    const start = Math.ceil(maxLength / 2) - 2;
-    const end = Math.floor(maxLength / 2) - 2;
-    return `${text.slice(0, start)}...${text.slice(-end)}`;
-  };
 
   return (
     <div className={`flex items-center ${className || ''}`}>

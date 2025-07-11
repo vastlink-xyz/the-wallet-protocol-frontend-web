@@ -39,10 +39,14 @@ export function Balance({ className, variant = 'personal', addresses }: BalanceP
     refetchOnWindowFocus: true,
   });
 
+  if (!isLoading && error) {
+    return (<></>);
+  }
+
   return (
     <div
       className={cn(
-        'flex flex-row  text-center justify-center items-center',
+        'flex flex-row text-center justify-center items-center',
         className
       )}
     >
@@ -50,12 +54,12 @@ export function Balance({ className, variant = 'personal', addresses }: BalanceP
         "animate-spin text-white w-8 h-8",
         isPersonal ? 'text-white' : 'text-black'
       )} />}
-      {(!isLoading && error) && (
+      {/* {(!isLoading && error) && (
         <span className="leading-8 text-red-500">Failed to loading balance</span>
-      )}
+      )} */}
       {(!isLoading && !error && balance !== undefined) && (
         <span
-          className={cn('leading-8 text-3xl font-bold', isPersonal ? 'text-white' : 'text-black')}
+          className={cn('leading-8', isPersonal ? 'text-white' : 'text-black')}
         >
           ${formatBalance(balance.toString(), 2, true)}
         </span>

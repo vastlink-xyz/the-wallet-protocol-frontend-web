@@ -1,5 +1,5 @@
+import { TransactionItem } from "@/types/transaction-item";
 import { ethers } from "ethers";
-import { TransactionItem } from "@/components/Transaction/TransactionHistory/TransactionHistoryTables";
 
 export const fetchYellowstoneTransactionHistory = async ({
   address,
