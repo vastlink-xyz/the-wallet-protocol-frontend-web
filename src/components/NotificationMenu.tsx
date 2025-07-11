@@ -25,7 +25,7 @@ export function NotificationMenu({
       <HoverCard>
         <HoverCardTrigger>
           <Image
-            className={className}
+            className={cn('cursor-pointer', className)}
             src={hasUnread ? '/icons/bell-red-dot.svg' : '/icons/bell.svg'}
             alt="bell"
             width={30}
@@ -107,7 +107,7 @@ export function NotificationMenu({
                 <span className="font-semibold">{proposalNotification.title}</span>
                 <p className="col-start-2 text-sm line-clamp-2">{proposalNotification.message}</p>
                 <div className="w-full h-10 col-span-2 flex flex-row justify-end">
-                  <Link href={`/proposals?proposalId=${proposalNotification.data?.id}`} className="font-semibold">
+                  <Link href={`/proposals?proposalId=${proposalNotification.data?.id}`} target="_blank" className="font-semibold">
                     Review →
                   </Link>
                 </div>
