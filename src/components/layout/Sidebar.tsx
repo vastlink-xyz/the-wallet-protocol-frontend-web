@@ -13,18 +13,22 @@ import Link from 'next/link';
 
 interface SidebarItemProps {
   href: string;
-  children: React.ReactNode;
+  icon: React.ReactNode;
+  label: string;
   isCollapsed?: boolean;
   onClick?: () => void;
   className?: string;
+  children?: React.ReactNode; // for notifications or other extra content
 }
 
 function SidebarItem({ 
   href, 
-  children, 
+  icon,
+  label,
   isCollapsed = false, 
   onClick,
-  className 
+  className,
+  children
 }: SidebarItemProps) {
   const pathname = usePathname();
   const isActive = pathname === href;
@@ -34,14 +38,27 @@ function SidebarItem({
       href={href}
       onClick={onClick}
       className={cn(
-        'flex items-center py-2.5 font-medium transition-colors',
-        isCollapsed ? 'justify-center px-3 mx-3' : 'justify-between px-6',
+        'flex items-center py-2.5 font-medium transition-all duration-300',
+        'px-6 justify-between',
         isActive 
           ? 'bg-black/20 text-[#090909]' 
           : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900',
         className
       )}
     >
+      <div className="flex items-center">
+        <div className="flex items-center justify-center w-5 h-5 flex-shrink-0">
+          {icon}
+        </div>
+        <div className={cn(
+          'overflow-hidden transition-all duration-300',
+          isCollapsed ? 'w-0 ml-0' : 'w-20 ml-5'
+        )}>
+          <span className="whitespace-nowrap block">
+            {label}
+          </span>
+        </div>
+      </div>
       {children}
     </Link>
   );
@@ -104,36 +121,31 @@ export function SidebarDesktop() {
         </div>
 
         <nav className="space-y-6">
-          <SidebarItem href="/assets" isCollapsed={isCollapsed}>
-            <div className={cn(
-              'flex items-center',
-              isCollapsed ? 'justify-center' : 'space-x-5'
-            )}>
-              <Wallet className="w-5 h-5" />
-              {!isCollapsed && <span>Wallets</span>}
-            </div>
-          </SidebarItem>
+          <SidebarItem 
+            href="/assets" 
+            icon={<Wallet className="w-5 h-5" />}
+            label="Wallets"
+            isCollapsed={isCollapsed}
+          />
 
-          <SidebarItem href="/proposals" isCollapsed={isCollapsed} className='relative'>
-            <div className={cn(
-              'flex items-center',
-              isCollapsed ? 'justify-center' : 'space-x-5'
-            )}>
-              <Server className="w-5 h-5" />
-              {!isCollapsed && <span>Proposal</span>}
-            </div>
-            {
-              proposalNotifications.length > 0 && (
-                <>
-                  {isCollapsed ? (
-                    <div className="bg-red-500 rounded-full w-[6px] h-[6px] absolute right-0 top-1"></div>
-                  ) : (
-                    <div className="bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                      {proposalNotifications.length}
-                    </div>
-                  )}</>
-              )
-            }
+          <SidebarItem 
+            href="/proposals" 
+            icon={<Server className="w-5 h-5" />}
+            label="Proposal"
+            isCollapsed={isCollapsed}
+            className='relative'
+          >
+            {proposalNotifications.length > 0 && (
+              <>
+                {isCollapsed ? (
+                  <div className="bg-red-500 rounded-full w-[6px] h-[6px] absolute right-2 top-1"></div>
+                ) : (
+                  <div className="bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                    {proposalNotifications.length}
+                  </div>
+                )}
+              </>
+            )}
           </SidebarItem>
         </nav>
       </div>
@@ -141,7 +153,19 @@ export function SidebarDesktop() {
       {isLoggedIn ? (
         <Tooltip>
           <TooltipTrigger asChild className='hidden tablet:block'>
-            <LogOut onClick={handleLogout} className="absolute bottom-4 left-6 w-4 h-4 text-black cursor-pointer rounded-md" />
+            <div className='absolute bottom-4 left-6 cursor-pointer transition-all duration-300' onClick={handleLogout}>
+              <div className='flex items-center justify-center'>
+                <LogOut className="w-4 h-4 text-black rounded-md flex-shrink-0" />
+                <div className={cn(
+                  'overflow-hidden transition-all duration-300',
+                  isCollapsed ? 'w-0 ml-0' : 'w-[60px] ml-2'
+                )}>
+                  <span className="whitespace-nowrap block text-black text-sm">
+                    Logout
+                  </span>
+                </div>
+              </div>
+            </div>
           </TooltipTrigger>
           <TooltipContent>
             Logout
