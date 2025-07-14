@@ -14,6 +14,8 @@ export function NotificationMenu({
   className,
 }: React.HtmlHTMLAttributes<HTMLDivElement>) {
   const { securityNotifications, proposalNotifications } = useNotifications()
+
+  const [showPopup, setShowPopup] = useState(false);
   const [showSettingsDialog, setShowSettingsDialog] = useState(false);
 
   const hasUnread = useMemo(() => {
@@ -22,7 +24,7 @@ export function NotificationMenu({
 
   return (
     <>
-      <HoverCard>
+      <HoverCard open={showPopup} onOpenChange={setShowPopup}>
         <HoverCardTrigger>
           <Image
             className={cn('cursor-pointer', className)}
@@ -30,6 +32,7 @@ export function NotificationMenu({
             alt="bell"
             width={30}
             height={24}
+            onClick={() => setShowPopup(true)}
           />
         </HoverCardTrigger>
         <HoverCardContent className="p-0 min-w-[362px] max-h-[525px] overflow-y-auto">
