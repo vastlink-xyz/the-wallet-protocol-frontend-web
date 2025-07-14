@@ -16,7 +16,7 @@ export function NotificationMenu({
 }: React.HtmlHTMLAttributes<HTMLDivElement>) {
   const { showPersonalWalletSettings } = useContext(PersonalWalletSettingsContext);
   
-  const { securityNotifications, proposalNotifications } = useNotifications()
+  const { securityNotifications, proposalNotifications } = useNotifications();
 
   const [showPopup, setShowPopup] = useState(false);
 

@@ -47,7 +47,7 @@ export function PersonalWalletSettings() {
     const fetchAuthMethodId = async () => {
       try {
         setIsMfaLoading(true);
-        // Get auth method directly from storage 
+        // Get auth method directly from storage
         const authMethod = getAuthMethodFromStorage();
         if (!authMethod) {
           console.error('No auth method found in storage');
@@ -267,12 +267,12 @@ export function PersonalWalletSettings() {
   };
 
   return (
-    <Dialog open={isPersonalWalletSettingsOpen} onOpenChange={() => closePersonalWalletSettings()}>
-
-      <DialogContent className="p-0 max-w-[660px] sm:max-w-[660px]">
-        <DialogHeader className="border-b px-8 py-6">
-          <DialogTitle>Personal Wallet Settings</DialogTitle>
-        </DialogHeader>
+    <>
+      <Dialog open={isPersonalWalletSettingsOpen} onOpenChange={() => closePersonalWalletSettings()}>
+        <DialogContent className="p-0 max-w-[660px] sm:max-w-[660px]">
+          <DialogHeader className="border-b px-8 py-6">
+            <DialogTitle>Personal Wallet Settings</DialogTitle>
+          </DialogHeader>
 
         <div className="max-h-[60vh] overflow-y-auto p-8 pt-4">
           {isMfaLoading ? (
@@ -301,26 +301,38 @@ export function PersonalWalletSettings() {
                 }
               </LabeledContainer>
 
-              <LabeledContainer label="MFA Settings">
-                <MFASettingsContent
-                  isOpen={isPersonalWalletSettingsOpen}
-                  onPhoneUpdated={fetchUserPhone}
-                  onMFAStatusChanged={invalidateMFANotifications}
-                />
-              </LabeledContainer>
+                <LabeledContainer label="MFA Settings">
+                  <MFASettingsContent
+                    isOpen={isPersonalWalletSettingsOpen}
+                    onPhoneUpdated={fetchUserPhone}
+                    onMFAStatusChanged={invalidateMFANotifications}
+                  />
+                </LabeledContainer>
 
-              <DialogFooter className="pt-4 space-x-2">
-                <Button
-                  onClick={saveSettings}
-                  disabled={!isLimitValid || isSaving}
-                >
-                  {isSaving ? 'Saving...' : 'Save Settings'}
-                </Button>
-              </DialogFooter>
-            </>
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
+                <DialogFooter className="pt-4 space-x-2">
+                  <Button
+                    onClick={saveSettings}
+                    disabled={!isLimitValid || isSaving}
+                  >
+                    {isSaving ? 'Saving...' : 'Save Settings'}
+                  </Button>
+                </DialogFooter>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Real MFA OTP Dialog for wallet settings */}
+      <MFAOtpDialog
+        isOpen={showMfaDialog}
+        onClose={() => setShowMfaDialog(false)}
+        onOtpVerify={handleVerifyOtp}
+        sendOtp={handleSendOtp}
+        identifier={verifiedPhone}
+        title="Verify Settings Change"
+        description="A verification code will be sent to your phone via WhatsApp"
+      />
+    </>
   );
 }
