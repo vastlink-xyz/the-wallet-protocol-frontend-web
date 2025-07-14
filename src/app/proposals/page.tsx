@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useImperativeHandle, forwardRef, useCallback } from "react";
 import { useProposals } from "@/hooks/useProposals";
 import { MessageProposal, MultisigWallet } from "@/app/api/multisig/storage";
 import { Proposal } from "@/app/wallet/[walletId]/details/proposals/components/Proposal";
@@ -22,10 +22,12 @@ import { sendProposalExecutedNotification } from "@/lib/notification/proposal-ex
 import { MFAOtpDialog } from "@/components/Transaction/MFAOtpDialog";
 import { useSearchParams } from "next/navigation";
 import { useRef, Suspense } from "react";
+import { Button } from "@/components/ui/button";
+import { Loader2Icon, RefreshCcwIcon } from "lucide-react";
 
 type ProposalStatus = "pending" | "completed" | "canceled";
 
-function ProposalsList({ status }: { status: ProposalStatus }) {
+const ProposalsList = forwardRef(({ status }: { status: ProposalStatus }, ref) => {
   // Get URL search params for proposal targeting
   const searchParams = useSearchParams();
   const targetProposalId = searchParams.get('proposalId');
@@ -122,8 +124,14 @@ function ProposalsList({ status }: { status: ProposalStatus }) {
     fetchUserPhone();
   }, []);
 
+  useImperativeHandle(ref, () => ({
+    refresh: async () => {
+      await refreshProposals();
+    },
+  }), []);
+  
   // Use new proposals API with user address and status filtering
-  const { data: proposals = [], isLoading: isLoadingProposals, refetch: refetchProposals } = useProposals(undefined, { 
+  const { data: proposals = [], isLoading: isLoadingProposals, isRefetching: isRefetchingProposals, refetch: refetchProposals } = useProposals(undefined, { 
     status, 
     userAddress: userPkp?.ethAddress 
   });
@@ -582,7 +590,7 @@ function ProposalsList({ status }: { status: ProposalStatus }) {
     }
   };
 
-  if (isLoadingProposals || isLoadingWallets || isLoadingUser) {
+  if (isLoadingProposals || isRefetchingProposals || isLoadingWallets || isLoadingUser) {
     return <LogoLoading />;
   }
 
@@ -605,7 +613,7 @@ function ProposalsList({ status }: { status: ProposalStatus }) {
 
   return (
     <>
-      <div className="space-y-4">
+      <div className={cn("space-y-4", isRefetchingProposals && "opacity-50")}>
         {proposals.map((proposal) => {
           const wallet = walletMap.get(proposal.walletId);
           if (!wallet) {
@@ -653,9 +661,13 @@ function ProposalsList({ status }: { status: ProposalStatus }) {
       />
     </>
   );
-}
+});
 
 export default function ProposalsPage() {
+  const childRef = useRef<{ refresh: () => Promise<void> } | null>(null);
+
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
   const [activeTab, setActiveTab] = useState<ProposalStatus>("pending");
 
   const tabs = [
@@ -664,12 +676,22 @@ export default function ProposalsPage() {
     { id: "canceled" as ProposalStatus, label: "Cancelled" },
   ];
 
+  const handleRefresh = useCallback(() => {
+    if (childRef.current) {
+      setIsRefreshing(true);
+      childRef.current.refresh()
+        .finally(() => {
+          setIsRefreshing(false);
+        });
+    }
+  }, [childRef]);
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8">Proposals</h1>
       
       {/* Tab Navigation */}
-      <div className="flex gap-2 mb-6">
+      <div className="flex flex-row justify-start items-center gap-2 mb-6">
         {tabs.map((tab) => (
           <div
             key={tab.id}
@@ -683,12 +705,20 @@ export default function ProposalsPage() {
             {tab.label}
           </div>
         ))}
+        <div className="flex-1" />
+        <Button variant="ghost" size="icon" onClick={handleRefresh}>
+          {isRefreshing ? (
+            <Loader2Icon className="w-4 h-4 animate-spin" />
+          ) : (
+            <RefreshCcwIcon className="w-4 h-4" />
+          )}
+        </Button>
       </div>
       
       {/* Tab Content */}
       <div>
         <Suspense fallback={null}>
-          <ProposalsList status={activeTab} />
+          <ProposalsList status={activeTab} ref={childRef} />
         </Suspense>
       </div>
     </div>
