@@ -4,11 +4,8 @@ import { AuthMethod, IRelayPKP } from '@lit-protocol/types'
 import { Plus, Settings } from 'lucide-react'
 import { useCallback, useEffect, useState, forwardRef, useImperativeHandle } from 'react'
 import { MultisigSetting } from './MultisigSetting'
-import { getProviderByAuthMethodType } from '@/lib/lit'
 import { MessageProposal, MultisigWallet } from '@/app/api/multisig/storage'
-import { useRouter } from 'next/navigation'
 import { SendTransactionDialog, SendTransactionDialogState } from '@/components/Transaction/SendTransactionDialog'
-import { LogoLoading } from '@/components/LogoLoading'
 import { User } from '@/app/api/user/storage'
 import { useNotifications } from '@/hooks/useNotifications'
 import { useTeamWallets } from '@/hooks/useTeamWallets'
@@ -18,6 +15,8 @@ import { createAndApproveTransactionProposal, executeTeamTransactionProposal, in
 
 interface TeamAssetsProps {
   authMethod: AuthMethod
+  userData: User
+  authMethodId: string
 }
 
 export interface TeamAssetsRef {
@@ -28,12 +27,10 @@ interface MultisigWalletWithUnsignedProposalsCount extends MultisigWallet {
   unsignedProposalsCount: number
 }
 
-const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ authMethod }, ref) => {
-  const router = useRouter()
+const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ authMethod, userData, authMethodId }, ref) => {
   const [userPkp, setUserPkp] = useState<IRelayPKP | null>(null)
   const [user, setUser] = useState<User | null>(null)
   const [showMultisigSetting, setShowMultisigSetting] = useState(false)
-  const [authMethodId, setAuthMethodId] = useState<string>('')
   const [mode, setMode] = useState<'create' | 'edit'>('create')
   const [selectedWallet, setSelectedWallet] = useState<MultisigWalletWithUnsignedProposalsCount | undefined>()
 
@@ -42,7 +39,6 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ authMethod }, r
 
   const [showMfaDialog, setShowMfaDialog] = useState(false);
   const [currentProposal, setCurrentProposal] = useState<MessageProposal | null>(null)
-  const [isLoadingUserData, setIsLoadingUserData] = useState(true)
 
   // Notifications hook for UI refresh
   const { refreshNotifications } = useNotifications({
@@ -57,53 +53,21 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ authMethod }, r
   // Team wallets data using React Query
   const { 
     data: wallets = [], 
-    isLoading, 
-    error 
+    isLoading
   } = useTeamWallets({
     userEthAddress: userPkp?.ethAddress || null,
     enabled: !!userPkp?.ethAddress,
   });
 
-  const hasMultisigWallets = wallets.length > 0;
-
+  // Initialize data from props
   useEffect(() => {
-    const fetchUserData = async () => {
-      if (!authMethod) {
-        setIsLoadingUserData(false)
-        return
-      }
-      
-      try {
-        setIsLoadingUserData(true)
-        // User data loading is handled separately from wallet loading
-        // Get user's authMethodId
-        const provider = getProviderByAuthMethodType(authMethod.authMethodType)
-        const authMethodId = await provider.getAuthMethodId(authMethod)
-        setAuthMethodId(authMethodId)
-        
-        // Fetch user's information from database API
-        const userResponse = await fetch(`/api/user?authMethodId=${authMethodId}`)
-        
-        if (!userResponse.ok) {
-          throw new Error('Failed to fetch user information')
-        }
-        
-        const userData = await userResponse.json()
-        setUser(userData)
-        
-        // Use litActionPkp from user data
-        if (userData.litActionPkp) {
-          setUserPkp(userData.litActionPkp)
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error)
-      } finally {
-        setIsLoadingUserData(false)
+    if (userData && authMethodId) {
+      setUser(userData)
+      if (userData.litActionPkp) {
+        setUserPkp(userData.litActionPkp)
       }
     }
-
-    fetchUserData()
-  }, [authMethod])
+  }, [userData, authMethodId])
 
   const handleWalletSettingsClick = (wallet: MultisigWalletWithUnsignedProposalsCount) => {
     setSelectedWallet(wallet)
@@ -224,7 +188,7 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ authMethod }, r
 
   return (
     <>
-      {isLoadingUserData || isLoading ? (
+      {isLoading ? (
         <>
           <WalletCardSkeleton />
           <WalletCardSkeleton />

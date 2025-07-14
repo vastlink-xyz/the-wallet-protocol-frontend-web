@@ -6,21 +6,47 @@ import { AuthMethod } from "@lit-protocol/types";
 import { getAuthMethodFromStorage } from "@/lib/storage";
 import { LogoLoading } from "@/components/LogoLoading";
 import { TeamAssetsRef, TeamAssets } from "./components/Team/TeamAssets";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { PlusCircle } from "lucide-react";
+import { useUserData } from "@/hooks/useUserData";
+import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 
 export default function PortfolioPage() {
   const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null)
   const teamAssetsRef = useRef<TeamAssetsRef>(null)
+  const router = useRouter()
   
   // Load auth method from storage
   useEffect(() => {
     const storedAuthMethod = getAuthMethodFromStorage()
+    if (!storedAuthMethod) {
+      router.push('/')
+      return
+    }
     setAuthMethod(storedAuthMethod)
-  }, [])
+  }, [router])
 
-  if (!authMethod) {
+  // Fetch user data using custom hook
+  const { userData, authMethodId, isLoading, error, hasPkp } = useUserData(authMethod)
+
+  // Handle PKP validation
+  useEffect(() => {
+    if (!isLoading && userData && !hasPkp) {
+      console.log('User has incomplete PKP, redirecting to callback for retry')
+      router.push('/auth/stytch-callback')
+    }
+  }, [isLoading, userData, hasPkp, router])
+
+  // Handle errors
+  useEffect(() => {
+    if (error) {
+      toast.error(error)
+      router.push('/')
+    }
+  }, [error, router])
+
+  if (isLoading || !authMethod || !userData || !authMethodId || !hasPkp) {
     return <LogoLoading />
   }
 
@@ -40,8 +66,17 @@ export default function PortfolioPage() {
     </header>
 
     <div className="flex flex-wrap gap-10">
-      <PersonalAssets authMethod={authMethod} />
-      <TeamAssets ref={teamAssetsRef} authMethod={authMethod} />
+      <PersonalAssets 
+        authMethod={authMethod} 
+        userData={userData}
+        authMethodId={authMethodId}
+      />
+      <TeamAssets 
+        ref={teamAssetsRef} 
+        authMethod={authMethod}
+        userData={userData}
+        authMethodId={authMethodId}
+      />
     </div>
   </div>;
 }

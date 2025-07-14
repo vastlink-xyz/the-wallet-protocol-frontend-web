@@ -11,18 +11,20 @@ import { WalletCard } from '@/app/assets/components/WalletCard'
 import { WalletCardSkeleton } from '@/app/assets/components/WalletCard/WalletCardSkeleton'
 import { PersonalWalletSettings } from './WalletSettings'
 import { executePersonalTransaction, inviteUser } from '@/services/personalTransactionService'
+import { User } from '@/app/api/user/storage'
 
 interface PersonalAssetsProps {
   authMethod: AuthMethod
+  userData: User
+  authMethodId: string
 }
 
-export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
+export default function PersonalAssets({ authMethod, userData, authMethodId }: PersonalAssetsProps) {
   const { handleExpiredAuth } = useAuthExpiration()
 
   const [litActionPkp, setLitActionPkp] = useState<IRelayPKP | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [email, setEmail] = useState<string | null>(null)
-  const [authMethodId, setAuthMethodId] = useState<string | null>(null)
   const [btcAddress, setBtcAddress] = useState<string | null>(null)
   const [addresses, setAddresses] = useState<MultisigWalletAddresses | null>(null)
 
@@ -32,43 +34,16 @@ export default function PersonalAssets({ authMethod }: PersonalAssetsProps) {
   const [showSettingsDialog, setShowSettingsDialog] = useState(false)
   const [resetAmount, setResetAmount] = useState(false)
 
-  // Fetch user data
+  // Initialize data from props
   useEffect(() => {
-    const fetchUserData = async () => {
-      if (!authMethod) return
-      
-      try {
-        setIsLoading(true)
-        // Get user's authMethodId
-        const provider = getProviderByAuthMethodType(authMethod.authMethodType)
-        const authMethodId = await provider.getAuthMethodId(authMethod)
-        setAuthMethodId(authMethodId)
-        
-        // Fetch user's information from database API
-        const userResponse = await fetch(`/api/user?authMethodId=${authMethodId}`)
-        
-        if (!userResponse.ok) {
-          throw new Error('Failed to fetch user information from database')
-        }
-        
-        const userData = await userResponse.json()
-        setEmail(userData.email)
-        
-        // Use litActionPkp from user data
-        if (userData.litActionPkp) {
-          setLitActionPkp(userData.litActionPkp)
-          setBtcAddress(userData.addresses?.btc)
-          setAddresses(userData.addresses)
-        }
-      } catch (error) {
-        console.error("Error fetching data from database:", error)
-      } finally {
-        setIsLoading(false)
-      }
+    if (userData && authMethodId) {
+      setEmail(userData.email)
+      setLitActionPkp(userData.litActionPkp ?? null)
+      setBtcAddress(userData.addresses?.btc ?? null)
+      setAddresses(userData.addresses ?? null)
+      setIsLoading(false)
     }
-
-    fetchUserData()
-  }, [authMethod])
+  }, [userData, authMethodId])
 
 
   // MFA cancellation callback
