@@ -20,28 +20,30 @@ import { executeTransactionProposal, executeWalletSettingsProposal } from "./uti
 import { useNotifications } from "@/hooks/useNotifications";
 import { useProposals } from "@/hooks/useProposals";
 import { useQueryClient } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Loader2Icon, RefreshCcwIcon } from "lucide-react";
 
 export default function ProposalsPage() {
   // Get walletId from params
   const params = useParams();
   const walletId = params.walletId as string;
-  
+
   // Get URL search params for proposal targeting
   const searchParams = useSearchParams();
   const targetProposalId = searchParams.get('proposalId');
-  
+
   // Ref for proposal scrolling
-  const proposalRefs = useRef<{[key: string]: HTMLDivElement | null}>({});
-  
+  const proposalRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+
   // Track if initial scroll has been performed
   const hasScrolledRef = useRef(false);
-  
+
   // Get wallet data from context
   const { wallet, isLoading: isWalletLoading, authMethod, walletPkp, userPkp, authMethodId, userPhone } = useWallet();
-  
+
   // Use React Query for proposals
-  const { data: proposals = [], isLoading: isLoadingProposals, refetch: refetchProposals } = useProposals(walletId);
-  
+  const { data: proposals = [], isLoading: isLoadingProposals, isRefetching: isRefetchingProposals, refetch: refetchProposals } = useProposals(walletId);
+
   // Query client for cache invalidation
   const queryClient = useQueryClient();
 
@@ -50,7 +52,7 @@ export default function ProposalsPage() {
   const [executingStates, setExecutingStates] = useState<Record<string, boolean>>({});
   const [cancelingStates, setCancelingStates] = useState<Record<string, boolean>>({});
   const [isDisabled, setIsDisabled] = useState(false);
-  
+
   const { handleExpiredAuth, verifyAuthOrRedirect } = useAuthExpiration();
 
   // Notifications hook for UI refresh
@@ -63,7 +65,6 @@ export default function ProposalsPage() {
   const [currentProposal, setCurrentProposal] = useState<MessageProposal | null>(null)
   const [mfaMethodId, setMfaMethodId] = useState<string | null>(null);
 
-
   // Helper function to invalidate and refetch proposals
   const refreshProposals = async () => {
     await queryClient.invalidateQueries({ queryKey: ['proposals', walletId] });
@@ -74,23 +75,23 @@ export default function ProposalsPage() {
   // Scroll to target proposal when URL parameter is provided (only on initial load)
   useEffect(() => {
     if (!targetProposalId || isLoadingProposals || proposals.length === 0 || hasScrolledRef.current) return;
-    
+
     // Check if target proposal exists in current proposals
     const targetProposal = proposals.find(p => p.id === targetProposalId);
     if (!targetProposal) {
       console.log('Target proposal not found in proposals:', targetProposalId);
       return;
     }
-    
+
     // Wait for refs to be set and DOM to be updated
     const checkAndScroll = () => {
       const targetElement = proposalRefs.current[targetProposalId];
-      
+
       if (targetElement) {
         console.log('Scrolling to proposal:', targetProposalId);
-        targetElement.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'center' 
+        targetElement.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
         });
         // Add a highlight effect
         targetElement.style.boxShadow = '0 0 0 2px #3b82f6';
@@ -100,7 +101,7 @@ export default function ProposalsPage() {
           targetElement.style.boxShadow = '';
           targetElement.style.borderRadius = '';
         }, 3000);
-        
+
         // Mark that we've performed the initial scroll
         hasScrolledRef.current = true;
       } else {
@@ -109,7 +110,7 @@ export default function ProposalsPage() {
         setTimeout(checkAndScroll, 100);
       }
     };
-    
+
     // Start checking after a short delay to ensure DOM is updated
     setTimeout(checkAndScroll, 100);
   }, [targetProposalId, proposals, isLoadingProposals]);
@@ -170,8 +171,8 @@ export default function ProposalsPage() {
     })
 
     // Update the proposal status to completed if verification was successful
-    const result = typeof response.response === 'string' 
-      ? JSON.parse(response.response) 
+    const result = typeof response.response === 'string'
+      ? JSON.parse(response.response)
       : response.response;
     log('Parsed response object:', result);
 
@@ -185,7 +186,7 @@ export default function ProposalsPage() {
         toast.error(result.error)
         return
       }
-      
+
       let txHash = null
       // Try to extract transaction hash from different response formats
       if (result.status === 'success') {
@@ -205,7 +206,7 @@ export default function ProposalsPage() {
             },
           })
           txHash = txReceipt
-          log('txReceipt', txReceipt)          
+          log('txReceipt', txReceipt)
         } catch (e: any) {
           log('error', e)
           if (e.message.includes('insufficient funds for intrinsic transaction cost')) {
@@ -216,7 +217,7 @@ export default function ProposalsPage() {
           return
         }
       }
-      
+
       await axios.put(`/api/multisig/messages`, {
         proposalId: proposal.id,
         walletId: proposal.walletId,
@@ -258,27 +259,27 @@ export default function ProposalsPage() {
       console.error('Missing multisig wallet information or auth method')
       return
     }
-    
+
     try {
       // Set loading state for this specific proposal execution
       setExecutingStates(prev => ({ ...prev, [proposal.id]: true }));
       // make sure the user cannot sign other proposals
       setIsDisabled(true);
-      
+
       // Connect to Lit Network
       if (!litNodeClient.ready) {
         await litNodeClient.connect()
       }
 
       log('selected mulsig pkp', walletPkp)
-      
+
       // Get session signatures for the current user
-      const sessionSigs = await getSessionSigsByPkp({authMethod, pkp: userPkp, refreshStytchAccessToken: true})
-      
+      const sessionSigs = await getSessionSigsByPkp({ authMethod, pkp: userPkp, refreshStytchAccessToken: true })
+
       // Check if this is a wallet settings change proposal
       const isWalletSettingsProposal = proposal.type === 'walletSettings';
       const settingsData = proposal.settingsData;
-      
+
       if (isWalletSettingsProposal && settingsData) {
         // Handle wallet settings change
         await handleExecuteWalletSettingsProposal(proposal, settingsData, sessionSigs);
@@ -289,8 +290,8 @@ export default function ProposalsPage() {
     } catch (error: any) {
       // Check for Google JWT expired error
       const errorMessage = error?.message || '';
-      if (errorMessage.includes('Google JWT expired') || 
-          (error?.shortMessage && error.shortMessage.includes('Google JWT expired'))) {
+      if (errorMessage.includes('Google JWT expired') ||
+        (error?.shortMessage && error.shortMessage.includes('Google JWT expired'))) {
         handleExpiredAuth();
       } else {
         toast.error(`Error executing operation: ${errorMessage}`);
@@ -308,13 +309,13 @@ export default function ProposalsPage() {
       console.error('Missing required information for signing')
       return
     }
-    
+
     // Verify JWT token before proceeding with signing
     const isAuthValid = await verifyAuthOrRedirect();
     if (!isAuthValid) {
       return; // verifyAuthOrRedirect will handle the redirect and toast message
     }
-    
+
     try {
       // Set loading state for this specific proposal signing
       setSigningStates(prev => ({ ...prev, [proposal.id]: true }));
@@ -330,13 +331,13 @@ export default function ProposalsPage() {
       if (response.data.success) {
         // Refresh proposals using React Query
         const newProposals = await refreshProposals();
-        
+
         // Invalidate proposal related data to update notification and red dots
         refreshNotifications(authMethodId, userPkp?.ethAddress);
-        
+
         // Find the updated proposal
         const updatedProposal = newProposals.find((p: MessageProposal) => p.id === proposal.id)
-        
+
         // Check if signatures have reached the threshold
         if (updatedProposal && updatedProposal.signatures.length >= wallet.threshold) {
           // Automatically execute the multisig action once threshold is reached
@@ -345,11 +346,11 @@ export default function ProposalsPage() {
       }
     } catch (error: any) {
       console.error('Failed to sign proposal:', error)
-      
+
       // Check for Google JWT expired error
       const errorMessage = error?.message || '';
-      if (errorMessage.includes('Google JWT expired') || 
-          (error?.shortMessage && error.shortMessage.includes('Google JWT expired'))) {
+      if (errorMessage.includes('Google JWT expired') ||
+        (error?.shortMessage && error.shortMessage.includes('Google JWT expired'))) {
         handleExpiredAuth();
       } else {
         toast.error(`Error signing proposal: ${errorMessage}`);
@@ -374,13 +375,13 @@ export default function ProposalsPage() {
       },
       body: JSON.stringify({ phone_number: userPhone }),
     });
-    
+
     if (!response.ok) {
       const errorData = await response.json();
       log('Error response from API', errorData);
       throw new Error(errorData.error || `Failed to send OTP: ${response.status}`);
     }
-    
+
     const data = await response.json();
     setMfaMethodId(data.method_id);
     log('OTP sent, method_id:', data.method_id);
@@ -399,8 +400,8 @@ export default function ProposalsPage() {
       setExecutingStates(prev => ({ ...prev, [currentProposal.id]: true }));
       // make sure the user cannot sign other proposals
       setIsDisabled(true);
-      
-      const sessionSigs = await getSessionSigsByPkp({authMethod, pkp: userPkp, refreshStytchAccessToken: true})
+
+      const sessionSigs = await getSessionSigsByPkp({ authMethod, pkp: userPkp, refreshStytchAccessToken: true })
       log('otp in handleOtpVerified', otp)
       await handleExecuteTransactionProposal(currentProposal, sessionSigs, otp)
     } catch (error) {
@@ -424,7 +425,7 @@ export default function ProposalsPage() {
     try {
       // Set loading state for this specific proposal cancellation
       setCancelingStates(prev => ({ ...prev, [proposal.id]: true }));
-      
+
       const response = await axios.delete(`/api/multisig/messages`, {
         params: {
           walletId: proposal.walletId,
@@ -441,17 +442,17 @@ export default function ProposalsPage() {
       if (response.data.success) {
         // Refresh proposals using React Query
         await refreshProposals();
-        
+
         // Invalidate proposal related data to update notification and red dots
         refreshNotifications(authMethodId, userPkp.ethAddress);
-        
+
         toast.success('Proposal canceled successfully');
       } else {
         toast.error(response.data.error || 'Failed to cancel proposal');
       }
     } catch (error: any) {
       console.error('Failed to cancel proposal:', error);
-      
+
       // Handle different error types
       if (error.response?.data?.error) {
         toast.error(error.response.data.error);
@@ -469,7 +470,7 @@ export default function ProposalsPage() {
   }
 
   // Show loading state if wallet or proposals are still loading
-  if (isWalletLoading || isLoadingProposals) {
+  if (isWalletLoading || isLoadingProposals || isRefetchingProposals) {
     return <LogoLoading />;
   }
 
@@ -480,36 +481,47 @@ export default function ProposalsPage() {
 
   return (
     <>
-      <div className="mt-4 space-y-4">
+      <div className="mt-4">
         {proposals.length === 0 ? (
           <p>No proposals found for this wallet.</p>
         ) : (
-          proposals.map((proposal) => {
-            if (!userPkp || !wallet) return null
-            return (
-              <div
-                key={proposal.id}
-                ref={(el) => {
-                  proposalRefs.current[proposal.id] = el;
-                }}
-                className="transition-all duration-300"
-              >
-                <Proposal
-                  proposal={proposal}
-                  selectedWallet={wallet}
-                  handleSignProposal={handleSignProposal}
-                  executeMultisigLitAction={executeMultisigLitAction}
-                  handleCancelProposal={handleCancelProposal}
-                  userPkp={userPkp}
-                  authMethodId={authMethodId}
-                  isSigningProposal={signingStates[proposal.id] || false}
-                  isLoading={executingStates[proposal.id] || false}
-                  isDisabled={isDisabled}
-                  isCancelingProposal={cancelingStates[proposal.id] || false}
-                />
-              </div>
-            )
-          })
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-row justify-end">
+              <Button variant="ghost" size="icon" onClick={() => refetchProposals()}>
+                {isRefetchingProposals ? (
+                  <Loader2Icon className="w-4 h-4 animate-spin" />
+                ) : (
+                  <RefreshCcwIcon className="w-4 h-4" />
+                )}
+              </Button>
+            </div>
+            {proposals.map((proposal) => {
+              if (!userPkp || !wallet) return null
+              return (
+                <div
+                  key={proposal.id}
+                  ref={(el) => {
+                    proposalRefs.current[proposal.id] = el;
+                  }}
+                  className="transition-all duration-300"
+                >
+                  <Proposal
+                    proposal={proposal}
+                    selectedWallet={wallet}
+                    handleSignProposal={handleSignProposal}
+                    executeMultisigLitAction={executeMultisigLitAction}
+                    handleCancelProposal={handleCancelProposal}
+                    userPkp={userPkp}
+                    authMethodId={authMethodId}
+                    isSigningProposal={signingStates[proposal.id] || false}
+                    isLoading={executingStates[proposal.id] || false}
+                    isDisabled={isDisabled}
+                    isCancelingProposal={cancelingStates[proposal.id] || false}
+                  />
+                </div>
+              )
+            })}
+          </div>
         )}
       </div>
 
