@@ -8,6 +8,8 @@ import { LogoLoading } from '@/components/LogoLoading';
 import { TransactionHistoryTable } from './TransactionHistoryTable';
 import { addressByTokenSymbol } from '@/lib/web3/address';
 import { TransactionItem } from '@/types/transaction-item';
+import { Button } from '@/components/ui/button';
+import { Loader2Icon, RefreshCcwIcon } from 'lucide-react';
 
 export function TransactionHistory({
   addresses,
@@ -18,7 +20,7 @@ export function TransactionHistory({
   const [transactions, setTransactions] = useState<TransactionItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [isFiltering, setIsFiltering] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastId, setLastId] = useState<{ [key: string]: string | null } | null>(
     null
   );
@@ -51,10 +53,10 @@ export function TransactionHistory({
   }, [addresses]);
 
   useEffect(() => {
-    setIsFiltering(true)
+    setIsRefreshing(true)
     fetchTransactions()
       .finally(() => {
-        setIsFiltering(false)
+        setIsRefreshing(false)
       })
   }, [selectedToken]);
 
@@ -233,15 +235,53 @@ export function TransactionHistory({
     })
   };
 
+  const handleRefresh = () => {
+    if (isLoading || isRefreshing || isLoadingMore) return;
+
+    // setTransactions([]);
+    setLastId((prev) => {
+      if (prev === null) return null;
+
+      const newValue = { ...prev };
+      if (selectedToken !== "all") {
+        newValue[selectedToken] = null;
+      } else {
+        for (const key in newValue) {
+          newValue[key] = null;
+        }
+      }
+      return newValue;
+    });
+
+    setIsRefreshing(true);
+
+    fetchTransactions()
+      .finally(() => {
+        setIsRefreshing(false);
+      });
+  };
+
   return (
     <div className="space-y-4">
-      {lastId !== null && (<SelectToken
-        className="w-[180px]"
-        onSelect={handleTokenChange}
-        defaultValue={selectedToken}
-        includeAllOption
-        disabled={isFiltering}
-      />)}
+      {lastId !== null && (
+        <div className="flex flex-row justify-start items-center">
+          <SelectToken
+            className="w-[180px]"
+            onSelect={handleTokenChange}
+            defaultValue={selectedToken}
+            includeAllOption
+            disabled={isLoading || isRefreshing || isLoadingMore}
+          />
+          <div className="flex-1" />
+          <Button variant="ghost" size="icon" onClick={handleRefresh} disabled={isLoading || isRefreshing || isLoadingMore}>
+            {isRefreshing ? (
+              <Loader2Icon className="w-4 h-4 animate-spin" />
+            ) : (
+              <RefreshCcwIcon className="w-4 h-4" />
+            )}
+          </Button>
+        </div>
+      )}
 
       {isLoading ? (
         <LogoLoading />
@@ -249,7 +289,7 @@ export function TransactionHistory({
         <div className="space-y-4">
           {transactions.length > 0 ? (
             <TransactionHistoryTable
-              isLoading={isFiltering}
+              isLoading={isRefreshing}
               data={transactions}
               isLoadingMore={isLoadingMore}
               hasMore={hasMore === true}
