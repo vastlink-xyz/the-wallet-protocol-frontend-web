@@ -48,40 +48,40 @@ export default function RootLayout({
           <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}>
             <PersonalWalletSettingsProvider>
               <MultisigSettingsProvider>
-              <AppNavbar />
+                <AppNavbar />
 
-              <AuthGuard />
+                <AuthGuard />
 
-              <div className="h-[calc(100vh-52px)] flex flex-col">
-                {/* Unified notification system */}
-                <NotificationContainer />
+                <div className="h-[calc(100vh-52px)] flex flex-col">
+                  {/* Unified notification system */}
+                  <NotificationContainer />
 
-                <div className="flex flex-1 min-h-0">
-                  <SidebarDesktop />
-                  <main className="flex-1 overflow-y-auto relative">
-                    {children}
-                  </main>
+                  <div className="flex flex-1 min-h-0">
+                    <SidebarDesktop />
+                    <main className="flex-1 overflow-y-auto relative">
+                      {children}
+                    </main>
+                  </div>
+
                 </div>
 
-              </div>
+                <PersonalWalletSettings />
+                <MultisigSettings />
 
-              <PersonalWalletSettings />
-              <MultisigSettings />
-
-              <ToastContainer
-                position="top-center"
-                autoClose={5000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-                theme="colored"
-                style={{ width: 'fit-content' }}
-                toastStyle={{ width: 'fit-content', maxWidth: '100%' }}
-              />
+                <ToastContainer
+                  position="top-center"
+                  autoClose={5000}
+                  hideProgressBar={false}
+                  newestOnTop={false}
+                  closeOnClick
+                  rtl={false}
+                  pauseOnFocusLoss
+                  draggable
+                  pauseOnHover
+                  theme="colored"
+                  style={{ width: 'fit-content' }}
+                  toastStyle={{ width: 'fit-content', maxWidth: '100%' }}
+                />
               </MultisigSettingsProvider>
             </PersonalWalletSettingsProvider>
           </GoogleOAuthProvider>
