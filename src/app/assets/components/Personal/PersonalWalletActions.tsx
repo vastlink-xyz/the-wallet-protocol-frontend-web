@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useContext } from "react"
 import { WalletSendReceiveButtons } from "@/app/assets/components/WalletCard/WalletSendReceiveButtons"
 import { WalletSettingsButton } from "@/app/assets/components/WalletCard/WalletSettingsButton"
 import { SendTransactionDialog, SendTransactionDialogState } from "@/components/Transaction/SendTransactionDialog"
@@ -15,6 +15,7 @@ import { useAuthExpiration } from '@/hooks/useAuthExpiration'
 import { litNodeClient } from '@/lib/lit/providers'
 import { MultisigWalletAddresses } from "@/app/api/multisig/storage"
 import { log } from "@/lib/utils"
+import { PersonalWalletSettingsContext } from "@/providers/PersonalWalletSettingsProvider"
 
 interface PersonalWalletActionsProps {
   btcAddress: string
@@ -35,10 +36,11 @@ export function PersonalWalletActions({
   const [authMethodId, setAuthMethodId] = useState<string | null>(null)
   const [litActionPkp, setLitActionPkp] = useState<IRelayPKP | null>(null)
   const [showSendDialog, setShowSendDialog] = useState(false)
-  const [showSettingsDialog, setShowSettingsDialog] = useState(false)
   const [showMfa, setShowMfa] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const [resetAmount, setResetAmount] = useState(false)
+
+  const { showPersonalWalletSettings } = useContext(PersonalWalletSettingsContext);
 
   // Fetch user data
   useEffect(() => {
@@ -288,7 +290,7 @@ export function PersonalWalletActions({
 
       {/* Settings Button */}
       <WalletSettingsButton
-        onSettingsClick={() => setShowSettingsDialog(true)}
+        onSettingsClick={() => showPersonalWalletSettings()}
         className="absolute top-6 right-6"
       />
 
@@ -311,12 +313,6 @@ export function PersonalWalletActions({
           />
         )
       }
-
-      {/* Personal Wallet Settings */}
-      <PersonalWalletSettings 
-        isOpen={showSettingsDialog}
-        onClose={() => setShowSettingsDialog(false)}
-      />
     </>
   )
 }

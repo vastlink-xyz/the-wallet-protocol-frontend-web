@@ -74,7 +74,7 @@ export default function PersonalWalletDetailsPage() {
         <p className={cn('text-lg text-center font-bold', 'text-black')}>
           {email}
         </p>
-        <WalletSettingsActions className="" />
+        <WalletSettingsActions />
       </div>
 
       <div className="w-full laptop:w-[640px] mx-auto mb-[80px] mt-[24px]">

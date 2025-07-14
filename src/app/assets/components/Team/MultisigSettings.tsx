@@ -3,7 +3,7 @@
 import { AuthMethod, IRelayPKP } from '@lit-protocol/types'
 import { MultisigWalletFormContent } from '@/components/MultisigWalletFormContent'
 import { MultisigWallet } from '@/app/api/multisig/storage'
-import { useState } from 'react'
+import { useContext, useState } from 'react'
 import { useEffect } from 'react'
 import { LogoLoading } from '@/components/LogoLoading'
 import {
@@ -13,37 +13,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { MultisigSettingsContext } from '@/providers/MultisigSettingsProvider'
 
-interface MultisigSettingProps {
-  open: boolean
-  mode: 'create' | 'edit'
-  walletId?: string
-  authMethod: AuthMethod
-  userPkp: IRelayPKP
-  authMethodId: string
-  onClose: () => void
-  onSuccess?: () => void
-}
+export function MultisigSettings() {
+  const { params, isMultisigSettingsOpen, closeMultisigSettings } = useContext(MultisigSettingsContext)
 
-export function MultisigSetting({ 
-  open,
-  mode,
-  walletId,
-  authMethod, 
-  userPkp, 
-  authMethodId, 
-  onClose,
-  onSuccess 
-}: MultisigSettingProps) {
   const [wallet, setWallet] = useState<MultisigWallet | undefined>()
-  const [isWalletLoading, setIsWalletLoading] = useState(!!walletId)
+  const [isWalletLoading, setIsWalletLoading] = useState(!!params?.walletId)
 
   useEffect(() => {
     const fetchWallet = async () => {
-      if (walletId) {
+      if (params?.walletId) {
         setIsWalletLoading(true)
         try {
-          const response = await fetch(`/api/multisig?id=${walletId}`)
+          const response = await fetch(`/api/multisig?id=${params!.walletId}`)
           const data = await response.json()
           setWallet(data.data)
         } catch (error) {
@@ -54,10 +37,10 @@ export function MultisigSetting({
       }
     }
     fetchWallet()
-  }, [walletId])
+  }, [params?.walletId])
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+    <Dialog open={isMultisigSettingsOpen} onOpenChange={(isOpen) => !isOpen && closeMultisigSettings()}>
       <DialogContent className="p-0 max-w-[660px] sm:max-w-[660px]">
         <DialogHeader className="border-b px-8 py-6">
           <DialogTitle>Team Wallet Settings</DialogTitle>
@@ -72,19 +55,19 @@ export function MultisigSetting({
               <LogoLoading className='mt-[0px]' />
             </div>
           ) : (
-            ((wallet && mode === 'edit') || mode === 'create') && (
+            ((wallet && params?.mode === 'edit') || params?.mode === 'create') && (
               <MultisigWalletFormContent
-                mode={mode}
+                mode={params.mode}
                 wallet={wallet}
-                authMethod={authMethod}
-                userPkp={userPkp}
-                authMethodId={authMethodId}
-                onCancel={onClose}
+                authMethod={params.authMethod}
+                userPkp={params.userPkp}
+                authMethodId={params.authMethodId}
+                onCancel={() => closeMultisigSettings()}
                 onSuccess={() => {
-                  if (onSuccess) {
-                    onSuccess();
+                  if (params.onSuccess) {
+                    params.onSuccess();
                   }
-                  onClose();
+                  closeMultisigSettings();
                 }}
               />
             )
