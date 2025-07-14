@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { Wallet, Settings, Server, CreditCard, LucideArrowLeft, ChevronLeft, LogOut, SettingsIcon } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
@@ -11,6 +11,7 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useNotifications } from '@/hooks/useNotifications';
 import Link from 'next/link';
 import { PersonalWalletSettings } from '@/app/assets/components/Personal/WalletSettings';
+import { PersonalWalletSettingsContext } from '@/providers/PersonalWalletSettingsProvider';
 
 interface SidebarItemProps {
   href: string;
@@ -78,8 +79,9 @@ export function SidebarDesktop() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const { proposalNotifications } = useNotifications();
-  const [showSettingsDialog, setShowSettingsDialog] = useState(false);
 
+  const { showPersonalWalletSettings } = useContext(PersonalWalletSettingsContext);
+  
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -108,95 +110,87 @@ export function SidebarDesktop() {
   }
 
   return (
-    <>
-      <div className={cn(
-        'bg-white border-r shadow-[0px_1px_7px_0px_rgba(0,0,0,0.1)] h-full flex-shrink-0 transition-all duration-300',
-        isCollapsed ? 'w-18' : 'w-54'
-      )}>
-        <div className="py-4 relative">
-          {/* Collapse button */}
-          <div 
-            className={cn(
-              'w-6 h-6 absolute z-2 top-[90px] -right-3 bg-[#c7c8c9] text-white rounded-full cursor-pointer flex items-center justify-center hover:bg-[#a0a1a2]',
-              'shadow-[4px_0px_20px_0px_rgba(238,238,238,1.00)]',
-            )}
-            onClick={() => setIsCollapsed(!isCollapsed)}
-          >
-            <ChevronLeft className={cn(
-              'w-4 h-4 transition-transform',
-              isCollapsed && 'rotate-180'
-            )} />
-          </div>
-
-          <nav className="space-y-6">
-            <SidebarItem 
-              href="/assets" 
-              icon={<Wallet className="w-5 h-5" />}
-              label="Wallets"
-              isCollapsed={isCollapsed}
-            />
-
-            <SidebarItem 
-              href="/proposals" 
-              icon={<Server className="w-5 h-5" />}
-              label="Proposals"
-              isCollapsed={isCollapsed}
-              className='relative'
-            >
-              {proposalNotifications.length > 0 && (
-                <>
-                  {isCollapsed ? (
-                    <div className="bg-red-500 rounded-full w-[6px] h-[6px] absolute right-4 top-2"></div>
-                  ) : (
-                    <div className="bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                      {proposalNotifications.length}
-                    </div>
-                  )}
-                </>
-              )}
-            </SidebarItem>
-
-            <div className="w-auto mx-6 border-b border border-[#eeeeee]"></div>
-
-            <SidebarItem 
-              href="#" 
-              icon={<SettingsIcon className="w-5 h-5" />}
-              label="Settings"
-              isCollapsed={isCollapsed}
-              onClick={() => setShowSettingsDialog(true)}
-            />
-          </nav>
+    <div className={cn(
+      'bg-white border-r shadow-[0px_1px_7px_0px_rgba(0,0,0,0.1)] h-full flex-shrink-0 transition-all duration-300',
+      isCollapsed ? 'w-18' : 'w-54'
+    )}>
+      <div className="py-4 relative">
+        {/* Collapse button */}
+        <div 
+          className={cn(
+            'w-6 h-6 absolute z-2 top-[90px] -right-3 bg-[#c7c8c9] text-white rounded-full cursor-pointer flex items-center justify-center hover:bg-[#a0a1a2]',
+            'shadow-[4px_0px_20px_0px_rgba(238,238,238,1.00)]',
+          )}
+          onClick={() => setIsCollapsed(!isCollapsed)}
+        >
+          <ChevronLeft className={cn(
+            'w-4 h-4 transition-transform',
+            isCollapsed && 'rotate-180'
+          )} />
         </div>
 
-        {isLoggedIn ? (
-          <Tooltip>
-            <TooltipTrigger asChild className='hidden tablet:block'>
-              <div className='absolute bottom-4 left-6 cursor-pointer transition-all duration-300' onClick={handleLogout}>
-                <div className='flex items-center justify-center'>
-                  <LogOut className="w-4 h-4 text-black rounded-md flex-shrink-0" />
-                  <div className={cn(
-                    'overflow-hidden transition-all duration-300',
-                    isCollapsed ? 'w-0 ml-0' : 'w-[60px] ml-2'
-                  )}>
-                    <span className="whitespace-nowrap block text-black text-sm">
-                      Logout
-                    </span>
+        <nav className="space-y-6">
+          <SidebarItem 
+            href="/assets" 
+            icon={<Wallet className="w-5 h-5" />}
+            label="Wallets"
+            isCollapsed={isCollapsed}
+          />
+
+          <SidebarItem 
+            href="/proposals" 
+            icon={<Server className="w-5 h-5" />}
+            label="Proposals"
+            isCollapsed={isCollapsed}
+            className='relative'
+          >
+            {proposalNotifications.length > 0 && (
+              <>
+                {isCollapsed ? (
+                  <div className="bg-red-500 rounded-full w-[6px] h-[6px] absolute right-4 top-2"></div>
+                ) : (
+                  <div className="bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                    {proposalNotifications.length}
                   </div>
-                </div>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              Logout
-            </TooltipContent>
-          </Tooltip>
-        ) : null}
+                )}
+              </>
+            )}
+          </SidebarItem>
+
+          <div className="w-auto mx-6 border-b border border-[#eeeeee]"></div>
+
+          <SidebarItem 
+            href="#" 
+            icon={<SettingsIcon className="w-5 h-5" />}
+            label="Settings"
+            isCollapsed={isCollapsed}
+            onClick={() => showPersonalWalletSettings()}
+          />
+        </nav>
       </div>
 
-      {/* Settings Dialog for MFA notifications */}
-      <PersonalWalletSettings 
-        isOpen={showSettingsDialog}
-        onClose={() => setShowSettingsDialog(false)}
-      />
-    </>
+      {isLoggedIn ? (
+        <Tooltip>
+          <TooltipTrigger asChild className='hidden tablet:block'>
+            <div className='absolute bottom-4 left-6 cursor-pointer transition-all duration-300' onClick={handleLogout}>
+              <div className='flex items-center justify-center'>
+                <LogOut className="w-4 h-4 text-black rounded-md flex-shrink-0" />
+                <div className={cn(
+                  'overflow-hidden transition-all duration-300',
+                  isCollapsed ? 'w-0 ml-0' : 'w-[60px] ml-2'
+                )}>
+                  <span className="whitespace-nowrap block text-black text-sm">
+                    Logout
+                  </span>
+                </div>
+              </div>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            Logout
+          </TooltipContent>
+        </Tooltip>
+      ) : null}
+    </div>
   );
 }

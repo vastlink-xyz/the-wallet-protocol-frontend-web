@@ -1,9 +1,7 @@
 'use client'
 
 import { AuthMethod, IRelayPKP } from '@lit-protocol/types'
-import { Plus, Settings } from 'lucide-react'
-import { useCallback, useEffect, useState, forwardRef, useImperativeHandle } from 'react'
-import { MultisigSetting } from './MultisigSetting'
+import { useCallback, useEffect, useState, forwardRef, useImperativeHandle, useContext } from 'react'
 import { MessageProposal, MultisigWallet } from '@/app/api/multisig/storage'
 import { SendTransactionDialog, SendTransactionDialogState } from '@/components/Transaction/SendTransactionDialog'
 import { User } from '@/app/api/user/storage'
@@ -12,6 +10,7 @@ import { useTeamWallets } from '@/hooks/useTeamWallets'
 import { WalletCard } from '@/app/assets/components/WalletCard'
 import { WalletCardSkeleton } from '@/app/assets/components/WalletCard/WalletCardSkeleton'
 import { createAndApproveTransactionProposal, executeTeamTransactionProposal, inviteTeamUser, handleTeamMfaVerify } from '@/services/teamTransactionService'
+import { MultisigSettingsContext } from '@/providers/MultisigSettingsProvider'
 
 interface TeamAssetsProps {
   authMethod: AuthMethod
@@ -30,7 +29,6 @@ interface MultisigWalletWithUnsignedProposalsCount extends MultisigWallet {
 const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ authMethod, userData, authMethodId }, ref) => {
   const [userPkp, setUserPkp] = useState<IRelayPKP | null>(null)
   const [user, setUser] = useState<User | null>(null)
-  const [showMultisigSetting, setShowMultisigSetting] = useState(false)
   const [mode, setMode] = useState<'create' | 'edit'>('create')
   const [selectedWallet, setSelectedWallet] = useState<MultisigWalletWithUnsignedProposalsCount | undefined>()
 
@@ -40,6 +38,8 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ authMethod, use
   const [showMfaDialog, setShowMfaDialog] = useState(false);
   const [currentProposal, setCurrentProposal] = useState<MessageProposal | null>(null)
 
+  const { showMultisigSettings } = useContext(MultisigSettingsContext);
+  
   // Notifications hook for UI refresh
   const { refreshNotifications } = useNotifications({
     enabled: false, // only need the refresh function
@@ -70,9 +70,18 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ authMethod, use
   }, [userData, authMethodId])
 
   const handleWalletSettingsClick = (wallet: MultisigWalletWithUnsignedProposalsCount) => {
-    setSelectedWallet(wallet)
-    setMode('edit')
-    setShowMultisigSetting(true)
+    if (userPkp && authMethodId) {
+      setSelectedWallet(wallet)
+      setMode('edit')
+      showMultisigSettings({
+        mode: 'edit',
+        walletId: wallet.id,
+        authMethod,
+        userPkp,
+        authMethodId,
+        onSuccess: handleRefreshWallets,
+      })
+    }
   }
 
   const handleSendClick = (wallet: MultisigWalletWithUnsignedProposalsCount) => {
@@ -91,7 +100,13 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ authMethod, use
     if (userPkp && authMethodId) {
       setMode('create')
       setSelectedWallet(undefined)
-      setShowMultisigSetting(true)
+      showMultisigSettings({
+        mode: 'create',
+        authMethod,
+        userPkp,
+        authMethodId,
+        onSuccess: handleRefreshWallets,
+      })
     } else {
       console.error('Missing userPkp or authMethodId')
     }
@@ -221,19 +236,6 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ authMethod, use
             onCreateClick={handleCreateTeamWallet}
           />
         </>
-      )}
-
-      {(showMultisigSetting && userPkp) && (
-        <MultisigSetting
-          open={showMultisigSetting}
-          mode={mode}
-          walletId={selectedWallet?.id}
-          authMethod={authMethod}
-          userPkp={userPkp}
-          authMethodId={authMethodId}
-          onClose={() => setShowMultisigSetting(false)}
-          onSuccess={handleRefreshWallets}
-        />
       )}
 
       {

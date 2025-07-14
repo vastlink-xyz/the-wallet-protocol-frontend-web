@@ -10,6 +10,10 @@ import { NotificationContainer } from "@/components/layout/NotificationContainer
 import AuthGuard from "@/components/layout/AuthGuard";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { SidebarDesktop } from "@/components/layout/Sidebar";
+import { PersonalWalletSettings } from "./assets/components/Personal/WalletSettings";
+import { PersonalWalletSettingsProvider } from "@/providers/PersonalWalletSettingsProvider";
+import { MultisigSettings } from "./assets/components/Team/MultisigSettings";
+import { MultisigSettingsProvider } from "@/providers/MultisigSettingsProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,37 +46,44 @@ export default function RootLayout({
       >
         <QueryProvider>
           <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}>
-            <AppNavbar />
+            <PersonalWalletSettingsProvider>
+              <MultisigSettingsProvider>
+              <AppNavbar />
 
-            <AuthGuard />
+              <AuthGuard />
 
-            <div className="h-[calc(100vh-52px)] flex flex-col">
-              {/* Unified notification system */}
-              <NotificationContainer />
+              <div className="h-[calc(100vh-52px)] flex flex-col">
+                {/* Unified notification system */}
+                <NotificationContainer />
 
-              <div className="flex flex-1 min-h-0">
-                <SidebarDesktop />
-                <main className="flex-1 overflow-y-auto relative">
-                  {children}
-                </main>
+                <div className="flex flex-1 min-h-0">
+                  <SidebarDesktop />
+                  <main className="flex-1 overflow-y-auto relative">
+                    {children}
+                  </main>
+                </div>
+
               </div>
 
-            </div>
-            
-            <ToastContainer
-              position="top-center"
-              autoClose={5000}
-              hideProgressBar={false}
-              newestOnTop={false}
-              closeOnClick
-              rtl={false}
-              pauseOnFocusLoss
-              draggable
-              pauseOnHover
-              theme="colored"
-              style={{ width: 'fit-content' }}
-              toastStyle={{ width: 'fit-content', maxWidth: '100%' }}
-            />
+              <PersonalWalletSettings />
+              <MultisigSettings />
+
+              <ToastContainer
+                position="top-center"
+                autoClose={5000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="colored"
+                style={{ width: 'fit-content' }}
+                toastStyle={{ width: 'fit-content', maxWidth: '100%' }}
+              />
+              </MultisigSettingsProvider>
+            </PersonalWalletSettingsProvider>
           </GoogleOAuthProvider>
         </QueryProvider>
       </body>

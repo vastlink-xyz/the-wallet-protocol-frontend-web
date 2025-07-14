@@ -1,30 +1,27 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useContext } from "react"
 import { WalletSettingsButton } from "@/app/assets/components/WalletCard/WalletSettingsButton"
-import { MultisigSetting } from "@/app/assets/components/Team/MultisigSetting"
 import { getAuthMethodFromStorage } from "@/lib/storage/authmethod"
 import { getProviderByAuthMethodType } from "@/lib/lit"
 import { AuthMethod, IRelayPKP } from "@lit-protocol/types"
 import { useNotifications } from "@/hooks/useNotifications"
 import { MultisigWallet } from "@/app/api/multisig/storage"
+import { MultisigSettingsContext } from "@/providers/MultisigSettingsProvider"
 
 interface TeamWalletSettingsActionsProps {
   wallet: MultisigWallet
-  className?: string
-  onSettingsChange?: () => void
   refreshProposals?: () => Promise<any>
 }
 
 export function TeamWalletSettingsActions({
   wallet,
-  className,
-  onSettingsChange,
   refreshProposals,
 }: TeamWalletSettingsActionsProps) {
-  const [showSettingsDialog, setShowSettingsDialog] = useState(false)
   const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null)
   const [authMethodId, setAuthMethodId] = useState<string>('')
   const [userPkp, setUserPkp] = useState<IRelayPKP | null>(null)
   
+  const { showMultisigSettings } = useContext(MultisigSettingsContext);
+
   // Notifications hook for UI refresh
   const { refreshNotifications } = useNotifications({
     enabled: false, // only need the refresh function
@@ -70,39 +67,23 @@ export function TeamWalletSettingsActions({
     if (refreshProposals) {
       await refreshProposals()
     }
-    
-    onSettingsChange?.()
   }
 
-  const handleSettingsClose = () => {
-    setShowSettingsDialog(false)
-    // Call callback when settings dialog closes (settings might have changed)
-    onSettingsChange?.()
-  }
-  
   return (
-    <>
-      {/* Settings Button */}
-      <WalletSettingsButton
-        onSettingsClick={() => setShowSettingsDialog(true)}
-        className={className}
-      />
-      
-      {/* Multisig Settings Dialog */}
-      {
-        (showSettingsDialog && userPkp && authMethod && authMethodId) && (
-          <MultisigSetting
-            open={showSettingsDialog}
-            mode="edit"
-            walletId={wallet.id}
-            authMethod={authMethod}
-            userPkp={userPkp}
-            authMethodId={authMethodId}
-            onClose={handleSettingsClose}
-            onSuccess={handleSettingsSuccess}
-          />
-        )
-      }
-    </>
+    // Settings Button
+    <WalletSettingsButton
+      onSettingsClick={() => {
+        if (userPkp && authMethod) {
+          showMultisigSettings({
+            mode: "edit",
+            walletId: wallet.id,
+            authMethod,
+            userPkp,
+            authMethodId,
+            onSuccess: handleSettingsSuccess,
+          })
+        }
+      }}
+    />
   )
 }
