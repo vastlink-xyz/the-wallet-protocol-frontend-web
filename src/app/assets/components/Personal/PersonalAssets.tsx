@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useContext } from 'react'
 import { AuthMethod, IRelayPKP } from '@lit-protocol/types'
 import { Loader2 } from 'lucide-react'
 import { getProviderByAuthMethodType } from '@/lib/lit/providers'
@@ -12,6 +12,7 @@ import { WalletCardSkeleton } from '@/app/assets/components/WalletCard/WalletCar
 import { PersonalWalletSettings } from './WalletSettings'
 import { executePersonalTransaction, inviteUser } from '@/services/personalTransactionService'
 import { User } from '@/app/api/user/storage'
+import { PersonalWalletSettingsContext } from '@/providers/PersonalWalletSettingsProvider'
 
 interface PersonalAssetsProps {
   authMethod: AuthMethod
@@ -31,8 +32,9 @@ export default function PersonalAssets({ authMethod, userData, authMethodId }: P
   const [showMfa, setShowMfa] = useState(false)
   const [showSendDialog, setShowSendDialog] = useState(false)
   const [isSending, setIsSending] = useState(false)
-  const [showSettingsDialog, setShowSettingsDialog] = useState(false)
   const [resetAmount, setResetAmount] = useState(false)
+
+  const { showPersonalWalletSettings } = useContext(PersonalWalletSettingsContext);
 
   // Initialize data from props
   useEffect(() => {
@@ -83,7 +85,7 @@ export default function PersonalAssets({ authMethod, userData, authMethodId }: P
 
   const handleWalletSettingsClick = () => {
     console.log('PersonalAssets handleWalletSettingsClick triggered')
-    setShowSettingsDialog(true)
+    showPersonalWalletSettings()
   }
 
 
@@ -145,12 +147,6 @@ export default function PersonalAssets({ authMethod, userData, authMethodId }: P
           />
         )
       }
-
-      {/* Personal Wallet Settings */}
-      <PersonalWalletSettings 
-        isOpen={showSettingsDialog}
-        onClose={() => setShowSettingsDialog(false)}
-      />
     </>
   )
 } 
