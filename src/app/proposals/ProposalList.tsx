@@ -129,9 +129,15 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
   }), []);
   
   // Use new proposals API with user address and status filtering
-  const { data: proposals = [], isLoading: isLoadingProposals, isRefetching: isRefetchingProposals, refetch: refetchProposals } = useProposals(undefined, { 
+  const {
+    data: proposals = [],
+    isLoading: isLoadingProposals,
+    isRefetching: isRefetchingProposals,
+    refresh: refreshProposals,
+    mutateItem: mutateProposalItem
+  } = useProposals(undefined, {
     status, 
-    userAddress: userPkp?.ethAddress 
+    userAddress: userPkp?.ethAddress
   });
 
   // Fetch wallets using user address
@@ -153,16 +159,6 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
     });
     return map;
   }, [wallets]);
-
-  // Refresh proposals function
-  const refreshProposals = async () => {
-    // Only refresh the current status query - more efficient and precise
-    await queryClient.invalidateQueries({ 
-      queryKey: ['proposals', undefined, status, userPkp?.ethAddress] 
-    });
-    const result = await refetchProposals();
-    return result.data || [];
-  };
 
   // Scroll to target proposal when URL parameter is provided (only on initial load)
   useEffect(() => {
@@ -388,17 +384,15 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
       });
 
       if (response.data.success) {
-        // Refresh data
-        const newProposals = await refreshProposals();
-        refreshNotifications(authMethodId, userPkp.ethAddress);
+        // Invalidate proposal related data to update notification and red dots
+        refreshNotifications(authMethodId, userPkp?.ethAddress);
 
-        // Find the updated proposal
-        const updatedProposal = newProposals.find((p: MessageProposal) => p.id === proposal.id)
-        
-        // Check if signatures have reached the threshold
-        if (updatedProposal && updatedProposal.signatures.length >= wallet.threshold) {
-          // Automatically execute the multisig action once threshold is reached
-          await executeMultisigLitAction(updatedProposal)
+        const item = await mutateProposalItem(proposal.id)
+        if (item) {
+          if (item.signatures.length >= wallet.threshold) {
+            // Automatically execute the multisig action once threshold is reached
+            await executeMultisigLitAction(item)
+          }
         }
       }
     } catch (error: any) {
