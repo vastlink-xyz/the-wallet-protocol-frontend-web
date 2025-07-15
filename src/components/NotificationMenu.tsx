@@ -15,7 +15,7 @@ export function NotificationMenu({
   className,
 }: React.HtmlHTMLAttributes<HTMLDivElement>) {
   const { showPersonalWalletSettings } = useContext(PersonalWalletSettingsContext);
-  
+
   const { securityNotifications, proposalNotifications } = useNotifications();
 
   const [showPopup, setShowPopup] = useState(false);
@@ -110,7 +110,7 @@ export function NotificationMenu({
               />
               <span className="font-semibold">{proposalNotification.title}</span>
               <p className="col-start-2 text-sm line-clamp-2">{proposalNotification.message}</p>
-              <div className="w-full h-10 col-span-2 flex flex-row justify-end">
+              <div className="w-full h-10 col-span-2 flex flex-row justify-end items-center">
                 <Link href={`/proposals?proposalId=${proposalNotification.data?.id}`} target="_blank" className="font-semibold">
                   Review →
                 </Link>
@@ -126,15 +126,13 @@ export function NotificationMenu({
           )}
 
           {/* View all */}
-          {
-            proposalNotifications.length > 0 && (
-              <div className="w-full mb-[18px] *:col-span-2 flex flex-row justify-center items-center">
-                <Link href="/proposals" className="font-semibold underline">
-                  View all
-                </Link>
-              </div>
-            )
-          }
+          {hasUnread && (
+            <div className="w-full mb-[18px] *:col-span-2 flex flex-row justify-center items-center">
+              <Link href="/notification" className="font-semibold underline">
+                View all
+              </Link>
+            </div>
+          )}
         </div>
       </HoverCardContent>
     </HoverCard>
