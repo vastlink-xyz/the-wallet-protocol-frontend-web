@@ -54,6 +54,9 @@
   --color-notification-header: var(--notification-header);
   --color-notification-background: var(--notification-background);
   --color-notification-border: var(--notification-border);
+
+  --color-proposal-background: var(--proposal-background);
+  --color-proposal-border: var(--proposal-border);
 }
 
 :root {
@@ -93,8 +96,11 @@
   --notification-accent: oklch(71.018% 0.15215 71.837);
   --notification-notice: oklch(81.464% 0.16712 76.128);
   --notification-header: oklch(96.257% 0.00675 286.038);
-  --notification-background: oklch(0% 0 0 / 0.04);;
-  --notification-border: oklch(0% 0 0 / 0.08);;
+  --notification-background: oklch(0% 0 0 / 0.04);
+  --notification-border: oklch(0% 0 0 / 0.08);
+
+  --proposal-background: oklch(100% 0.00011 271.152);
+  --proposal-border: oklch(94.007% 0.00011 271.152);
 }
 
 .dark {

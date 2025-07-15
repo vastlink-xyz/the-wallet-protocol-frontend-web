@@ -1,8 +1,8 @@
 import { MessageProposal, MultisigWallet } from "@/app/api/multisig/storage";
+import { sendTeamNotification } from "@/lib/notification/team-notificatioin";
 import { getUserEmailFromStorage } from "@/lib/storage/user";
 import { IRelayPKP } from "@lit-protocol/types";
 import axios from "axios";
-import { sendTeamNotification } from "@/lib/notification/team-notificatioin";
 import { generateSettingsChangeDescriptions } from "./settingsDescriptionUtils";
 
 export const getTransactionDetails = (proposal: MessageProposal, wallet: MultisigWallet) => {
@@ -113,5 +113,5 @@ export const sendNotificationsToNewSigners = async (originalWallet: MultisigWall
 };
 
 export const hasUserSigned = (proposal: MessageProposal, userPkp: IRelayPKP) => {
-  return proposal.signatures.some(sig => sig.signer === userPkp.ethAddress)
+  return proposal.signatures.some(sig => sig.signer.toLowerCase() === userPkp.ethAddress.toLowerCase());
 }

@@ -8,7 +8,8 @@ export const PROTECTED_ROUTES = [
   '/wallet',
   '/proposals',
   '/swap',
-  '/debug'
+  '/debug',
+  '/notification',
 ] as const;
 
 // Routes that don't require authentication (also used for hiding notifications and navbar)
