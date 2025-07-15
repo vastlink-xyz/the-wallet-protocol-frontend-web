@@ -662,6 +662,7 @@ const ProposalsList = forwardRef(({ status }: { status: ProposalStatus }, ref) =
     </>
   );
 });
+ProposalsList.displayName = 'ProposalsList';
 
 export default function ProposalsPage() {
   const childRef = useRef<{ refresh: () => Promise<void> } | null>(null);
