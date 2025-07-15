@@ -25,6 +25,8 @@ interface ProposalProps {
 }
 
 export function Proposal({ proposal, selectedWallet, handleSignProposal, executeMultisigLitAction, handleCancelProposal, userPkp, authMethodId, isSigningProposal, isLoading, isDisabled, isCancelingProposal }: ProposalProps) {
+  const isPending = isSigningProposal || isLoading || isDisabled || isCancelingProposal;
+
   const signedByMe = useMemo(() => {
     return hasUserSigned(proposal, userPkp);
   }, [proposal.signatures, userPkp.ethAddress]);
@@ -260,7 +262,7 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
           <Button
             className="rounded-full"
             variant="outline"
-            disabled={isCancelingProposal}
+            disabled={isPending}
             onClick={() => handleCancelProposal(proposal)}
           >
             {isCancelingProposal && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -272,7 +274,7 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
           <Button
             className="rounded-full"
             variant="default"
-            disabled={isSigningProposal}
+            disabled={isPending}
             onClick={() => handleSignProposal(proposal)}
           >
             {isSigningProposal && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -284,7 +286,7 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
           <Button
             className="rounded-full"
             variant="default"
-            disabled={isDisabled}
+            disabled={isPending}
             onClick={() => executeMultisigLitAction(proposal)}
           >
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

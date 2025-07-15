@@ -18,10 +18,11 @@ import { LogoLoading } from "@/components/LogoLoading";
 import { signProposal } from "./utils/sign-proposal";
 import { executeTransactionProposal, executeWalletSettingsProposal } from "./utils/execute-proposal";
 import { useNotifications } from "@/hooks/useNotifications";
-import { useProposals } from "@/hooks/useProposals";
+import { fetchProposals, useProposals } from "@/hooks/useProposals";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Loader2Icon, RefreshCcwIcon } from "lucide-react";
+import { fetchProposal } from "./utils/proposal";
 
 export default function ProposalsPage() {
   // Get walletId from params
@@ -42,10 +43,13 @@ export default function ProposalsPage() {
   const { wallet, isLoading: isWalletLoading, authMethod, walletPkp, userPkp, authMethodId, userPhone } = useWallet();
 
   // Use React Query for proposals
-  const { data: proposals = [], isLoading: isLoadingProposals, isRefetching: isRefetchingProposals, refetch: refetchProposals } = useProposals(walletId);
-
-  // Query client for cache invalidation
-  const queryClient = useQueryClient();
+  const {
+    data: proposals = [],
+    isLoading: isLoadingProposals,
+    isRefetching: isRefetchingProposals,
+    refresh: refreshProposals,
+    mutateItem: mutateProposalItem,
+  } = useProposals(walletId);
 
   // Loading states for different operations
   const [signingStates, setSigningStates] = useState<Record<string, boolean>>({});
@@ -64,13 +68,6 @@ export default function ProposalsPage() {
   const [showMfaDialog, setShowMfaDialog] = useState(false);
   const [currentProposal, setCurrentProposal] = useState<MessageProposal | null>(null)
   const [mfaMethodId, setMfaMethodId] = useState<string | null>(null);
-
-  // Helper function to invalidate and refetch proposals
-  const refreshProposals = async () => {
-    await queryClient.invalidateQueries({ queryKey: ['proposals', walletId] });
-    const result = await refetchProposals();
-    return result.data || [];
-  };
 
   // Scroll to target proposal when URL parameter is provided (only on initial load)
   useEffect(() => {
@@ -132,7 +129,7 @@ export default function ProposalsPage() {
 
       if (response.data.success) {
         // Refresh proposals using React Query
-        const newProposals = await refreshProposals();
+        await refreshProposals();
 
         // Invalidate proposal related data to update notification and red dots
         refreshNotifications(authMethodId, userPkp?.ethAddress);
@@ -240,7 +237,7 @@ export default function ProposalsPage() {
       }
 
       // Refresh proposals using React Query
-      const newProposals = await refreshProposals();
+      await refreshProposals();
 
       // Refresh proposal UI to update notification and red dots
       refreshNotifications(authMethodId, userPkp?.ethAddress);
@@ -329,19 +326,15 @@ export default function ProposalsPage() {
       })
 
       if (response.data.success) {
-        // Refresh proposals using React Query
-        const newProposals = await refreshProposals();
-
         // Invalidate proposal related data to update notification and red dots
         refreshNotifications(authMethodId, userPkp?.ethAddress);
 
-        // Find the updated proposal
-        const updatedProposal = newProposals.find((p: MessageProposal) => p.id === proposal.id)
-
-        // Check if signatures have reached the threshold
-        if (updatedProposal && updatedProposal.signatures.length >= wallet.threshold) {
-          // Automatically execute the multisig action once threshold is reached
-          await executeMultisigLitAction(updatedProposal)
+        const item = await mutateProposalItem(proposal.id)
+        if (item) {
+          if (item.signatures.length >= wallet.threshold) {
+            // Automatically execute the multisig action once threshold is reached
+            await executeMultisigLitAction(item)
+          }
         }
       }
     } catch (error: any) {
@@ -487,7 +480,7 @@ export default function ProposalsPage() {
         ) : (
           <div className="flex flex-col gap-4">
             <div className="flex flex-row justify-end">
-              <Button variant="ghost" size="icon" onClick={() => refetchProposals()}>
+              <Button variant="ghost" size="icon" onClick={() => refreshProposals()}>
                 {isRefetchingProposals ? (
                   <Loader2Icon className="w-4 h-4 animate-spin" />
                 ) : (
