@@ -1,5 +1,6 @@
 import { MessageProposal } from '@/app/api/multisig/storage';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback } from 'react';
 
 interface UseProposalsOptions {
   enabled?: boolean;
@@ -46,12 +47,55 @@ export function useProposals(
   options: UseProposalsOptions = {}
 ) {
   const { enabled = true, status, userAddress } = options;
+  const queryKey = ['proposals', walletId, status, userAddress];
 
-  return useQuery<MessageProposal[]>({
-    queryKey: ['proposals', walletId, status, userAddress],
+  const queryClient = useQueryClient();
+
+  const q = useQuery<MessageProposal[]>({
+    queryKey,
     queryFn: () => fetchProposals(walletId, undefined, status, userAddress),
-    enabled: enabled,
+    enabled,
     refetchOnWindowFocus: true,
     staleTime: 30 * 1000, // Consider data stale after 30 seconds
   });
+
+  const refresh = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey});
+    const { data } = await q.refetch();
+    return data || [];
+  }, [ 'proposals', walletId, status, userAddress ]);
+
+  const mutate = useCallback((newData: MessageProposal[]) => {
+    queryClient.setQueryData(queryKey, newData);
+  }, [ 'proposals', walletId, status, userAddress ]);
+
+  const mutateItem = useCallback(async (itemId: string) => {
+    const data = await fetchProposals(walletId, itemId);
+    if (data.length == 0) {
+      return null;
+    }
+
+    if (q.data && q.data.length > 0) {
+      const newData = [ ...q.data ];
+      for (const key in newData) {
+        if (newData[key].id === data[0].id) {
+          // Update the proposal in the local state
+          newData[key] = data[0];
+          break;
+        }
+      }
+      queryClient.setQueryData(queryKey, newData);
+    } else {
+      queryClient.setQueryData(queryKey, [...data]);
+    }
+
+    return data[0];
+  }, [ 'proposals', walletId, status, userAddress ]);
+
+  return {
+    ...q,
+    refresh,
+    mutate,
+    mutateItem,
+  }
 }

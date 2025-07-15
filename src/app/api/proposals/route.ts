@@ -8,9 +8,9 @@ export async function GET(request: NextRequest) {
     const id = searchParams.get('id')
     const status = searchParams.get('status')
     const userAddress = searchParams.get('userAddress')
-    
+
     await connectToDatabase()
-    
+
     // If userAddress is provided, get proposals from user's team wallets
     if (userAddress) {
       // Import getWallets to check user's wallets
