@@ -210,12 +210,14 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
             )}
           </>
         ) : (
-          <>
-            {`Transfer ${formatBalance(txDetails.value)} ${txDetails.tokenType && SUPPORTED_TOKENS_INFO[txDetails.tokenType as TokenType].symbol} to ${txDetails.to}`}
+          <div>
+            <div className="break-all">
+              {`Transfer ${formatBalance(txDetails.value)} ${txDetails.tokenType && SUPPORTED_TOKENS_INFO[txDetails.tokenType as TokenType].symbol} to ${txDetails.to}`}
+            </div>
             {txDetails.data && txDetails.data !== '0x' && (
-              <div><span className="font-medium">Data:</span> {txDetails.data}</div>
+              <div>{`Data: ${txDetails.data}`}</div>
             )}
-          </>
+          </div>
         )}
       </div>
 
