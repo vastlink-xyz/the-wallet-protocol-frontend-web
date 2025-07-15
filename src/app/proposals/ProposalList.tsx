@@ -660,3 +660,5 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
     </>
   );
 });
+
+ProposalsList.displayName = 'ProposalsListComponent';
