@@ -231,8 +231,9 @@ export function SignerEmailField({
 
   // Handle input change with debounce
   const handleChange = (value: string) => {
+    const trimmedValue = value.trim();
     // Update the input value immediately
-    input.onChange(value)
+    input.onChange(trimmedValue)
     
     // Clear any existing debounce timer
     if (debounceTimerRef.current) {
@@ -241,7 +242,7 @@ export function SignerEmailField({
     
     // Set a new debounce timer for processing the value
     debounceTimerRef.current = setTimeout(() => {
-      processInputValue(value)
+      processInputValue(trimmedValue)
     }, 500) // 500ms debounce
   }
 

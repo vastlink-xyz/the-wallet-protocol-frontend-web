@@ -8,7 +8,7 @@ export function cn(...inputs: ClassValue[]) {
 export const log = console.log.bind(console, '🚀')
 
 export function isValidEmail(email: string): boolean {
-  return /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g.test(email);
+  return /^[\w-\.]+@([\w-]+\.)+[\w-]{2,6}$/g.test(email);
 }
 
 // Function to truncate text in the middle
