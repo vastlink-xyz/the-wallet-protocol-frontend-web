@@ -1,10 +1,40 @@
 {
+  "Common": {
+    "back": "Back",
+    "login": "Login",
+    "logout": "Logout",
+    "wallets": "Wallets",
+    "proposals": "Proposals",
+    "notifications": "Notifications",
+    "settings": "Settings",
+    "details": "Details",
+    "confirm": "Confirm",
+    "cancel": "Cancel"
+  },
   "LocaleSwitcher": {
     "en": "🇬🇧 English",
     "zh": "🇨🇳 Chinese"
   },
+  "StytchOTP": {
+    "email_title": "Enter your email",
+    "email_description": "A verification code will be sent to your email.",
+    "email": "Email",
+    "email_holder": "Your email",
+    "sending": "Sending...",
+    "send_code": "Send verification code",
+    "code_title": "Check your email",
+    "code_description": "Enter the 6-digit verification code sent to {email}",
+    "code": "Code",
+    "code_holder": "Verification code",
+    "verifying": "Verifying...",
+    "verify": "Verify",
+    "try_again": "Try again",
+    "send_code_failed": "Failed to send verification code",
+    "verify_code_failed": "Failed to verify code"
+  },
   "AppNavbar": {
-    "testnets": "All assets here are on testnets only"
+    "testnets": "All assets here are on testnets only",
+    "mfa_setup": "To make your wallets more secure, we highly recommend you to <link>set up daily withdrawal limits and MFA in settings</link>"
   },
   "Sidebar": {
     "wallets": "Wallets",
@@ -13,11 +43,130 @@
     "settings": "Settings",
     "logout": "Logout"
   },
+  "CopyAddress": {
+    "success": "Copied to clipboard"
+  },
+  "MFAOtpDialog": {
+    "title": "Two-Factor Authentication",
+    "processing": "Processing",
+    "verify_code": "Verify Code",
+    "resend_code": "Resend Code",
+    "enter_otp": "Enter OTP",
+    "send_otp": "Send OTP",
+    "sending_otp": "Sending OTP...",
+    "ready_to_send": "Ready to send OTP.",
+    "cancel": "Cancel",
+    "notice": "An OTP has been sent to {identifier}. Please enter it below.",
+    "success": "OTP resent successfully",
+    "failed": "Failed to send OTP. Please try again.",
+    "empty": "Please enter the OTP.",
+    "invalid": "Invalid or expired OTP. Please try again."
+  },
+  "MFASettings": {
+    "add": "Add",
+    "remove": "Remove",
+    "add_phone": "Add Phone Number",
+    "phone_number": "Phone Number (e.g., +12345678900)",
+    "continue": "Continue",
+    "cancel": "Cancel",
+    "sending": "Sending...",
+    "fetch_error": "Error fetching mfa status",
+    "user_not_found": "User session not found.",
+    "phone_not_found": "No phone number to remove.",
+    "invalid_phone_format": "Invalid phone number format. Please use E.164 format, e.g., +12345678900",
+    "invalid_phone_information": "Invalid operation or missing phone information",
+    "invalid_operation": "Invalid operation",
+    "missing_details": "Session or OTP details missing.",
+    "invalid_verification_code": "Verification code must be 6 digits.",
+    "verify_phone_number": "Verify Phone Number",
+    "verify_phone_removal": "Verify Phone Removal",
+    "remove_phone_description": "Please verify your identity to remove {number}",
+    "remove_phone_error": "No phone number to remove.",
+    "remove_phone_confirmation": "Are you sure you want to remove this phone number?",
+    "remove_phone_success": "Phone number removed successfully.",
+    "remove_phone_failed": "Failed to initiate phone number removal",
+    "send_add_otp_failed": "Failed to send OTP: {status}",
+    "send_remove_otp_failed": "Failed to send verification OTP: {status}",
+    "verify_add_otp_failed": "Failed to verify OTP: {status}",
+    "verify_remove_otp_failed": "Failed to verify OTP: {status}",
+    "phone_number_added": "Phone number added successfully.",
+    "phone_number_removed": "Phone number removed successfully.",
+    "failed_to_modify": "Phone number verified. You can now modify your settings.",
+    "will_send_otp": "An OTP will be sent to {number} via WhatsApp."
+  },
+  "WalletCard": {
+    "create_team_wallet": "Create a team wallet",
+    "send": "Send",
+    "receive": "Receive"
+  },
+  "PersonalWalletSettings": {
+    "title": "Personal Wallet Settings",
+    "notice": "Please note that daily withdrawal limits work only when MFA has been set up.",
+    "saging": "Saving...",
+    "save": "Save Settings",
+    "mfa_settings": "MFA Settings",
+    "opt_dialog_title": "Verify Settings Change",
+    "opt_dialog_description": "A verification code will be sent to your phone via WhatsApp"
+  },
+  "TeamWalletSettings": {
+    "title": "Team Wallet Settings",
+    "description": "A team wallet requires approval from multiple signers to execute any transaction.",
+    "create_wallet": "Create Wallet",
+    "update_wallet": "Update Wallet Settings",
+    "signer_exist": "This signer is already in the list",
+    "create_invitation_failed": "Failed to create wallet invitations",
+    "send_invitation_failed": "Failed to send invitations to some users",
+    "information_is_required": "Missing required information",
+    "create_wallet_success": "Wallet created successfully! Invitations sent to {count} unregistered user(s). ",
+    "disallow_create_wallet": "Please confirm or cancel the new signer before creating the wallet",
+    "create_wallet_failed": "Failed to create the team wallet: {error}",
+    "authentication_failed": "Authentication information is missing",
+    "proposal_approved": "You have approved the proposal. Waiting for other signers to approve.",
+    "updated_wallet_success": "Wallet settings updated successfully",
+    "disallow_submit": "No changes detected. Please make changes before submitting.",
+    "invitations_sent": "Invitations sent to {count} unregistered user(s). ",
+    "disallow_update_wallet": "Please confirm or cancel the new signer before creating the wallet",
+    "signer_is_required": "At least one signer is required",
+    "update_wallet_failed": "Failed to update wallet settings",
+    "wallet_name": "Wallet Name",
+    "enter_wallet_name": "Enter wallet name",
+    "signers": "Signers",
+    "signer": "Signer {index}",
+    "new_signer": "New Signer",
+    "enter_signer_email": "Enter signer's email",
+    "disallow_proceeding": "Please confirm or cancel this signer before proceeding",
+    "add_signer": "Add A New Signer",
+    "required_signatures": "Required Signatures:",
+    "number_of_signatures": "{num} of {count}",
+    "daily_withdrawal_limits": "Please note that daily withdrawal limits work only when MFA has been set up."
+  },
+  "SendTransactionDialog": {
+    "title": "Send",
+    "full_title": "Send from {address}",
+    "otp_title": "Transaction Verification",
+    "otp_description": "Please verify your transaction of {amount} {symbol} to {to}",
+    "select_token": "Select Token",
+    "recipient": "Recipient",
+    "recipient_holder": "Email address or {symbol} address",
+    "amount": "Amount {symbol}",
+    "calc_network_fee": "Calculating network fee...",
+    "insufficient_network_fee": "Insufficient funds for network fee",
+    "invalid_amount": "Please enter a valid amount",
+    "insufficient_funds": "Insufficient funds for this transaction",
+    "balance": "Balance: {value} {symbol}",
+    "sending": "Sending...",
+    "invite_user": "Invite Unregistered User",
+    "send": "Send {symbol}"
+  },
+  "ReceiveTransactionDialog": {
+    "title": "Receive",
+    "full_title": "Receive to {address}"
+  },
   "ProposalStatus": {
-    "pending": "待处理",
-    "completed": "已完成",
-    "canceled": "已取消",
-    "unknown": "未知"
+    "pending": "Pending",
+    "completed": "Completed",
+    "canceled": "Canceled",
+    "unknown": "Unknown"
   },
   "ProposalList": {
     "login_is_required": "Unable to load user data. Please ensure you are logged in.",
@@ -34,7 +183,26 @@
     "details": "Details:",
     "created_by:": "Created by:",
     "signers": "Signers:",
+    "approve": "Approve",
+    "approve_and_execute" : "Approve & execute",
     "cancel": "Cancel",
     "execute": "Execute"
+  },
+  "NotificationPage": {
+    "notification_center": "Notification centre",
+    "mfa_setup_title": "Set MFA",
+    "mfa_setup_message": "To make your wallets more secure, we highly recommend you to set up daily withdrawal limits and MFA insettings.",
+    "mfa_setup_action": "Set MFA →"
+  },
+  "NotificationMenu": {
+    "title": "Notifications",
+    "important": "Important",
+    "security_setting": "Security setting",
+    "proposals": "Proposals",
+    "mfa_setup_title": "Set MFA",
+    "mfa_setup_message": "To make your wallets more secure, we highly recommend you to <link>set up daily withdrawal limits and MFA in settings</link>",
+    "view_all": "View all",
+    "review": "Review →",
+    "empty": "No new notifications"
   }
 }

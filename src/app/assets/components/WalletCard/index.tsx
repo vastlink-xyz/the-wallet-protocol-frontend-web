@@ -5,6 +5,7 @@ import { Balance } from "./Balance"
 import { ReceiveModal } from "./ReceiveModal"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
+import { useTranslations } from "next-intl"
 
 interface WalletCardProps {
   avatars: {
@@ -39,6 +40,9 @@ export function WalletCard({
   maxAvatars = 5,
   onCreateClick,
 }: WalletCardProps) {
+  const transCommon = useTranslations("Common")
+  const transWalletCard = useTranslations("WalletCard")
+
   const [receiveModalOpen, setReceiveModalOpen] = useState(false);
   console.log('unsignedProposalsCount', unsignedProposalsCount)
 
@@ -61,7 +65,7 @@ export function WalletCard({
             className="text-white bg-black px-4 py-2.5 rounded-[20px] text-sm font-medium flex items-center cursor-pointer"
           >
             <PlusCircle className="w-4 h-4 text-white mr-1" />
-            <span>Create a team wallet</span>
+            <span>{transWalletCard("create_team_wallet")}</span>
           </p>
         </div>
       </div>
@@ -89,7 +93,7 @@ export function WalletCard({
                 <Settings className="w-5 h-5 cursor-pointer" onClick={onWalletSettingsClick} />
               </TooltipTrigger>
               <TooltipContent>
-                Settings
+                {transCommon("settings")}
               </TooltipContent>
             </Tooltip>
           )}
@@ -140,7 +144,9 @@ export function WalletCard({
           <p className={cn(
             "text-xs font-medium mt-1",
             isPersonal ? "text-white" : "text-black"
-          )}>Send</p>
+          )}>
+            {transWalletCard("send")}
+          </p>
         </div>
 
         <div className="w-14 text-center cursor-pointer" onClick={e => { e.stopPropagation(); setReceiveModalOpen(true); }}>
@@ -153,7 +159,9 @@ export function WalletCard({
           <p className={cn(
             "text-xs font-medium mt-1",
             isPersonal ? "text-white" : "text-black"
-          )}>Receive</p>
+          )}>
+            {transWalletCard("receive")}
+          </p>
         </div>
       </div>
 
@@ -169,7 +177,7 @@ export function WalletCard({
             />
           </TooltipTrigger>
           <TooltipContent>
-            Details
+            {transCommon("details")}
           </TooltipContent>
         </Tooltip>
       </div>

@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { log } from '@/lib/utils'; // Assuming you have a log utility
 import { toast } from 'react-toastify';
+import { useTranslations } from 'next-intl';
 
 interface MFAOtpDialogProps {
   isOpen: boolean;
@@ -32,19 +33,21 @@ export function MFAOtpDialog({
   onOtpVerify,
   sendOtp,
   identifier,
-  title = 'Two-Factor Authentication',
+  title,
   description,
-  actionInProgressText = 'Processing...',
-  actionText = 'Verify Code',
-  retryText = 'Resend Code',
+  actionInProgressText,
+  actionText,
+  retryText,
 }: MFAOtpDialogProps) {
+  const t = useTranslations("MFAOtpDialog")
+
   const [otp, setOtp] = useState('');
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [initialSendAttempted, setInitialSendAttempted] = useState(false);
 
-  const effectiveDescription = description || `An OTP has been sent to ${identifier || 'your device'}. Please enter it below.`;
+  const effectiveDescription = description || t("notice", { identifier: identifier || 'your device'});
 
   const handleSendOtp = useCallback(async (isRetry = false) => {
     setIsSendingOtp(true);
@@ -52,12 +55,12 @@ export function MFAOtpDialog({
       await sendOtp();
       setOtpSent(true);
       if(isRetry) {
-        toast.success('OTP resent successfully');
+        toast.success(t("success"));
         log('OTP resent successfully');
       }
     } catch (err: any) {
       log('Error sending OTP:', err);
-      toast.error(err.message || 'Failed to send OTP. Please try again.');
+      toast.error(err.message || t("failed"));
       setOtpSent(false); 
     } finally {
       setIsSendingOtp(false);
@@ -80,7 +83,7 @@ export function MFAOtpDialog({
 
   const handleVerify = async () => {
     if (!otp.trim()) {
-      toast.error('Please enter the OTP.');
+      toast.error(t("empty"));
       return;
     }
     setIsVerifying(true);
@@ -88,28 +91,28 @@ export function MFAOtpDialog({
       await onOtpVerify(otp);
     } catch (err: any) {
       log('Error verifying OTP:', err);
-      toast.error(err.message || 'Invalid or expired OTP. Please try again.');
+      toast.error(err.message || t("invalid"));
     } finally {
       setIsVerifying(false);
     }
   };
-  
+
   const isLoading = isSendingOtp || isVerifying;
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
+          <DialogTitle>{title || t("title")}</DialogTitle>
           {otpSent && <DialogDescription>{effectiveDescription}</DialogDescription>}
           {!otpSent && !isLoading && (
             <DialogDescription>
-              Ready to send OTP.
+              {t("ready_to_send")}
             </DialogDescription>
           )}
-           {!otpSent && isLoading && (
+          {!otpSent && isLoading && (
             <DialogDescription>
-              Sending OTP...
+              {t("sending_otp")}
             </DialogDescription>
           )}
         </DialogHeader>
@@ -120,7 +123,7 @@ export function MFAOtpDialog({
               id="otp-input"
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
-              placeholder="Enter OTP"
+              placeholder={t("enter_otp")}
               maxLength={6}
               disabled={isLoading}
             />
@@ -129,7 +132,7 @@ export function MFAOtpDialog({
 
         <DialogFooter className="gap-2 sm:justify-between">
           {otpSent && (
-             <Button
+            <Button
               variant="outline"
               onClick={() => handleSendOtp(true)}
               disabled={isLoading}
@@ -137,18 +140,18 @@ export function MFAOtpDialog({
               {isSendingOtp && !isVerifying ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : null}
-              {isSendingOtp && !isVerifying ? actionInProgressText : retryText}
+              {isSendingOtp && !isVerifying ? (actionInProgressText || t("processing")) : (retryText || t("resend_code"))}
             </Button>
           )}
           {!otpSent && !isLoading && (
-             <Button
+            <Button
               onClick={() => handleSendOtp(false)}
               disabled={isLoading}
             >
               {isSendingOtp ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : null}
-              {isSendingOtp ? actionInProgressText : 'Send OTP'}
+              {isSendingOtp ? (actionInProgressText || t("processing")) : t('send_otp')}
             </Button>
           )}
           <div className="flex gap-2">
@@ -160,7 +163,7 @@ export function MFAOtpDialog({
                 {isVerifying ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : null}
-                {isVerifying ? actionInProgressText : actionText}
+                {isVerifying ? (actionInProgressText || t("processing")) : (actionText || t("verify_code"))}
               </Button>
             )}
           </div>

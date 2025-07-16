@@ -21,8 +21,11 @@ import { DailyWithdrawLimits } from '@/components/Transaction/DailyWithdrawLimit
 import { LogoLoading } from '@/components/LogoLoading';
 import { useNotifications } from '@/hooks/useNotifications';
 import { PersonalWalletSettingsContext } from '@/providers/PersonalWalletSettingsProvider';
+import { useTranslations } from 'next-intl';
 
 export function PersonalWalletSettings() {
+  const t = useTranslations("PersonalWalletSettings");
+
   const { isPersonalWalletSettingsOpen, closePersonalWalletSettings } = useContext(PersonalWalletSettingsContext);
 
   const { invalidateMFANotifications } = useNotifications({ enabled: false });
@@ -271,7 +274,7 @@ export function PersonalWalletSettings() {
       <Dialog open={isPersonalWalletSettingsOpen} onOpenChange={() => closePersonalWalletSettings()}>
         <DialogContent className="p-0 max-w-[660px] sm:max-w-[660px]">
           <DialogHeader className="border-b px-8 py-6">
-            <DialogTitle>Personal Wallet Settings</DialogTitle>
+            <DialogTitle>{t("title")}</DialogTitle>
           </DialogHeader>
 
         <div className="max-h-[60vh] overflow-y-auto p-8 pt-4">
@@ -288,7 +291,7 @@ export function PersonalWalletSettings() {
                       {!verifiedPhone && (
                         <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-md">
                           <p className="text-amber-800 text-sm">
-                            Please note that daily withdrawal limits work only when MFA has been set up.
+                            {t("notice")}
                           </p>
                         </div>
                       )}
@@ -301,7 +304,7 @@ export function PersonalWalletSettings() {
                 }
               </LabeledContainer>
 
-                <LabeledContainer label="MFA Settings">
+                <LabeledContainer label={t("mfa_settings")}>
                   <MFASettingsContent
                     isOpen={isPersonalWalletSettingsOpen}
                     onPhoneUpdated={fetchUserPhone}
@@ -314,7 +317,7 @@ export function PersonalWalletSettings() {
                     onClick={saveSettings}
                     disabled={!isLimitValid || isSaving}
                   >
-                    {isSaving ? 'Saving...' : 'Save Settings'}
+                    {t(isSaving ? 'saving' : 'save')}
                   </Button>
                 </DialogFooter>
               </>
@@ -330,8 +333,8 @@ export function PersonalWalletSettings() {
         onOtpVerify={handleVerifyOtp}
         sendOtp={handleSendOtp}
         identifier={verifiedPhone}
-        title="Verify Settings Change"
-        description="A verification code will be sent to your phone via WhatsApp"
+        title={t("opt_dialog_title")}
+        description={t("opt_dialog_description")}
       />
     </>
   );

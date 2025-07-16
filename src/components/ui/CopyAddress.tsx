@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { Check, Copy } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { cn, truncateMiddle } from '@/lib/utils';
+import { useTranslations } from 'next-intl';
 
 interface CopyAddressProps {
   textToCopy: string;
@@ -11,6 +12,8 @@ interface CopyAddressProps {
 }
 
 export function CopyAddress({ textToCopy, className, iconSize = 12, isTruncate = false }: CopyAddressProps) {
+  const t = useTranslations('CopyAddress');
+
   const [copied, setCopied] = useState(false);
 
   const copyToClipboard = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
@@ -18,7 +21,7 @@ export function CopyAddress({ textToCopy, className, iconSize = 12, isTruncate =
     if (textToCopy) {
       navigator.clipboard.writeText(textToCopy).then(() => {
         setCopied(true);
-        toast.success('Copied to clipboard', {
+        toast.success(t('success'), {
           autoClose: 1000,
         });
         setTimeout(() => setCopied(false), 2000); // Reset icon after 2 seconds

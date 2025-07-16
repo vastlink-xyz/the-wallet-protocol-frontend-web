@@ -3,6 +3,7 @@ import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
 import { log } from '@/lib/utils';
 import { MFAPhoneWhatsApp } from './MFAPhoneWhatsApp';
 import { toast } from 'react-toastify';
+import { useTranslations } from 'next-intl';
 
 // Define StytchPhoneNumber type based on expected API response
 interface StytchPhoneNumber {
@@ -24,6 +25,8 @@ interface MFASettingsContentProps {
 }
 
 export function MFASettingsContent({ isOpen, onPhoneUpdated, onMFAStatusChanged }: MFASettingsContentProps) {
+  const t = useTranslations("MFASettings");
+
   // Main component state
   const [phoneNumbers, setPhoneNumbers] = useState<StytchPhoneNumber[]>([]);
 
@@ -64,7 +67,7 @@ export function MFASettingsContent({ isOpen, onPhoneUpdated, onMFAStatusChanged 
         setPhoneNumbers([]);
       }
     } catch (err: any) {
-      toast.error('MFASettingsContent: Error fetching mfa status');
+      toast.error(t("fetch_error"));
     }
   }, []);
 

@@ -4,6 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { SUPPORTED_TOKENS_ARRAY, SUPPORTED_TOKENS_INFO, TokenType } from "@/lib/web3/token";
 import { useState, useMemo } from "react";
+import { useTranslations } from 'next-intl';
 
 export function ReceiveModal({
   addresses,
@@ -19,8 +20,10 @@ export function ReceiveModal({
   footerText: string;
   onClose: (open: boolean) => void;
 }) {
-  const [selectedToken, setSelectedToken] = useState<TokenType>('BTC');
+  const t = useTranslations('ReceiveTransactionDialog')
   
+  const [selectedToken, setSelectedToken] = useState<TokenType>('BTC');
+
   // Get the token info for the selected token
   const selectedTokenInfo = useMemo(() => 
     SUPPORTED_TOKENS_INFO[selectedToken], 
@@ -46,7 +49,7 @@ export function ReceiveModal({
       >
         <DialogHeader>
           <DialogTitle className="text-black text-lg font-medium">
-            {footerText ? `Receive to ${footerText}` : 'Receive'}
+            {footerText ? t('full_title', { address: footerText }) : t('title')}
           </DialogTitle>
         </DialogHeader>
 

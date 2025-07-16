@@ -32,6 +32,7 @@ import { signProposal } from '@/app/wallet/[walletId]/details/proposals/utils/si
 import { fetchProposal } from '@/app/wallet/[walletId]/details/proposals/utils/proposal'
 import { executeWalletSettingsProposal } from '@/app/wallet/[walletId]/details/proposals/utils/execute-proposal'
 import { generateSettingsChangeDescriptions } from '@/app/wallet/[walletId]/details/proposals/utils/settingsDescriptionUtils'
+import { useTranslations } from 'next-intl'
 
 interface MultisigWalletFormContentProps {
   mode: 'create' | 'edit'
@@ -109,6 +110,9 @@ export function MultisigWalletFormContent({
   onCancel,
   onSuccess
 }: MultisigWalletFormContentProps) {
+  const transCommon = useTranslations('Common')
+  const transWallet = useTranslations('TeamWalletSettings')
+  
   const { handleExpiredAuth } = useAuthExpiration();
   const [isLoading, setIsLoading] = useState(false)
   const [verifiedPhone, setVerifiedPhone] = useState<string | null>(null)
@@ -220,9 +224,9 @@ export function MultisigWalletFormContent({
 
   const buttonText = useMemo(() => {
     if (mode === 'edit') {
-      return 'Update Wallet Settings'
+      return transWallet('update_wallet')
     }
-    return 'Create Wallet'
+    return transWallet('create_wallet')
   }, [mode])
 
   // Handle adding a new signer
@@ -237,7 +241,7 @@ export function MultisigWalletFormContent({
     })
     
     if (existingSigner) {
-      toast.error('This signer is already in the list');
+      toast.error(transWallet('signer_exist'));
       return;
     }
     
@@ -334,7 +338,7 @@ export function MultisigWalletFormContent({
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create wallet invitations');
+        throw new Error(errorData.error || transWallet('create_invitation_failed'));
       }
 
       const result = await response.json();
@@ -343,7 +347,7 @@ export function MultisigWalletFormContent({
       return result.data;
     } catch (error) {
       console.error('Failed to handle wallet invitations:', error);
-      toast.error('Failed to send invitations to some users');
+      toast.error(transWallet('send_invitation_failed'));
       throw error;
     }
   };
@@ -351,7 +355,7 @@ export function MultisigWalletFormContent({
   // Create new multisig wallet (create mode)
   const handleCreateMultisigWallet = async () => {
     if (!userPkp || !dailyLimits) {
-      console.error('Missing required information');
+      console.error(transWallet('information_is_required'));
       return;
     }
 
@@ -359,7 +363,7 @@ export function MultisigWalletFormContent({
 
     // Check for unconfirmed new signer
     if (showAddSignerForm && newSignerEmail.trim() !== '') {
-      toast.error('Please confirm or cancel the new signer before creating the wallet');
+      toast.error(transWallet('disallow_create_wallet'));
       setNewSignerError(true);
       if (newSignerFormRef.current) {
         newSignerFormRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -369,7 +373,7 @@ export function MultisigWalletFormContent({
 
     // Verify Google token before proceeding
     if (!authMethod || !authMethod.accessToken) {
-      toast.error('Authentication information is missing');
+      toast.error(transWallet('authentication_failed'));
       return;
     }
 
@@ -558,7 +562,7 @@ export function MultisigWalletFormContent({
 
           // Show success message for invitation flow
           const unregisteredCount = otherSigners.filter(s => !s.ethAddress).length;
-          toast.success(`Wallet created successfully! Invitations sent to ${unregisteredCount} unregistered user(s). `);
+          toast.success(transWallet('create_wallet_success', { count: unregisteredCount}));
         } else {
           // Normal flow: send email notifications to other signers
           const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
@@ -584,8 +588,10 @@ export function MultisigWalletFormContent({
           onSuccess();
         }
       }
-    } catch (error) {
-      console.error('Failed to create the team wallet:', error);
+    } catch (err) {
+      console.error(transWallet('create_wallet_failed', {
+        error: err instanceof Error ? err.message : ''
+      }));
     } finally {
       setIsLoading(false);
     }
@@ -616,7 +622,7 @@ export function MultisigWalletFormContent({
         if (onSuccess) {
           await onSuccess();
         }
-        toast.info('You have approved the proposal. Waiting for other signers to approve.')
+        toast.info(transWallet('proposal_approved'))
       }
     }
   };
@@ -636,13 +642,11 @@ export function MultisigWalletFormContent({
 
     if (response.data.success) {
       if (onSuccess) {
-        toast.success('Wallet settings updated successfully.')
+        toast.success(transWallet('updated_wallet_success'))
         onSuccess();
       }
     }
   };
-
-
 
   // Create settings data object with original state
   const createSettingsData = (originalWallet: MultisigWallet) => {
@@ -729,7 +733,7 @@ export function MultisigWalletFormContent({
       return result.data;
     } catch (error) {
       console.error('Failed to handle wallet invitations:', error);
-      toast.error('Failed to send invitations to some users');
+      toast.error(transWallet('send_invitation_failed'));
       throw error;
     }
   };
@@ -778,7 +782,7 @@ export function MultisigWalletFormContent({
 
     // Only proceed if there are actual changes
     if (Object.keys(settingsData).length <= 2 && !hasUnregisteredNewSigners) {
-      toast.error('No changes detected. Please make changes before submitting.');
+      toast.error(transWallet('disallow_submit'));
       return;
     }
 
@@ -795,7 +799,7 @@ export function MultisigWalletFormContent({
 
       const targetThreshold = actualThreshold + unregisteredUsers.length; // Include unregistered users in the threshold
       await handleWalletInvitations(wallet.id, unregisteredUsers, targetThreshold)
-      toast.success(`Invitations sent to ${unregisteredCount} unregistered user(s). `);
+      toast.success(transWallet('invitations_sent', { count: unregisteredCount }))
     }
 
     if (proposal && onCancel) {
@@ -812,7 +816,7 @@ export function MultisigWalletFormContent({
     try {
       // Check for unconfirmed new signer
       if (showAddSignerForm && newSignerEmail.trim() !== '') {
-        toast.error('Please confirm or cancel the new signer before updating wallet settings');
+        toast.error(transWallet('disallow_update_wallet'));
         setNewSignerError(true);
         // Scroll to new signer form
         if (newSignerFormRef.current) {
@@ -825,7 +829,7 @@ export function MultisigWalletFormContent({
 
       // Verify access token before proceeding
       if (!authMethod || !authMethod.accessToken) {
-        toast.error('Authentication information is missing');
+        toast.error(transWallet('authentication_failed'));
         setIsLoading(false);
         return;
       }
@@ -839,7 +843,7 @@ export function MultisigWalletFormContent({
 
       // Ensure at least one signer
       if (signers.length === 0) {
-        toast.error('At least one signer is required');
+        toast.error(transWallet('signer_is_required'));
         setIsLoading(false);
         return;
       }
@@ -859,14 +863,14 @@ export function MultisigWalletFormContent({
       const hasAnyChanges = nameChanged || thresholdChanged || signersChanged || mfaChanged;
 
       if (!hasAnyChanges && !hasUnregisteredNewSigners) {
-        toast.error('No changes detected. Please make changes before submitting.');
+        toast.error(transWallet('disallow_submit'));
         return;
       }
 
       await handleStandardWalletUpdate();
     } catch (error) {
       console.error('Failed to update wallet settings:', error);
-      toast.error('Failed to update wallet settings');
+      toast.error(transWallet('update_wallet_failed'));
     } finally {
       setIsLoading(false);
     }
@@ -890,23 +894,23 @@ export function MultisigWalletFormContent({
   return (
     <div className="space-y-8">
       {/* Wallet Name */}
-      <LabeledContainer label="Wallet Name">
+      <LabeledContainer label={transWallet('wallet_name')}>
         <Input
           id="walletName"
           value={walletName}
           onChange={(e) => setWalletName(e.target.value)}
-          placeholder="Enter wallet name"
+          placeholder={transWallet('enter_wallet_name')}
           className="flex-grow"
         />
       </LabeledContainer>
-      
+
       {/* Signers Section */}
-      <LabeledContainer label="Signers">
+      <LabeledContainer label={transWallet('signers')}>
         {signers.map((signer, index) => (
           <div key={index} className="flex items-center justify-between gap-2 mb-2">
             <SignerEmailField
               allowUnregisteredEmail={true}
-              label={`Signer ${index + 1}`}
+              label={transWallet('signer', {index: index + 1 })}
               input={{
                 value: signer.email,
                 onChange: () => {},
@@ -916,7 +920,7 @@ export function MultisigWalletFormContent({
               disabled={true}
               className="flex-1"
             />
-            
+
             {/* Only allow removing signers that are not the current user */}
             {signer.email !== currentUserEmail && (
               <Button
@@ -938,14 +942,14 @@ export function MultisigWalletFormContent({
               <SignerEmailField
                 emailOnly={true}
                 allowUnregisteredEmail={true}
-                label="New Signer"
+                label={transWallet('new_signer')}
                 input={{
                   value: newSignerEmail,
                   onChange: (value) => {
                     setNewSignerEmail(value);
                     setNewSignerError(false);
                   },
-                  placeholder: "Enter signer's email",
+                  placeholder: transWallet('enter_signer_email'),
                   id: "newSigner",
                   className: newSignerError ? "border-red-500" : ""
                 }}
@@ -964,7 +968,7 @@ export function MultisigWalletFormContent({
               
               {newSignerError && (
                 <div className="text-sm text-red-500 -mt-1">
-                  Please confirm or cancel this signer before proceeding
+                  {transWallet('disallow_proceeding')}
                 </div>
               )}
               
@@ -976,7 +980,7 @@ export function MultisigWalletFormContent({
                   className="flex-1"
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  Confirm
+                  {transCommon('confirm')}
                 </Button>
                 
                 <Button 
@@ -991,7 +995,7 @@ export function MultisigWalletFormContent({
                   variant="ghost"
                   className="flex-none"
                 >
-                  Cancel
+                 {transCommon('cancel')}
                 </Button>
               </div>
             </div>
@@ -1002,7 +1006,7 @@ export function MultisigWalletFormContent({
               className="w-full"
             >
               <Plus className="h-4 w-4 mr-2" />
-              Add A New Signer
+              {transWallet('add_signer')}
             </Button>
           )}
         </div>
@@ -1013,7 +1017,7 @@ export function MultisigWalletFormContent({
       {signers.length > 0 && (
         <LabeledContainer label="Signature Threshold">
           <div className="flex items-center space-x-4">
-            <Label htmlFor="threshold">Required Signatures:</Label>
+            <Label htmlFor="threshold">{transWallet("required_signatures")}</Label>
             <select
               id="threshold"
               value={threshold}
@@ -1022,7 +1026,10 @@ export function MultisigWalletFormContent({
             >
               {thresholdOptions.map((num) => (
                 <option key={num} value={num}>
-                  {num} of {registeredSigners.length}
+                  {transWallet('number_of_signatures', {
+                    num,
+                    count: registeredSigners.length
+                  })}
                 </option>
               ))}
             </select>
@@ -1038,7 +1045,7 @@ export function MultisigWalletFormContent({
               {!verifiedPhone && (
                 <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-md">
                   <p className="text-amber-800 text-sm">
-                    Please note that daily withdrawal limits work only when MFA has been set up.
+                    {transWallet('daily_withdrawal_limits')}
                   </p>
                 </div>
               )}

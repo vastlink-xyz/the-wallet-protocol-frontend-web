@@ -280,7 +280,7 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
             onClick={() => handleCancelProposal(proposal)}
           >
             {isCancelingProposal && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Cancel
+            {transProposalListItem("Cancel")}
           </Button>
         )}
 
@@ -292,7 +292,7 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
             onClick={() => handleSignProposal(proposal)}
           >
             {isSigningProposal && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {proposal.signatures.length + 1 >= displayThreshold ? "Approve & execute" : "Approve"}
+            {transProposalListItem(proposal.signatures.length + 1 >= displayThreshold ? "approve_and_execute" : "approve")}
           </Button>
         )}
 
@@ -304,7 +304,7 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
             onClick={() => executeMultisigLitAction(proposal)}
           >
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Execute
+            {transProposalListItem("execute")}
           </Button>
         )}
       </div>

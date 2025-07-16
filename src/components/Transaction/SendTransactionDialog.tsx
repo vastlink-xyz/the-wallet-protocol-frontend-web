@@ -14,6 +14,7 @@ import { estimateGasFee } from "@/lib/web3/transaction";
 import { fetchEthBalance, fetchERC20TokenBalance } from "@/lib/web3/eth";
 import { fetchBtcBalance } from "@/lib/web3/btc";
 import { MultisigWalletAddresses } from "@/app/api/multisig/storage";
+import { useTranslations } from "next-intl";
 
 export interface SendTransactionDialogState {
   to: string
@@ -54,6 +55,8 @@ export function SendTransactionDialog({
   walletName,
   resetAmount,
 }: SendTransactionDialogProps) {
+  const t = useTranslations('SendTransactionDialog')
+
   // transaction state
   const [to, setTo] = useState('') // email or wallet address
   const [recipientAddress, setRecipientAddress] = useState('')
@@ -337,8 +340,12 @@ export function SendTransactionDialog({
           onOtpVerify={handleOtpVerify}
           sendOtp={handleSendOtp}
           identifier={mfaPhoneNumber}
-          title="Transaction Verification"
-          description={`Please verify your transaction of ${amount} ${tokenInfo.symbol} to ${to}`}
+          title={t('otp_title')}
+          description={t('otp_description', {
+            amount,
+            symbol: tokenInfo.symbol,
+            to,
+          })}
         />
       )}
 
@@ -346,11 +353,13 @@ export function SendTransactionDialog({
     <Dialog open={showSendDialog} onOpenChange={onDialogOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{walletName ? `Send from ${walletName}` : 'Send'}</DialogTitle>
+          <DialogTitle>
+            {walletName ? t('full_title', {address: walletName}) : t('title')}
+          </DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="token-type">Select Token</Label>
+            <Label htmlFor="token-type">{t('select_token')}</Label>
             <SelectToken
               onSelect={(value) => {
                 if (value !== "all") {
@@ -362,11 +371,11 @@ export function SendTransactionDialog({
           </div>
 
           <SignerEmailField
-            label="Recipient"
+            label={t('recipient')}
             input={{
               value: to,
               onChange: (value) => setTo(value),
-              placeholder: `Email address or ${tokenInfo.symbol} address`,
+              placeholder: t('recipient_holder', { symbol: tokenInfo.symbol }),
               id: "recipient"
             }}
             onAddressFound={handleAddressFound}
@@ -375,7 +384,7 @@ export function SendTransactionDialog({
           />
 
           <div className="space-y-2">
-            <Label htmlFor="amount">Amount ({tokenInfo.symbol})</Label>
+            <Label htmlFor="amount">{t('amount', { 'symbol': tokenInfo.symbol })}</Label>
             <Input
               id="amount"
               type="number"
@@ -388,7 +397,7 @@ export function SendTransactionDialog({
             
             {/* Fee information display */}
             {isLoadingFee && (
-              <p className="text-xs text-gray-500">Calculating network fee...</p>
+              <p className="text-xs text-gray-500">{t('calc_network_fee')}</p>
             )}
             
             {!isLoadingFee && feeEstimation && amount && isValidAmount && (
@@ -411,22 +420,25 @@ export function SendTransactionDialog({
                 )}
                 
                 {!feeEstimation.isSufficientForFee && !feeEstimation.error && (
-                  <p className="text-red-500">Insufficient funds for network fee</p>
+                  <p className="text-red-500">{t('insufficient_network_fee')}</p>
                 )}
               </div>
             )}
             
             {amount && !isValidAmount && (
-              <p className="text-red-500 text-xs">Please enter a valid amount</p>
+              <p className="text-red-500 text-xs">{t('invalid_amount')}</p>
             )}
             
             {amount && isValidAmount && isBalanceSufficient === false && (
-              <p className="text-red-500 text-xs">Insufficient funds for this transaction</p>
+              <p className="text-red-500 text-xs">{t('insufficient_funds')}</p>
             )}
             
             {/* Balance display with loading indicator */}
             <p className="text-xs text-gray-500">
-              Balance: {isLoadingBalance ? 'Loading...' : balance} {tokenInfo.symbol}
+              {t('balance', {
+                value: isLoadingBalance ? 'Loading...' : balance,
+                symbol: tokenInfo.symbol,
+              })}
             </p>
           </div>
 
@@ -438,10 +450,10 @@ export function SendTransactionDialog({
             {isSending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Sending...
+                {t('sending')}
               </>
             ) : (
-              isInviteUser ? `Invite Unregistered User` : `Send ${tokenInfo.symbol}`
+              isInviteUser ? t('Invite Unregistered User') : t('send', { symbol: tokenInfo.symbol })
             )}
           </Button>
         </div>

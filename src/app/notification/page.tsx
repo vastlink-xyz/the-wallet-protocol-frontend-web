@@ -8,9 +8,13 @@ import { PersonalWalletSettingsContext } from '@/providers/PersonalWalletSetting
 import { Suspense, useContext } from 'react';
 import { ProposalsList } from './ProposalList';
 import { LogoLoading } from '@/components/LogoLoading';
+import { useTranslations } from 'next-intl';
 
 export default function NotificationPage() {
   const router = useRouter();
+
+  const transCommon = useTranslations('Common');
+  const transNotificationPage = useTranslations('NotificationPage');
 
   const { securityNotifications, proposalNotifications, isLoading } = useNotifications();
 
@@ -30,12 +34,14 @@ export default function NotificationPage() {
           className="flex items-center text-sm font-medium text-gray-600 hover:text-gray-900 cursor-pointer"
         >
           <ArrowLeftIcon className="h-5 w-5 mr-1" />
-          Back
+          {transCommon("back")}
         </button>
       </div>
 
       <div className="w-full mx-auto mb-[40px]">
-        <h3 className="text-4xl font-bold mb-5">Notification centre</h3>
+        <h3 className="text-4xl font-bold mb-5">
+          {transNotificationPage('notification_center')}
+        </h3>
         <div className="flex flex-col gap-5">
           {securityNotifications.map((message, index) => (
             <div
@@ -49,18 +55,18 @@ export default function NotificationPage() {
                 width={14}
                 height={14}
               />
-              <span className="font-semibold">{message.title}</span>
+              <span className="font-semibold">
+                {message.type === 'mfa_setup' ? transNotificationPage('mfa_setup_title') : message.message}
+              </span>
               <p className="col-start-2 text-sm">
-                {message.type === 'mfa_setup'
-                  ? 'To make your wallets more secure, we highly recommend you to set up daily withdrawal limits and MFA insettings.'
-                  : message.message}
+                {message.type === 'mfa_setup' ? transNotificationPage('mfa_setup_message') : message.message}
               </p>
               <div className="w-full h-10 col-span-2 flex flex-row justify-end mt-4">
                 <span
                   onClick={() => showPersonalWalletSettings()}
                   className="font-semibold cursor-pointer"
                 >
-                  {message.title + ' →'}
+                  {transNotificationPage('mfa_setup_action')}
                 </span>
               </div>
             </div>
@@ -70,7 +76,7 @@ export default function NotificationPage() {
 
       {proposalNotifications.length > 0 && (
         <div className="w-full mx-auto mb-[40px]">
-          <h5 className="text-2xl font-bold mb-5">Proposals</h5>
+          <h5 className="text-2xl font-bold mb-5">{transCommon("proposals")}</h5>
           <Suspense fallback={null}>
             <ProposalsList proposals={proposalNotifications} />
           </Suspense>
