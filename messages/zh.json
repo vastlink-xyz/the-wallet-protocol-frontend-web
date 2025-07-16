@@ -9,7 +9,8 @@
     "settings": "设置",
     "details": "详情",
     "confirm": "确认",
-    "cancel": "取消"
+    "cancel": "取消",
+    "all": "全部"
   },
   "LocaleSwitcher": {
     "en": "🇬🇧 英语",
@@ -170,8 +171,25 @@
   },
   "ProposalList": {
     "login_is_required": "无法加载用户数据。请确保您已登录。",
-    "proposals_not_found": "未找到 {status} 状态的提案。",
-    "wallet_not_found": "未找到提案 {id} 对应的钱包"
+    "empty_proposal_list": "未找到提案。",
+    "wallet_not_found_with_id": "未找到 ID 为 {id} 的钱包提案",
+    "update_wallet_success": "钱包设置更新成功",
+    "insufficient_funds": "资金不足，无法支付固有交易成本",
+    "transaction_completed": "交易完成",
+    "authentication_required": "需要用户身份验证",
+    "wallet_not_found": "未找到钱包",
+    "sign_proposal_succeess": "提案签名成功",
+    "sign_proposal_failed": "提案签名失败",
+    "invalid_authentication_method": "未找到身份验证方法",
+    "execute_proposal_failed": "执行提案失败",
+    "cancel_proposal_success": "提案取消成功",
+    "cancel_proposal_failed": "提案取消失败",
+    "disallow_cancel_proposal": "您只能取消您创建的提案",
+    "proposal_not_found": "未找到提案",
+    "invalid_session": "未找到会话或电话号码",
+    "otp_title": "交易验证",
+    "otp_description": "验证码将通过 WhatsApp 发送到您的手机",
+    "execute_transaction_failed": "交易失败"
   },
   "ProposalListItem": {
     "failed_parse_data": "无法解析设置数据",
@@ -192,7 +210,8 @@
     "notification_center": "通知中心",
     "mfa_setup_title": "设置多因素认证",
     "mfa_setup_message": "为了让您的钱包更安全，我们强烈建议您在设置中配置每日提现限额和多因素认证（MFA）。",
-    "mfa_setup_action": "设置多因素认证 →"
+    "mfa_setup_action": "设置多因素认证 →",
+    "empty_notification": "没有新的通知"
   },
   "NotificationMenu": {
     "title": "通知",
@@ -204,5 +223,11 @@
     "view_all": "查看全部",
     "review": "查看 →",
     "empty": "没有新通知"
+  },
+  "TransactionHistory": {
+    "fetch_transaction_failed": "获取交易失败",
+    "fetch_more_transaction_failed": "获取更多交易失败",
+    "empty": "此代币未找到交易",
+    "Load More": "加载更多"
   }
 }

@@ -5,7 +5,7 @@ import { MessageProposal, MultisigWallet } from "@/app/api/multisig/storage";
 import { Proposal } from "@/app/wallet/[walletId]/details/proposals/components/Proposal";
 import { IRelayPKP } from "@lit-protocol/types";
 import axios from "axios";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { getAuthMethodFromStorage } from "@/lib/storage/authmethod";
 import { getProviderByAuthMethodType, getSessionSigsByPkp, litNodeClient } from "@/lib/lit";
 import { LogoLoading } from "@/components/LogoLoading";
@@ -21,8 +21,11 @@ import { sendProposalExecutedNotification } from "@/lib/notification/proposal-ex
 import { MFAOtpDialog } from "@/components/Transaction/MFAOtpDialog";
 import { PendingProposalNotification } from "@/services/NotificationService";
 import { fetchProposals, useProposals } from "@/hooks/useProposals";
+import { useTranslations } from "next-intl";
 
 export function ProposalsList({ proposals }: { proposals: PendingProposalNotification[] }) {  
+  const t = useTranslations('ProposalList');
+
   // User PKP state
   const [userPkp, setUserPkp] = useState<IRelayPKP | null>(null);
   const [authMethodId, setAuthMethodId] = useState<string | null>(null);
@@ -147,7 +150,7 @@ export function ProposalsList({ proposals }: { proposals: PendingProposalNotific
       });
 
       if (response.data.success) {
-        toast.success('Wallet settings updated successfully');
+        toast.success(t('update_wallet_success'));
         // Refresh proposals and notifications
         if (authMethodId && userPkp?.ethAddress) {
           refreshNotifications(authMethodId, userPkp.ethAddress);
@@ -231,10 +234,10 @@ export function ProposalsList({ proposals }: { proposals: PendingProposalNotific
         } catch (e: any) {
           log('error', e);
           if (e.message.includes('insufficient funds for intrinsic transaction cost')) {
-            toast.error('Insufficient funds for intrinsic transaction cost');
+            toast.error(t('insufficient_funds'));
             return;
           }
-          toast.error(`${e.message || 'Transaction failed'}`);
+          toast.error(e.message || t('execute_transaction_failed'));
           return;
         }
       }
@@ -259,7 +262,7 @@ export function ProposalsList({ proposals }: { proposals: PendingProposalNotific
         console.error('Error sending proposal executed notifications:', error);
       }
 
-      toast.success(`Transaction completed`);
+      toast.success(t('transaction_completed'));
       // Refresh notifications
       refreshNotifications(authMethodId, userPkp.ethAddress);
 
@@ -267,7 +270,6 @@ export function ProposalsList({ proposals }: { proposals: PendingProposalNotific
       setExecutingStates(prev => ({ ...prev, [proposal.id]: false }));
       // make sure the user can sign other proposals
       setIsDisabled(false);
-
     }
   };
 
@@ -275,13 +277,13 @@ export function ProposalsList({ proposals }: { proposals: PendingProposalNotific
   const handleSignProposal = async (proposal: MessageProposal) => {
     const authMethod = getAuthMethodFromStorage();
     if (!userPkp || !authMethodId || !authMethod) {
-      toast.error('User authentication required');
+      toast.error(t('authentication_required'));
       return;
     }
 
     const wallet = walletMap.get(proposal.walletId);
     if (!wallet) {
-      toast.error('Wallet not found');
+      toast.error(t('wallet_not_found'));
       return;
     }
 
@@ -312,21 +314,21 @@ export function ProposalsList({ proposals }: { proposals: PendingProposalNotific
             // Automatically execute the multisig action once threshold is reached
             await executeMultisigLitAction(updatedProposal);
         } else {
-          toast.success('Proposal signed successfully')
+          toast.success(t('sign_proposal_succeess'))
           // Refresh proposals using React Query
           invalidateProposalNotifications();
         }
       }
-    } catch (error: any) {
-      console.error('Failed to sign proposal:', error)
+    } catch (err: any) {
+      console.error('Failed to sign proposal:', err)
 
       // Check for Google JWT expired error
-      const errorMessage = error?.message || '';
-      if (errorMessage.includes('Google JWT expired') || 
-          (error?.shortMessage && error.shortMessage.includes('Google JWT expired'))) {
+      const errorMessage = err?.message || '';
+      const shortMessage = err?.shortMessage || '';
+      if (errorMessage.includes('Google JWT expired') || shortMessage.includes('Google JWT expired')) {
         handleExpiredAuth();
       } else {
-        toast.error(error?.message || 'Failed to sign proposal');
+        toast.error(err?.message || t('sign_proposal_failed'));
       }
     } finally {
       setSigningStates(prev => ({ ...prev, [proposal.id]: false }));
@@ -336,13 +338,13 @@ export function ProposalsList({ proposals }: { proposals: PendingProposalNotific
   // Execute proposal handler
   const executeMultisigLitAction = async (proposal: MessageProposal) => {
     if (!userPkp || !authMethodId) {
-      toast.error('User authentication required');
+      toast.error(t('authentication_required'));
       return;
     }
 
     const wallet = walletMap.get(proposal.walletId);
     if (!wallet) {
-      toast.error('Wallet not found');
+      toast.error(t('wallet_not_found'));
       return;
     }
 
@@ -357,7 +359,7 @@ export function ProposalsList({ proposals }: { proposals: PendingProposalNotific
 
       const authMethod = getAuthMethodFromStorage();
       if (!authMethod) {
-        toast.error('Authentication method not found');
+        toast.error(t('invalid_authentication_method'));
         return;
       }
 
@@ -383,7 +385,7 @@ export function ProposalsList({ proposals }: { proposals: PendingProposalNotific
           (error?.shortMessage && error.shortMessage.includes('Google JWT expired'))) {
         handleExpiredAuth();
       } else {
-        toast.error(error?.message || 'Failed to execute proposal');
+        toast.error(error?.message || t('execute_proposal_failed'));
       }
     } finally {
       setExecutingStates(prev => ({ ...prev, [proposal.id]: false }));
@@ -394,7 +396,7 @@ export function ProposalsList({ proposals }: { proposals: PendingProposalNotific
   // Cancel proposal handler
   const handleCancelProposal = async (proposal: MessageProposal) => {
     if (!userPkp || !authMethodId) {
-      toast.error('User authentication required');
+      toast.error(t('authentication_required'));
       return;
     }
 
@@ -415,7 +417,7 @@ export function ProposalsList({ proposals }: { proposals: PendingProposalNotific
       });
 
       if (response.data.success) {
-        toast.success('Proposal canceled successfully');
+        toast.success(t('cancel_proposal_success'));
         // Refresh data
         if (authMethodId && userPkp?.ethAddress) {
           refreshNotifications(authMethodId, userPkp.ethAddress);
@@ -428,11 +430,11 @@ export function ProposalsList({ proposals }: { proposals: PendingProposalNotific
       if (error.response?.data?.error) {
         toast.error(error.response.data.error);
       } else if (error.response?.status === 403) {
-        toast.error('You can only cancel proposals you created');
+        toast.error(t('disallow_cancel_proposal'));
       } else if (error.response?.status === 404) {
-        toast.error('Proposal not found');
+        toast.error(t('proposal_not_found'));
       } else {
-        toast.error('Failed to cancel proposal');
+        toast.error(t('cancel_proposal_failed'));
       }
     } finally {
       setCancelingStates(prev => ({ ...prev, [proposal.id]: false }));
@@ -510,7 +512,7 @@ export function ProposalsList({ proposals }: { proposals: PendingProposalNotific
   if (proposals.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-        No {status} proposals found.
+        {t('empty_proposal_list')}
       </div>
     );
   }
@@ -519,7 +521,7 @@ export function ProposalsList({ proposals }: { proposals: PendingProposalNotific
   if (!userPkp) {
     return (
       <div className="text-center py-8 text-red-500">
-        Unable to load user data. Please ensure you are logged in.
+        {t('login_is_required')}
       </div>
     );
   }
@@ -532,7 +534,9 @@ export function ProposalsList({ proposals }: { proposals: PendingProposalNotific
           if (!wallet) {
             return (
               <div key={data!.id} className="p-4 bg-red-50 rounded-lg border border-red-200">
-                <p className="text-red-600">Wallet not found for proposal {data!.id}</p>
+                <p className="text-red-600">
+                  {t("wallet_not_found_with_id", {id: data!.id})}
+                </p>
               </div>
             );
           }
@@ -566,8 +570,8 @@ export function ProposalsList({ proposals }: { proposals: PendingProposalNotific
         onOtpVerify={handleOtpVerify}
         sendOtp={handleSendOtp}
         identifier={userPhone}
-        title="Verify Transaction"
-        description="A verification code will be sent to your phone via WhatsApp"
+        title={t("otp_title")}
+        description={t("otp_description")}
       />
     </>
   );

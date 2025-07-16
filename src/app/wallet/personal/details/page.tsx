@@ -12,9 +12,13 @@ import { TokenAssets } from '@/app/assets/components/WalletCard/TokenAssets';
 import { WalletSendReceiveActions } from '@/app/assets/components/WalletCard/WalletSendReceiveActions';
 import { WalletSettingsActions } from '@/app/assets/components/WalletCard/WalletSettingsActions';
 import { ArrowLeft } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export default function PersonalWalletDetailsPage() {
   const router = useRouter();
+
+  const t = useTranslations('Common');
+
   const [isLoading, setIsLoading] = useState(true);
   const [addresses, setAddresses] = useState<MultisigWalletAddresses | null>(
     null
@@ -69,7 +73,7 @@ export default function PersonalWalletDetailsPage() {
           className="flex items-center text-sm font-medium text-gray-600 hover:text-gray-900 cursor-pointer"
         >
           <ArrowLeft className="h-5 w-5 mr-1" />
-          Back
+          {t('back')}
         </button>
         <p className={cn('text-lg text-center font-bold', 'text-black')}>
           {email}

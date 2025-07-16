@@ -280,7 +280,7 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
             onClick={() => handleCancelProposal(proposal)}
           >
             {isCancelingProposal && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {transProposalListItem("Cancel")}
+            {transProposalListItem("cancel")}
           </Button>
         )}
 

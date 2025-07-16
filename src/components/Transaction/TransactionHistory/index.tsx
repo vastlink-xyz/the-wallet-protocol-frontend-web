@@ -10,12 +10,15 @@ import { addressByTokenSymbol } from '@/lib/web3/address';
 import { TransactionItem } from '@/types/transaction-item';
 import { Button } from '@/components/ui/button';
 import { Loader2Icon, RefreshCcwIcon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export function TransactionHistory({
   addresses,
 }: {
   addresses: MultisigWalletAddresses;
 }) {
+  const t = useTranslations('TransactionHistory')
+
   const [selectedToken, setSelectedToken] = useState<TokenType | "all">("all");
   const [transactions, setTransactions] = useState<TransactionItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -126,7 +129,7 @@ export function TransactionHistory({
     } catch (error) {
       console.error('Error fetching transaction history:', error);
       const errorMessage =
-        error instanceof Error ? error.message : 'Failed to fetch transactions';
+        error instanceof Error ? error.message : t('fetch_transaction_failed');
       toast.error(errorMessage);
       setTransactions([]);
       setLastId(null);
@@ -206,10 +209,8 @@ export function TransactionHistory({
       }
     } catch (error) {
       console.error('Error loading more transactions:', error);
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : 'Failed to load more transactions';
+      const errorMessage = error instanceof Error
+        ? error.message : t('fetch_more_transaction_failed');
       toast.error(errorMessage);
       setLastId(null);
     } finally {
@@ -297,7 +298,7 @@ export function TransactionHistory({
             />
           ) : (
             <div className="text-center py-8 text-gray-500">
-              No transactions found for this token
+              {t("empty")}
             </div>
           )}
         </div>

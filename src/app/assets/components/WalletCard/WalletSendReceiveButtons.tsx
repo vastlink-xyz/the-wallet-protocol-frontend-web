@@ -2,6 +2,7 @@ import { ArrowUpRightFromCircle, ArrowDownLeftFromCircle } from "lucide-react"
 import { ReceiveModal } from "./ReceiveModal"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
+import { useTranslations } from "next-intl"
 
 interface WalletSendReceiveButtonsProps {
   onSendClick: () => void
@@ -18,6 +19,8 @@ export function WalletSendReceiveButtons({
   walletName,
   className,
 }: WalletSendReceiveButtonsProps) {
+  const t = useTranslations('WalletCard')
+
   const [receiveModalOpen, setReceiveModalOpen] = useState(false)
 
   return (
@@ -31,7 +34,9 @@ export function WalletSendReceiveButtons({
           <div className="w-14 h-14 p-3 rounded-full border border-black/20 flex items-center justify-center">
             <ArrowUpRightFromCircle className="text-black" />
           </div>
-          <p className="text-xs font-medium mt-1 text-black">Send</p>
+          <p className="text-xs font-medium mt-1 text-black">
+            {t('send')}
+          </p>
         </div>
 
         {/* Receive Button */}
@@ -39,7 +44,9 @@ export function WalletSendReceiveButtons({
           <div className="w-14 h-14 p-3 rounded-full border border-black/20 flex items-center justify-center">
             <ArrowDownLeftFromCircle className="text-black" />
           </div>
-          <p className="text-xs font-medium mt-1 text-black">Receive</p>
+          <p className="text-xs font-medium mt-1 text-black">
+            {t('receive')}
+          </p>
         </div>
       </div>
 
