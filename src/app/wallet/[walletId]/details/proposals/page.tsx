@@ -19,12 +19,13 @@ import { signProposal } from "./utils/sign-proposal";
 import { executeTransactionProposal, executeWalletSettingsProposal } from "./utils/execute-proposal";
 import { useNotifications } from "@/hooks/useNotifications";
 import { fetchProposals, useProposals } from "@/hooks/useProposals";
-import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Loader2Icon, RefreshCcwIcon } from "lucide-react";
-import { fetchProposal } from "./utils/proposal";
+import { useTranslations } from "next-intl";
 
 export default function ProposalsPage() {
+  const t = useTranslations('ProposalList');
+  
   // Get walletId from params
   const params = useParams();
   const walletId = params.walletId as string;
@@ -127,7 +128,7 @@ export default function ProposalsPage() {
       })
 
       if (response.data.success) {
-        toast.success('Wallet settings updated successfully')
+        toast.success(t('update_wallet_success'));
         // Refresh proposals using React Query
         await refreshProposals();
 
@@ -206,10 +207,10 @@ export default function ProposalsPage() {
         } catch (e: any) {
           log('error', e)
           if (e.message.includes('insufficient funds for intrinsic transaction cost')) {
-            toast.error('Insufficient funds for intrinsic transaction cost')
+            toast.error(t('insufficient_funds'));
             return
           }
-          toast.error(`${e.message || 'Transaction failed'}`)
+          toast.error(e.message || t('execute_transaction_failed'));
           return
         }
       }
@@ -235,7 +236,7 @@ export default function ProposalsPage() {
         }
       }
 
-      toast.success(`Transaction completed`);
+      toast.success(t('transaction_completed'));
       // Refresh proposals using React Query
       await refreshProposals();
 
@@ -283,14 +284,14 @@ export default function ProposalsPage() {
         // Regular transaction execution
         await handleExecuteTransactionProposal(proposal, sessionSigs)
       }
-    } catch (error: any) {
+    } catch (err: any) {
       // Check for Google JWT expired error
-      const errorMessage = error?.message || '';
-      if (errorMessage.includes('Google JWT expired') ||
-        (error?.shortMessage && error.shortMessage.includes('Google JWT expired'))) {
+      const errorMessage = err?.message || '';
+      const shortMessage = err?.shortMessage || '';
+      if (errorMessage.includes('Google JWT expired') || shortMessage.includes('Google JWT expired')) {
         handleExpiredAuth();
       } else {
-        toast.error(`Error executing operation: ${errorMessage}`);
+        toast.error(err?.message || t('sign_proposal_failed'));
       }
     } finally {
       // Clear loading state for this proposal
@@ -336,21 +337,21 @@ export default function ProposalsPage() {
           // Automatically execute the multisig action once threshold is reached
           await executeMultisigLitAction(updatedProposal)
         } else {
-          toast.success('Proposal signed successfully')
+          toast.success(t('sign_proposal_succeess'))
           // Refresh proposals using React Query
           await refreshProposals();
         }
       }
-    } catch (error: any) {
-      console.error('Failed to sign proposal:', error)
+    } catch (err: any) {
+      console.error('Failed to sign proposal:', err)
 
       // Check for Google JWT expired error
-      const errorMessage = error?.message || '';
+      const errorMessage = err?.message || '';
       if (errorMessage.includes('Google JWT expired') ||
-        (error?.shortMessage && error.shortMessage.includes('Google JWT expired'))) {
+        (err?.shortMessage && err.shortMessage.includes('Google JWT expired'))) {
         handleExpiredAuth();
       } else {
-        toast.error(`Error signing proposal: ${errorMessage}`);
+        toast.error(err?.message || t('sign_proposal_failed'));
       }
     } finally {
       // Clear loading state for this proposal
@@ -437,15 +438,13 @@ export default function ProposalsPage() {
       });
 
       if (response.data.success) {
-        toast.success('Proposal canceled successfully');
+        toast.success(t('cancel_proposal_success'));
         // Refresh proposals using React Query
         await refreshProposals();
-        
         // Invalidate proposal related data to update notification and red dots
-        refreshNotifications(authMethodId, userPkp.ethAddress);
-        
-      } else {
-        toast.error(response.data.error || 'Failed to cancel proposal');
+        if (authMethodId && userPkp?.ethAddress) {
+          refreshNotifications(authMethodId, userPkp.ethAddress);
+        }
       }
     } catch (error: any) {
       console.error('Failed to cancel proposal:', error);
@@ -454,11 +453,11 @@ export default function ProposalsPage() {
       if (error.response?.data?.error) {
         toast.error(error.response.data.error);
       } else if (error.response?.status === 403) {
-        toast.error('You can only cancel proposals you created');
+        toast.error(t('disallow_cancel_proposal'));
       } else if (error.response?.status === 404) {
-        toast.error('Proposal not found');
+        toast.error(t('proposal_not_found'));
       } else {
-        toast.error('Failed to cancel proposal');
+        toast.error(t('cancel_proposal_failed'));
       }
     } finally {
       // Clear loading state for this proposal
@@ -473,14 +472,23 @@ export default function ProposalsPage() {
 
   // If wallet is not available, show an error
   if (!wallet) {
-    return <div>Wallet not found</div>;
+    return <div>{t('wallet_not_found')}</div>;
+  }
+
+  // If userPkp is not available, show error
+  if (!userPkp) {
+    return (
+      <div className="text-center py-8 text-red-500">
+        {t('login_is_required')}
+      </div>
+    );
   }
 
   return (
     <>
       <div className="mt-4">
         {proposals.length === 0 ? (
-          <p>No proposals found for this wallet.</p>
+          <p>{t('empty_proposal_list')}</p>
         ) : (
           <div className="flex flex-col gap-4">
             <div className="flex flex-row justify-end">
@@ -528,8 +536,8 @@ export default function ProposalsPage() {
         onOtpVerify={handleOtpVerify}
         sendOtp={handleSendOtp}
         identifier={userPhone}
-        title="Verify Transaction"
-        description="A verification code will be sent to your phone via WhatsApp"
+        title={t("otp_title")}
+        description={t("otp_description")}
       />
     </>
   );

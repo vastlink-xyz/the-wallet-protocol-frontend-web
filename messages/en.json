@@ -9,7 +9,8 @@
     "settings": "Settings",
     "details": "Details",
     "confirm": "Confirm",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "all": "ALL"
   },
   "LocaleSwitcher": {
     "en": "🇬🇧 English",
@@ -170,8 +171,25 @@
   },
   "ProposalList": {
     "login_is_required": "Unable to load user data. Please ensure you are logged in.",
-    "proposals_not_found": "No {status} proposals found.",
-    "wallet_not_found": "Wallet not found for proposal {id}"
+    "empty_proposal_list": "No proposals found.",
+    "wallet_not_found_with_id": "Wallet not found for proposal {id}",
+    "update_wallet_success": "Wallet settings updated successfully",
+    "insufficient_funds": "Insufficient funds for intrinsic transaction cost",
+    "transaction_completed": "Transaction completed",
+    "authentication_required": "User authentication required",
+    "wallet_not_found": "Wallet not found",
+    "sign_proposal_succeess": "Proposal signed successfully",
+    "sign_proposal_failed": "Failed to sign proposal",
+    "invalid_authentication_method": "Authentication method not found",
+    "execute_proposal_failed": "Failed to execute proposal",
+    "cancel_proposal_success": "Proposal canceled successfully",
+    "cancel_proposal_failed": "Failed to cancel proposal",
+    "disallow_cancel_proposal": "You can only cancel proposals you created",
+    "proposal_not_found": "Proposal not found",
+    "invalid_session": "Session or phone number not found",
+    "otp_title": "Transaction Verification",
+    "otp_description": "A verification code will be sent to your phone via WhatsApp",
+    "execute_transaction_failed": "Transaction failed"
   },
   "ProposalListItem": {
     "failed_parse_data": "Unable to parse settings data",
@@ -192,7 +210,8 @@
     "notification_center": "Notification centre",
     "mfa_setup_title": "Set MFA",
     "mfa_setup_message": "To make your wallets more secure, we highly recommend you to set up daily withdrawal limits and MFA insettings.",
-    "mfa_setup_action": "Set MFA →"
+    "mfa_setup_action": "Set MFA →",
+    "empty_notification": "No new notifications"
   },
   "NotificationMenu": {
     "title": "Notifications",
@@ -204,5 +223,11 @@
     "view_all": "View all",
     "review": "Review →",
     "empty": "No new notifications"
+  },
+  "TransactionHistory": {
+    "fetch_transaction_failed": "Failed to fetch transactions",
+    "fetch_more_transaction_failed": "Failed to fetch transactions",
+    "empty": "No transactions found for this token",
+    "Load More": "Load More"
   }
 }

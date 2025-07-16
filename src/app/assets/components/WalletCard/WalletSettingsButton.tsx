@@ -1,12 +1,15 @@
 import { Settings } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
+import { useTranslations } from "next-intl";
 
 interface WalletSettingsButtonProps extends React.HTMLAttributes<HTMLDivElement> {
   onSettingsClick?: () => void;
 }
 
 export function WalletSettingsButton({ className, onSettingsClick }: WalletSettingsButtonProps) {
+  const t = useTranslations('Common')
+
   return (
     <div className={cn("flex justify-end", className)}>
       <Tooltip>
@@ -17,7 +20,7 @@ export function WalletSettingsButton({ className, onSettingsClick }: WalletSetti
           />
         </TooltipTrigger>
         <TooltipContent>
-          Settings
+          {t('settings')}
         </TooltipContent>
       </Tooltip>
     </div>

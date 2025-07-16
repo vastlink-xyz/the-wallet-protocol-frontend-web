@@ -9,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from './ui/select';
+import { useTranslations } from 'next-intl';
 
 export interface SelectTokenProps {
   /**
@@ -54,6 +55,8 @@ export function SelectToken({
   includeAllOption = false,
   disabled,
 }: SelectTokenProps) {
+  const t = useTranslations('Common');
+
   const [selectedToken, setSelectedToken] = useState<TokenType | "all">(
     defaultValue
   );
@@ -87,7 +90,7 @@ export function SelectToken({
               value="all"
               className="flex items-center"
             >
-              <span className="ml-6">ALL</span>
+              <span className="ml-6">{t('all')}</span>
             </SelectItem>)}
             {SUPPORTED_TOKENS_ARRAY.map((token) => (
               <SelectItem
