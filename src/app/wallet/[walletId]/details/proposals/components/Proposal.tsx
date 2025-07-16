@@ -137,7 +137,7 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
             </div>
           ) : proposal.status === 'canceled' ? (
             <div className="flex items-center gap-1 px-2 py-1 rounded-sm text-gray-600 border border-gray`-600">
-              {transProposalStatus('cancelled')}
+              {transProposalStatus('canceled')}
             </div>
           ) : (
             <div className="flex items-center gap-1 px-2 py-1 rounded-sm text-gray-600 border border-gray-600">
@@ -162,13 +162,21 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
           <>
             {changeResult.changes.name && (
               <div>
-                {`Name: ${changeResult.changes.name.from} → ${changeResult.changes.name.to}`}
+                {transProposalListItem('name', {
+                  from: changeResult.changes.name.from,
+                  to: changeResult.changes.name.to,
+                })}
               </div>
             )}
 
             {changeResult.changes.threshold && (
               <div className="text-sm font-semibold">
-                {`Threshold: ${changeResult.changes.threshold.from} of ${changeResult.changes.threshold.fromSignersCount} → ${changeResult.changes.threshold.to} of ${changeResult.changes.threshold.toSignersCount}`}
+                {transProposalListItem('threshold_details', {
+                  from_nums: changeResult.changes.threshold.from,
+                  from_count: changeResult.changes.threshold.fromSignersCount,
+                  to_nums: changeResult.changes.threshold.to,
+                  to_count: changeResult.changes.threshold.toSignersCount,
+                })}
               </div>
             )}
 
@@ -176,7 +184,7 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
               <div className="space-y-2">
                 {changeResult.changes.signers.added?.length > 0 && (
                   <div>
-                    <span className="mb-1">Add signers:</span>
+                    <span className="mb-1">{transProposalListItem('add_signers')}</span>
                     <div className="ml-4 space-y-1">
                       {changeResult.changes.signers.added.map(
                         (signer: any, index: number) => (
@@ -191,7 +199,7 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
 
                 {changeResult.changes.signers.removed?.length > 0 && (
                   <div>
-                    <span className="mb-1">Remove signers:</span>
+                    <span className="mb-1">{transProposalListItem('remove_signers')}</span>
                     <div className="ml-4 space-y-1">
                       {changeResult.changes.signers.removed.map(
                         (signer: any, index: number) => (
@@ -208,7 +216,7 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
 
             {dailyLimits.length > 0 && (
               <div>
-                <span className="mb-1">Daily limits:</span>
+                <span className="mb-1">{transProposalListItem('daily_limits')}</span>
                 <div className="ml-4 space-y-1">
                   {dailyLimits.map(([token, change]) => (
                     <div key={token}>
@@ -221,17 +229,21 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
 
             {Object.keys(changeResult.changes).length === 0 && (
               <div>
-                <span>Details:</span> {descriptions.join(', ')}
+                {transProposalListItem('details', { data: descriptions.join(', ') })}
               </div>
             )}
           </>
         ) : (
           <div>
             <div className="break-all">
-              {`Transfer ${formatBalance(txDetails.value)} ${txDetails.tokenType && SUPPORTED_TOKENS_INFO[txDetails.tokenType as TokenType].symbol} to ${txDetails.to}`}
+              {transProposalListItem('transfer_to', {
+                value: formatBalance(txDetails.value),
+                symbol: txDetails.tokenType ? SUPPORTED_TOKENS_INFO[txDetails.tokenType as TokenType].symbol : '',
+                address: txDetails.to,
+              })}
             </div>
             {txDetails.data && txDetails.data !== '0x' && (
-              <div>{`Data: ${txDetails.data}`}</div>
+              <div>{transProposalListItem('data', { data: txDetails.data })}</div>
             )}
           </div>
         )}
@@ -239,16 +251,19 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
 
       {proposal.createdBy && (
         <div className="text-muted-foreground mb-2">
-          Created by: {proposal.createdBy?.email}
+          {transProposalListItem("created_by", { email: proposal.createdBy?.email })}
         </div>
       )}
 
       <div className="text-muted-foreground mb-2">
-        {`Threshold: ${displayThreshold} of ${displaySigners.length}`}
+        {transProposalListItem('threshold', {
+          nums: displayThreshold,
+          count: displaySigners.length,
+        })}
       </div>
 
       <div className="text-muted-foreground mb-2">
-        <div className="mb-1">Signers:</div>
+        <div className="mb-1">{transProposalListItem('signers')}</div>
         <div className="pl-2 border-l-2 space-y-1">
           {displaySigners.map((signer) => {
             const hasSigned = proposal.signatures.some(
