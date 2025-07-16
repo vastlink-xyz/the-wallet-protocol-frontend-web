@@ -137,7 +137,7 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
             </div>
           ) : proposal.status === 'canceled' ? (
             <div className="flex items-center gap-1 px-2 py-1 rounded-sm text-gray-600 border border-gray`-600">
-              {transProposalStatus('cancelled')}
+              {transProposalStatus('canceled')}
             </div>
           ) : (
             <div className="flex items-center gap-1 px-2 py-1 rounded-sm text-gray-600 border border-gray-600">
