@@ -85,7 +85,7 @@ export default function NotificationPage() {
 
       {securityNotifications.length === 0 && proposalNotifications.length === 0 && (
         <div className="w-full mx-auto mb-[40px] text-center text-gray-500">
-          <p className="text-sm">No new notifications</p>
+          <p className="text-sm">{transNotificationPage('empty_notification')}</p>
         </div>
       )}
     </div>
