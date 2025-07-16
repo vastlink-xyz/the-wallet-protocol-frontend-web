@@ -25,7 +25,7 @@ export function NotificationMenu({
   }, [securityNotifications, proposalNotifications])
 
   return (
-    <HoverCard open={showPopup} onOpenChange={setShowPopup}>
+    <HoverCard open={showPopup} onOpenChange={setShowPopup} openDelay={50} closeDelay={100}>
       <HoverCardTrigger>
         <Image
           className={cn('cursor-pointer', className)}

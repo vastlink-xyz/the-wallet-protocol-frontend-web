@@ -82,10 +82,10 @@ export function MobileMenu() {
   return (
     <div className="tablet:hidden relative">
       <MenuIcon 
-        className="w-4 h-4 text-white cursor-pointer" 
+        className="w-6 h-6 text-white cursor-pointer" 
         onClick={handleMenuToggle}
       />
-      
+
       {isOpen && (
         <>
           <div 
