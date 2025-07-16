@@ -7,15 +7,20 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { PersonalWalletSettingsContext } from '@/providers/PersonalWalletSettingsProvider';
 import { Suspense, useContext } from 'react';
 import { ProposalsList } from './ProposalList';
+import { LogoLoading } from '@/components/LogoLoading';
 
 export default function NotificationPage() {
   const router = useRouter();
 
-  const { securityNotifications, proposalNotifications } = useNotifications();
+  const { securityNotifications, proposalNotifications, isLoading } = useNotifications();
 
   const { showPersonalWalletSettings } = useContext(
     PersonalWalletSettingsContext
   );
+
+  if (isLoading) {
+    return <LogoLoading />;
+  }
 
   return (
     <div className="w-full mx-auto p-6 relative min-w-[342px] laptop:w-[808px] desktop:w-[1224px]">
@@ -69,6 +74,12 @@ export default function NotificationPage() {
           <Suspense fallback={null}>
             <ProposalsList proposals={proposalNotifications} />
           </Suspense>
+        </div>
+      )}
+
+      {securityNotifications.length === 0 && proposalNotifications.length === 0 && (
+        <div className="w-full mx-auto mb-[40px] text-center text-gray-500">
+          <p className="text-sm">No new notifications</p>
         </div>
       )}
     </div>
