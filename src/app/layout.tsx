@@ -14,6 +14,8 @@ import { PersonalWalletSettings } from "./assets/components/Personal/WalletSetti
 import { PersonalWalletSettingsProvider } from "@/providers/PersonalWalletSettingsProvider";
 import { MultisigSettings } from "./assets/components/Team/MultisigSettings";
 import { MultisigSettingsProvider } from "@/providers/MultisigSettingsProvider";
+import {NextIntlClientProvider} from 'next-intl';
+import {getLocale} from 'next-intl/server';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,56 +36,60 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+
   return (
-    <html lang="en">
+    <html lang={locale}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <QueryProvider>
           <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}>
-            <PersonalWalletSettingsProvider>
-              <MultisigSettingsProvider>
-                <AppNavbar />
+            <NextIntlClientProvider>
+              <PersonalWalletSettingsProvider>
+                <MultisigSettingsProvider>
+                  <AppNavbar />
 
-                <AuthGuard />
+                  <AuthGuard />
 
-                <div className="h-[calc(100vh-52px)] flex flex-col">
-                  {/* Unified notification system */}
-                  <NotificationContainer />
+                  <div className="h-[calc(100vh-52px)] flex flex-col">
+                    {/* Unified notification system */}
+                    <NotificationContainer />
 
-                  <div className="flex flex-1 min-h-0">
-                    <SidebarDesktop />
-                    <main className="flex-1 overflow-y-auto relative">
-                      {children}
-                    </main>
+                    <div className="flex flex-1 min-h-0">
+                      <SidebarDesktop />
+                      <main className="flex-1 overflow-y-auto relative">
+                        {children}
+                      </main>
+                    </div>
+
                   </div>
 
-                </div>
+                  <PersonalWalletSettings />
+                  <MultisigSettings />
 
-                <PersonalWalletSettings />
-                <MultisigSettings />
-
-                <ToastContainer
-                  position="top-center"
-                  autoClose={5000}
-                  hideProgressBar={false}
-                  newestOnTop={false}
-                  closeOnClick
-                  rtl={false}
-                  pauseOnFocusLoss
-                  draggable
-                  pauseOnHover
-                  theme="colored"
-                  style={{ width: 'fit-content' }}
-                  toastStyle={{ width: 'fit-content', maxWidth: '100%' }}
-                />
-              </MultisigSettingsProvider>
-            </PersonalWalletSettingsProvider>
+                  <ToastContainer
+                    position="top-center"
+                    autoClose={5000}
+                    hideProgressBar={false}
+                    newestOnTop={false}
+                    closeOnClick
+                    rtl={false}
+                    pauseOnFocusLoss
+                    draggable
+                    pauseOnHover
+                    theme="colored"
+                    style={{ width: 'fit-content' }}
+                    toastStyle={{ width: 'fit-content', maxWidth: '100%' }}
+                  />
+                </MultisigSettingsProvider>
+              </PersonalWalletSettingsProvider>
+            </NextIntlClientProvider>
           </GoogleOAuthProvider>
         </QueryProvider>
       </body>

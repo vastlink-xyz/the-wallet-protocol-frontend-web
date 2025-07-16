@@ -1,0 +1,40 @@
+{
+  "LocaleSwitcher": {
+    "en": "🇬🇧 English",
+    "zh": "🇨🇳 Chinese"
+  },
+  "AppNavbar": {
+    "testnets": "All assets here are on testnets only"
+  },
+  "Sidebar": {
+    "wallets": "Wallets",
+    "proposals": "Proposals",
+    "notifications": "Notifications",
+    "settings": "Settings",
+    "logout": "Logout"
+  },
+  "ProposalStatus": {
+    "pending": "待处理",
+    "completed": "已完成",
+    "canceled": "已取消",
+    "unknown": "未知"
+  },
+  "ProposalList": {
+    "login_is_required": "Unable to load user data. Please ensure you are logged in.",
+    "proposals_not_found": "No {status} proposals found.",
+    "wallet_not_found": "Wallet not found for proposal {id}"
+  },
+  "ProposalListItem": {
+    "failed_parse_data": "Unable to parse settings data",
+    "setting_change": "Setting change",
+    "transfer": "Transfer",
+    "add_signers": "Add signers:",
+    "remove_signers": "Remove signers:",
+    "daily_limits": "Daily limits:",
+    "details": "Details:",
+    "created_by:": "Created by:",
+    "signers": "Signers:",
+    "cancel": "Cancel",
+    "execute": "Execute"
+  }
+}

@@ -1,27 +1,31 @@
 'use client'
 
 import { useRouter, usePathname } from 'next/navigation'
-import { AlertTriangleIcon, LogOut } from 'lucide-react'
+import { AlertTriangleIcon } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { getAuthMethodFromStorage } from '@/lib/storage/authmethod'
-import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { shouldHideNavbar } from '@/constants/routes'
 import { cn } from '@/lib/utils'
 import { MobileMenu } from './MobileMenu'
 import { NotificationMenu } from '../NotificationMenu'
+import {useTranslations} from 'next-intl';
+import LocaleSwitcher from '../LocaleSwitcher'
 
 export default function AppNavbar() {
+  const t = useTranslations('AppNavbar');
+
   const router = useRouter()
   const pathname = usePathname()
+
   const [isLoggedIn, setIsLoggedIn] = useState(false)
-  
+
   useEffect(() => {
     // Check if user is logged in
     const authMethod = getAuthMethodFromStorage()
     setIsLoggedIn(!!authMethod)
   }, [pathname]) // Re-check when pathname changes
-  
+
   const handleLogout = () => {
     localStorage.clear()
     router.push('/')
@@ -31,7 +35,7 @@ export default function AppNavbar() {
   if (shouldHideNavbar(pathname)) {
     return null
   }
-  
+
   return (
     <>
       <nav className="bg-[#181818] shadow-sm py-0 px-4 h-13 w-full fixed top-0 left-0 right-0 z-50">
@@ -49,10 +53,12 @@ export default function AppNavbar() {
               'w-4 h-4 text-amber-300',
               'tablet:w-5 h-5'
             )} />
-            <span>All assets here are on testnets only</span>
+            <span>{t('testnets')}</span>
           </p>
 
           <div className='flex items-center gap-2'>
+            <LocaleSwitcher />
+
             <MobileMenu />
 
             <NotificationMenu className='hidden tablet:block' />

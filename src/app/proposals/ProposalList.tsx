@@ -22,10 +22,14 @@ import { sendProposalExecutedNotification } from "@/lib/notification/proposal-ex
 import { MFAOtpDialog } from "@/components/Transaction/MFAOtpDialog";
 import { useSearchParams } from "next/navigation";
 import { useRef } from "react";
+import { useTranslations } from "next-intl";
 
 export type ProposalStatus = "pending" | "completed" | "canceled";
 
 export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus }, ref) => {
+  const transProposalStatus = useTranslations('ProposalStatus');
+  const transProposalList = useTranslations('ProposalList');
+
   // Get URL search params for proposal targeting
   const searchParams = useSearchParams();
   const targetProposalId = searchParams.get('proposalId');
@@ -52,9 +56,6 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
   const [showMfaDialog, setShowMfaDialog] = useState(false);
   const [currentProposal, setCurrentProposal] = useState<MessageProposal | null>(null);
   const [mfaMethodId, setMfaMethodId] = useState<string | null>(null);
-
-  // Query client for cache invalidation
-  const queryClient = useQueryClient();
 
   // Auth and notifications hooks
   const { handleExpiredAuth, verifyAuthOrRedirect } = useAuthExpiration();
@@ -109,7 +110,7 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
         if (phoneResponse.ok) {
           const phoneData = await phoneResponse.json();
           const phones = phoneData.phones || [];
-          
+
           if (phones.length > 0) {
             setUserPhone(phones[0].phone_number);
           }
@@ -127,7 +128,7 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
       await refreshProposals();
     },
   }), []);
-  
+
   // Use new proposals API with user address and status filtering
   const {
     data: proposals = [],
@@ -163,18 +164,18 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
   // Scroll to target proposal when URL parameter is provided (only on initial load)
   useEffect(() => {
     if (!targetProposalId || isLoadingProposals || proposals.length === 0 || hasScrolledRef.current) return;
-    
+
     // Check if target proposal exists in current proposals
     const targetProposal = proposals.find(p => p.id === targetProposalId);
     if (!targetProposal) {
       console.log('Target proposal not found in proposals:', targetProposalId);
       return;
     }
-    
+
     // Wait for refs to be set and DOM to be updated
     const checkAndScroll = () => {
       const targetElement = proposalRefs.current[targetProposalId];
-      
+
       if (targetElement) {
         console.log('Scrolling to proposal:', targetProposalId);
         targetElement.scrollIntoView({ 
@@ -589,7 +590,7 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
   if (proposals.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-        No {status} proposals found.
+        {transProposalList('proposals_not_found', {status: transProposalStatus(status)})}
       </div>
     );
   }
@@ -598,7 +599,7 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
   if (!userPkp) {
     return (
       <div className="text-center py-8 text-red-500">
-        Unable to load user data. Please ensure you are logged in.
+        {transProposalList('login_is_required')}
       </div>
     );
   }
@@ -611,7 +612,7 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
           if (!wallet) {
             return (
               <div key={proposal.id} className="p-4 bg-red-50 rounded-lg border border-red-200">
-                <p className="text-red-600">Wallet not found for proposal {proposal.id}</p>
+                <p className="text-red-600">{transProposalList("wallet_not_found", {id: proposal.id})}</p>
               </div>
             );
           }

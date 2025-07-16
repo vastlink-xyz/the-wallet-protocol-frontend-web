@@ -1,4 +1,3 @@
-import { PersonalWalletSettings } from '@/app/assets/components/Personal/WalletSettings';
 import {
   HoverCard,
   HoverCardContent,
@@ -110,7 +109,7 @@ export function NotificationMenu({
               />
               <span className="font-semibold">{proposalNotification.title}</span>
               <p className="col-start-2 text-sm line-clamp-2">{proposalNotification.message}</p>
-              <div className="w-full h-10 col-span-2 flex flex-row justify-end items-center">
+              <div className="w-full h-8 col-span-2 flex flex-row justify-end items-center">
                 <Link href={`/proposals?proposalId=${proposalNotification.data?.id}`} target="_blank" className="font-semibold">
                   Review →
                 </Link>
