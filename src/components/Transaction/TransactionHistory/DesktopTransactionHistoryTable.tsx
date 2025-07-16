@@ -19,8 +19,10 @@ import {
 import dayjs from 'dayjs';
 import { TransactionHistoryTableProps } from './TransactionHistoryTableProps';
 import { TransactionItem } from '@/types/transaction-item';
+import { openTxPage } from './TransactionHistoryTable';
 
 export function DesktopTransactionHistoryTable({className, data, isLoading }: TransactionHistoryTableProps) {
+
   return (
     <Table className={className}>
       <TableHeader>
@@ -146,13 +148,13 @@ function TransactionHistoryTableRow({ isLoading, transaction }: { isLoading: boo
       {/* transaction hash */}
       <TableCell className="hidden tablet:table-cell px-0 py-6
         text-xs text-[#929292] font-medium leading-none break-all">
-        <CopyAddress textToCopy={transaction.txid} isTruncate />
-        {/* <div className={cn(
+        {/* <CopyAddress textToCopy={transaction.txid} isTruncate /> */}
+        <div className={cn(
           "hidden tablet:block laptop:hidden",
           'w-[140px] mr-[5px]',
           "cursor-pointer truncate"
         )}
-          onClick={() => openTxPage(transaction)}
+          onClick={() => openTxPage(transaction.tokenType, transaction.txid)}
         >
           {transaction.txid}
         </div>
@@ -162,10 +164,10 @@ function TransactionHistoryTableRow({ isLoading, transaction }: { isLoading: boo
           'laptop:mr-[10px] desktop:mr-[30px]',
           "cursor-pointer truncate"
         )}
-          onClick={() => openTxPage(transaction)}
+          onClick={() => openTxPage(transaction.tokenType, transaction.txid)}
         >
           {transaction.txid}
-        </div> */}
+        </div>
       </TableCell>
 
       {/* time */}

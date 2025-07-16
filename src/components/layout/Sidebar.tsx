@@ -1,7 +1,7 @@
 'use client';
 
 import { useContext, useEffect, useState } from 'react';
-import { Wallet, Settings, Server, CreditCard, LucideArrowLeft, ChevronLeft, LogOut, SettingsIcon } from 'lucide-react';
+import { Wallet, Server, ChevronLeft, LogOut, SettingsIcon, BellIcon } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
 import { isProtectedRoute } from '@/constants/routes';
@@ -59,7 +59,7 @@ function SidebarItem({
         </div>
         <div className={cn(
           'overflow-hidden transition-all duration-300',
-          isCollapsed ? 'w-0 ml-0' : 'w-20 ml-5'
+          isCollapsed ? 'w-0 ml-0' : 'w-25 ml-5'
         )}>
           <span className="whitespace-nowrap block">
             {label}
@@ -78,7 +78,7 @@ export function SidebarDesktop() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const isDesktop = useMediaQuery('(min-width: 768px)');
-  const { proposalNotifications } = useNotifications();
+  const { proposalNotifications, allNotifications } = useNotifications();
 
   const { showPersonalWalletSettings } = useContext(PersonalWalletSettingsContext);
   
@@ -151,6 +151,26 @@ export function SidebarDesktop() {
                 ) : (
                   <div className="bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                     {proposalNotifications.length}
+                  </div>
+                )}
+              </>
+            )}
+          </SidebarItem>
+
+          <SidebarItem 
+            href="/notification" 
+            icon={<BellIcon className="w-5 h-5" />}
+            label="Notifications"
+            isCollapsed={isCollapsed}
+            className='relative'
+          >
+            {allNotifications.length > 0 && (
+              <>
+                {isCollapsed ? (
+                  <div className="bg-red-500 rounded-full w-[6px] h-[6px] absolute right-4 top-2"></div>
+                ) : (
+                  <div className="bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                    {allNotifications.length}
                   </div>
                 )}
               </>

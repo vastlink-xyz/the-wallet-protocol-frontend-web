@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/tooltip';
 import dayjs from 'dayjs';
 import { TransactionHistoryTableProps } from './TransactionHistoryTableProps';
+import { openTxPage } from './TransactionHistoryTable';
 
 export function MobileTransactionHistoryTable({ className, data, isLoading }: TransactionHistoryTableProps) {
   return (
@@ -63,7 +64,9 @@ export function MobileTransactionHistoryTable({ className, data, isLoading }: Tr
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
-                  <CopyAddress textToCopy={transaction.txid} />
+                  <div onClick={() => openTxPage(transaction.tokenType, transaction.txid)}>
+                    <CopyAddress textToCopy={transaction.txid} />
+                  </div>
                 </div>
 
                 <div className="w-full flex flex-col mt-[20px] text-sm">

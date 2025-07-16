@@ -3,6 +3,12 @@ import { DesktopTransactionHistoryTable } from './DesktopTransactionHistoryTable
 import { MobileTransactionHistoryTable } from './MobileTransactionHistoryTable';
 import { Button } from '@/components/ui/button';
 import { Loader2Icon } from 'lucide-react';
+import { SUPPORTED_TOKENS_INFO, TokenType } from '@/lib/web3/token';
+
+export const openTxPage = (tokenType: TokenType, txid: string) => {
+  const url = `${SUPPORTED_TOKENS_INFO[tokenType].explorerBaseUrl}/tx/${txid}`;
+  window.open(url, '_blank');
+};
 
 export function TransactionHistoryTable({
   isLoading,
