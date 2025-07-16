@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useImperativeHandle, forwardRef, useCallback } from "react";
-import { useProposals } from "@/hooks/useProposals";
+import { fetchProposals, useProposals } from "@/hooks/useProposals";
 import { MessageProposal, MultisigWallet } from "@/app/api/multisig/storage";
 import { Proposal } from "@/app/wallet/[walletId]/details/proposals/components/Proposal";
 import { IRelayPKP } from "@lit-protocol/types";
@@ -135,7 +135,6 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
     isLoading: isLoadingProposals,
     isRefetching: isRefetchingProposals,
     refresh: refreshProposals,
-    mutateItem: mutateProposalItem
   } = useProposals(undefined, {
     status, 
     userAddress: userPkp?.ethAddress
@@ -225,6 +224,7 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
       });
 
       if (response.data.success) {
+        toast.success('Wallet settings updated successfully');
         // Refresh proposals and notifications
         await refreshProposals();
         if (authMethodId && userPkp?.ethAddress) {
@@ -235,8 +235,6 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
         setExecutingStates(prev => ({ ...prev, [proposal.id]: false }));
         // make sure the user can sign other proposals
         setIsDisabled(false);
-
-        toast.success('Wallet settings updated successfully');
       }
     } catch (error) {
       console.error('Error executing wallet settings proposal:', error);
@@ -338,6 +336,7 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
         console.error('Error sending proposal executed notifications:', error);
       }
 
+      toast.success(`Transaction completed`);
       // Refresh proposals list
       await refreshProposals();
       // Refresh notifications
@@ -347,8 +346,6 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
       setExecutingStates(prev => ({ ...prev, [proposal.id]: false }));
       // make sure the user can sign other proposals
       setIsDisabled(false);
-
-      toast.success(`Transaction completed`);
     }
   };
 
@@ -388,12 +385,15 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
         // Invalidate proposal related data to update notification and red dots
         refreshNotifications(authMethodId, userPkp?.ethAddress);
 
-        const item = await mutateProposalItem(proposal.id)
-        if (item) {
-          if (item.signatures.length >= wallet.threshold) {
-            // Automatically execute the multisig action once threshold is reached
-            await executeMultisigLitAction(item)
-          }
+        const newProposals = await fetchProposals(wallet.id, proposal.id)
+        const updatedProposal = newProposals.find((p: MessageProposal) => p.id === proposal.id)
+        if (updatedProposal && updatedProposal.signatures.length >= wallet.threshold) {
+          // Automatically execute the multisig action once threshold is reached
+          await executeMultisigLitAction(updatedProposal)
+        } else {
+          toast.success('Proposal signed successfully')
+          // Refresh proposals using React Query
+          refreshProposals();
         }
       }
     } catch (error: any) {
@@ -494,13 +494,13 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
       });
 
       if (response.data.success) {
+        toast.success('Proposal canceled successfully');
         // Refresh data
         await refreshProposals();
         if (authMethodId && userPkp?.ethAddress) {
           refreshNotifications(authMethodId, userPkp.ethAddress);
         }
 
-        toast.success('Proposal canceled successfully');
       }
 
     } catch (error: any) {
