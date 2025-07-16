@@ -81,11 +81,21 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
   if (!settingsData) {
     return <div>Unable to parse settings data</div>;
   }
+
   // Generate change descriptions using the utility function
   const changeResult = generateSettingsChangeDescriptions(
     settingsData,
     originalState
   );
+
+  const dailyLimits: [string, any][] = [];
+  if (changeResult.changes.mfaSettings && changeResult.changes.mfaSettings.dailyLimits) {
+    const items = Object.entries<any>(changeResult.changes.mfaSettings.dailyLimits);
+    if (items.length > 0) {
+      dailyLimits.push(...items);
+    }
+  }
+
   const descriptions = changeResult.descriptions;
 
   // Handle case when proposal is completed but changes are not detected
@@ -192,11 +202,11 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
               </div>
             )}
 
-            {changeResult.changes.mfaSettings && (
+            {dailyLimits.length > 0 && (
               <div>
                 <span className="mb-1">Daily limits:</span>
                 <div className="ml-4 space-y-1">
-                  {Object.entries(changeResult.changes.mfaSettings.dailyLimits).map(([token, change]: [string, any]) => (
+                  {dailyLimits.map(([token, change]) => (
                     <div key={token}>
                       {`• ${token}: ${change.from !== undefined ? change.from.toString() : 'undefined'} → ${change.to !== undefined ? change.to.toString() : 'undefined'}`}
                     </div>
