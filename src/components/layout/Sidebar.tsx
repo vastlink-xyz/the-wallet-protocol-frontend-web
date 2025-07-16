@@ -12,6 +12,7 @@ import { useNotifications } from '@/hooks/useNotifications';
 import Link from 'next/link';
 import { PersonalWalletSettings } from '@/app/assets/components/Personal/WalletSettings';
 import { PersonalWalletSettingsContext } from '@/providers/PersonalWalletSettingsProvider';
+import { useTranslations } from 'next-intl';
 
 interface SidebarItemProps {
   href: string;
@@ -72,6 +73,8 @@ function SidebarItem({
 }
 
 export function SidebarDesktop() {
+  const t = useTranslations('Common');
+
   const pathname = usePathname();
   const router = useRouter()
   const [mounted, setMounted] = useState(false);
@@ -81,7 +84,7 @@ export function SidebarDesktop() {
   const { proposalNotifications, allNotifications } = useNotifications();
 
   const { showPersonalWalletSettings } = useContext(PersonalWalletSettingsContext);
-  
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -133,14 +136,14 @@ export function SidebarDesktop() {
           <SidebarItem 
             href="/assets" 
             icon={<Wallet className="w-5 h-5" />}
-            label="Wallets"
+            label={t("wallets")}
             isCollapsed={isCollapsed}
           />
 
           <SidebarItem 
             href="/proposals" 
             icon={<Server className="w-5 h-5" />}
-            label="Proposals"
+            label={t("proposals")}
             isCollapsed={isCollapsed}
             className='relative'
           >
@@ -160,7 +163,7 @@ export function SidebarDesktop() {
           <SidebarItem 
             href="/notification" 
             icon={<BellIcon className="w-5 h-5" />}
-            label="Notifications"
+            label={t("notifications")}
             isCollapsed={isCollapsed}
             className='relative'
           >
@@ -182,7 +185,7 @@ export function SidebarDesktop() {
           <SidebarItem 
             href="#" 
             icon={<SettingsIcon className="w-5 h-5" />}
-            label="Settings"
+            label={t("settings")}
             isCollapsed={isCollapsed}
             onClick={() => showPersonalWalletSettings()}
           />
@@ -200,7 +203,7 @@ export function SidebarDesktop() {
                   isCollapsed ? 'w-0 ml-0' : 'w-[60px] ml-2'
                 )}>
                   <span className="whitespace-nowrap block text-black text-sm">
-                    Logout
+                    {t("logout")}
                   </span>
                 </div>
               </div>

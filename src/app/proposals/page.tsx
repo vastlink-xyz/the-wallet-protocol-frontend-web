@@ -6,19 +6,19 @@ import { useRef, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2Icon, RefreshCcwIcon } from "lucide-react";
 import { ProposalsList, ProposalStatus } from "./ProposalList";
+import { useTranslations } from "next-intl";
 
 export default function ProposalsPage() {
+  const transCommon = useTranslations('Common');
+  const transProposalStatus = useTranslations('ProposalStatus');
+
   const childRef = useRef<{ refresh: () => Promise<void> } | null>(null);
 
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const [activeTab, setActiveTab] = useState<ProposalStatus>("pending");
 
-  const tabs = [
-    { id: "pending" as ProposalStatus, label: "Pending" },
-    { id: "completed" as ProposalStatus, label: "Completed" },
-    { id: "canceled" as ProposalStatus, label: "Cancelled" },
-  ];
+  const tabs = [ "pending", "completed", "canceled" ];
 
   const handleRefresh = useCallback(() => {
     if (childRef.current) {
@@ -32,21 +32,21 @@ export default function ProposalsPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Proposals</h1>
-      
+      <h1 className="text-3xl font-bold mb-8">{transCommon("proposals")}</h1>
+
       {/* Tab Navigation */}
       <div className="flex flex-row justify-start items-center gap-2 mb-6">
         {tabs.map((tab) => (
           <div
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
+            key={tab}
+            onClick={() => setActiveTab(tab as ProposalStatus)}
             className={cn(
               'w-[110px] h-[36px] px-4 py-2.5 rounded-full font-medium transition-colors cursor-pointer',
               'flex justify-center items-center',
-              activeTab === tab.id ? 'bg-black text-white' : 'text-black',
+              activeTab === tab ? 'bg-black text-white' : 'text-black',
             )}
           >
-            {tab.label}
+            {transProposalStatus(tab)}
           </div>
         ))}
         <div className="flex-1" />

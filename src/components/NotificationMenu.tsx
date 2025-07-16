@@ -1,4 +1,3 @@
-import { PersonalWalletSettings } from '@/app/assets/components/Personal/WalletSettings';
 import {
   HoverCard,
   HoverCardContent,
@@ -7,6 +6,7 @@ import {
 import { useNotifications } from '@/hooks/useNotifications';
 import { cn } from '@/lib/utils';
 import { PersonalWalletSettingsContext } from '@/providers/PersonalWalletSettingsProvider';
+import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useContext, useMemo, useState } from 'react';
@@ -14,6 +14,8 @@ import { useContext, useMemo, useState } from 'react';
 export function NotificationMenu({
   className,
 }: React.HtmlHTMLAttributes<HTMLDivElement>) {
+  const t = useTranslations('NotificationMenu');
+
   const { showPersonalWalletSettings } = useContext(PersonalWalletSettingsContext);
 
   const { securityNotifications, proposalNotifications } = useNotifications();
@@ -40,7 +42,7 @@ export function NotificationMenu({
         <div className="relative">
           {/* Header */}
           <div className="sticky top-0 z-10 h-10 px-4 text-sm font-semibold content-center bg-popover">
-            Notifications
+            {t('title')}
           </div>
 
           {/* Security */}
@@ -48,7 +50,7 @@ export function NotificationMenu({
             'h-10 px-4 bg-notification-header text-sm font-semibold content-center',
             securityNotifications.length === 0 && 'hidden'
           )}>
-            Security setting
+            {t('security_setting')}
           </div>
           {securityNotifications.map((securityNotification, index) => (
             <div key={`security-${index}`} className="relative">
@@ -67,19 +69,23 @@ export function NotificationMenu({
                   height={14}
                 />
                 <div className="flex flex-row gap-2 items-center">
-                  <span className="font-semibold">{securityNotification.title}</span>
+                  <span className="font-semibold">
+                    {securityNotification.type === 'mfa_setup' ? t('mfa_setup_title') : securityNotification.title}
+                  </span>
                   <span className="px-2 py-0.5 border border-notification-accent rounded-sm text-xs text-notification-accent">
-                    Important
+                    {t('important')}
                   </span>
                 </div>
                 <p className="col-start-2 text-sm">
-                  {securityNotification.type === 'mfa_setup' ? (
-                    <>
-                      {securityNotification.message}
-                      <span onClick={() => showPersonalWalletSettings()} className='ml-2 font-semibold cursor-pointer'>
-                        set up daily withdrawal limits and MFA insettings
-                      </span>
-                    </>
+                  {securityNotification.type === 'mfa_setup' ? t.rich(
+                    'mfa_setup_message',
+                    {
+                      link: (children) => (
+                        <span onClick={() => showPersonalWalletSettings()} className='ml-1 font-semibold cursor-pointer text-gray-700 hover:text-gray-900 underline'>
+                          {children}
+                        </span>
+                      )
+                    }
                   ) : securityNotification.message}
                 </p>
               </div>
@@ -91,7 +97,7 @@ export function NotificationMenu({
             "h-10 px-4 bg-notification-header text-sm font-semibold content-center",
             proposalNotifications.length === 0 && 'hidden',
           )}>
-            Proposals
+            {t('proposals')}
           </div>
           {proposalNotifications.map((proposalNotification, index) => (
             <div
@@ -110,9 +116,9 @@ export function NotificationMenu({
               />
               <span className="font-semibold">{proposalNotification.title}</span>
               <p className="col-start-2 text-sm line-clamp-2">{proposalNotification.message}</p>
-              <div className="w-full h-10 col-span-2 flex flex-row justify-end items-center">
+              <div className="w-full h-8 col-span-2 flex flex-row justify-end items-center">
                 <Link href={`/proposals?proposalId=${proposalNotification.data?.id}`} target="_blank" className="font-semibold">
-                  Review →
+                  {t('review')}
                 </Link>
               </div>
             </div>
@@ -121,7 +127,7 @@ export function NotificationMenu({
           {/* Empty state */}
           {securityNotifications.length === 0 && proposalNotifications.length === 0 && (
             <div className="px-4 py-8 text-center text-gray-500">
-              <p className="text-sm">No new notifications</p>
+              <p className="text-sm">{t('empty')}</p>
             </div>
           )}
 
@@ -129,7 +135,7 @@ export function NotificationMenu({
           {hasUnread && (
             <div className="w-full mb-[18px] *:col-span-2 flex flex-row justify-center items-center">
               <Link href="/notification" className="font-semibold underline">
-                View all
+                {t('view_all')}
               </Link>
             </div>
           )}

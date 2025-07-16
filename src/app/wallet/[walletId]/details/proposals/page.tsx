@@ -48,7 +48,6 @@ export default function ProposalsPage() {
     isLoading: isLoadingProposals,
     isRefetching: isRefetchingProposals,
     refresh: refreshProposals,
-    mutateItem: mutateProposalItem,
   } = useProposals(walletId);
 
   // Loading states for different operations
@@ -128,6 +127,7 @@ export default function ProposalsPage() {
       })
 
       if (response.data.success) {
+        toast.success('Wallet settings updated successfully')
         // Refresh proposals using React Query
         await refreshProposals();
 
@@ -139,7 +139,6 @@ export default function ProposalsPage() {
         // make sure the user can sign other proposals
         setIsDisabled(false);
 
-        toast.success('Wallet settings updated successfully')
       }
     } catch (error) {
       log('error', error);
@@ -236,6 +235,7 @@ export default function ProposalsPage() {
         }
       }
 
+      toast.success(`Transaction completed`);
       // Refresh proposals using React Query
       await refreshProposals();
 
@@ -246,7 +246,6 @@ export default function ProposalsPage() {
       setExecutingStates(prev => ({ ...prev, [proposal.id]: false }));
       // make sure the user can sign other proposals
       setIsDisabled(false);
-      toast.success(`Transaction completed`);
     }
   }
 
@@ -329,12 +328,17 @@ export default function ProposalsPage() {
         // Invalidate proposal related data to update notification and red dots
         refreshNotifications(authMethodId, userPkp?.ethAddress);
 
-        const item = await mutateProposalItem(proposal.id)
-        if (item) {
-          if (item.signatures.length >= wallet.threshold) {
-            // Automatically execute the multisig action once threshold is reached
-            await executeMultisigLitAction(item)
-          }
+        // Find the updated proposal
+        const newProposals = await fetchProposals(walletId, proposal.id);
+        const updatedProposal = newProposals.find((p: MessageProposal) => p.id === proposal.id)
+
+        if (updatedProposal && updatedProposal.signatures.length >= wallet.threshold) {
+          // Automatically execute the multisig action once threshold is reached
+          await executeMultisigLitAction(updatedProposal)
+        } else {
+          toast.success('Proposal signed successfully')
+          // Refresh proposals using React Query
+          await refreshProposals();
         }
       }
     } catch (error: any) {
@@ -433,13 +437,13 @@ export default function ProposalsPage() {
       });
 
       if (response.data.success) {
+        toast.success('Proposal canceled successfully');
         // Refresh proposals using React Query
         await refreshProposals();
-
+        
         // Invalidate proposal related data to update notification and red dots
         refreshNotifications(authMethodId, userPkp.ethAddress);
-
-        toast.success('Proposal canceled successfully');
+        
       } else {
         toast.error(response.data.error || 'Failed to cancel proposal');
       }

@@ -20,7 +20,7 @@ import { SUPPORTED_TOKENS_INFO } from "@/lib/web3/token";
 import { sendProposalExecutedNotification } from "@/lib/notification/proposal-executed-notification";
 import { MFAOtpDialog } from "@/components/Transaction/MFAOtpDialog";
 import { PendingProposalNotification } from "@/services/NotificationService";
-import { fetchProposals } from "@/hooks/useProposals";
+import { fetchProposals, useProposals } from "@/hooks/useProposals";
 
 export function ProposalsList({ proposals }: { proposals: PendingProposalNotification[] }) {  
   // User PKP state
@@ -42,7 +42,7 @@ export function ProposalsList({ proposals }: { proposals: PendingProposalNotific
 
   // Auth and notifications hooks
   const { handleExpiredAuth, verifyAuthOrRedirect } = useAuthExpiration();
-  const { refreshNotifications } = useNotifications({ 
+  const { refreshNotifications, invalidateProposalNotifications } = useNotifications({ 
     enabled: false // We'll call it manually
   });
 
@@ -147,6 +147,7 @@ export function ProposalsList({ proposals }: { proposals: PendingProposalNotific
       });
 
       if (response.data.success) {
+        toast.success('Wallet settings updated successfully');
         // Refresh proposals and notifications
         if (authMethodId && userPkp?.ethAddress) {
           refreshNotifications(authMethodId, userPkp.ethAddress);
@@ -157,7 +158,6 @@ export function ProposalsList({ proposals }: { proposals: PendingProposalNotific
         // make sure the user can sign other proposals
         setIsDisabled(false);
 
-        toast.success('Wallet settings updated successfully');
       }
     } catch (error) {
       console.error('Error executing wallet settings proposal:', error);
@@ -259,6 +259,7 @@ export function ProposalsList({ proposals }: { proposals: PendingProposalNotific
         console.error('Error sending proposal executed notifications:', error);
       }
 
+      toast.success(`Transaction completed`);
       // Refresh notifications
       refreshNotifications(authMethodId, userPkp.ethAddress);
 
@@ -267,7 +268,6 @@ export function ProposalsList({ proposals }: { proposals: PendingProposalNotific
       // make sure the user can sign other proposals
       setIsDisabled(false);
 
-      toast.success(`Transaction completed`);
     }
   };
 
@@ -304,15 +304,17 @@ export function ProposalsList({ proposals }: { proposals: PendingProposalNotific
       });
 
       if (response.data.success) {
-        refreshNotifications(authMethodId, userPkp.ethAddress);
-
         const updatedProposals = await fetchProposals(wallet.id, proposal.id)
-        if (updatedProposals.length > 0) {
-          // Check if signatures have reached the threshold
-          if (updatedProposals[0].signatures.length >= wallet.threshold) {
+        const updatedProposal = updatedProposals.find((p: MessageProposal) => p.id === proposal.id)
+
+        // Check if signatures have reached the threshold
+        if (updatedProposal && updatedProposal.signatures.length >= wallet.threshold) {
             // Automatically execute the multisig action once threshold is reached
-            await executeMultisigLitAction(updatedProposals[0]);
-          }
+            await executeMultisigLitAction(updatedProposal);
+        } else {
+          toast.success('Proposal signed successfully')
+          // Refresh proposals using React Query
+          invalidateProposalNotifications();
         }
       }
     } catch (error: any) {
@@ -413,12 +415,12 @@ export function ProposalsList({ proposals }: { proposals: PendingProposalNotific
       });
 
       if (response.data.success) {
+        toast.success('Proposal canceled successfully');
         // Refresh data
         if (authMethodId && userPkp?.ethAddress) {
           refreshNotifications(authMethodId, userPkp.ethAddress);
         }
 
-        toast.success('Proposal canceled successfully');
       }
 
     } catch (error: any) {

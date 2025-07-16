@@ -6,6 +6,7 @@ import { Loader2 } from 'lucide-react';
 import { log } from '@/lib/utils';
 import { toast } from 'react-toastify';
 import { MFAOtpDialog } from '@/components/Transaction/MFAOtpDialog';
+import { useTranslations } from 'next-intl';
 
 // Define StytchPhoneNumber type based on expected API response
 interface StytchPhoneNumber {
@@ -53,11 +54,12 @@ const FormContainer: React.FC<{
 // Action buttons component
 const ActionButtons: React.FC<{
   primaryText: string;
+  cancelText?: string;
   isLoading: boolean;
   isDisabled: boolean;
   onCancel: () => void;
   loadingText?: string;
-}> = ({ primaryText, isLoading, isDisabled, onCancel, loadingText }) => (
+}> = ({ primaryText, cancelText, isLoading, isDisabled, onCancel, loadingText }) => (
   <div className="flex gap-2">
     <Button 
       type="submit" 
@@ -78,7 +80,7 @@ const ActionButtons: React.FC<{
       disabled={isLoading} 
       className="flex-1"
     >
-      Cancel
+      {cancelText || "Cancel"}
     </Button>
   </div>
 );
@@ -89,6 +91,8 @@ export function MFAPhoneWhatsApp({
   onSuccess,
   onPhoneUpdated
 }: MFAPhoneWhatsAppProps) {
+  const t = useTranslations("MFASettings");
+
   const [uiState, setUiState] = useState<PhoneUiState>('initial');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -97,7 +101,7 @@ export function MFAPhoneWhatsApp({
 
   // State for MfaOtpDialog
   const [showOtpDialog, setShowOtpDialog] = useState(false);
-  const [otpDialogTitle, setOtpDialogTitle] = useState('Verify Phone Number');
+  const [otpDialogTitle, setOtpDialogTitle] = useState(t('verify_phone_number'));
   const [otpDialogDescription, setOtpDialogDescription] = useState('');
   const [currentMethod, setCurrentMethod] = useState<{
     action: 'add' | 'remove';
@@ -138,31 +142,31 @@ export function MFAPhoneWhatsApp({
         action: 'remove',
         phoneId: verifiedPhone.phone_id,
       });
-      setOtpDialogTitle('Verify Phone Removal');
-      setOtpDialogDescription(`Please verify your identity to remove ${verifiedPhone.phone_number}`);
+      setOtpDialogTitle(t('verify_phone_removal'));
+      setOtpDialogDescription(t("remove_phone_description", { number: verifiedPhone.phone_number }));
       setShowOtpDialog(true);
     } else {
-      setError('No phone number to remove.');
+      setError(t('remove_phone_error'));
     }
   };
 
   // Handle phone number removal
   const handleRemovePhone = async () => {
     resetMessages();
-    if (!window.confirm('Are you sure you want to remove this phone number?')) return;
-    
+    if (!window.confirm(t("remove_phone_confirmation"))) return;
+
     if (!sessionJwt) {
-      setError('User session not found.');
+      setError(t('user_not_found'));
       return;
     }
 
     if (!verifiedPhone) {
-      setError('No phone number to remove.');
+      setError(t('phone_not_found'));
       return;
     }
 
     setIsLoading(true);
-    
+
     try {
       log('MFAPhoneWhatsApp: Initiating phone number removal', verifiedPhone.phone_id);
       const response = await fetch('/api/mfa/whatsapp/remove', {
@@ -180,18 +184,18 @@ export function MFAPhoneWhatsApp({
           },
         }),
       });
-      
+
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to initiate phone number removal');
+        throw new Error(data.error || t('remove_phone_failed'));
       }
-      
+
       if (data.requiresMfa) {
         log('MFAPhoneWhatsApp: MFA required for phone removal');
         prepareOtpDialogForRemove();
       } else {
         // If no MFA required, phone was removed successfully
-        setSuccessMessage('Phone number removed successfully.');
+        setSuccessMessage(t('remove_phone_success'));
         onSuccess();
       }
       
@@ -206,12 +210,12 @@ export function MFAPhoneWhatsApp({
   // Send OTP handler for MfaOtpDialog
   const handleSendOtp = async () => {
     if (!sessionJwt) {
-      throw new Error('User session not found.');
+      throw new Error(t('user_not_found'));
     }
 
     if (currentMethod?.action === 'add') {
       if (!isValidPhoneNumber(phoneNumber)) {
-        throw new Error('Invalid phone number format. Please use E.164 format, e.g., +12345678900');
+        throw new Error(t('invalid_phone_format'));
       }
 
       log('MFAPhoneWhatsApp: Sending OTP to', phoneNumber);
@@ -223,13 +227,13 @@ export function MFAPhoneWhatsApp({
         },
         body: JSON.stringify({ phone_number: phoneNumber }),
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         log('MFAPhoneWhatsApp: Error response from API', errorData);
-        throw new Error(errorData.error || `Failed to send OTP: ${response.status}`);
+        throw new Error(errorData.error || t('send_add_otp_failed', { status: response.status }));
       }
-      
+
       const data = await response.json();
       setCurrentMethod({
         ...currentMethod,
@@ -248,30 +252,30 @@ export function MFAPhoneWhatsApp({
           phone_number: verifiedPhone.phone_number 
         }),
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || `Failed to send verification OTP: ${response.status}`);
+        throw new Error(errorData.error || t('send_remove_otp_failed', { status: response.status }));
       }
-      
+
       const data = await response.json();
       setCurrentMethod({
         ...currentMethod,
         methodId: data.method_id
       });
     } else {
-      throw new Error('Invalid operation or missing phone information');
+      throw new Error(t('invalid_phone_information'));
     }
   };
 
   // Verify OTP handler for MfaOtpDialog
   const handleVerifyOtp = async (otp: string) => {
     if (!sessionJwt || !currentMethod?.methodId) {
-      throw new Error('Session or OTP details missing.');
+      throw new Error(t('missing_details'));
     }
 
     if (otp.length !== 6) {
-      throw new Error('Verification code must be 6 digits.');
+      throw new Error(t('invalid_verification_code'));
     }
 
     if (currentMethod.action === 'add') {
@@ -284,12 +288,12 @@ export function MFAPhoneWhatsApp({
         },
         body: JSON.stringify({ method_id: currentMethod.methodId, code: otp }),
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || `Failed to verify OTP: ${response.status}`);
+        throw new Error(errorData.error || t("verify_add_otp_failed", { status: response.status }));
       }
-      
+
       const data = await response.json();
       log('MFAPhoneWhatsApp: Phone added successfully', data);
 
@@ -316,7 +320,7 @@ export function MFAPhoneWhatsApp({
       
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || `Failed to remove phone: ${response.status}`);
+        throw new Error(errorData.error || t("verify_remove_otp_failed", { status: response.status }));
       }
       
       const data = await response.json();
@@ -324,7 +328,7 @@ export function MFAPhoneWhatsApp({
       handleOtpVerified()
       return data;
     } else {
-      throw new Error('Invalid operation');
+      throw new Error(t('invalid_operation'));
     }
   };
 
@@ -335,20 +339,20 @@ export function MFAPhoneWhatsApp({
     
     // Set success message and reset state
     if (currentMethod?.action === 'add') {
-      setSuccessMessage('Phone number added successfully.');
+      setSuccessMessage(t('phone_number_added'));
       setPhoneNumber('');
       setUiState('initial');
       
       // Update parent component's phone state if callback exists
       if (onPhoneUpdated) {
         onPhoneUpdated().then(() => {
-          toast.success("Phone number verified. You can now modify your settings.");
+          toast.success(t('failed_to_modify'));
         }).catch(err => {
           log('Error updating phone state:', err);
         });
       }
     } else if (currentMethod?.action === 'remove') {
-      setSuccessMessage('Phone number removed successfully.');
+      setSuccessMessage(t('phone_number_removed'));
     }
     
     // Reset current method
@@ -362,20 +366,20 @@ export function MFAPhoneWhatsApp({
   const handleAddPhone = (e: React.FormEvent) => {
     e.preventDefault();
     if (!sessionJwt) {
-      setError('User session not found.');
+      setError(t('user_not_found'));
       return;
     }
     
     if (!isValidPhoneNumber(phoneNumber)) {
-      setError('Invalid phone number format. Please use E.164 format, e.g., +12345678900');
+      setError(t('invalid_phone_format'));
       return;
     }
     
     setCurrentMethod({
       action: 'add'
     });
-    setOtpDialogTitle('Verify Phone Number');
-    setOtpDialogDescription(`An OTP will be sent to ${phoneNumber} via WhatsApp.`);
+    setOtpDialogTitle(t('verify_phone_number'));
+    setOtpDialogDescription(t('will_send_otp'));
     setShowOtpDialog(true);
   };
 
@@ -400,7 +404,7 @@ export function MFAPhoneWhatsApp({
                   onClick={handleRemovePhone} 
                   disabled={isLoading}
                 >
-                  {isLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Remove'}
+                  {isLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : t('remove')}
                 </Button>
               </div>
             </div>
@@ -411,7 +415,7 @@ export function MFAPhoneWhatsApp({
               onClick={handleAddClick} 
               className="w-full"
             >
-              Add Phone Number
+              {t('add_phone')}
             </Button>
           )}
         </FormContainer>
@@ -437,7 +441,9 @@ export function MFAPhoneWhatsApp({
         <FormContainer errorMessage={error} successMessage={successMessage}>
           <form onSubmit={handleAddPhone} className="space-y-4">
             <div>
-              <Label htmlFor="phone-number-input" className="block mb-2">Phone Number (e.g., +12345678900)</Label>
+              <Label htmlFor="phone-number-input" className="block mb-2">
+                {t('phone_number')}
+              </Label>
               <Input 
                 id="phone-number-input" 
                 type="tel" 
@@ -448,8 +454,9 @@ export function MFAPhoneWhatsApp({
               />
             </div>
             <ActionButtons
-              primaryText="Continue"
-              loadingText="Sending..."
+              primaryText={t('continue')}
+              cancelText={t('cancel')}
+              loadingText={t('sending')}
               isLoading={isLoading}
               isDisabled={!isValidPhoneNumber(phoneNumber)}
               onCancel={handleCancel}

@@ -1,6 +1,6 @@
 
-import { shouldShowNotificationOnPath } from '@/constants/routes';
 import { MessageProposal } from '@/app/api/multisig/storage';
+import { shouldShowNotificationOnPath } from '@/constants/routes';
 
 export type NotificationType = 'mfa_setup' | 'pending_proposal';
 
@@ -115,7 +115,7 @@ export class NotificationService {
       const { getAuthMethodFromStorage } = await import('@/lib/storage/authmethod');
       const authMethod = getAuthMethodFromStorage();
       const sessionJwt = authMethod?.accessToken;
-      
+
       if (!sessionJwt) {
         return null;
       }

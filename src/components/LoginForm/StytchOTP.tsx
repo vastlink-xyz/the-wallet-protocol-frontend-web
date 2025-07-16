@@ -16,6 +16,7 @@ import { toast } from 'react-toastify';
 import { parseError } from '@/lib/error';
 import { setUserDataToStorage } from '@/lib/storage/user';
 import { STYTCH_SESSION_DURATION_MINUTES } from '@/lib/stytch/constants';
+import { useTranslations } from 'next-intl';
 
 type OtpStep = 'submit' | 'verify';
 
@@ -30,10 +31,14 @@ interface StytchOTPProps {
  */
 const StytchOTP = ({
   defaultEmail,
-  title = 'Login',
+  title,
   invitationId,
 }: StytchOTPProps) => {
   const router = useRouter();
+
+  const transCommon = useTranslations('Common')
+  const transStytchOTP = useTranslations('StytchOTP')
+
   const [step, setStep] = useState<OtpStep>('submit');
   const [email, setEmail] = useState<string>(defaultEmail || '');
   const [methodId, setMethodId] = useState<string>('');
@@ -59,7 +64,7 @@ const StytchOTP = ({
       setStep('verify');
     } catch (err: any) {
       log('error sending otp', err);
-      toast.error(err.response?.data?.error || 'Failed to send verification code');
+      toast.error(err.response?.data?.error || transStytchOTP('send_verification_code_failed'));
     } finally {
       setLoading(false);
     }
@@ -113,7 +118,7 @@ const StytchOTP = ({
       const error = parseError(err);
       log('error verifying otp2', error);
       const parsedError = parseError(error);
-      toast.error(parsedError?.message || 'Failed to verify code');
+      toast.error(parsedError?.message || transStytchOTP('verify_code_failed'));
     } finally {
       setLoading(false);
     }
@@ -121,13 +126,13 @@ const StytchOTP = ({
 
   return (
     <Card className="w-full">
-      <h2 className="text-lg font-medium mb-4 text-center">{title}</h2>
+      <h2 className="text-lg font-medium mb-4 text-center">{title || transCommon('login')}</h2>
       {step === 'submit' && (
         <div className="space-y-4">
           <CardHeader>
-            <CardTitle>Enter your email</CardTitle>
+            <CardTitle>{transStytchOTP('email_title')}</CardTitle>
             <CardDescription>
-              A verification code will be sent to your email.
+              {transStytchOTP('email_description')}
             </CardDescription>
           </CardHeader>
           
@@ -135,26 +140,26 @@ const StytchOTP = ({
             <form onSubmit={sendPasscode} className="space-y-4">
               <div>
                 <label htmlFor="email" className="sr-only">
-                  Email
+                  {transStytchOTP('email')}
                 </label>
                 <Input
                   id="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   type="email"
-                  placeholder="Your email"
+                  placeholder={transStytchOTP('email_holder')}
                 />
               </div>
-              
+
               <Button 
-                type="submit" 
+                type="submit"
                 disabled={loading}
                 className="w-full flex items-center justify-center gap-2"
               >
-                {loading ? "Sending..." : (
+                {loading ? transStytchOTP('sending'): (
                   <>
                     <Mail className="h-4 w-4" />
-                    Send verification code
+                    {transStytchOTP('send_code')}
                   </>
                 )}
               </Button>
@@ -166,9 +171,9 @@ const StytchOTP = ({
       {step === 'verify' && (
         <div className="space-y-4">
           <CardHeader>
-            <CardTitle>Check your email</CardTitle>
+            <CardTitle>{transStytchOTP('code_title')}</CardTitle>
             <CardDescription>
-              Enter the 6-digit verification code sent to {email}
+              {transStytchOTP('code_description', { email })}
             </CardDescription>
           </CardHeader>
           
@@ -176,14 +181,14 @@ const StytchOTP = ({
             <form onSubmit={authenticate} className="space-y-4">
               <div>
                 <label htmlFor="code" className="sr-only">
-                  Code
+                  {transStytchOTP('code')}
                 </label>
                 <Input
                   id="code"
                   value={code}
                   onChange={e => setCode(e.target.value)}
                   type="text"
-                  placeholder="Verification code"
+                  placeholder={transStytchOTP('code_holder')}
                   autoComplete="off"
                 />
               </div>
@@ -193,7 +198,7 @@ const StytchOTP = ({
                   type="submit"
                   disabled={loading}
                 >
-                  {loading ? "Verifying..." : "Verify"}
+                  {transStytchOTP(loading ? 'verifying' : 'verify')}
                 </Button>
                 
                 <Button
@@ -201,7 +206,7 @@ const StytchOTP = ({
                   variant="outline"
                   onClick={() => setStep('submit')}
                 >
-                  Try again
+                  {transStytchOTP('try_again')}
                 </Button>
               </div>
             </form>

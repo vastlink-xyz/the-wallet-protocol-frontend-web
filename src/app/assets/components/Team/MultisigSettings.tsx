@@ -14,8 +14,11 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { MultisigSettingsContext } from '@/providers/MultisigSettingsProvider'
+import { useTranslations } from 'next-intl'
 
 export function MultisigSettings() {
+  const t = useTranslations('TeamWalletSettings')
+
   const { params, isMultisigSettingsOpen, closeMultisigSettings } = useContext(MultisigSettingsContext)
 
   const [wallet, setWallet] = useState<MultisigWallet | undefined>()
@@ -43,7 +46,7 @@ export function MultisigSettings() {
     <Dialog open={isMultisigSettingsOpen} onOpenChange={(isOpen) => !isOpen && closeMultisigSettings()}>
       <DialogContent className="p-0 max-w-[660px] sm:max-w-[660px]">
         <DialogHeader className="border-b px-8 py-6">
-          <DialogTitle>Team Wallet Settings</DialogTitle>
+          <DialogTitle>{t('title')}</DialogTitle>
           <DialogDescription>
             A team wallet requires approval from multiple signers to execute any transaction.
           </DialogDescription>

@@ -9,6 +9,7 @@ import { formatBalance } from "@/lib/web3/format";
 import { ExtendedSettingsData, generateSettingsChangeDescriptions } from "../utils/settingsDescriptionUtils"
 import dayjs from "dayjs"
 import { cn } from "@/lib/utils"
+import { useTranslations } from "next-intl";
 
 interface ProposalProps {
   proposal: MessageProposal;
@@ -26,6 +27,9 @@ interface ProposalProps {
 
 export function Proposal({ proposal, selectedWallet, handleSignProposal, executeMultisigLitAction, handleCancelProposal, userPkp, authMethodId, isSigningProposal, isLoading, isDisabled, isCancelingProposal }: ProposalProps) {
   const isPending = isSigningProposal || isLoading || isDisabled || isCancelingProposal;
+
+  const transProposalStatus = useTranslations("ProposalStatus")
+  const transProposalListItem = useTranslations("ProposalListItem")
 
   const signedByMe = useMemo(() => {
     return hasUserSigned(proposal, userPkp);
@@ -79,7 +83,7 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
   // Extract settings data from the proposal
   const settingsData = proposal.settingsData as ExtendedSettingsData;
   if (!settingsData) {
-    return <div>Unable to parse settings data</div>;
+    return <div>{transProposalListItem("failed_parse_data")}</div>;
   }
 
   // Generate change descriptions using the utility function
@@ -113,31 +117,31 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
         {proposal.type === "walletSettings" ? (
           <div className="flex items-center gap-1 px-2 py-1 rounded-sm text-xs bg-muted border border-muted">
             <Settings className="w-4 h-4" />
-            Setting change
+            {transProposalListItem("setting_change")}
           </div>
         ) : (
           <div className="flex items-center gap-1 px-2 py-1 rounded-sm text-xs bg-muted border border-muted">
             <ArrowUpRightFromCircle className="w-4 h-4" />
-            Transfer
+            {transProposalListItem("transfer")}
           </div>
         )}
         <div className="flex-1" />
         <div className="text-xs text-gray-500 flex items-center">
           {proposal.status === 'pending' ? (
             <div className="flex items-center gap-1 px-2 py-1 rounded-sm text-yellow-600 border border-yellow-600">
-              Pending
+              {transProposalStatus('pending')}
             </div>
           ) : proposal.status === 'completed' ? (
             <div className="flex items-center gap-1 px-2 py-1 rounded-sm text-green-600 border border-green-600">
-              Completed
+              {transProposalStatus('completed')}
             </div>
           ) : proposal.status === 'canceled' ? (
             <div className="flex items-center gap-1 px-2 py-1 rounded-sm text-gray-600 border border-gray`-600">
-              Cancelled
+              {transProposalStatus('cancelled')}
             </div>
           ) : (
             <div className="flex items-center gap-1 px-2 py-1 rounded-sm text-gray-600 border border-gray-600">
-              Unknown
+              {transProposalStatus('unknown')}
             </div>
           )}
         </div>
@@ -276,7 +280,7 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
             onClick={() => handleCancelProposal(proposal)}
           >
             {isCancelingProposal && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Cancel
+            {transProposalListItem("Cancel")}
           </Button>
         )}
 
@@ -288,7 +292,7 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
             onClick={() => handleSignProposal(proposal)}
           >
             {isSigningProposal && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {proposal.signatures.length + 1 >= displayThreshold ? "Approve & execute" : "Approve"}
+            {transProposalListItem(proposal.signatures.length + 1 >= displayThreshold ? "approve_and_execute" : "approve")}
           </Button>
         )}
 
@@ -300,7 +304,7 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
             onClick={() => executeMultisigLitAction(proposal)}
           >
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Execute
+            {transProposalListItem("execute")}
           </Button>
         )}
       </div>
