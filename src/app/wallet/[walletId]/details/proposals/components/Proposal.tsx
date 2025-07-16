@@ -278,11 +278,11 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
             onClick={() => handleSignProposal(proposal)}
           >
             {isSigningProposal && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {displayThreshold >= displaySigners.length - 1 ? "Approve & execute" : "Approve"}
+            {proposal.signatures.length + 1 >= displayThreshold ? "Approve & execute" : "Approve"}
           </Button>
         )}
 
-        {proposal.status === 'pending' && displayThreshold >= displaySigners.length && (
+        {proposal.status === 'pending' && proposal.signatures.length >= displayThreshold && signedByMe && (
           <Button
             className="rounded-full"
             variant="default"
