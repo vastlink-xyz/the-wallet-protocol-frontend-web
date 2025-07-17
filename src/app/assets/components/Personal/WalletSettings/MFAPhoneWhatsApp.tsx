@@ -35,11 +35,14 @@ interface MFAPhoneWhatsAppProps {
 // Common container for all UI states
 const FormContainer: React.FC<{
   children: React.ReactNode;
+  title?: string;
   errorMessage: string | null;
   successMessage?: string | null;
-}> = ({ children, errorMessage, successMessage }) => (
+}> = ({ children, title, errorMessage, successMessage }) => (
   <div className="py-1">
-    <h3 className="font-medium text-base mb-4">WhatsApp Authentication</h3>
+    <h3 className="font-medium text-base mb-4">
+      {title || 'WhatsApp Authentication'}
+    </h3>
 
     {errorMessage && (
       <p className="text-sm text-red-500 p-2 bg-red-50 rounded-md mb-2">Error: {errorMessage}</p>
@@ -379,7 +382,7 @@ export function MFAPhoneWhatsApp({
       action: 'add'
     });
     setOtpDialogTitle(t('verify_phone_number'));
-    setOtpDialogDescription(t('will_send_otp'));
+    setOtpDialogDescription(t('will_send_otp', { number: phoneNumber }));
     setShowOtpDialog(true);
   };
 
@@ -390,7 +393,11 @@ export function MFAPhoneWhatsApp({
   if (uiState === 'initial') {
     return (
       <>
-        <FormContainer errorMessage={error} successMessage={successMessage}>
+        <FormContainer 
+          title={t('whatsapp_auth')}
+          errorMessage={error}
+          successMessage={successMessage}
+        >
           {verifiedPhone ? (
             <div className="bg-muted p-2 rounded-md">
               <div className="flex items-center justify-between">
@@ -442,7 +449,11 @@ export function MFAPhoneWhatsApp({
   if (uiState === 'setup') {
     return (
       <>
-        <FormContainer errorMessage={error} successMessage={successMessage}>
+        <FormContainer
+          title={t('whatsapp_auth')}
+          errorMessage={error}
+          successMessage={successMessage}
+        >
           <form onSubmit={handleAddPhone} className="space-y-4">
             <div>
               <Label htmlFor="phone-number-input" className="block mb-2">

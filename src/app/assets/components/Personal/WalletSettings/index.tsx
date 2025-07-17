@@ -285,14 +285,14 @@ export function PersonalWalletSettings() {
           </div>
         ) : (
           <>
-            <LabeledContainer label="Daily Withdraw Limits" className="mb-8">
+            <LabeledContainer label={t("daily_withdraw_title")} className="mb-8">
               {
                 tokenLimits && (
                   <>
                     {!verifiedPhone && (
                       <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-md">
                         <p className="text-amber-800 text-sm">
-                          {t("notice")}
+                          {t("daily_withdraw_description")}
                         </p>
                       </div>
                     )}
