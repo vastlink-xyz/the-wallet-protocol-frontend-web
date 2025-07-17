@@ -453,7 +453,7 @@ export function SendTransactionDialog({
                 {t('sending')}
               </>
             ) : (
-              isInviteUser ? t('Invite Unregistered User') : t('send', { symbol: tokenInfo.symbol })
+              isInviteUser ? t('invite_user') : t('send', { symbol: tokenInfo.symbol })
             )}
           </Button>
         </div>

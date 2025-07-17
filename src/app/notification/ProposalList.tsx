@@ -203,7 +203,7 @@ export function ProposalsList({ proposals }: { proposals: PendingProposalNotific
       if (result.requireMFA) {
         setCurrentProposal(proposal);
         setShowMfaDialog(true);
-        toast.warning('Daily limit exceeded');
+        toast.warning(t('daily_limit_exceeded'));
         return;
       } else if (result.error) {
         toast.error(result.error);

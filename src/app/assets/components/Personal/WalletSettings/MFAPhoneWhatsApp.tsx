@@ -395,8 +395,12 @@ export function MFAPhoneWhatsApp({
             <div className="bg-muted p-2 rounded-md">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium">{verifiedPhone.phone_number}</p>
-                  <p className="text-xs text-muted-foreground">Verified via WhatsApp</p>
+                  <p className="text-sm font-medium">
+                    {verifiedPhone.phone_number}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {t('verified_phone')}
+                  </p>
                 </div>
                 <Button 
                   variant="destructive" 

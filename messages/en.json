@@ -93,7 +93,8 @@
     "phone_number_added": "Phone number added successfully.",
     "phone_number_removed": "Phone number removed successfully.",
     "failed_to_modify": "Phone number verified. You can now modify your settings.",
-    "will_send_otp": "An OTP will be sent to {number} via WhatsApp."
+    "will_send_otp": "An OTP will be sent to {number} via WhatsApp.",
+    "verified_phone": "Verified via WhatsApp"
   },
   "WalletCard": {
     "create_team_wallet": "Create a team wallet",
@@ -103,9 +104,11 @@
   "PersonalWalletSettings": {
     "title": "Personal Wallet Settings",
     "notice": "Please note that daily withdrawal limits work only when MFA has been set up.",
-    "saging": "Saving...",
+    "saving": "Saving...",
     "save": "Save Settings",
     "mfa_settings": "MFA Settings",
+    "update_success": "Your wallet settings have been updated successfully.",
+    "update_failed": "Failed to save wallet settings. Please try again.",
     "opt_dialog_title": "Verify Settings Change",
     "opt_dialog_description": "A verification code will be sent to your phone via WhatsApp"
   },
@@ -156,7 +159,7 @@
     "insufficient_funds": "Insufficient funds for this transaction",
     "balance": "Balance: {value} {symbol}",
     "sending": "Sending...",
-    "invite_user": "Invite Unregistered User",
+    "invite_user": "Invite unregistered User",
     "send": "Send {symbol}"
   },
   "ReceiveTransactionDialog": {
@@ -189,7 +192,8 @@
     "invalid_session": "Session or phone number not found",
     "otp_title": "Transaction Verification",
     "otp_description": "A verification code will be sent to your phone via WhatsApp",
-    "execute_transaction_failed": "Transaction failed"
+    "execute_transaction_failed": "Transaction failed",
+    "daily_limit_exceeded": "Daily limit exceeded"
   },
   "ProposalListItem": {
     "failed_parse_data": "Unable to parse settings data",
