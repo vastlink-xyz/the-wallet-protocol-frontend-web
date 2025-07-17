@@ -13,9 +13,16 @@ export type ProposalDialogType =
   | { type: 'none' }
   | { type: 'mfa'; proposal: MessageProposal };
 
+// Custom error for MFA flow
+export class MFARequiredError extends Error {
+  constructor(public proposal: MessageProposal) {
+    super('MFA verification required');
+    this.name = 'MFARequiredError';
+  }
+}
+
 export interface UseProposalActionsParams {
-  wallet: MultisigWallet | null;
-  walletPkp: any;
+  walletMap: Map<string, MultisigWallet>;
   userPkp: any;
   authMethod: any;
   authMethodId: string | null;
@@ -45,8 +52,7 @@ export interface UseProposalActionsReturn {
 }
 
 export function useProposalActions({
-  wallet,
-  walletPkp,
+  walletMap,
   userPkp,
   authMethod,
   authMethodId,
@@ -68,7 +74,10 @@ export function useProposalActions({
 
   // --- Proposal Actions ---
   const handleExecuteWalletSettingsProposal = async (proposal: MessageProposal, settingsData: any, sessionSigs: any) => {
+    const wallet = walletMap.get(proposal.walletId);
+    const walletPkp = wallet?.pkp;
     if (!wallet || !walletPkp || !authMethod || !authMethodId) return;
+    
     try {
       const response = await executeWalletSettingsProposal({
         proposal,
@@ -78,21 +87,26 @@ export function useProposalActions({
         authMethod,
         authMethodId,
       });
+      
       if (response.data.success) {
         toast.success(t('update_wallet_success'));
         await refreshProposals();
         await refreshNotifications(authMethodId, userPkp?.ethAddress);
+        // clear loading state
         setExecutingStates(prev => ({ ...prev, [proposal.id]: false }));
         setIsDisabled(false);
       }
     } catch (error) {
-      toast.error((error as any)?.message || t('execute_proposal_failed'));
+      console.error('Error executing wallet settings proposal:', error);
       throw error;
     }
   };
 
   const handleExecuteTransactionProposal = async (proposal: MessageProposal, sessionSigs: any, otpCode: string = '') => {
+    const wallet = walletMap.get(proposal.walletId);
+    const walletPkp = wallet?.pkp;
     if (!wallet || !walletPkp || !authMethod || !authMethodId) return;
+    
     const { response, txData, tokenType } = await executeTransactionProposal({
       proposal,
       sessionSigs,
@@ -103,16 +117,19 @@ export function useProposalActions({
       otpCode,
       mfaMethodId,
     });
+    
     const result = typeof response.response === 'string' ? JSON.parse(response.response) : response.response;
     if (result.isValid) {
       if (result.requireMFA) {
         setDialog({ type: 'mfa', proposal });
         toast.warning('Daily limit exceeded');
-        return;
+        // Throw custom error to signal MFA requirement to parent function
+        throw new MFARequiredError(proposal);
       } else if (result.error) {
         toast.error(result.error);
         return;
       }
+      
       let txHash = null;
       if (result.status === 'success') {
         try {
@@ -140,6 +157,7 @@ export function useProposalActions({
           return;
         }
       }
+      
       await fetch(`/api/multisig/messages`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -150,6 +168,7 @@ export function useProposalActions({
           txHash: txHash,
         }),
       });
+      
       try {
         await sendProposalExecutedNotification({
           proposalType: 'transaction',
@@ -160,16 +179,23 @@ export function useProposalActions({
       } catch (error) {
         // ignore notification error
       }
+      
       toast.success(t('transaction_completed'));
       await refreshProposals();
       await refreshNotifications(authMethodId, userPkp?.ethAddress);
+      // clear loading state
       setExecutingStates(prev => ({ ...prev, [proposal.id]: false }));
       setIsDisabled(false);
     }
   };
 
   const executeMultisigLitAction = async (proposal: MessageProposal) => {
+    const wallet = walletMap.get(proposal.walletId);
+    const walletPkp = wallet?.pkp;
     if (!walletPkp || !wallet || !authMethod || !userPkp) return;
+    
+    let mfaRequired = false;
+    
     try {
       setExecutingStates(prev => ({ ...prev, [proposal.id]: true }));
       setIsDisabled(true);
@@ -185,6 +211,14 @@ export function useProposalActions({
         await handleExecuteTransactionProposal(proposal, sessionSigs);
       }
     } catch (err: any) {
+      // Handle MFA requirement - keep loading state active
+      if (err instanceof MFARequiredError) {
+        mfaRequired = true;
+        // MFA dialog is already set, keep loading state and disabled state
+        // Don't clear states - let handleOtpVerify handle the flow
+        return;
+      }
+      
       const errorMessage = err?.message || '';
       const shortMessage = err?.shortMessage || '';
       if (errorMessage.includes('Google JWT expired') || shortMessage.includes('Google JWT expired')) {
@@ -193,17 +227,25 @@ export function useProposalActions({
         toast.error(err?.message || t('sign_proposal_failed'));
       }
     } finally {
-      setExecutingStates(prev => ({ ...prev, [proposal.id]: false }));
-      setIsDisabled(false);
+      // Only clear states if not in MFA flow
+      if (!mfaRequired) {
+        setExecutingStates(prev => ({ ...prev, [proposal.id]: false }));
+        setIsDisabled(false);
+      }
     }
   };
 
   // --- Fully parameterized, parent-compatible handleSignProposal ---
   const handleSignProposal = async (proposal: MessageProposal) => {
     // Parent components expect: sign, refresh notifications, fetchProposals, auto-execute if threshold, else refresh proposals/notifications
+    const wallet = walletMap.get(proposal.walletId);
+    const walletPkp = wallet?.pkp;
     if (!walletPkp || !authMethod || !wallet || !userPkp || !authMethodId) return;
     const isAuthValid = await verifyAuthOrRedirect();
     if (!isAuthValid) return;
+    
+    let mfaTriggered = false;
+    
     try {
       setSigningStates(prev => ({ ...prev, [proposal.id]: true }));
       const response = await signProposal({
@@ -221,13 +263,28 @@ export function useProposalActions({
         const newProposals = await fetchProposals(wallet.id, proposal.id);
         const updatedProposal = newProposals.find((p: MessageProposal) => p.id === proposal.id);
         if (updatedProposal && updatedProposal.signatures.length >= wallet.threshold) {
-          await executeMultisigLitAction(updatedProposal);
+          try {
+            await executeMultisigLitAction(updatedProposal);
+          } catch (err: any) {
+            // Check if MFA was triggered during execution
+            if (err instanceof MFARequiredError) {
+              mfaTriggered = true;
+              throw err; // Re-throw to be caught by outer catch
+            }
+            throw err;
+          }
         } else {
           toast.success(t('sign_proposal_succeess'));
           if (refreshProposals) await refreshProposals();
         }
       }
     } catch (err: any) {
+      if (err instanceof MFARequiredError) {
+        mfaTriggered = true;
+        // MFA flow started, don't clear states
+        return;
+      }
+      
       const errorMessage = err?.message || '';
       if (errorMessage.includes('Google JWT expired') || (err?.shortMessage && err.shortMessage.includes('Google JWT expired'))) {
         handleExpiredAuth();
@@ -235,7 +292,10 @@ export function useProposalActions({
         toast.error(err?.message || t('sign_proposal_failed'));
       }
     } finally {
-      setSigningStates(prev => ({ ...prev, [proposal.id]: false }));
+      // Don't clear signing state if MFA was triggered
+      if (!mfaTriggered) {
+        setSigningStates(prev => ({ ...prev, [proposal.id]: false }));
+      }
     }
   };
 
@@ -258,18 +318,28 @@ export function useProposalActions({
   };
 
   const handleOtpVerify = async (otp: string) => {
-    if (!authMethod || !userPkp || dialog.type !== 'mfa') throw new Error('Missing required information for OTP verification');
-    setDialog({ type: 'none' });
+    if (dialog.type !== 'mfa') return;
+    if (!authMethod || !userPkp) throw new Error('Missing required information for OTP verification');
+    
+    const currentProposal = dialog.proposal;
+    
     try {
-      setExecutingStates(prev => ({ ...prev, [dialog.proposal.id]: true }));
-      setIsDisabled(true);
+      // Continue with transaction execution - states are already set from executeMultisigLitAction
       const sessionSigs = await getSessionSigsByPkp({ authMethod, pkp: userPkp, refreshStytchAccessToken: true });
-      await handleExecuteTransactionProposal(dialog.proposal, sessionSigs, otp);
-    } catch (error) {
-      // error already handled
-    } finally {
-      setExecutingStates(prev => ({ ...prev, [dialog.type === 'mfa' ? dialog.proposal.id : '']: false }));
+      await handleExecuteTransactionProposal(currentProposal, sessionSigs, otp);
+      
+      // On success, clear all states and close dialog
+      setExecutingStates(prev => ({ ...prev, [currentProposal.id]: false }));
+      setSigningStates(prev => ({ ...prev, [currentProposal.id]: false }));
       setIsDisabled(false);
+      setDialog({ type: 'none' });
+    } catch (error) {
+      console.error('Error executing transaction:', error);
+      // On error, also clear states and close dialog
+      setExecutingStates(prev => ({ ...prev, [currentProposal.id]: false }));
+      setSigningStates(prev => ({ ...prev, [currentProposal.id]: false }));
+      setIsDisabled(false);
+      setDialog({ type: 'none' });
     }
   };
 
@@ -310,13 +380,24 @@ export function useProposalActions({
     }
   };
 
+  // Handle MFA dialog close
+  const handleMfaDialogClose = () => {
+    if (dialog.type === 'mfa') {
+      // Clear all states when dialog is closed/cancelled
+      setExecutingStates(prev => ({ ...prev, [dialog.proposal.id]: false }));
+      setSigningStates(prev => ({ ...prev, [dialog.proposal.id]: false }));
+      setIsDisabled(false);
+    }
+    setDialog({ type: 'none' });
+  };
+
   // Dialog rendering (extensible for future types)
   let dialogElement: React.ReactNode | null = null;
   if (dialog.type === 'mfa') {
     dialogElement = (
       <MFAOtpDialog
         isOpen={true}
-        onClose={() => setDialog({ type: 'none' })}
+        onClose={handleMfaDialogClose}
         onOtpVerify={handleOtpVerify}
         sendOtp={handleSendOtp}
         identifier={userPhone}
