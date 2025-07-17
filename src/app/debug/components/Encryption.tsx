@@ -9,13 +9,8 @@ import * as ethers from "ethers";
 import { executeSecuredLitAction } from "@/lib/lit/executeLitAction";
 import { log } from "@/lib/utils";
 import { AuthMethod } from "@lit-protocol/types";
-import { litNodeClient } from "@/lib/lit";
-
-const litActionPkp = {
-  "tokenId": "0x1354853dbb73274bb3f3262e1df21ffb0caf849fd2e27d388f33f3a7a50aa91d",
-  "publicKey": "0x048721804caec0f4deb6d8c64cb8e2dc4139c220e6ca9a32a050ddec12cc86e184294c03263367e8a98f2c7bd4af5b12934c97efdea6a477489d84f70bc9e668f3",
-  "ethAddress": "0x7aF7B666F50BdC0E7Fe13b41Ce48e31664DC4dd6"
-}
+import { getSessionSigsByPkp, litNodeClient } from "@/lib/lit";
+import { useUserData } from "@/hooks/useUserData";
 
 // Create Lit Action code that will decrypt the data
 // This is the code that will run on the Lit nodes
@@ -48,10 +43,18 @@ export function Encryption({ authMethod }: { authMethod: AuthMethod }) {
   
   const LIT_ACTION_IPFS_ID = 'QmX3zpPjXTc9VH1fVETtSXELQ2Soynft68sYWo5MjXnFJ5'; // Replace with your actual Lit Action IPFS ID
 
+  // Get current user data including litActionPkp
+  const { userData, authMethodId, isLoading: isLoadingUser, error: userError } = useUserData(authMethod);
+
   // Encryption function
   const handleEncrypt = async () => {
     if (!inputText) {
       setError("Please enter text to encrypt");
+      return;
+    }
+
+    if (!userData?.litActionPkp) {
+      setError("User PKP not found. Please ensure you have a valid PKP.");
       return;
     }
 
@@ -69,10 +72,10 @@ export function Encryption({ authMethod }: { authMethod: AuthMethod }) {
           standardContractType: '',
           chain: 'ethereum',
           method: '',
-          parameters: [':currentActionIpfsId'],
+          parameters: [':userAddress'],
           returnValueTest: {
             comparator: '=',
-            value: LIT_ACTION_IPFS_ID,
+            value: userData.litActionPkp.ethAddress,
           },
         },
       ];
@@ -110,6 +113,11 @@ export function Encryption({ authMethod }: { authMethod: AuthMethod }) {
       return;
     }
 
+    if (!userData?.litActionPkp) {
+      setError("User PKP not found. Please ensure you have a valid PKP.");
+      return;
+    }
+
     setLoading(true);
     setError("");
     
@@ -126,26 +134,28 @@ export function Encryption({ authMethod }: { authMethod: AuthMethod }) {
       )
 
       // Generate session signatures for authentication
-      const sessionSigs = await litNodeClient.getPkpSessionSigs({
-        chain: "ethereum",
-        authMethods: [authMethod],
-        pkpPublicKey: litActionPkp.publicKey,
-        expiration: new Date(Date.now() + 1000 * 60 * 10).toISOString(), // 10 minutes
-        resourceAbilityRequests: [
-          {
-            resource: new LitAccessControlConditionResource(accessControlConditionResourceString),
-            ability: LIT_ABILITY.AccessControlConditionDecryption,
-          },
-          {
-            resource: new LitActionResource("*"),
-            ability: LIT_ABILITY.LitActionExecution,
-          },
-        ],
-      });
+      const sessionSigs = await getSessionSigsByPkp({ authMethod, pkp: userData.litActionPkp, refreshStytchAccessToken: true })
+
+      // const sessionSigs = await litNodeClient.getPkpSessionSigs({
+      //   chain: "ethereum",
+      //   authMethods: [authMethod],
+      //   pkpPublicKey: userData.litActionPkp.publicKey,
+      //   expiration: new Date(Date.now() + 1000 * 60 * 10).toISOString(), // 10 minutes
+      //   resourceAbilityRequests: [
+      //     {
+      //       resource: new LitAccessControlConditionResource(accessControlConditionResourceString),
+      //       ability: LIT_ABILITY.AccessControlConditionDecryption,
+      //     },
+      //     {
+      //       resource: new LitActionResource("*"),
+      //       ability: LIT_ABILITY.LitActionExecution,
+      //     },
+      //   ],
+      // });
 
       // Execute the Lit Action
       const response = await executeSecuredLitAction({
-        pkpPublicKey: litActionPkp.publicKey,
+        pkpPublicKey: userData.litActionPkp.publicKey,
         litActionIpfsId: LIT_ACTION_IPFS_ID,
         authMethod: authMethod,
         sessionSigs,
@@ -165,9 +175,44 @@ export function Encryption({ authMethod }: { authMethod: AuthMethod }) {
     }
   };
 
+  // Show loading state while fetching user data
+  if (isLoadingUser) {
+    return (
+      <div className="p-4 max-w-lg mx-auto">
+        <div className="text-center">Loading user data...</div>
+      </div>
+    );
+  }
+
+  // Show error if user data failed to load
+  if (userError) {
+    return (
+      <div className="p-4 max-w-lg mx-auto">
+        <div className="text-red-500">Error loading user data: {userError}</div>
+      </div>
+    );
+  }
+
+  // Show message if user has no PKP
+  if (!userData?.litActionPkp) {
+    return (
+      <div className="p-4 max-w-lg mx-auto">
+        <div className="text-red-500">No PKP found for current user. Please ensure you have a valid PKP.</div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 max-w-lg mx-auto">
       <h1 className="text-2xl font-bold mb-6">Lit Protocol Encryption with Lit Action Decryption</h1>
+      
+      <div className="mb-4 p-3 bg-blue-50 rounded-md">
+        <h2 className="text-sm font-medium text-blue-800 mb-2">Current User PKP</h2>
+        <div className="text-xs text-blue-700">
+          <div>Address: {userData.litActionPkp.ethAddress}</div>
+          <div>Token ID: {userData.litActionPkp.tokenId}</div>
+        </div>
+      </div>
       
       <div className="mb-6">
         <label className="block mb-2 font-medium">Input Text</label>

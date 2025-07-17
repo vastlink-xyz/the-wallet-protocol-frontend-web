@@ -22,6 +22,7 @@ import { LitContracts } from "@lit-protocol/contracts-sdk";
 import { PKPEthersWallet } from "@lit-protocol/pkp-ethers";
 import { litActionCodeForCommonUpgradableProxy } from "@/lib/lit-action-code/common-upgradable-proxy.lit";
 import { toast } from "react-toastify";
+import { Encryption } from "./components/Encryption";
 
 // const pkp = {
 //   "tokenId": "0x4db47d93f4544bce5325db9c5f0aa502e9b404caf882115df84ec6c1ca6708c8",
@@ -343,6 +344,8 @@ export default function DebugPage() {
       <Button onClick={handleUpgrade}>Upgrade</Button>
       <Button onClick={handleCheckPermittedLitActions}>Check Permitted Lit Actions</Button>
       <Button onClick={handleGetSessionSigs}>Get Session Sigs</Button>
+
+      {authMethod && <Encryption authMethod={authMethod} />}
     </div>
   );
 }
