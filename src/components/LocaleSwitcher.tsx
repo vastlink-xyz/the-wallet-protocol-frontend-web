@@ -12,10 +12,15 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from '@/components/ui/dropdown-menu';
 import { CheckIcon, GlobeIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-export default function LocaleSwitcher() {
+interface LocaleSwitcherProps extends React.HTMLAttributes<HTMLDivElement> {
+  size?: 'sm' | 'lg';
+}
+
+export default function LocaleSwitcher({ className, size }: LocaleSwitcherProps) {
   const t = useTranslations('LocaleSwitcher');
   const locale = useLocale();
 
@@ -27,19 +32,23 @@ export default function LocaleSwitcher() {
     });
   }
 
-    return (
+  return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <div className="p-2 cursor-pointer">
-          <GlobeIcon className="w-5 h-5 text-white" />
+        <div className={cn("flex flex-row p-2 gap-2 items-center cursor-pointer text-white", className)}>
+          {size === "lg" ? t(locale) : (<GlobeIcon className="w-5 h-5" />)}
         </div>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="start">
         <DropdownMenuGroup>
           {locales.map((v) => (
-            <DropdownMenuItem key={v} onClick={() => handleValueChange(v)} disabled={isPending}>
+            <DropdownMenuItem
+              key={v}
+              onClick={() => handleValueChange(v)}
+              disabled={isPending}
+            >
               {t(v)}
-              {locale === v && (<CheckIcon className="w-4 h-4 ml-auto" />)}
+              {locale === v && <CheckIcon className="w-4 h-4 ml-auto" />}
             </DropdownMenuItem>
           ))}
         </DropdownMenuGroup>
