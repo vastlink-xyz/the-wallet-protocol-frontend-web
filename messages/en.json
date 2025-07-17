@@ -56,7 +56,6 @@
     "send_otp": "Send OTP",
     "sending_otp": "Sending OTP...",
     "ready_to_send": "Ready to send OTP.",
-    "cancel": "Cancel",
     "notice": "An OTP has been sent to {identifier}. Please enter it below.",
     "success": "OTP resent successfully",
     "failed": "Failed to send OTP. Please try again.",
@@ -93,7 +92,8 @@
     "phone_number_added": "Phone number added successfully.",
     "phone_number_removed": "Phone number removed successfully.",
     "failed_to_modify": "Phone number verified. You can now modify your settings.",
-    "will_send_otp": "An OTP will be sent to {number} via WhatsApp."
+    "will_send_otp": "An OTP will be sent to {number} via WhatsApp.",
+    "whatsapp_auth": "WhatsApp Authentication"
   },
   "WalletCard": {
     "create_team_wallet": "Create a team wallet",
@@ -102,7 +102,8 @@
   },
   "PersonalWalletSettings": {
     "title": "Personal Wallet Settings",
-    "notice": "Please note that daily withdrawal limits work only when MFA has been set up.",
+    "daily_withdraw_title": "Daily Withdraw Limits",
+    "daily_withdraw_description": "Please note that daily withdrawal limits work only when MFA has been set up.",
     "saging": "Saving...",
     "save": "Save Settings",
     "mfa_settings": "MFA Settings",
@@ -139,7 +140,8 @@
     "add_signer": "Add A New Signer",
     "required_signatures": "Required Signatures:",
     "number_of_signatures": "{num} of {count}",
-    "daily_withdrawal_limits": "Please note that daily withdrawal limits work only when MFA has been set up."
+    "daily_withdraw_title": "Daily Withdraw Limits",
+    "daily_withdraw_description": "Please note that daily withdrawal limits work only when MFA has been set up."
   },
   "SendTransactionDialog": {
     "title": "Send",
@@ -194,7 +196,7 @@
   "ProposalListItem": {
     "failed_parse_data": "Unable to parse settings data",
     "setting_change": "Setting change",
-    "name": "Name: {from} → {to}",
+    "change_name": "Name: {from} → {to}",
     "transfer": "Transfer",
     "add_signers": "Add signers:",
     "remove_signers": "Remove signers:",
@@ -204,7 +206,7 @@
     "details": "Details: {data}",
     "created_by": "Created by: {email}",
     "threshold": "Threshold: {nums} of {count}",
-    "threshold_details": "Threshold: {from_nums} of {from_count} → {to_nums} of {to_count}",
+    "change_threshold": "Threshold: {from_nums} of {from_count} → {to_nums} of {to_count}",
     "signers": "Signers:",
     "approve": "Approve",
     "approve_and_execute" : "Approve & execute",
@@ -225,6 +227,16 @@
     "proposals": "Proposals",
     "mfa_setup_title": "Set MFA",
     "mfa_setup_message": "To make your wallets more secure, we highly recommend you to <link>set up daily withdrawal limits and MFA in settings</link>",
+    "proposal_transaction_title": "{walletName} - pending proposal",
+    "proposal_transaction_message": "A {value} {symbol} transfer proposal requires your review.",
+    "proposal_setting_title": "{walletName} - setting change requested",
+    "proposal_setting_message": "A setting change proposal requires your review.",
+    "proposal_message": "Pending proposal needs your approval.",
+    "proposal_change_name": "Change wallet name",
+    "proposal_change_threshold": "Update threshold",
+    "proposal_add_signer": "Add {count, plural, =0 {signer} =1 {# signer} other {# signers}}",
+    "proposal_remove_signer": "Remove {count, plural, =0 {signer} =1 {# signer} other {# signers}}",
+    "proposal_daily_limits": "Update daily limits",
     "view_all": "View all",
     "review": "Review →",
     "empty": "No new notifications"
