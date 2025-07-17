@@ -8,18 +8,12 @@ import { IRelayPKP } from "@lit-protocol/types";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import { getAuthMethodFromStorage } from "@/lib/storage/authmethod";
-import { getProviderByAuthMethodType, getSessionSigsByPkp, litNodeClient } from "@/lib/lit";
+import { getProviderByAuthMethodType } from "@/lib/lit";
 import { LogoLoading } from "@/components/LogoLoading";
-import { cn, log } from "@/lib/utils";
-import { toast } from "react-toastify";
+import { cn } from "@/lib/utils";
 import { useAuthExpiration } from "@/hooks/useAuthExpiration";
 import { useNotifications } from "@/hooks/useNotifications";
-import { signProposal } from "@/app/wallet/[walletId]/details/proposals/utils/sign-proposal";
-import { executeTransactionProposal, executeWalletSettingsProposal } from "@/app/wallet/[walletId]/details/proposals/utils/execute-proposal";
-import { broadcastTransactionByTokenType } from "@/lib/web3/transaction";
-import { SUPPORTED_TOKENS_INFO } from "@/lib/web3/token";
-import { sendProposalExecutedNotification } from "@/lib/notification/proposal-executed-notification";
-import { MFAOtpDialog } from "@/components/Transaction/MFAOtpDialog";
+import { useProposalActions } from "@/hooks/useProposalActions";
 import { useSearchParams } from "next/navigation";
 import { useRef } from "react";
 import { useTranslations } from "next-intl";
@@ -42,19 +36,9 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
   // User PKP state
   const [userPkp, setUserPkp] = useState<IRelayPKP | null>(null);
   const [authMethodId, setAuthMethodId] = useState<string | null>(null);
+  const [authMethod, setAuthMethod] = useState<any>(null);
   const [isLoadingUser, setIsLoadingUser] = useState(true);
   const [userPhone, setUserPhone] = useState<string | null>(null);
-
-  // Loading states for operations
-  const [signingStates, setSigningStates] = useState<Record<string, boolean>>({});
-  const [executingStates, setExecutingStates] = useState<Record<string, boolean>>({});
-  const [cancelingStates, setCancelingStates] = useState<Record<string, boolean>>({});
-  const [isDisabled, setIsDisabled] = useState(false);
-
-  // MFA related states
-  const [showMfaDialog, setShowMfaDialog] = useState(false);
-  const [currentProposal, setCurrentProposal] = useState<MessageProposal | null>(null);
-  const [mfaMethodId, setMfaMethodId] = useState<string | null>(null);
 
   // Auth and notifications hooks
   const { handleExpiredAuth, verifyAuthOrRedirect } = useAuthExpiration();
@@ -66,14 +50,15 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
   useEffect(() => {
     async function fetchUserData() {
       try {
-        const authMethod = getAuthMethodFromStorage();
-        if (!authMethod) {
+        const authMethodFromStorage = getAuthMethodFromStorage();
+        if (!authMethodFromStorage) {
           setIsLoadingUser(false);
           return;
         }
 
-        const provider = getProviderByAuthMethodType(authMethod.authMethodType);
-        const authMethodIdValue = await provider.getAuthMethodId(authMethod);
+        setAuthMethod(authMethodFromStorage);
+        const provider = getProviderByAuthMethodType(authMethodFromStorage.authMethodType);
+        const authMethodIdValue = await provider.getAuthMethodId(authMethodFromStorage);
         setAuthMethodId(authMethodIdValue);
 
         const userResponse = await fetch(`/api/user?authMethodId=${authMethodIdValue}`);
@@ -97,7 +82,6 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
   useEffect(() => {
     async function fetchUserPhone() {
       try {
-        const authMethod = getAuthMethodFromStorage();
         if (!authMethod) return;
 
         const phoneResponse = await fetch('/api/mfa/get-user-phone', {
@@ -120,7 +104,7 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
     }
 
     fetchUserPhone();
-  }, []);
+  }, [authMethod]);
 
   useImperativeHandle(ref, () => ({
     refresh: async () => {
@@ -158,6 +142,32 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
     });
     return map;
   }, [wallets]);
+
+  // Use the proposal actions hook
+  const {
+    handleSignProposal,
+    executeMultisigLitAction,
+    handleCancelProposal,
+    isSigningProposal,
+    isLoading,
+    isDisabled,
+    isCancelingProposal,
+    dialog,
+  } = useProposalActions({
+    walletMap,
+    userPkp,
+    authMethod,
+    authMethodId,
+    userPhone,
+    refreshProposals,
+    fetchProposals,
+    refreshNotifications: (authMethodId: string, ethAddress: string) => {
+      refreshNotifications(authMethodId, ethAddress);
+    },
+    t,
+    handleExpiredAuth,
+    verifyAuthOrRedirect,
+  });
 
   // Scroll to target proposal when URL parameter is provided (only on initial load)
   useEffect(() => {
@@ -202,383 +212,6 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
     setTimeout(checkAndScroll, 100);
   }, [targetProposalId, proposals, isLoadingProposals]);
 
-  // Helper function to execute wallet settings proposal
-  const handleExecuteWalletSettingsProposal = async (proposal: MessageProposal, settingsData: any, sessionSigs: any) => {
-    if (!userPkp || !authMethodId) return;
-    
-    const wallet = walletMap.get(proposal.walletId);
-    if (!wallet) return;
-
-    const authMethod = getAuthMethodFromStorage();
-    if (!authMethod) return;
-
-    try {
-      const response = await executeWalletSettingsProposal({
-        proposal,
-        sessionSigs,
-        wallet,
-        walletPkp: wallet.pkp,
-        authMethod,
-        authMethodId,
-      });
-
-      if (response.data.success) {
-        toast.success(t('update_wallet_success'));
-        // Refresh proposals and notifications
-        await refreshProposals();
-        if (authMethodId && userPkp?.ethAddress) {
-          refreshNotifications(authMethodId, userPkp.ethAddress);
-        }
-
-        // Clear loading state for this proposal
-        setExecutingStates(prev => ({ ...prev, [proposal.id]: false }));
-        // make sure the user can sign other proposals
-        setIsDisabled(false);
-      }
-    } catch (error) {
-      console.error('Error executing wallet settings proposal:', error);
-      throw error;
-    }
-  };
-
-  // Helper function to execute transaction proposal
-  const handleExecuteTransactionProposal = async (proposal: MessageProposal, sessionSigs: any, otpCode: string = '') => {
-    if (!userPkp || !authMethodId) return;
-    
-    const wallet = walletMap.get(proposal.walletId);
-    if (!wallet) return;
-
-    const authMethod = getAuthMethodFromStorage();
-    if (!authMethod) return;
-
-    const {
-      response,
-      txData,
-      tokenType,
-    } = await executeTransactionProposal({
-      proposal,
-      sessionSigs,
-      wallet,
-      walletPkp: wallet.pkp,
-      authMethod,
-      authMethodId,
-      otpCode,
-      mfaMethodId,
-    });
-
-    // Handle the response similar to the original page
-    const result = typeof response.response === 'string' 
-      ? JSON.parse(response.response) 
-      : response.response;
-
-    log('Parsed response object:', result);
-    if (result.isValid) {
-      if (result.requireMFA) {
-        setCurrentProposal(proposal);
-        setShowMfaDialog(true);
-        toast.warning('Daily limit exceeded');
-        return;
-      } else if (result.error) {
-        toast.error(result.error);
-        return;
-      }
-
-      // Handle successful execution (transaction broadcasting, etc.)
-      let txHash = null;
-      if (result.status === 'success') {
-        try {
-          let sig: any;
-          if (SUPPORTED_TOKENS_INFO[tokenType].chainType === 'EVM') {
-            sig = JSON.parse(result.sig);
-          } else {
-            sig = (response as any).signatures.btcSignatures;
-          }
-          
-          const txReceipt = await broadcastTransactionByTokenType({
-            tokenType,
-            options: {
-              ...txData,
-              sig,
-              publicKey: wallet.pkp.publicKey,
-            },
-          });
-          txHash = txReceipt;
-          log('txReceipt', txReceipt);
-        } catch (e: any) {
-          log('error', e);
-          if (e.message.includes('insufficient funds for intrinsic transaction cost')) {
-            toast.error(t('insufficient_funds'));
-            return;
-          }
-          toast.error(e.message || t('execute_transaction_failed'));
-          return;
-        }
-      }
-      
-      // Update proposal status
-      await axios.put(`/api/multisig/messages`, {
-        proposalId: proposal.id,
-        walletId: proposal.walletId,
-        status: 'completed',
-        txHash: txHash
-      });
-            
-      // Send proposal executed notification
-      try {
-        await sendProposalExecutedNotification({
-          proposalType: 'transaction',
-          proposal,
-          wallet,
-          txHash,
-        });
-      } catch (error) {
-        console.error('Error sending proposal executed notifications:', error);
-      }
-
-      toast.success(t('transaction_completed'));
-      // Refresh proposals list
-      await refreshProposals();
-      // Refresh notifications
-      refreshNotifications(authMethodId, userPkp.ethAddress);
-
-      // Clear loading state for this proposal
-      setExecutingStates(prev => ({ ...prev, [proposal.id]: false }));
-      // make sure the user can sign other proposals
-      setIsDisabled(false);
-    }
-  };
-
-  // Sign proposal handler
-  const handleSignProposal = async (proposal: MessageProposal) => {
-    const authMethod = getAuthMethodFromStorage();
-    if (!userPkp || !authMethodId || !authMethod) {
-      toast.error(t('authentication_required'));
-      return;
-    }
-
-    const wallet = walletMap.get(proposal.walletId);
-    if (!wallet) {
-      toast.error(t('wallet_not_found'));
-      return;
-    }
-
-    // Verify auth before proceeding
-    const isAuthValid = await verifyAuthOrRedirect();
-    if (!isAuthValid) {
-      return;
-    }
-
-    try {
-      setSigningStates(prev => ({ ...prev, [proposal.id]: true }));
-
-      // Sign the proposal
-      const response = await signProposal({
-        proposal,
-        wallet,
-        userPkp,
-        authMethod,
-        authMethodId,
-      });
-
-      if (response.data.success) {
-        // Invalidate proposal related data to update notification and red dots
-        refreshNotifications(authMethodId, userPkp?.ethAddress);
-
-        const newProposals = await fetchProposals(wallet.id, proposal.id)
-        const updatedProposal = newProposals.find((p: MessageProposal) => p.id === proposal.id)
-        if (updatedProposal && updatedProposal.signatures.length >= wallet.threshold) {
-          // Automatically execute the multisig action once threshold is reached
-          await executeMultisigLitAction(updatedProposal)
-        } else {
-          toast.success(t('sign_proposal_succeess'))
-          // Refresh proposals using React Query
-          refreshProposals();
-        }
-      }
-    } catch (err: any) {
-      console.error('Failed to sign proposal:', err)
-
-      // Check for Google JWT expired error
-      const errorMessage = err?.message || '';
-      const shortMessage = err?.shortMessage || '';
-      if (errorMessage.includes('Google JWT expired') || shortMessage.includes('Google JWT expired')) {
-        handleExpiredAuth();
-      } else {
-        toast.error(err?.message || t('sign_proposal_failed'));
-      }
-    } finally {
-      setSigningStates(prev => ({ ...prev, [proposal.id]: false }));
-    }
-  };
-
-  // Execute proposal handler
-  const executeMultisigLitAction = async (proposal: MessageProposal) => {
-    if (!userPkp || !authMethodId) {
-      toast.error(t('authentication_required'));
-      return;
-    }
-
-    const wallet = walletMap.get(proposal.walletId);
-    if (!wallet) {
-      toast.error(t('wallet_not_found'));
-      return;
-    }
-
-    try {
-      setExecutingStates(prev => ({ ...prev, [proposal.id]: true }));
-      setIsDisabled(true);
-
-      // Ensure lit node client is connected
-      if (!litNodeClient.ready) {
-        await litNodeClient.connect();
-      }
-
-      const authMethod = getAuthMethodFromStorage();
-      if (!authMethod) {
-        toast.error(t('invalid_authentication_method'));
-        return;
-      }
-
-      // Get session signatures
-      const sessionSigs = await getSessionSigsByPkp({
-        authMethod,
-        pkp: userPkp,
-        refreshStytchAccessToken: true,
-      });
-
-      // handle wallet settings proposal
-      if (proposal.type === 'walletSettings' && proposal.settingsData) {
-        // Call the component's handleExecuteWalletSettingsProposal function
-        await handleExecuteWalletSettingsProposal(proposal, proposal.settingsData, sessionSigs);
-      } else {
-        // Handle transaction proposal - call the component's handleExecuteTransactionProposal
-        await handleExecuteTransactionProposal(proposal, sessionSigs);
-      }
-    } catch (error: any) {
-      console.error('Failed to execute proposal:', error);
-      if (error?.message?.includes('JWT has expired') || 
-          error?.message?.includes('Google JWT expired') || 
-          (error?.shortMessage && error.shortMessage.includes('Google JWT expired'))) {
-        handleExpiredAuth();
-      } else {
-        toast.error(error?.message || t('execute_proposal_failed'));
-      }
-    } finally {
-      setExecutingStates(prev => ({ ...prev, [proposal.id]: false }));
-      setIsDisabled(false);
-    }
-  };
-
-  // Cancel proposal handler
-  const handleCancelProposal = async (proposal: MessageProposal) => {
-    if (!userPkp || !authMethodId) {
-      toast.error(t('authentication_required'));
-      return;
-    }
-
-    try {
-      setCancelingStates(prev => ({ ...prev, [proposal.id]: true }));
-
-      const response = await axios.delete('/api/multisig/messages', {
-        params: {
-          walletId: proposal.walletId,
-          proposalId: proposal.id
-        },
-        data: {
-          canceledBy: {
-            authMethodId: authMethodId,
-            ethAddress: userPkp.ethAddress
-          }
-        }
-      });
-
-      if (response.data.success) {
-        toast.success(t('cancel_proposal_success'));
-        // Refresh data
-        await refreshProposals();
-        if (authMethodId && userPkp?.ethAddress) {
-          refreshNotifications(authMethodId, userPkp.ethAddress);
-        }
-      }
-    } catch (error: any) {
-      console.error('Failed to cancel proposal:', error);
-      if (error.response?.data?.error) {
-        toast.error(error.response.data.error);
-      } else if (error.response?.status === 403) {
-        toast.error(t('disallow_cancel_proposal'));
-      } else if (error.response?.status === 404) {
-        toast.error(t('proposal_not_found'));
-      } else {
-        toast.error(t('cancel_proposal_failed'));
-      }
-    } finally {
-      setCancelingStates(prev => ({ ...prev, [proposal.id]: false }));
-    }
-  };
-
-  // MFA handlers
-  const handleSendOtp = async () => {
-    if (!userPhone) {
-      throw new Error('Session or phone number not found');
-    }
-
-    const authMethod = getAuthMethodFromStorage();
-    if (!authMethod) {
-      throw new Error('Authentication method not found');
-    }
-
-    log('Sending OTP to', userPhone);
-    const response = await fetch('/api/mfa/whatsapp/send-code', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authMethod.accessToken}`,
-      },
-      body: JSON.stringify({ phone_number: userPhone }),
-    });
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      log('Error response from API', errorData);
-      throw new Error(errorData.error || `Failed to send OTP: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    setMfaMethodId(data.method_id);
-    log('OTP sent, method_id:', data.method_id);
-  };
-
-  const handleOtpVerify = async (otp: string) => {
-    if (!userPkp || !currentProposal) {
-      throw new Error('Missing required information for OTP verification');
-    }
-
-    const authMethod = getAuthMethodFromStorage();
-    if (!authMethod) {
-      throw new Error('Authentication method not found');
-    }
-
-    // Close the dialog
-    setShowMfaDialog(false);
-
-    try {
-      // Set executing state for this proposal during OTP verification
-      setExecutingStates(prev => ({ ...prev, [currentProposal.id]: true }));
-      setIsDisabled(true);
-      
-      const sessionSigs = await getSessionSigsByPkp({authMethod, pkp: userPkp, refreshStytchAccessToken: true});
-      log('otp in handleOtpVerified', otp);
-      await handleExecuteTransactionProposal(currentProposal, sessionSigs, otp);
-    } catch (error) {
-      console.error('Error executing transaction:', error);
-    } finally {
-      // Clear executing state
-      if (currentProposal) {
-        setExecutingStates(prev => ({ ...prev, [currentProposal.id]: false }));
-      }
-      setIsDisabled(false);
-    }
-  };
 
   if (isLoadingProposals || isRefetchingProposals || isLoadingWallets || isLoadingUser) {
     return <LogoLoading />;
@@ -632,25 +265,17 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
                 handleCancelProposal={handleCancelProposal}
                 userPkp={userPkp}
                 authMethodId={authMethodId}
-                isSigningProposal={signingStates[proposal.id] || false}
-                isLoading={executingStates[proposal.id] || false}
+                isSigningProposal={isSigningProposal(proposal.id)}
+                isLoading={isLoading(proposal.id)}
                 isDisabled={isDisabled}
-                isCancelingProposal={cancelingStates[proposal.id] || false}
+                isCancelingProposal={isCancelingProposal(proposal.id)}
               />
             </div>
           );
         })}
       </div>
 
-      <MFAOtpDialog
-        isOpen={showMfaDialog}
-        onClose={() => setShowMfaDialog(false)}
-        onOtpVerify={handleOtpVerify}
-        sendOtp={handleSendOtp}
-        identifier={userPhone}
-        title={t("otp_title")}
-        description={t("otp_description")}
-      />
+      {dialog}
     </>
   );
 });

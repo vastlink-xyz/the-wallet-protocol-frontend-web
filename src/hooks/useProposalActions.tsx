@@ -32,7 +32,7 @@ export interface UseProposalActionsParams {
   /** Fetch proposals for a wallet and proposalId. */
   fetchProposals: (walletId: string, proposalId: string) => Promise<MessageProposal[]>;
   /** Refresh notifications. Can be async or sync. */
-  refreshNotifications: (authMethodId: string, ethAddress: string) => any | Promise<any>;
+  refreshNotifications?: (authMethodId: string, ethAddress: string) => any | Promise<any>;
   /** Optionally invalidate proposal notifications. */
   invalidateProposalNotifications?: () => any | Promise<any>;
   t: any;
@@ -91,7 +91,9 @@ export function useProposalActions({
       if (response.data.success) {
         toast.success(t('update_wallet_success'));
         await refreshProposals();
-        await refreshNotifications(authMethodId, userPkp?.ethAddress);
+        if (refreshNotifications) await refreshNotifications(authMethodId, userPkp?.ethAddress);
+        // Invalidate proposal notifications after execution
+        if (invalidateProposalNotifications) await invalidateProposalNotifications();
         // clear loading state
         setExecutingStates(prev => ({ ...prev, [proposal.id]: false }));
         setIsDisabled(false);
@@ -182,7 +184,9 @@ export function useProposalActions({
       
       toast.success(t('transaction_completed'));
       await refreshProposals();
-      await refreshNotifications(authMethodId, userPkp?.ethAddress);
+      if (refreshNotifications) await refreshNotifications(authMethodId, userPkp?.ethAddress);
+      // Invalidate proposal notifications after execution
+      if (invalidateProposalNotifications) await invalidateProposalNotifications();
       // clear loading state
       setExecutingStates(prev => ({ ...prev, [proposal.id]: false }));
       setIsDisabled(false);
@@ -258,7 +262,6 @@ export function useProposalActions({
       if (response.data.success) {
         // Always refresh notifications if provided
         if (refreshNotifications) await refreshNotifications(authMethodId, userPkp?.ethAddress);
-        if (invalidateProposalNotifications) await invalidateProposalNotifications();
         // Always fetch latest proposals to check threshold
         const newProposals = await fetchProposals(wallet.id, proposal.id);
         const updatedProposal = newProposals.find((p: MessageProposal) => p.id === proposal.id);
@@ -276,6 +279,8 @@ export function useProposalActions({
         } else {
           toast.success(t('sign_proposal_succeess'));
           if (refreshProposals) await refreshProposals();
+          // Only invalidate proposal notifications if not executing
+          if (invalidateProposalNotifications) await invalidateProposalNotifications();
         }
       }
     } catch (err: any) {

@@ -1,27 +1,18 @@
 "use client";
 
 import { MessageProposal } from "@/app/api/multisig/storage";
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Proposal } from "./components/Proposal";
 import { useWallet } from "../context/WalletContext";
 import { useParams, useSearchParams } from "next/navigation";
-import { getSessionSigsByPkp, litNodeClient } from "@/lib/lit";
-import { log } from "@/lib/utils";
-import axios from "axios";
-import { toast } from "react-toastify";
-import { sendProposalExecutedNotification } from "@/lib/notification/proposal-executed-notification";
-import { useAuthExpiration } from "@/hooks/useAuthExpiration";
-import { broadcastTransactionByTokenType, getToSignTransactionByTokenType } from "@/lib/web3/transaction";
-import { MFAOtpDialog } from "@/components/Transaction/MFAOtpDialog";
-import { SUPPORTED_TOKENS_INFO, TokenType } from "@/lib/web3/token";
 import { LogoLoading } from "@/components/LogoLoading";
-import { signProposal } from "./utils/sign-proposal";
-import { executeTransactionProposal, executeWalletSettingsProposal } from "./utils/execute-proposal";
 import { useNotifications } from "@/hooks/useNotifications";
 import { fetchProposals, useProposals } from "@/hooks/useProposals";
 import { Button } from "@/components/ui/button";
 import { Loader2Icon, RefreshCcwIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useProposalActions } from "@/hooks/useProposalActions";
+import { useAuthExpiration } from "@/hooks/useAuthExpiration";
 
 export default function ProposalsPage() {
   const t = useTranslations('ProposalList');
@@ -51,12 +42,6 @@ export default function ProposalsPage() {
     refresh: refreshProposals,
   } = useProposals(walletId);
 
-  // Loading states for different operations
-  const [signingStates, setSigningStates] = useState<Record<string, boolean>>({});
-  const [executingStates, setExecutingStates] = useState<Record<string, boolean>>({});
-  const [cancelingStates, setCancelingStates] = useState<Record<string, boolean>>({});
-  const [isDisabled, setIsDisabled] = useState(false);
-
   const { handleExpiredAuth, verifyAuthOrRedirect } = useAuthExpiration();
 
   // Notifications hook for UI refresh
@@ -64,10 +49,37 @@ export default function ProposalsPage() {
     enabled: false, // only need the refresh function
   });
 
-  // mfa
-  const [showMfaDialog, setShowMfaDialog] = useState(false);
-  const [currentProposal, setCurrentProposal] = useState<MessageProposal | null>(null)
-  const [mfaMethodId, setMfaMethodId] = useState<string | null>(null);
+  // Create a wallet map for the hook
+  const walletMap = new Map();
+  if (wallet) {
+    walletMap.set(wallet.id, wallet);
+  }
+
+  // Use the proposal actions hook
+  const {
+    handleSignProposal,
+    executeMultisigLitAction,
+    handleCancelProposal,
+    isSigningProposal,
+    isLoading,
+    isDisabled,
+    isCancelingProposal,
+    dialog,
+  } = useProposalActions({
+    walletMap,
+    userPkp,
+    authMethod,
+    authMethodId,
+    userPhone,
+    refreshProposals,
+    fetchProposals,
+    refreshNotifications: (authMethodId: string, ethAddress: string) => {
+      refreshNotifications(authMethodId, ethAddress);
+    },
+    t,
+    handleExpiredAuth,
+    verifyAuthOrRedirect,
+  });
 
   // Scroll to target proposal when URL parameter is provided (only on initial load)
   useEffect(() => {
@@ -112,358 +124,6 @@ export default function ProposalsPage() {
     setTimeout(checkAndScroll, 100);
   }, [targetProposalId, proposals, isLoadingProposals]);
 
-  // Function to execute wallet settings change proposal
-  const handleExecuteWalletSettingsProposal = async (proposal: MessageProposal, settingsData: any, sessionSigs: any) => {
-    if (!wallet || !walletPkp || !authMethod || !authMethodId) return;
-    log('selected multisig pkp', walletPkp.publicKey)
-
-    try {
-      const response = await executeWalletSettingsProposal({
-        proposal,
-        sessionSigs,
-        wallet,
-        walletPkp,
-        authMethod,
-        authMethodId,
-      })
-
-      if (response.data.success) {
-        toast.success(t('update_wallet_success'));
-        // Refresh proposals using React Query
-        await refreshProposals();
-
-        // Invalidate proposal related data to update notification and red dots
-        refreshNotifications(authMethodId, userPkp?.ethAddress);
-
-        // Clear loading state for this proposal
-        setExecutingStates(prev => ({ ...prev, [proposal.id]: false }));
-        // make sure the user can sign other proposals
-        setIsDisabled(false);
-
-      }
-    } catch (error) {
-      log('error', error);
-      throw error
-    }
-  }
-
-  const handleExecuteTransactionProposal = async (proposal: MessageProposal, sessionSigs: any, otpCode: string = '') => {
-    if (!wallet || !walletPkp || !authMethod || !authMethodId) {
-      return
-    }
-
-    const {
-      response,
-      txData,
-      tokenType,
-    } = await executeTransactionProposal({
-      proposal,
-      sessionSigs,
-      wallet,
-      walletPkp,
-      authMethod,
-      authMethodId,
-      otpCode,
-      mfaMethodId,
-    })
-
-    // Update the proposal status to completed if verification was successful
-    const result = typeof response.response === 'string'
-      ? JSON.parse(response.response)
-      : response.response;
-    log('Parsed response object:', result);
-
-    if (result.isValid) {
-      if (result.requireMFA) {
-        setCurrentProposal(proposal)
-        setShowMfaDialog(true)
-        toast.warning('Daily limit exceeded')
-        return
-      } else if (result.error) {
-        toast.error(result.error)
-        return
-      }
-
-      let txHash = null
-      // Try to extract transaction hash from different response formats
-      if (result.status === 'success') {
-        try {
-          let sig: any
-          if (SUPPORTED_TOKENS_INFO[tokenType].chainType === 'EVM') {
-            sig = JSON.parse(result.sig)
-          } else {
-            sig = response.signatures.btcSignatures
-          }
-          const txReceipt = await broadcastTransactionByTokenType({
-            tokenType,
-            options: {
-              ...txData,
-              sig,
-              publicKey: walletPkp.publicKey,
-            },
-          })
-          txHash = txReceipt
-          log('txReceipt', txReceipt)
-        } catch (e: any) {
-          log('error', e)
-          if (e.message.includes('insufficient funds for intrinsic transaction cost')) {
-            toast.error(t('insufficient_funds'));
-            return
-          }
-          toast.error(e.message || t('execute_transaction_failed'));
-          return
-        }
-      }
-
-      await axios.put(`/api/multisig/messages`, {
-        proposalId: proposal.id,
-        walletId: proposal.walletId,
-        status: 'completed',
-        txHash: txHash
-      })
-
-      // Send proposal executed notification to all approvers
-      if (wallet) {
-        try {
-          await sendProposalExecutedNotification({
-            proposalType: 'transaction',
-            proposal,
-            wallet,
-            txHash,
-          });
-        } catch (error) {
-          console.error('Error sending proposal executed notifications:', error);
-        }
-      }
-
-      toast.success(t('transaction_completed'));
-      // Refresh proposals using React Query
-      await refreshProposals();
-
-      // Refresh proposal UI to update notification and red dots
-      refreshNotifications(authMethodId, userPkp?.ethAddress);
-
-      // Clear loading state for this proposal
-      setExecutingStates(prev => ({ ...prev, [proposal.id]: false }));
-      // make sure the user can sign other proposals
-      setIsDisabled(false);
-    }
-  }
-
-  // Function to execute a Lit Action using the multisig PKP
-  const executeMultisigLitAction = async (proposal: MessageProposal) => {
-    if (!walletPkp || !wallet || !authMethod || !userPkp) {
-      console.error('Missing multisig wallet information or auth method')
-      return
-    }
-
-    try {
-      // Set loading state for this specific proposal execution
-      setExecutingStates(prev => ({ ...prev, [proposal.id]: true }));
-      // make sure the user cannot sign other proposals
-      setIsDisabled(true);
-
-      // Connect to Lit Network
-      if (!litNodeClient.ready) {
-        await litNodeClient.connect()
-      }
-
-      log('selected mulsig pkp', walletPkp)
-
-      // Get session signatures for the current user
-      const sessionSigs = await getSessionSigsByPkp({ authMethod, pkp: userPkp, refreshStytchAccessToken: true })
-
-      // Check if this is a wallet settings change proposal
-      const isWalletSettingsProposal = proposal.type === 'walletSettings';
-      const settingsData = proposal.settingsData;
-
-      if (isWalletSettingsProposal && settingsData) {
-        // Handle wallet settings change
-        await handleExecuteWalletSettingsProposal(proposal, settingsData, sessionSigs);
-      } else {
-        // Regular transaction execution
-        await handleExecuteTransactionProposal(proposal, sessionSigs)
-      }
-    } catch (err: any) {
-      // Check for Google JWT expired error
-      const errorMessage = err?.message || '';
-      const shortMessage = err?.shortMessage || '';
-      if (errorMessage.includes('Google JWT expired') || shortMessage.includes('Google JWT expired')) {
-        handleExpiredAuth();
-      } else {
-        toast.error(err?.message || t('sign_proposal_failed'));
-      }
-    } finally {
-      // Clear loading state for this proposal
-      setExecutingStates(prev => ({ ...prev, [proposal.id]: false }));
-      // make sure the user can sign other proposals
-      setIsDisabled(false);
-    }
-  }
-
-  const handleSignProposal = async (proposal: MessageProposal) => {
-    if (!walletPkp || !authMethod || !wallet || !userPkp || !authMethodId) {
-      console.error('Missing required information for signing')
-      return
-    }
-
-    // Verify JWT token before proceeding with signing
-    const isAuthValid = await verifyAuthOrRedirect();
-    if (!isAuthValid) {
-      return; // verifyAuthOrRedirect will handle the redirect and toast message
-    }
-
-    try {
-      // Set loading state for this specific proposal signing
-      setSigningStates(prev => ({ ...prev, [proposal.id]: true }));
-
-      const response = await signProposal({
-        proposal,
-        wallet,
-        userPkp,
-        authMethod,
-        authMethodId,
-      })
-
-      if (response.data.success) {
-        // Invalidate proposal related data to update notification and red dots
-        refreshNotifications(authMethodId, userPkp?.ethAddress);
-
-        // Find the updated proposal
-        const newProposals = await fetchProposals(walletId, proposal.id);
-        const updatedProposal = newProposals.find((p: MessageProposal) => p.id === proposal.id)
-
-        if (updatedProposal && updatedProposal.signatures.length >= wallet.threshold) {
-          // Automatically execute the multisig action once threshold is reached
-          await executeMultisigLitAction(updatedProposal)
-        } else {
-          toast.success(t('sign_proposal_succeess'))
-          // Refresh proposals using React Query
-          await refreshProposals();
-        }
-      }
-    } catch (err: any) {
-      console.error('Failed to sign proposal:', err)
-
-      // Check for Google JWT expired error
-      const errorMessage = err?.message || '';
-      if (errorMessage.includes('Google JWT expired') ||
-        (err?.shortMessage && err.shortMessage.includes('Google JWT expired'))) {
-        handleExpiredAuth();
-      } else {
-        toast.error(err?.message || t('sign_proposal_failed'));
-      }
-    } finally {
-      // Clear loading state for this proposal
-      setSigningStates(prev => ({ ...prev, [proposal.id]: false }));
-    }
-  }
-
-  const handleSendOtp = async () => {
-    if (!userPhone || !authMethod) {
-      throw new Error('Session or phone number not found');
-    }
-
-    log('Sending OTP to', userPhone);
-    const response = await fetch('/api/mfa/whatsapp/send-code', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authMethod.accessToken}`,
-      },
-      body: JSON.stringify({ phone_number: userPhone }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      log('Error response from API', errorData);
-      throw new Error(errorData.error || `Failed to send OTP: ${response.status}`);
-    }
-
-    const data = await response.json();
-    setMfaMethodId(data.method_id);
-    log('OTP sent, method_id:', data.method_id);
-  };
-
-  const handleOtpVerify = async (otp: string) => {
-    if (!authMethod || !userPkp || !currentProposal) {
-      throw new Error('Missing required information for OTP verification');
-    }
-
-    // Close the dialog
-    setShowMfaDialog(false);
-
-    try {
-      // Set executing state for this proposal during OTP verification
-      setExecutingStates(prev => ({ ...prev, [currentProposal.id]: true }));
-      // make sure the user cannot sign other proposals
-      setIsDisabled(true);
-
-      const sessionSigs = await getSessionSigsByPkp({ authMethod, pkp: userPkp, refreshStytchAccessToken: true })
-      log('otp in handleOtpVerified', otp)
-      await handleExecuteTransactionProposal(currentProposal, sessionSigs, otp)
-    } catch (error) {
-      console.error('Error executing transaction:', error)
-    } finally {
-      // Clear executing state
-      if (currentProposal) {
-        setExecutingStates(prev => ({ ...prev, [currentProposal.id]: false }));
-      }
-      // make sure the user can sign other proposals
-      setIsDisabled(false);
-    }
-  }
-
-  const handleCancelProposal = async (proposal: MessageProposal) => {
-    if (!authMethodId || !userPkp) {
-      console.error('Missing required information for canceling proposal');
-      return;
-    }
-
-    try {
-      // Set loading state for this specific proposal cancellation
-      setCancelingStates(prev => ({ ...prev, [proposal.id]: true }));
-
-      const response = await axios.delete(`/api/multisig/messages`, {
-        params: {
-          walletId: proposal.walletId,
-          proposalId: proposal.id
-        },
-        data: {
-          canceledBy: {
-            authMethodId: authMethodId,
-            ethAddress: userPkp.ethAddress
-          }
-        }
-      });
-
-      if (response.data.success) {
-        toast.success(t('cancel_proposal_success'));
-        // Refresh proposals using React Query
-        await refreshProposals();
-        // Invalidate proposal related data to update notification and red dots
-        if (authMethodId && userPkp?.ethAddress) {
-          refreshNotifications(authMethodId, userPkp.ethAddress);
-        }
-      }
-    } catch (error: any) {
-      console.error('Failed to cancel proposal:', error);
-
-      // Handle different error types
-      if (error.response?.data?.error) {
-        toast.error(error.response.data.error);
-      } else if (error.response?.status === 403) {
-        toast.error(t('disallow_cancel_proposal'));
-      } else if (error.response?.status === 404) {
-        toast.error(t('proposal_not_found'));
-      } else {
-        toast.error(t('cancel_proposal_failed'));
-      }
-    } finally {
-      // Clear loading state for this proposal
-      setCancelingStates(prev => ({ ...prev, [proposal.id]: false }));
-    }
-  }
 
   // Show loading state if wallet or proposals are still loading
   if (isWalletLoading || isLoadingProposals || isRefetchingProposals) {
@@ -518,10 +178,10 @@ export default function ProposalsPage() {
                     handleCancelProposal={handleCancelProposal}
                     userPkp={userPkp}
                     authMethodId={authMethodId}
-                    isSigningProposal={signingStates[proposal.id] || false}
-                    isLoading={executingStates[proposal.id] || false}
+                    isSigningProposal={isSigningProposal(proposal.id)}
+                    isLoading={isLoading(proposal.id)}
                     isDisabled={isDisabled}
-                    isCancelingProposal={cancelingStates[proposal.id] || false}
+                    isCancelingProposal={isCancelingProposal(proposal.id)}
                   />
                 </div>
               )
@@ -530,15 +190,7 @@ export default function ProposalsPage() {
         )}
       </div>
 
-      <MFAOtpDialog
-        isOpen={showMfaDialog}
-        onClose={() => setShowMfaDialog(false)}
-        onOtpVerify={handleOtpVerify}
-        sendOtp={handleSendOtp}
-        identifier={userPhone}
-        title={t("otp_title")}
-        description={t("otp_description")}
-      />
+      {dialog}
     </>
   );
 }
