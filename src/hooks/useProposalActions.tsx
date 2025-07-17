@@ -9,17 +9,10 @@ import { SUPPORTED_TOKENS_INFO } from "@/lib/web3/token";
 import { toast } from "react-toastify";
 import { MFAOtpDialog } from "@/components/Transaction/MFAOtpDialog";
 
-/**
- * Dialog state type for proposal actions. Extensible for future dialog types.
- */
 export type ProposalDialogType =
   | { type: 'none' }
   | { type: 'mfa'; proposal: MessageProposal };
-  // | { type: 'pin'; proposal: MessageProposal } // for future extension
 
-/**
- * Parameters for useProposalActions hook.
- */
 export interface UseProposalActionsParams {
   wallet: MultisigWallet | null;
   walletPkp: any;
@@ -29,16 +22,17 @@ export interface UseProposalActionsParams {
   userPhone: string | null;
   /** Refresh proposals list. Can be async or sync. */
   refreshProposals: () => any | Promise<any>;
+  /** Fetch proposals for a wallet and proposalId. */
+  fetchProposals: (walletId: string, proposalId: string) => Promise<MessageProposal[]>;
   /** Refresh notifications. Can be async or sync. */
   refreshNotifications: (authMethodId: string, ethAddress: string) => any | Promise<any>;
+  /** Optionally invalidate proposal notifications. */
+  invalidateProposalNotifications?: () => any | Promise<any>;
   t: any;
   handleExpiredAuth: () => void;
   verifyAuthOrRedirect: () => Promise<boolean>;
 }
 
-/**
- * Return type for useProposalActions hook.
- */
 export interface UseProposalActionsReturn {
   handleSignProposal: (proposal: MessageProposal) => Promise<void>;
   executeMultisigLitAction: (proposal: MessageProposal) => Promise<void>;
@@ -50,13 +44,6 @@ export interface UseProposalActionsReturn {
   dialog: React.ReactNode;
 }
 
-/**
- * Centralized hook for all proposal actions (sign, execute, cancel, MFA, etc.).
- * All context and refresh logic must be passed in as parameters.
- *
- * @param params See UseProposalActionsParams
- * @returns See UseProposalActionsReturn
- */
 export function useProposalActions({
   wallet,
   walletPkp,
@@ -65,7 +52,9 @@ export function useProposalActions({
   authMethodId,
   userPhone,
   refreshProposals,
+  fetchProposals,
   refreshNotifications,
+  invalidateProposalNotifications,
   t,
   handleExpiredAuth,
   verifyAuthOrRedirect,
@@ -209,7 +198,9 @@ export function useProposalActions({
     }
   };
 
+  // --- Fully parameterized, parent-compatible handleSignProposal ---
   const handleSignProposal = async (proposal: MessageProposal) => {
+    // Parent components expect: sign, refresh notifications, fetchProposals, auto-execute if threshold, else refresh proposals/notifications
     if (!walletPkp || !authMethod || !wallet || !userPkp || !authMethodId) return;
     const isAuthValid = await verifyAuthOrRedirect();
     if (!isAuthValid) return;
@@ -223,10 +214,18 @@ export function useProposalActions({
         authMethodId,
       });
       if (response.data.success) {
-        await refreshNotifications(authMethodId, userPkp?.ethAddress);
-        // Optionally, you can fetch the updated proposal here if needed
-        // For now, just refresh proposals
-        await refreshProposals();
+        // Always refresh notifications if provided
+        if (refreshNotifications) await refreshNotifications(authMethodId, userPkp?.ethAddress);
+        if (invalidateProposalNotifications) await invalidateProposalNotifications();
+        // Always fetch latest proposals to check threshold
+        const newProposals = await fetchProposals(wallet.id, proposal.id);
+        const updatedProposal = newProposals.find((p: MessageProposal) => p.id === proposal.id);
+        if (updatedProposal && updatedProposal.signatures.length >= wallet.threshold) {
+          await executeMultisigLitAction(updatedProposal);
+        } else {
+          toast.success(t('sign_proposal_succeess'));
+          if (refreshProposals) await refreshProposals();
+        }
       }
     } catch (err: any) {
       const errorMessage = err?.message || '';
@@ -274,6 +273,7 @@ export function useProposalActions({
     }
   };
 
+  // --- Cancel proposal, parameterized for parent notification refresh ---
   const handleCancelProposal = async (proposal: MessageProposal) => {
     if (!authMethodId || !userPkp) return;
     try {
@@ -291,8 +291,9 @@ export function useProposalActions({
       const data = await response.json();
       if (data.success) {
         toast.success(t('cancel_proposal_success'));
-        await refreshProposals();
-        await refreshNotifications(authMethodId, userPkp?.ethAddress);
+        if (refreshProposals) await refreshProposals();
+        if (refreshNotifications) await refreshNotifications(authMethodId, userPkp?.ethAddress);
+        if (invalidateProposalNotifications) await invalidateProposalNotifications();
       }
     } catch (error: any) {
       if (error.response?.data?.error) {
