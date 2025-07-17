@@ -2,8 +2,10 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
 import { log } from '@/lib/utils';
 import { MFAPhoneWhatsApp } from './MFAPhoneWhatsApp';
+import { MFAPin } from './MFAPin';
 import { toast } from 'react-toastify';
 import { useTranslations } from 'next-intl';
+import { PinService } from '@/services/pinService';
 
 // Define StytchPhoneNumber type based on expected API response
 interface StytchPhoneNumber {
@@ -11,12 +13,6 @@ interface StytchPhoneNumber {
   phone_number: string;
   verified: boolean;
 }
-
-// Helper to get session JWT from storage
-const getStytchSessionJwt = (): string | null => {
-  const authMethod = getAuthMethodFromStorage();
-  return authMethod?.accessToken || null; // accessToken is the session_jwt
-};
 
 interface MFASettingsContentProps {
   isOpen: boolean;
@@ -29,13 +25,15 @@ export function MFASettingsContent({ isOpen, onPhoneUpdated, onMFAStatusChanged 
 
   // Main component state
   const [phoneNumbers, setPhoneNumbers] = useState<StytchPhoneNumber[]>([]);
+  // Remove pinStatus state, use local computed value
 
   const prevIsOpen = useRef(isOpen);
-  const sessionJwt = getStytchSessionJwt();
+  const authMethod = getAuthMethodFromStorage();
+  const sessionJwt = authMethod?.accessToken || null;
 
   // Fetch MFA status from API
   const fetchMFAStatus = useCallback(async () => {
-    const token = getStytchSessionJwt();
+    const token = sessionJwt;
     log('MFASettingsContent: Session JWT token present:', !!token);
     
     if (!token) {
@@ -69,7 +67,7 @@ export function MFASettingsContent({ isOpen, onPhoneUpdated, onMFAStatusChanged 
     } catch (err: any) {
       toast.error(t("fetch_error"));
     }
-  }, []);
+  }, [sessionJwt, t]);
 
   // Helper to trigger a refresh of MFA methods and notify parent of changes
   const refreshMFAStatus = useCallback(async () => {
@@ -77,6 +75,7 @@ export function MFASettingsContent({ isOpen, onPhoneUpdated, onMFAStatusChanged 
     if (onMFAStatusChanged) {
       onMFAStatusChanged();
     }
+    // No need to update pinStatus, will be recomputed
   }, [fetchMFAStatus, onMFAStatusChanged]);
 
   // Effect to handle dialog open/close
@@ -100,6 +99,12 @@ export function MFASettingsContent({ isOpen, onPhoneUpdated, onMFAStatusChanged 
         sessionJwt={sessionJwt}
         onSuccess={refreshMFAStatus}
         onPhoneUpdated={onPhoneUpdated}
+      />
+      {/* PIN MFA */}
+      <MFAPin 
+        pinStatus={{ hasPin: PinService.hasLocalPinData() }}
+        authMethod={authMethod}
+        onSuccess={refreshMFAStatus}
       />
     </div>
   );
