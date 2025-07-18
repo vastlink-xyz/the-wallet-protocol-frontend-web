@@ -170,6 +170,7 @@ export function TeamWalletSendReceiveActions({
         showSendDialog && authMethod && (
           <SendTransactionDialog
             authMethod={authMethod}
+            disablePin={true}
             showSendDialog={showSendDialog}
             showMfa={showMfaDialog}
             onInviteUser={handleInviteUser}

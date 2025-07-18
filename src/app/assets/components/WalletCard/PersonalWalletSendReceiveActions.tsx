@@ -16,7 +16,7 @@ interface WalletSendReceiveActionsProps {
   onTransactionSuccess?: () => void
 }
 
-export function WalletSendReceiveActions({
+export function PersonalWalletSendReceiveActions({
   btcAddress,
   ethAddress,
   walletName,
@@ -123,9 +123,10 @@ export function WalletSendReceiveActions({
 
       {/* Send Transaction Dialog */}
       {
-        (authMethodId && showSendDialog && authMethod) && (
+        (authMethodId && showSendDialog && authMethod && litActionPkp) && (
           <SendTransactionDialog
             authMethod={authMethod}
+            userLitAction={litActionPkp}
             showSendDialog={showSendDialog}
             showMfa={showMfa}
             onSendTransaction={handleExecuteTransaction}

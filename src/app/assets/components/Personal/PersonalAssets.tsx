@@ -130,7 +130,7 @@ export default function PersonalAssets({ authMethod, userData, authMethodId }: P
       }
 
       {
-        (authMethodId && showSendDialog) && (
+        (authMethodId && litActionPkp && showSendDialog) && (
           <SendTransactionDialog
             authMethod={authMethod}
             showSendDialog={showSendDialog}
@@ -144,6 +144,7 @@ export default function PersonalAssets({ authMethod, userData, authMethodId }: P
             addresses={addresses || null}
             walletName={email || ''}
             resetAmount={resetAmount}
+            userLitAction={litActionPkp}
           />
         )
       }

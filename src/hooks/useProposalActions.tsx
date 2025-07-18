@@ -545,8 +545,6 @@ export function useProposalActions({
         isOpen={true}
         onClose={handleDialogClose}
         onPinVerify={handlePinVerify}
-        title={t("pin_verification_title")}
-        description={t("pin_verification_description")}
       />
     );
   } else if (dialog.type === 'mfa') {

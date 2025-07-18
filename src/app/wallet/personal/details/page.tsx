@@ -9,7 +9,7 @@ import { useState } from 'react';
 import { MultisigWalletAddresses } from '@/app/api/multisig/storage';
 import { cn, log } from '@/lib/utils';
 import { TokenAssets } from '@/app/assets/components/WalletCard/TokenAssets';
-import { WalletSendReceiveActions } from '@/app/assets/components/WalletCard/WalletSendReceiveActions';
+import { PersonalWalletSendReceiveActions } from '@/app/assets/components/WalletCard/PersonalWalletSendReceiveActions';
 import { WalletSettingsActions } from '@/app/assets/components/WalletCard/WalletSettingsActions';
 import { ArrowLeft } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -88,7 +88,7 @@ export default function PersonalWalletDetailsPage() {
 
         {/* Send/Receive Buttons - After TokenAssets */}
         {btcAddress && ethAddress && email && (
-          <WalletSendReceiveActions
+          <PersonalWalletSendReceiveActions
             btcAddress={btcAddress}
             ethAddress={ethAddress}
             walletName={email + ' (Personal)'}

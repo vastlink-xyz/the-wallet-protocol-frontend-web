@@ -7,7 +7,7 @@ import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { Loader2 } from "lucide-react";
 import { SelectToken } from "../SelectToken";
-import { AuthMethod } from "@lit-protocol/types";
+import { AuthMethod, IRelayPKP } from "@lit-protocol/types";
 import { MFAOtpDialog } from "./MFAOtpDialog";
 import { isValidEmail, log } from "@/lib/utils";
 import { estimateGasFee } from "@/lib/web3/transaction";
@@ -15,6 +15,9 @@ import { fetchEthBalance, fetchERC20TokenBalance } from "@/lib/web3/eth";
 import { fetchBtcBalance } from "@/lib/web3/btc";
 import { MultisigWalletAddresses } from "@/app/api/multisig/storage";
 import { useTranslations } from "next-intl";
+import { PinService } from '@/services/pinService'
+import { PinVerificationDialog } from './PinVerificationDialog'
+import { toast } from "react-toastify";
 
 export interface SendTransactionDialogState {
   to: string
@@ -39,6 +42,8 @@ interface SendTransactionDialogProps {
   addresses: MultisigWalletAddresses | null
   walletName?: string
   resetAmount?: boolean
+  userLitAction?: IRelayPKP
+  disablePin?: boolean
 }
 
 export function SendTransactionDialog({
@@ -54,6 +59,8 @@ export function SendTransactionDialog({
   addresses,
   walletName,
   resetAmount,
+  userLitAction,
+  disablePin = false,
 }: SendTransactionDialogProps) {
   const t = useTranslations('SendTransactionDialog')
 
@@ -87,6 +94,10 @@ export function SendTransactionDialog({
   const [isLoadingFee, setIsLoadingFee] = useState(false);
 
   const [isInviteUser, setIsInviteUser] = useState(false);
+
+  // PIN dialog state
+  const [showPinDialog, setShowPinDialog] = useState(false)
+  const [pendingTxState, setPendingTxState] = useState<null | SendTransactionDialogState>(null)
 
   // Load balance when token type changes
   useEffect(() => {
@@ -315,6 +326,51 @@ export function SendTransactionDialog({
     }
   }, [tokenType]);
 
+  // Handle PIN verification
+  const handlePinVerify = async (pin: string) => {
+    if (!pendingTxState) return;
+    if (disablePin) {
+      setShowPinDialog(false);
+      await onSendTransaction(pendingTxState);
+      setPendingTxState(null);
+      return;
+    }
+    const storedPinData = PinService.getLocalPinData();
+    if (!storedPinData) {
+      setShowPinDialog(false);
+      setPendingTxState(null);
+      return;
+    }
+    if (!userLitAction) {
+      toast.error('No PKP found');
+      setShowPinDialog(false);
+      setPendingTxState(null);
+      return;
+    }
+    let isPinValid = false;
+    try {
+      isPinValid = await PinService.verifyPin(
+        pin,
+        storedPinData,
+        { litActionPkp: userLitAction, authMethod }
+      );
+      console.log('PIN valid:', isPinValid);
+    } catch (e) {
+      console.error('verifyPin error', e);
+      toast.error('PIN verification failed');
+      setShowPinDialog(false);
+      setPendingTxState(null);
+      return;
+    }
+    if (!isPinValid) {
+      toast.error('Invalid PIN');
+      return;
+    }
+    setShowPinDialog(false);
+    await onSendTransaction(pendingTxState);
+    console.log('onSendTransaction called');
+    setPendingTxState(null);
+  };
 
   const onSendClick = async () => {
     try {
@@ -322,9 +378,14 @@ export function SendTransactionDialog({
         // if there is no recipient address, invite user
         onInviteUser({ to, recipientAddress, amount, tokenType, mfaMethodId, mfaPhoneNumber });
       } else {
-        log('amount is', amount)
-        // if there is a recipient address, send transaction to recipient
-        onSendTransaction({ to, recipientAddress, amount, tokenType, mfaMethodId, mfaPhoneNumber });
+        // If PIN is set locally and not disabled, show PIN dialog before sending transaction
+        if (!disablePin && PinService.hasLocalPinData()) {
+          setPendingTxState({ to, recipientAddress, amount, tokenType, mfaMethodId, mfaPhoneNumber });
+          setShowPinDialog(true);
+          return;
+        }
+        // If there is a recipient address, send transaction to recipient
+        await onSendTransaction({ to, recipientAddress, amount, tokenType, mfaMethodId, mfaPhoneNumber });
       }
     } catch (error) {
     }
@@ -348,6 +409,13 @@ export function SendTransactionDialog({
           })}
         />
       )}
+
+      {/* PIN Verification Dialog - overlays on top of main dialog */}
+      <PinVerificationDialog
+        isOpen={showPinDialog}
+        onClose={() => { setShowPinDialog(false); setPendingTxState(null); }}
+        onPinVerify={handlePinVerify}
+      />
 
       {/* Main Send Transaction Dialog */}
     <Dialog open={showSendDialog} onOpenChange={onDialogOpenChange}>

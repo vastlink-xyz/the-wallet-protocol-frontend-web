@@ -242,6 +242,7 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ authMethod, use
         showSendDialog && (
           <SendTransactionDialog
             authMethod={authMethod}
+            disablePin={true}
             showSendDialog={showSendDialog}
             showMfa={showMfaDialog}
             onInviteUser={handleInviteUser}
