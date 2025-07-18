@@ -7,7 +7,7 @@ import { useWallet } from "../context/WalletContext";
 import { useParams, useSearchParams } from "next/navigation";
 import { LogoLoading } from "@/components/LogoLoading";
 import { useNotifications } from "@/hooks/useNotifications";
-import { fetchProposals, useProposals } from "@/hooks/useProposals";
+import { useProposals } from "@/hooks/useProposals";
 import { Button } from "@/components/ui/button";
 import { Loader2Icon, RefreshCcwIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -76,7 +76,6 @@ export default function ProposalsPage() {
     authMethodId,
     userPhone,
     refreshProposals,
-    fetchProposals,
     refreshNotifications: (authMethodId: string, ethAddress: string) => {
       refreshNotifications(authMethodId, ethAddress);
     },
