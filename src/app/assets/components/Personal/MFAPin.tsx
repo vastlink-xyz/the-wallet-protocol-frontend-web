@@ -34,19 +34,20 @@ const FormContainer: React.FC<{
   children: React.ReactNode;
   errorMessage: string | null;
   successMessage?: string | null;
-}> = ({ children, errorMessage, successMessage }) => (
-  <div className="py-1">
-    <h3 className="font-medium text-base mb-4">PIN Authentication</h3>
-
-    {errorMessage && (
-      <p className="text-sm text-red-500 p-2 bg-red-50 rounded-md mb-2">Error: {errorMessage}</p>
-    )}
-    {successMessage && (
-      <p className="text-sm text-green-600 p-2 bg-green-50 rounded-md mb-2">{successMessage}</p>
-    )}
-    {children}
-  </div>
-);
+}> = ({ children, errorMessage, successMessage }) => {
+  const t = useTranslations('MFASettings');
+  return (
+    <div className="py-1">
+      {errorMessage && (
+        <p className="text-sm text-red-500 p-2 bg-red-50 rounded-md mb-2">{t('pin_error', { message: errorMessage })}</p>
+      )}
+      {successMessage && (
+        <p className="text-sm text-green-600 p-2 bg-green-50 rounded-md mb-2">{successMessage}</p>
+      )}
+      {children}
+    </div>
+  );
+};
 
 // Action buttons component
 const ActionButtons: React.FC<{
@@ -98,10 +99,6 @@ export function MFAPin({
   const [showConfirmPin, setShowConfirmPin] = useState(false);
   const [showCurrentPin, setShowCurrentPin] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  // Remove error and successMessage state
-
-  // Clear error and success messages (no longer needed)
-  const resetMessages = () => {};
 
   // Handle Add PIN button click
   const handleAddClick = () => {
@@ -128,15 +125,15 @@ export function MFAPin({
   const handleAddPin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userData?.litActionPkp) {
-      toast.error('User PKP not found. Please ensure you have a valid PKP.');
+      toast.error(t('user_not_found'));
       return;
     }
     if (!isValidPin(pin)) {
-      toast.error('PIN must be exactly 6 digits');
+      toast.error(t('pin_must_be_6_digits'));
       return;
     }
     if (pin !== confirmPin) {
-      toast.error('PINs do not match');
+      toast.error(t('pins_do_not_match'));
       return;
     }
     setIsLoading(true);
@@ -147,7 +144,7 @@ export function MFAPin({
         authMethod: authMethod!
       });
       PinService.setLocalPinData(pinData);
-      toast.success('PIN created successfully');
+      toast.success(t('pin_created'));
       setPin('');
       setConfirmPin('');
       setUiState('initial');
@@ -164,23 +161,23 @@ export function MFAPin({
   const handleChangePin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userData?.litActionPkp) {
-      toast.error('User PKP not found. Please ensure you have a valid PKP.');
+      toast.error(t('user_not_found'));
       return;
     }
     if (!isValidPin(currentPin)) {
-      toast.error('Current PIN must be exactly 6 digits');
+      toast.error(t('current_pin_incorrect'));
       return;
     }
     if (!isValidPin(pin)) {
-      toast.error('New PIN must be exactly 6 digits');
+      toast.error(t('pin_must_be_6_digits'));
       return;
     }
     if (pin !== confirmPin) {
-      toast.error('New PINs do not match');
+      toast.error(t('pins_do_not_match'));
       return;
     }
     if (currentPin === pin) {
-      toast.error('New PIN must be different from current PIN');
+      toast.error(t('new_pin_must_be_different'));
       return;
     }
     setIsLoading(true);
@@ -200,7 +197,7 @@ export function MFAPin({
         }
       );
       if (!isCurrentPinValid) {
-        toast.error('Current PIN is incorrect');
+        toast.error(t('current_pin_incorrect'));
         return;
       }
       const newPinData = await PinService.createPinHash(pin, {
@@ -208,7 +205,7 @@ export function MFAPin({
         authMethod: authMethod!
       });
       PinService.setLocalPinData(newPinData);
-      toast.success('PIN changed successfully');
+      toast.success(t('pin_changed'));
       setPin('');
       setConfirmPin('');
       setCurrentPin('');
@@ -224,9 +221,9 @@ export function MFAPin({
 
   // Remove PIN
   const handleRemovePin = async () => {
-    if (!window.confirm('Are you sure you want to remove your PIN?')) return;
+    if (!window.confirm(t('confirm_remove_pin'))) return;
     PinService.removeLocalPinData();
-    toast.success('PIN removed successfully');
+    toast.success(t('pin_removed'));
     setUiState('initial');
     onSuccess();
   };
@@ -235,7 +232,7 @@ export function MFAPin({
   if (isLoadingUser) {
     return (
       <FormContainer errorMessage={null}>
-        <div className="text-center">Loading user data...</div>
+        <div className="text-center">{t('fetch_error')}</div>
       </FormContainer>
     );
   }
@@ -252,7 +249,7 @@ export function MFAPin({
   // Show message if user has no PKP
   if (!userData?.litActionPkp) {
     return (
-      <FormContainer errorMessage="No PKP found for current user. Please ensure you have a valid PKP.">
+      <FormContainer errorMessage={t('user_not_found')}>
         <div></div>
       </FormContainer>
     );
@@ -266,8 +263,8 @@ export function MFAPin({
           <div className="bg-muted p-2 rounded-md">
             <div className="flex items-center justify-between gap-2">
               <div>
-                <p className="text-sm font-medium">PIN Authentication</p>
-                <p className="text-xs text-muted-foreground">6-digit PIN is active</p>
+                <p className="text-sm font-medium">{t('pin_authentication')}</p>
+                <p className="text-xs text-muted-foreground">{t('pin_active')}</p>
               </div>
               <div className="flex gap-2">
                 <Button 
@@ -276,7 +273,7 @@ export function MFAPin({
                   onClick={handleChangeClick} 
                   disabled={isLoading}
                 >
-                  Change PIN
+                  {t('change_pin')}
                 </Button>
                 <Button
                   variant="destructive"
@@ -284,7 +281,7 @@ export function MFAPin({
                   onClick={handleRemovePin}
                   disabled={isLoading}
                 >
-                  Remove PIN
+                  {t('remove_pin')}
                 </Button>
               </div>
             </div>
@@ -296,7 +293,7 @@ export function MFAPin({
             onClick={handleAddClick} 
             className="w-full"
           >
-            Set Up PIN
+            {t('set_up_pin')}
           </Button>
         )}
       </FormContainer>
@@ -310,7 +307,7 @@ export function MFAPin({
         <form onSubmit={handleAddPin} className="space-y-4">
           <div>
             <Label htmlFor="pin-input" className="block mb-2">
-              New PIN (6 digits)
+              {t('new_pin')}
             </Label>
             <div className="relative">
               <Input 
@@ -336,7 +333,7 @@ export function MFAPin({
           </div>
           <div>
             <Label htmlFor="confirm-pin-input" className="block mb-2">
-              Confirm PIN
+              {t('confirm_pin')}
             </Label>
             <div className="relative">
               <Input 
@@ -361,9 +358,9 @@ export function MFAPin({
             </div>
           </div>
           <ActionButtons
-            primaryText="Create PIN"
-            cancelText="Cancel"
-            loadingText="Creating..."
+            primaryText={t('create_pin')}
+            cancelText={t('cancel')}
+            loadingText={t('creating_pin')}
             isLoading={isLoading}
             isDisabled={!isValidPin(pin) || pin !== confirmPin}
             onCancel={handleCancel}
@@ -380,7 +377,7 @@ export function MFAPin({
         <form onSubmit={handleChangePin} className="space-y-4">
           <div>
             <Label htmlFor="current-pin-input" className="block mb-2">
-              Current PIN
+              {t('current_pin')}
             </Label>
             <div className="relative">
               <Input 
@@ -388,7 +385,7 @@ export function MFAPin({
                 type={showCurrentPin ? "text" : "password"}
                 value={currentPin} 
                 onChange={(e) => setCurrentPin(e.target.value)} 
-                placeholder="Current PIN"
+                placeholder={t('current_pin')}
                 maxLength={6}
                 disabled={isLoading}
               />
@@ -406,7 +403,7 @@ export function MFAPin({
           </div>
           <div>
             <Label htmlFor="new-pin-input" className="block mb-2">
-              New PIN (6 digits)
+              {t('new_pin')}
             </Label>
             <div className="relative">
               <Input 
@@ -414,7 +411,7 @@ export function MFAPin({
                 type={showPin ? "text" : "password"}
                 value={pin} 
                 onChange={(e) => setPin(e.target.value)} 
-                placeholder="New PIN"
+                placeholder={t('new_pin')}
                 maxLength={6}
                 disabled={isLoading}
               />
@@ -432,7 +429,7 @@ export function MFAPin({
           </div>
           <div>
             <Label htmlFor="confirm-new-pin-input" className="block mb-2">
-              Confirm New PIN
+              {t('confirm_pin')}
             </Label>
             <div className="relative">
               <Input 
@@ -440,7 +437,7 @@ export function MFAPin({
                 type={showConfirmPin ? "text" : "password"}
                 value={confirmPin} 
                 onChange={(e) => setConfirmPin(e.target.value)} 
-                placeholder="Confirm new PIN"
+                placeholder={t('confirm_pin')}
                 maxLength={6}
                 disabled={isLoading}
               />
@@ -457,9 +454,9 @@ export function MFAPin({
             </div>
           </div>
           <ActionButtons
-            primaryText="Change PIN"
-            cancelText="Cancel"
-            loadingText="Changing..."
+            primaryText={t('change_pin')}
+            cancelText={t('cancel')}
+            loadingText={t('changing_pin')}
             isLoading={isLoading}
             isDisabled={!isValidPin(currentPin) || !isValidPin(pin) || pin !== confirmPin || currentPin === pin}
             onCancel={handleCancel}

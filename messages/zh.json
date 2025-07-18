@@ -94,7 +94,27 @@
     "failed_to_modify": "手机号码已验证。您现在可以修改您的设置了。",
     "will_send_otp": "一次性密码将通过 WhatsApp 发送至 {number}。",
     "verified_phone": "已通过WhatApp验证",
-    "whatsapp_auth": "WhatsApp验证"
+    "whatsapp_auth": "WhatsApp验证",
+    "pin_authentication": "PIN 验证",
+    "pin_active": "6位数PIN已激活",
+    "set_up_pin": "设置PIN",
+    "change_pin": "修改PIN",
+    "remove_pin": "移除PIN",
+    "new_pin": "新PIN (6位数)",
+    "confirm_pin": "确认PIN",
+    "current_pin": "当前PIN",
+    "create_pin": "创建PIN",
+    "pin_created": "PIN创建成功",
+    "pin_changed": "PIN修改成功",
+    "pin_removed": "PIN移除成功",
+    "pin_error": "错误: {message}",
+    "pin_must_be_6_digits": "PIN必须是6位数字",
+    "pins_do_not_match": "PIN不匹配",
+    "current_pin_incorrect": "当前PIN不正确",
+    "new_pin_must_be_different": "新PIN必须与当前PIN不同",
+    "confirm_remove_pin": "您确定要移除PIN吗？",
+    "creating_pin": "创建中...",
+    "changing_pin": "修改中..."
   },
   "WalletCard": {
     "create_team_wallet": "创建团队钱包",
@@ -108,6 +128,7 @@
     "daily_withdraw_description": "请注意，每日提现限额仅在设置多因素认证（MFA）后生效。",
     "saving": "保存中...",
     "save": "保存设置",
+    "mfa_pin_settings": "PIN 码设置",
     "mfa_settings": "多因素认证设置",
     "update_success": "您的钱包设置已成功更新",
     "update_failed": "保存钱包设置失败，请重试",
@@ -251,5 +272,13 @@
     "fetch_more_transaction_failed": "获取更多交易失败",
     "empty": "此代币未找到交易记录",
     "Load More": "加载更多"
+  },
+  "PinVerification": {
+    "title": "PIN验证",
+    "description": "请输入您的6位数PIN继续",
+    "pin_label": "PIN (6位数)",
+    "verify_pin": "验证PIN",
+    "verifying": "验证中...",
+    "cancel": "取消"
   }
 }

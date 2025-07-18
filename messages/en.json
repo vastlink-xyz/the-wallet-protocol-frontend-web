@@ -94,7 +94,27 @@
     "failed_to_modify": "Phone number verified. You can now modify your settings.",
     "will_send_otp": "An OTP will be sent to {number} via WhatsApp.",
     "verified_phone": "Verified via WhatsApp",
-    "whatsapp_auth": "WhatsApp Authentication"
+    "whatsapp_auth": "WhatsApp Authentication",
+    "pin_authentication": "PIN Authentication",
+    "pin_active": "6-digit PIN is active",
+    "set_up_pin": "Set Up PIN",
+    "change_pin": "Change PIN",
+    "remove_pin": "Remove PIN",
+    "new_pin": "New PIN (6 digits)",
+    "confirm_pin": "Confirm PIN",
+    "current_pin": "Current PIN",
+    "create_pin": "Create PIN",
+    "pin_created": "PIN created successfully",
+    "pin_changed": "PIN changed successfully",
+    "pin_removed": "PIN removed successfully",
+    "pin_error": "Error: {message}",
+    "pin_must_be_6_digits": "PIN must be exactly 6 digits",
+    "pins_do_not_match": "PINs do not match",
+    "current_pin_incorrect": "Current PIN is incorrect",
+    "new_pin_must_be_different": "New PIN must be different from current PIN",
+    "confirm_remove_pin": "Are you sure you want to remove your PIN?",
+    "creating_pin": "Creating...",
+    "changing_pin": "Changing..."
   },
   "WalletCard": {
     "create_team_wallet": "Create a team wallet",
@@ -108,6 +128,7 @@
     "daily_withdraw_description": "Please note that daily withdrawal limits work only when MFA has been set up.",
     "saving": "Saving...",
     "save": "Save Settings",
+    "mfa_pin_settings": "PIN Settings",
     "mfa_settings": "MFA Settings",
     "update_success": "Your wallet settings have been updated successfully.",
     "update_failed": "Failed to save wallet settings. Please try again.",
@@ -251,5 +272,13 @@
     "fetch_more_transaction_failed": "Failed to fetch transactions",
     "empty": "No transactions found for this token",
     "Load More": "Load More"
+  },
+  "PinVerification": {
+    "title": "PIN Verification",
+    "description": "Please enter your 6-digit PIN to continue",
+    "pin_label": "PIN (6 digits)",
+    "verify_pin": "Verify PIN",
+    "verifying": "Verifying...",
+    "cancel": "Cancel"
   }
 }

@@ -2,10 +2,8 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
 import { log } from '@/lib/utils';
 import { MFAPhoneWhatsApp } from './MFAPhoneWhatsApp';
-import { MFAPin } from './MFAPin';
 import { toast } from 'react-toastify';
 import { useTranslations } from 'next-intl';
-import { PinService } from '@/services/pinService';
 
 // Define StytchPhoneNumber type based on expected API response
 interface StytchPhoneNumber {
@@ -93,13 +91,6 @@ export function MFASettingsContent({ isOpen, onPhoneUpdated, onMFAStatusChanged 
 
   return (
     <div className="space-y-4">
-      {/* PIN MFA */}
-      <MFAPin 
-        pinStatus={{ hasPin: PinService.hasLocalPinData() }}
-        authMethod={authMethod}
-        onSuccess={refreshMFAStatus}
-      />
-
       {/* Phone WhatsApp MFA */}
       <MFAPhoneWhatsApp 
         verifiedPhone={verifiedPhone}

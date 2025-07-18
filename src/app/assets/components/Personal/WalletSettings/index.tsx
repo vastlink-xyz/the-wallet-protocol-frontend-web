@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { MFASettingsContent } from './MFASettingsContent';
+import { MFAPin } from '../MFAPin';
 import { getProviderByAuthMethodType } from '@/lib/lit';
 import { toast } from 'react-toastify';
 import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
@@ -22,6 +23,7 @@ import { LogoLoading } from '@/components/LogoLoading';
 import { useNotifications } from '@/hooks/useNotifications';
 import { PersonalWalletSettingsContext } from '@/providers/PersonalWalletSettingsProvider';
 import { useTranslations } from 'next-intl';
+import { PinService } from '@/services/pinService';
 
 export function PersonalWalletSettings() {
   const t = useTranslations("PersonalWalletSettings");
@@ -304,6 +306,14 @@ export function PersonalWalletSettings() {
                 )
               }
             </LabeledContainer>
+
+              <LabeledContainer label={t("mfa_pin_settings")} className="mb-8">
+                <MFAPin
+                  pinStatus={{ hasPin: PinService.hasLocalPinData() }}
+                  authMethod={authMethod}
+                  onSuccess={invalidateMFANotifications}
+                />
+              </LabeledContainer>
 
               <LabeledContainer label={t("mfa_settings")}>
                 <MFASettingsContent
