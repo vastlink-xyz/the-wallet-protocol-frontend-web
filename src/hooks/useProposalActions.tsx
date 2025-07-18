@@ -8,6 +8,7 @@ import { sendProposalExecutedNotification } from "@/lib/notification/proposal-ex
 import { SUPPORTED_TOKENS_INFO } from "@/lib/web3/token";
 import { toast } from "react-toastify";
 import { MFAOtpDialog } from "@/components/Transaction/MFAOtpDialog";
+import { fetchProposals } from "./useProposals";
 
 export type ProposalDialogType =
   | { type: 'none' }
@@ -29,8 +30,6 @@ export interface UseProposalActionsParams {
   userPhone: string | null;
   /** Refresh proposals list. Can be async or sync. */
   refreshProposals: () => any | Promise<any>;
-  /** Fetch proposals for a wallet and proposalId. */
-  fetchProposals: (walletId: string, proposalId: string) => Promise<MessageProposal[]>;
   /** Refresh notifications. Can be async or sync. */
   refreshNotifications?: (authMethodId: string, ethAddress: string) => any | Promise<any>;
   /** Optionally invalidate proposal notifications. */
@@ -58,7 +57,6 @@ export function useProposalActions({
   authMethodId,
   userPhone,
   refreshProposals,
-  fetchProposals,
   refreshNotifications,
   invalidateProposalNotifications,
   t,
@@ -263,7 +261,7 @@ export function useProposalActions({
         // Always refresh notifications if provided
         if (refreshNotifications) await refreshNotifications(authMethodId, userPkp?.ethAddress);
         // Always fetch latest proposals to check threshold
-        const newProposals = await fetchProposals(wallet.id, proposal.id);
+        const newProposals = await fetchProposals(authMethodId, undefined, wallet.id, proposal.id);
         const updatedProposal = newProposals.find((p: MessageProposal) => p.id === proposal.id);
         if (updatedProposal && updatedProposal.signatures.length >= wallet.threshold) {
           try {

@@ -16,7 +16,7 @@ import { useAuthExpiration } from "@/hooks/useAuthExpiration";
 
 export default function ProposalsPage() {
   const t = useTranslations('ProposalList');
-  
+
   // Get walletId from params
   const params = useParams();
   const walletId = params.walletId as string;
@@ -32,7 +32,7 @@ export default function ProposalsPage() {
   const hasScrolledRef = useRef(false);
 
   // Get wallet data from context
-  const { wallet, isLoading: isWalletLoading, authMethod, walletPkp, userPkp, authMethodId, userPhone } = useWallet();
+  const { wallet, isLoading: isWalletLoading, authMethod, authMethodId, userPkp, userPhone } = useWallet();
 
   // Use React Query for proposals
   const {
@@ -40,7 +40,10 @@ export default function ProposalsPage() {
     isLoading: isLoadingProposals,
     isRefetching: isRefetchingProposals,
     refresh: refreshProposals,
-  } = useProposals(walletId);
+  } = useProposals(authMethodId || '',  {
+    enabled: !!authMethodId,
+    walletId,
+  });
 
   const { handleExpiredAuth, verifyAuthOrRedirect } = useAuthExpiration();
 
