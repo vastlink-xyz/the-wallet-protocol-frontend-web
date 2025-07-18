@@ -101,11 +101,11 @@ export function MFASettingsContent({ isOpen, onPhoneUpdated, onMFAStatusChanged 
         onPhoneUpdated={onPhoneUpdated}
       />
       {/* PIN MFA */}
-      <MFAPin 
+      {/* <MFAPin 
         pinStatus={{ hasPin: PinService.hasLocalPinData() }}
         authMethod={authMethod}
         onSuccess={refreshMFAStatus}
-      />
+      /> */}
     </div>
   );
 } 
