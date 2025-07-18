@@ -10,7 +10,6 @@ import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useNotifications } from '@/hooks/useNotifications';
 import Link from 'next/link';
-import { PersonalWalletSettings } from '@/app/assets/components/Personal/WalletSettings';
 import { PersonalWalletSettingsContext } from '@/providers/PersonalWalletSettingsProvider';
 import { useTranslations } from 'next-intl';
 
@@ -18,6 +17,7 @@ interface SidebarItemProps {
   href: string;
   icon: React.ReactNode;
   label: string;
+  isActive?: boolean;
   isCollapsed?: boolean;
   onClick?: () => void;
   className?: string;
@@ -28,14 +28,12 @@ function SidebarItem({
   href, 
   icon,
   label,
+  isActive,
   isCollapsed = false, 
   onClick,
   className,
   children
 }: SidebarItemProps) {
-  const pathname = usePathname();
-  const isActive = pathname === href;
-
   return (
     <Link
       href={onClick ? "#" : href}
@@ -73,10 +71,11 @@ function SidebarItem({
 }
 
 export function SidebarDesktop() {
+  const router = useRouter()
+  const pathname = usePathname();
+
   const t = useTranslations('Common');
 
-  const pathname = usePathname();
-  const router = useRouter()
   const [mounted, setMounted] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -137,6 +136,7 @@ export function SidebarDesktop() {
             href="/assets" 
             icon={<Wallet className="w-5 h-5" />}
             label={t("wallets")}
+            isActive={pathname === '/assets' || pathname.startsWith('/wallet/')}
             isCollapsed={isCollapsed}
           />
 
@@ -144,6 +144,7 @@ export function SidebarDesktop() {
             href="/proposals" 
             icon={<Server className="w-5 h-5" />}
             label={t("proposals")}
+            isActive={pathname === '/proposals'}
             isCollapsed={isCollapsed}
             className='relative'
           >
@@ -164,6 +165,7 @@ export function SidebarDesktop() {
             href="/notification" 
             icon={<BellIcon className="w-5 h-5" />}
             label={t("notifications")}
+            isActive={pathname === '/notification'}
             isCollapsed={isCollapsed}
             className='relative'
           >
@@ -186,6 +188,7 @@ export function SidebarDesktop() {
             href="#" 
             icon={<SettingsIcon className="w-5 h-5" />}
             label={t("settings")}
+            isActive={pathname === '/settings'}
             isCollapsed={isCollapsed}
             onClick={() => showPersonalWalletSettings()}
           />
