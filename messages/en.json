@@ -116,6 +116,16 @@
     "creating_pin": "Creating...",
     "changing_pin": "Changing..."
   },
+  "PinVerificationDialog": {
+    "default_title": "PIN Verification",
+    "default_description": "Please enter your 6-digit PIN to continue",
+    "pin_label": "PIN (6 digits)",
+    "pin_placeholder": "Enter your PIN",
+    "pin_must_be_6_digits": "PIN must be exactly 6 digits",
+    "verifying": "Verifying...",
+    "verify_pin": "Verify PIN",
+    "cancel": "Cancel"
+  },
   "WalletCard": {
     "create_team_wallet": "Create a team wallet",
     "send": "Send",

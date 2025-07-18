@@ -116,6 +116,16 @@
     "creating_pin": "创建中...",
     "changing_pin": "修改中..."
   },
+  "PinVerificationDialog": {
+    "default_title": "PIN 验证",
+    "default_description": "请输入您的 6 位数字 PIN 码以继续",
+    "pin_label": "PIN 码 (6 位数字)",
+    "pin_placeholder": "输入您的 PIN 码",
+    "pin_must_be_6_digits": "PIN 码必须为 6 位数字",
+    "verifying": "验证中...",
+    "verify_pin": "验证 PIN",
+    "cancel": "取消"
+  },
   "WalletCard": {
     "create_team_wallet": "创建团队钱包",
     "send": "发送",

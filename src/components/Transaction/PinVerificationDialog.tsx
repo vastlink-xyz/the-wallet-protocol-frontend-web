@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { PinService } from '@/services/pinService';
+import { useTranslations } from 'next-intl';
 
 interface PinVerificationDialogProps {
   isOpen: boolean;
@@ -19,9 +20,10 @@ export function PinVerificationDialog({
   isOpen,
   onClose,
   onPinVerify,
-  title = "PIN Verification",
-  description = "Please enter your 6-digit PIN to continue"
+  title,
+  description
 }: PinVerificationDialogProps) {
+  const t = useTranslations('PinVerificationDialog');
   const [pin, setPin] = useState('');
   const [showPin, setShowPin] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -38,7 +40,7 @@ export function PinVerificationDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!PinService.validatePinFormat(pin)) {
-      toast.error('PIN must be exactly 6 digits');
+      toast.error(t('pin_must_be_6_digits'));
       return;
     }
 
@@ -64,18 +66,18 @@ export function PinVerificationDialog({
     <Dialog open={isOpen} onOpenChange={handleCancel}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
+          <DialogTitle>{title || t('default_title')}</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            {description}
+            {description || t('default_description')}
           </p>
           
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <Label htmlFor="pin-input" className="block mb-2">
-                PIN (6 digits)
+                {t('pin_label')}
               </Label>
               <div className="relative">
                 <Input
@@ -83,7 +85,7 @@ export function PinVerificationDialog({
                   type={showPin ? "text" : "password"}
                   value={pin}
                   onChange={(e) => setPin(e.target.value)}
-                  placeholder="Enter your PIN"
+                  placeholder={t('pin_placeholder')}
                   maxLength={6}
                   disabled={isVerifying}
                   className="pr-10"
@@ -112,10 +114,10 @@ export function PinVerificationDialog({
                 {isVerifying ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Verifying...
+                    {t('verifying')}
                   </>
                 ) : (
-                  'Verify PIN'
+                  t('verify_pin')
                 )}
               </Button>
               <Button
@@ -125,7 +127,7 @@ export function PinVerificationDialog({
                 disabled={isVerifying}
                 className="flex-1"
               >
-                Cancel
+                {t('cancel')}
               </Button>
             </div>
           </form>
