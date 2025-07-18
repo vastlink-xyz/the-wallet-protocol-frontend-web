@@ -93,6 +93,7 @@
     "phone_number_removed": "手机号码已成功移除。",
     "failed_to_modify": "手机号码已验证。您现在可以修改您的设置了。",
     "will_send_otp": "一次性密码将通过 WhatsApp 发送至 {number}。",
+    "verified_phone": "已通过WhatApp验证",
     "whatsapp_auth": "WhatsApp验证"
   },
   "WalletCard": {
@@ -102,11 +103,14 @@
   },
   "PersonalWalletSettings": {
     "title": "个人钱包设置",
+    "notice": "请注意，每日提现限额仅在设置多因素认证（MFA）后生效。",
     "daily_withdraw_title": "每日提现限额",
     "daily_withdraw_description": "请注意，每日提现限额仅在设置多因素认证（MFA）后生效。",
-    "saging": "保存中...",
+    "saving": "保存中...",
     "save": "保存设置",
     "mfa_settings": "多因素认证设置",
+    "update_success": "您的钱包设置已成功更新",
+    "update_failed": "保存钱包设置失败，请重试",
     "opt_dialog_title": "验证设置更改",
     "opt_dialog_description": "一个验证码将通过 WhatsApp 发送至您的手机"
   },
@@ -176,7 +180,7 @@
     "empty_proposal_list": "未找到提案",
     "wallet_not_found_with_id": "未找到 ID 为 {id} 的钱包提案",
     "update_wallet_success": "钱包设置更新成功",
-    "insufficient_funds": "资金不足，无法支付固有交易成本",
+    "insufficient_funds": "余额不足，无法支付交易的基本费用",
     "transaction_completed": "交易完成",
     "authentication_required": "需要用户身份验证",
     "wallet_not_found": "未找到钱包",
@@ -187,11 +191,12 @@
     "cancel_proposal_success": "提案取消成功",
     "cancel_proposal_failed": "提案取消失败",
     "disallow_cancel_proposal": "您只能取消您创建的提案",
-    "proposal_not_found": "未找到提案",
+    "proposal_not_found": "未找到多签提案",
     "invalid_session": "未找到会话或电话号码",
     "otp_title": "交易验证",
     "otp_description": "验证码将通过 WhatsApp 发送到您的手机",
-    "execute_transaction_failed": "交易失败"
+    "execute_transaction_failed": "交易失败",
+    "daily_limit_exceeded": "超过每日限额"
   },
   "ProposalListItem": {
     "failed_parse_data": "无法解析设置数据",
@@ -244,7 +249,7 @@
   "TransactionHistory": {
     "fetch_transaction_failed": "获取交易失败",
     "fetch_more_transaction_failed": "获取更多交易失败",
-    "empty": "此代币未找到交易",
+    "empty": "此代币未找到交易记录",
     "Load More": "加载更多"
   }
 }

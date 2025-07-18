@@ -124,7 +124,7 @@ export function useProposalActions({
     if (result.isValid) {
       if (result.requireMFA) {
         setDialog({ type: 'mfa', proposal });
-        toast.warning('Daily limit exceeded');
+        toast.warning(t('daily_limit_exceeded'));
         // Throw custom error to signal MFA requirement to parent function
         throw new MFARequiredError(proposal);
       } else if (result.error) {
