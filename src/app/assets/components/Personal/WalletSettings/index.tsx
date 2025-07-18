@@ -36,6 +36,7 @@ export function PersonalWalletSettings() {
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [authMethodId, setAuthMethodId] = useState<string | null>(null);
   const [isMfaLoading, setIsMfaLoading] = useState<boolean>(false);
+  const [pinStatus, setPinStatus] = useState<{ hasPin: boolean }>({ hasPin: PinService.hasLocalPinData() });
 
   // State for real MFA Dialog
   const [showMfaDialog, setShowMfaDialog] = useState(false);
@@ -47,6 +48,11 @@ export function PersonalWalletSettings() {
   // Get user's session JWT
   const authMethod = getAuthMethodFromStorage();
   const sessionJwt = authMethod?.accessToken;
+
+  // Handle PIN status updates
+  const handlePinStatusUpdate = () => {
+    setPinStatus({ hasPin: PinService.hasLocalPinData() });
+  };
 
   useEffect(() => {
     const fetchAuthMethodId = async () => {
@@ -309,9 +315,9 @@ export function PersonalWalletSettings() {
 
               <LabeledContainer label={t("mfa_pin_settings")} className="mb-8">
                 <MFAPin
-                  pinStatus={{ hasPin: PinService.hasLocalPinData() }}
+                  pinStatus={pinStatus}
                   authMethod={authMethod}
-                  onSuccess={invalidateMFANotifications}
+                  onSuccess={handlePinStatusUpdate}
                 />
               </LabeledContainer>
 
