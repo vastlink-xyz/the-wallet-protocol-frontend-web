@@ -1,3 +1,5 @@
+import { MessageProposal } from '@/app/api/multisig/storage';
+import { generateSettingsChangeDescriptions } from '@/app/wallet/[walletId]/details/proposals/utils/settingsDescriptionUtils';
 import {
   HoverCard,
   HoverCardContent,
@@ -10,6 +12,83 @@ import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useContext, useMemo, useState } from 'react';
+
+function generateSettingsMessage(
+  t: (key: string, args?: { [key: string]: any }) => string,
+  proposal: MessageProposal & { walletName: string },
+) {
+  if (proposal.type === 'transaction') {
+    if (proposal.transactionData?.value && proposal.transactionData?.tokenType) {
+      return t('proposal_transaction_message', {
+        value: proposal.transactionData.value,
+        symbol: proposal.transactionData.tokenType,
+      });
+    }
+  }
+
+  if (proposal.type === 'walletSettings') {
+    if (proposal.settingsData && proposal.settingsData.originalState) {
+      if (proposal.settingsData?.changeDescription) {
+        return proposal.settingsData.changeDescription;
+      }
+
+      const changeResult = generateSettingsChangeDescriptions(
+        proposal.settingsData,
+        proposal.settingsData?.originalState
+      );
+
+      const descriptions: string[] = [];
+
+      if (changeResult.changes.name) {
+        descriptions.push(
+          t('proposal_change_name'),
+        );
+      }
+
+      if (changeResult.changes.threshold) {
+        descriptions.push(
+          t('proposal_change_threshold'),
+        );
+      }
+
+      if (changeResult.changes.signers) {
+        if (changeResult.changes.signers.added?.length > 0) {
+          descriptions.push(
+            t('proposal_add_signer', {
+              count: 3,//changeResult.changes.signers.added.length,
+            }),
+          );
+        }
+        if (changeResult.changes.signers.removed?.length > 0) {
+          descriptions.push(
+            t('proposal_remove_signer', {
+              count: changeResult.changes.signers.removed.length,
+            }),
+          );
+        }
+      }
+
+      if (changeResult.changes.mfaSettings && changeResult.changes.mfaSettings.dailyLimits) {
+        const items = Object.entries<any>(changeResult.changes.mfaSettings.dailyLimits);
+        if (items.length > 0) {
+          descriptions.push(
+            t('proposal_daily_limits'),
+          );
+        }
+      }
+
+      if (descriptions.length > 0) {
+        return descriptions.join(', ');
+      }
+    }
+
+    if (proposal.settingsData?.changeDescription) {
+      return proposal.settingsData.changeDescription;
+    }
+  }
+
+  return t('proposal_message');
+}
 
 export function NotificationMenu({
   className,
@@ -24,7 +103,7 @@ export function NotificationMenu({
 
   const hasUnread = useMemo(() => {
     return securityNotifications.length > 0 || proposalNotifications.length > 0;
-  }, [securityNotifications, proposalNotifications])
+  }, [securityNotifications, proposalNotifications]);
 
   return (
     <HoverCard open={showPopup} onOpenChange={setShowPopup} openDelay={50} closeDelay={100}>
@@ -99,30 +178,40 @@ export function NotificationMenu({
           )}>
             {t('proposals')}
           </div>
-          {proposalNotifications.map((proposalNotification, index) => (
-            <div
-              key={`proposal-${index}`}
-              className={cn(
-                'px-4 pt-4 grid grid-cols-[24px_1fr] items-center',
-                index === proposalNotifications.length - 1 ? 'pb-4' : null
-              )}
-            >
-              <Image
-                className="w-4 h-4"
-                src="/icons/exclamation-1.svg"
-                alt="exclamation"
-                width={14}
-                height={14}
-              />
-              <span className="font-semibold">{proposalNotification.title}</span>
-              <p className="col-start-2 text-sm line-clamp-2">{proposalNotification.message}</p>
-              <div className="w-full h-8 col-span-2 flex flex-row justify-end items-center">
-                <Link href={`/proposals?proposalId=${proposalNotification.data?.id}`} target="_blank" className="font-semibold">
-                  {t('review')}
-                </Link>
+          {proposalNotifications.map(({ data }, index) => {
+            const proposal = data as MessageProposal & { walletName: string };
+
+            const title = proposal.type === 'transaction'
+              ? t('proposal_transaction_title', { walletName: proposal.walletName })
+              : t('proposal_setting_title', { walletName: proposal.walletName })
+
+            const message = generateSettingsMessage(t, proposal);
+
+            return (
+              <div
+                key={`proposal-${index}`}
+                className={cn(
+                  'px-4 pt-4 grid grid-cols-[24px_1fr] items-center',
+                  index === proposalNotifications.length - 1 ? 'pb-4' : null
+                )}
+              >
+                <Image
+                  className="w-4 h-4"
+                  src="/icons/exclamation-1.svg"
+                  alt="exclamation"
+                  width={14}
+                  height={14}
+                />
+                <span className="font-semibold">{title}</span>
+                <p className="col-start-2 text-sm line-clamp-2">{message}</p>
+                <div className="w-full h-8 col-span-2 flex flex-row justify-end items-center">
+                  <Link href={`/proposals?proposalId=${data?.id}`} target="_blank" className="font-semibold">
+                    {t('review')}
+                  </Link>
+                </div>
               </div>
-            </div>
-          ))}
+            )})
+          }
 
           {/* Empty state */}
           {securityNotifications.length === 0 && proposalNotifications.length === 0 && (

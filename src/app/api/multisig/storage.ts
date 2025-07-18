@@ -1,6 +1,6 @@
-import { IRelayPKP } from '@lit-protocol/types'
-import { connectToDatabase, MultisigWalletModel, MessageProposalModel } from './models'
 import { TokenType } from '@/lib/web3/token'
+import { IRelayPKP } from '@lit-protocol/types'
+import { connectToDatabase, MessageProposalModel, MultisigWalletModel } from './models'
 
 export interface MultisigWalletAddresses {
   eth: string

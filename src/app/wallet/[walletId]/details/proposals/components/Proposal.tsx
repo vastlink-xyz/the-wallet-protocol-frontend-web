@@ -162,7 +162,7 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
           <>
             {changeResult.changes.name && (
               <div>
-                {transProposalListItem('name', {
+                {transProposalListItem('change_name', {
                   from: changeResult.changes.name.from,
                   to: changeResult.changes.name.to,
                 })}
@@ -171,7 +171,7 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
 
             {changeResult.changes.threshold && (
               <div className="text-sm font-semibold">
-                {transProposalListItem('threshold_details', {
+                {transProposalListItem('change_threshold', {
                   from_nums: changeResult.changes.threshold.from,
                   from_count: changeResult.changes.threshold.fromSignersCount,
                   to_nums: changeResult.changes.threshold.to,

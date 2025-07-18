@@ -39,7 +39,8 @@ export function MFAOtpDialog({
   actionText,
   retryText,
 }: MFAOtpDialogProps) {
-  const t = useTranslations("MFAOtpDialog")
+  const transCommon = useTranslations("Common")
+  const transDialog = useTranslations("MFAOtpDialog")
 
   const [otp, setOtp] = useState('');
   const [isSendingOtp, setIsSendingOtp] = useState(false);
@@ -47,7 +48,7 @@ export function MFAOtpDialog({
   const [otpSent, setOtpSent] = useState(false);
   const [initialSendAttempted, setInitialSendAttempted] = useState(false);
 
-  const effectiveDescription = description || t("notice", { identifier: identifier || 'your device'});
+  const effectiveDescription = description || transDialog("notice", { identifier: identifier || 'your device'});
 
   const handleSendOtp = useCallback(async (isRetry = false) => {
     setIsSendingOtp(true);
@@ -55,12 +56,12 @@ export function MFAOtpDialog({
       await sendOtp();
       setOtpSent(true);
       if(isRetry) {
-        toast.success(t("success"));
+        toast.success(transDialog("success"));
         log('OTP resent successfully');
       }
     } catch (err: any) {
       log('Error sending OTP:', err);
-      toast.error(err.message || t("failed"));
+      toast.error(err.message || transDialog("failed"));
       setOtpSent(false); 
     } finally {
       setIsSendingOtp(false);
@@ -83,7 +84,7 @@ export function MFAOtpDialog({
 
   const handleVerify = async () => {
     if (!otp.trim()) {
-      toast.error(t("empty"));
+      toast.error(transDialog("empty"));
       return;
     }
     setIsVerifying(true);
@@ -91,7 +92,7 @@ export function MFAOtpDialog({
       await onOtpVerify(otp);
     } catch (err: any) {
       log('Error verifying OTP:', err);
-      toast.error(err.message || t("invalid"));
+      toast.error(err.message || transDialog("invalid"));
     } finally {
       setIsVerifying(false);
     }
@@ -103,16 +104,16 @@ export function MFAOtpDialog({
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{title || t("title")}</DialogTitle>
+          <DialogTitle>{title || transDialog("title")}</DialogTitle>
           {otpSent && <DialogDescription>{effectiveDescription}</DialogDescription>}
           {!otpSent && !isLoading && (
             <DialogDescription>
-              {t("ready_to_send")}
+              {transDialog("ready_to_send")}
             </DialogDescription>
           )}
           {!otpSent && isLoading && (
             <DialogDescription>
-              {t("sending_otp")}
+              {transDialog("sending_otp")}
             </DialogDescription>
           )}
         </DialogHeader>
@@ -123,7 +124,7 @@ export function MFAOtpDialog({
               id="otp-input"
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
-              placeholder={t("enter_otp")}
+              placeholder={transDialog("enter_otp")}
               maxLength={6}
               disabled={isLoading}
             />
@@ -140,7 +141,7 @@ export function MFAOtpDialog({
               {isSendingOtp && !isVerifying ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : null}
-              {isSendingOtp && !isVerifying ? (actionInProgressText || t("processing")) : (retryText || t("resend_code"))}
+              {isSendingOtp && !isVerifying ? (actionInProgressText || transDialog("processing")) : (retryText || transDialog("resend_code"))}
             </Button>
           )}
           {!otpSent && !isLoading && (
@@ -151,19 +152,19 @@ export function MFAOtpDialog({
               {isSendingOtp ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : null}
-              {isSendingOtp ? (actionInProgressText || t("processing")) : t('send_otp')}
+              {isSendingOtp ? (actionInProgressText || transDialog("processing")) : transDialog('send_otp')}
             </Button>
           )}
           <div className="flex gap-2">
             <Button variant="ghost" onClick={onClose} disabled={isLoading && isVerifying}>
-              Cancel
+              {transCommon("cancel")}
             </Button>
             {otpSent && (
               <Button onClick={handleVerify} disabled={isLoading || !otp.trim()}>
                 {isVerifying ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : null}
-                {isVerifying ? (actionInProgressText || t("processing")) : (actionText || t("verify_code"))}
+                {isVerifying ? (actionInProgressText || transDialog("processing")) : (actionText || transDialog("verify_code"))}
               </Button>
             )}
           </div>

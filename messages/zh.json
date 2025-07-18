@@ -56,7 +56,6 @@
     "send_otp": "发送一次性密码",
     "sending_otp": "正在发送一次性密码...",
     "ready_to_send": "准备发送一次性密码。",
-    "cancel": "取消",
     "notice": "一个一次性密码已发送至 {identifier}。请在下方输入。",
     "success": "一次性密码已成功重发",
     "failed": "发送一次性密码失败。请重试。",
@@ -72,7 +71,7 @@
     "cancel": "取消",
     "sending": "发送中...",
     "fetch_error": "获取多因素认证状态时出错",
-    "user_not_found": "未找到用户会话。",
+    "user_not_found": "当前操作超时，请重新尝试",
     "phone_not_found": "没有可移除的手机号码。",
     "invalid_phone_format": "手机号码格式无效。请使用 E.164 格式，例如+12345678900",
     "invalid_phone_information": "操作无效或缺少手机信息",
@@ -93,7 +92,9 @@
     "phone_number_added": "手机号码已成功添加。",
     "phone_number_removed": "手机号码已成功移除。",
     "failed_to_modify": "手机号码已验证。您现在可以修改您的设置了。",
-    "will_send_otp": "一个一次性密码将通过 WhatsApp 发送至 {number}。"
+    "will_send_otp": "一次性密码将通过 WhatsApp 发送至 {number}。",
+    "verified_phone": "已通过WhatApp验证",
+    "whatsapp_auth": "WhatsApp验证"
   },
   "WalletCard": {
     "create_team_wallet": "创建团队钱包",
@@ -103,9 +104,13 @@
   "PersonalWalletSettings": {
     "title": "个人钱包设置",
     "notice": "请注意，每日提现限额仅在设置多因素认证（MFA）后生效。",
-    "saging": "保存中...",
+    "daily_withdraw_title": "每日提现限额",
+    "daily_withdraw_description": "请注意，每日提现限额仅在设置多因素认证（MFA）后生效。",
+    "saving": "保存中...",
     "save": "保存设置",
     "mfa_settings": "多因素认证设置",
+    "update_success": "您的钱包设置已成功更新",
+    "update_failed": "保存钱包设置失败，请重试",
     "opt_dialog_title": "验证设置更改",
     "opt_dialog_description": "一个验证码将通过 WhatsApp 发送至您的手机"
   },
@@ -139,7 +144,8 @@
     "add_signer": "添加新签名者",
     "required_signatures": "所需签名数:",
     "number_of_signatures": "{count} 人中的 {num} 人",
-    "daily_withdrawal_limits": "请注意，每日提现限额仅在设置多因素认证（MFA）后生效。"
+    "daily_withdraw_title": "每日提现限额",
+    "daily_withdraw_description": "请注意，每日提现限额仅在设置多因素认证（MFA）后生效。"
   },
   "SendTransactionDialog": {
     "title": "发送",
@@ -174,7 +180,7 @@
     "empty_proposal_list": "未找到提案",
     "wallet_not_found_with_id": "未找到 ID 为 {id} 的钱包提案",
     "update_wallet_success": "钱包设置更新成功",
-    "insufficient_funds": "资金不足，无法支付固有交易成本",
+    "insufficient_funds": "余额不足，无法支付交易的基本费用",
     "transaction_completed": "交易完成",
     "authentication_required": "需要用户身份验证",
     "wallet_not_found": "未找到钱包",
@@ -185,16 +191,17 @@
     "cancel_proposal_success": "提案取消成功",
     "cancel_proposal_failed": "提案取消失败",
     "disallow_cancel_proposal": "您只能取消您创建的提案",
-    "proposal_not_found": "未找到提案",
+    "proposal_not_found": "未找到多签提案",
     "invalid_session": "未找到会话或电话号码",
     "otp_title": "交易验证",
     "otp_description": "验证码将通过 WhatsApp 发送到您的手机",
-    "execute_transaction_failed": "交易失败"
+    "execute_transaction_failed": "交易失败",
+    "daily_limit_exceeded": "超过每日限额"
   },
   "ProposalListItem": {
     "failed_parse_data": "无法解析设置数据",
     "setting_change": "设置变更",
-    "name": "名称: {from} → {to}",
+    "change_name": "名称: {from} → {to}",
     "transfer": "转账",
     "add_signers": "添加签名者:",
     "remove_signers": "移除签名者:",
@@ -203,8 +210,8 @@
     "data": "Data: {data}",
     "details": "详情: {data}",
     "created_by": "创建者: {email}",
-    "threshold": "Threshold: {nums} of {count}",
-    "threshold_details": "Threshold: {from_nums} of {from_count} → {to_nums} of {to_count}",
+    "threshold": "多签门槛: {nums} of {count}",
+    "change_threshold": "多签门槛: {from_nums} of {from_count} → {to_nums} of {to_count}",
     "signers": "签名者:",
     "approve": "批准",
     "approve_and_execute" : "批准并执行",
@@ -225,6 +232,16 @@
     "proposals": "提案",
     "mfa_setup_title": "设置多因素认证",
     "mfa_setup_message": "为了让您的钱包更安全，我们强烈建议您<link>在设置中配置每日提现限额和多因素认证（MFA）</link>",
+    "proposal_transaction_title": "{walletName} - 待处理提案",
+    "proposal_transaction_message": "一个 {value} {symbol} 转账提案需要你审核。",
+    "proposal_setting_title": "{walletName} - 请求更改设置",
+    "proposal_setting_message": "一个设置更改提案需要您的审核。",
+    "proposal_message": "一个待处理提案需要您的批准。",
+    "proposal_change_name": "修改钱包名称",
+    "proposal_change_threshold": "更新多签门槛",
+    "proposal_add_signer": "添加{count, plural, =0 {签名者} other {#个签名者}}",
+    "proposal_remove_signer": "删除{count, plural, =0 {签名者} other {#个签名者}}",
+    "proposal_daily_limits": "更新每日限额",
     "view_all": "查看全部",
     "review": "查看 →",
     "empty": "没有新通知"
@@ -232,7 +249,7 @@
   "TransactionHistory": {
     "fetch_transaction_failed": "获取交易失败",
     "fetch_more_transaction_failed": "获取更多交易失败",
-    "empty": "此代币未找到交易",
+    "empty": "此代币未找到交易记录",
     "Load More": "加载更多"
   }
 }

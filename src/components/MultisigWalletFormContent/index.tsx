@@ -1038,14 +1038,14 @@ export function MultisigWalletFormContent({
       )}
       
       {/* MFA Settings */}
-      <LabeledContainer label="Daily Withdraw Limits">
+      <LabeledContainer label={transWallet('daily_withdraw_title')}>
         {
           dailyLimits && (
             <>
               {!verifiedPhone && (
                 <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-md">
                   <p className="text-amber-800 text-sm">
-                    {transWallet('daily_withdrawal_limits')}
+                    {transWallet('daily_withdraw_description')}
                   </p>
                 </div>
               )}
@@ -1067,7 +1067,7 @@ export function MultisigWalletFormContent({
             disabled={isLoading}
             className="flex-1"
           >
-            Cancel
+            {transCommon('cancel')}
           </Button>
         )}
         <Button
