@@ -180,7 +180,7 @@
     "empty_proposal_list": "未找到提案",
     "wallet_not_found_with_id": "未找到 ID 为 {id} 的钱包提案",
     "update_wallet_success": "钱包设置更新成功",
-    "insufficient_funds": "资金不足，无法支付固有交易成本",
+    "insufficient_funds": "余额不足，无法支付交易的基本费用",
     "transaction_completed": "交易完成",
     "authentication_required": "需要用户身份验证",
     "wallet_not_found": "未找到钱包",
@@ -191,7 +191,7 @@
     "cancel_proposal_success": "提案取消成功",
     "cancel_proposal_failed": "提案取消失败",
     "disallow_cancel_proposal": "您只能取消您创建的提案",
-    "proposal_not_found": "未找到提案",
+    "proposal_not_found": "未找到多签提案",
     "invalid_session": "未找到会话或电话号码",
     "otp_title": "交易验证",
     "otp_description": "验证码将通过 WhatsApp 发送到您的手机",
@@ -249,7 +249,7 @@
   "TransactionHistory": {
     "fetch_transaction_failed": "获取交易失败",
     "fetch_more_transaction_failed": "获取更多交易失败",
-    "empty": "此代币未找到交易",
+    "empty": "此代币未找到交易记录",
     "Load More": "加载更多"
   }
 }
