@@ -81,35 +81,44 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, handleS
     );
   }, [proposal.settingsData, selectedWallet]);
 
+  const changeResult = useMemo(() => {
+    if (!proposal.settingsData) {
+      return {
+        changes: {},
+        descriptions: [],
+        newSigners: [],
+        removedSigners: [],
+      };
+    }
+
+    return generateSettingsChangeDescriptions(proposal.settingsData, originalState);
+  }, [proposal.settingsData, originalState]);
+
+  const dailyLimits = useMemo(() => {
+    if (changeResult.changes.mfaSettings && changeResult.changes.mfaSettings.dailyLimits) {
+      return Object.entries<any>(changeResult.changes.mfaSettings.dailyLimits);
+    }
+    return [];
+  }, [changeResult])
+
+  const descriptions = useMemo(() => {
+    const descriptions = [...changeResult.descriptions];
+
+    // Handle case when proposal is completed but changes are not detected
+    if (descriptions.length === 0 && proposal.status === 'completed') {
+      descriptions.push(
+       proposal.settingsData?.changeDescription || 'Wallet settings updated'
+      );
+    } else if (descriptions.length === 0) {
+      descriptions.push('No changes detected');
+    }
+    return descriptions;
+  }, [changeResult.descriptions, proposal.status, proposal.settingsData]);
+
   // Extract settings data from the proposal
   const settingsData = proposal.settingsData as ExtendedSettingsData;
   if (!settingsData) {
     return <div>{transProposalListItem("failed_parse_data")}</div>;
-  }
-
-  // Generate change descriptions using the utility function
-  const changeResult = generateSettingsChangeDescriptions(
-    settingsData,
-    originalState
-  );
-
-  const dailyLimits: [string, any][] = [];
-  if (changeResult.changes.mfaSettings && changeResult.changes.mfaSettings.dailyLimits) {
-    const items = Object.entries<any>(changeResult.changes.mfaSettings.dailyLimits);
-    if (items.length > 0) {
-      dailyLimits.push(...items);
-    }
-  }
-
-  const descriptions = changeResult.descriptions;
-
-  // Handle case when proposal is completed but changes are not detected
-  if (descriptions.length === 0 && proposal.status === 'completed') {
-    descriptions.push(
-      settingsData.changeDescription || 'Wallet settings updated'
-    );
-  } else if (descriptions.length === 0) {
-    descriptions.push('No changes detected');
   }
 
   return (

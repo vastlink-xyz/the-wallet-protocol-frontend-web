@@ -130,7 +130,6 @@ export function ProposalsList({ proposals }: { proposals: PendingProposalNotific
     authMethodId,
     userPhone,
     refreshProposals: invalidateProposalNotifications, // Use invalidateProposalNotifications as refreshProposals
-    fetchProposals,
     refreshNotifications: () => {}, // No refreshNotifications needed for notification page
     invalidateProposalNotifications,
     t,

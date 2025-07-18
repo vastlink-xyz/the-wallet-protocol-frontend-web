@@ -118,9 +118,9 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
     isLoading: isLoadingProposals,
     isRefetching: isRefetchingProposals,
     refresh: refreshProposals,
-  } = useProposals(undefined, {
-    status, 
-    userAddress: userPkp?.ethAddress
+  } = useProposals(authMethodId || '', {
+    enabled: !!authMethodId,
+    status,
   });
 
   // Fetch wallets using user address
@@ -161,7 +161,6 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
     authMethodId,
     userPhone,
     refreshProposals,
-    fetchProposals,
     refreshNotifications: (authMethodId: string, ethAddress: string) => {
       refreshNotifications(authMethodId, ethAddress);
     },

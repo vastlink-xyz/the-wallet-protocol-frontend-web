@@ -136,18 +136,18 @@ export function NotificationMenu({
               <div className="absolute w-1 h-full bg-notification-accent" />
               <div
                 className={cn(
-                  'px-4 pt-4 grid grid-cols-[24px_1fr] items-center',
+                  'px-4 pt-4 grid grid-cols-[24px_1fr] items-start',
                   index === securityNotifications.length - 1 ? 'pb-4' : null
                 )}
               >
                 <Image
-                  className="w-4 h-4"
+                  className="w-4 h-4 mt-[2px]"
                   src="/icons/exclamation-2.svg"
                   alt="exclamation"
                   width={14}
                   height={14}
                 />
-                <div className="flex flex-row gap-2 items-center">
+                <div className="flex flex-row gap-2 items-center leading-5 line-clamp-2">
                   <span className="font-semibold">
                     {securityNotification.type === 'mfa_setup' ? t('mfa_setup_title') : securityNotification.title}
                   </span>
@@ -191,18 +191,18 @@ export function NotificationMenu({
               <div
                 key={`proposal-${index}`}
                 className={cn(
-                  'px-4 pt-4 grid grid-cols-[24px_1fr] items-center',
+                  'px-4 pt-4 grid grid-cols-[24px_1fr] items-start',
                   index === proposalNotifications.length - 1 ? 'pb-4' : null
                 )}
               >
                 <Image
-                  className="w-4 h-4"
+                  className="w-4 h-4 mt-[2px]"
                   src="/icons/exclamation-1.svg"
                   alt="exclamation"
                   width={14}
                   height={14}
                 />
-                <span className="font-semibold">{title}</span>
+                <span className="font-semibold leading-5 line-clamp-2">{title}</span>
                 <p className="col-start-2 text-sm line-clamp-2">{message}</p>
                 <div className="w-full h-8 col-span-2 flex flex-row justify-end items-center">
                   <Link href={`/proposals?proposalId=${data?.id}`} target="_blank" className="font-semibold">
