@@ -115,10 +115,11 @@ export function ProposalsList({ proposals }: { proposals: PendingProposalNotific
   // Use the proposal actions hook
   const {
     handleSignProposal,
+    handleSignProposalAndExecute,
     executeMultisigLitAction,
     handleCancelProposal,
     isSigningProposal,
-    isLoading,
+    isExecuting,
     isDisabled,
     isCancelingProposal,
     dialog,
@@ -183,12 +184,13 @@ export function ProposalsList({ proposals }: { proposals: PendingProposalNotific
                 proposal={data!}
                 selectedWallet={wallet}
                 handleSignProposal={handleSignProposal}
+                handleSignProposalAndExecute={handleSignProposalAndExecute}
                 executeMultisigLitAction={executeMultisigLitAction}
                 handleCancelProposal={handleCancelProposal}
                 userPkp={userPkp}
                 authMethodId={authMethodId}
                 isSigningProposal={isSigningProposal(data!.id)}
-                isLoading={isLoading(data!.id)}
+                isExecuting={isExecuting(data!.id)}
                 isDisabled={isDisabled}
                 isCancelingProposal={isCancelingProposal(data!.id)}
               />

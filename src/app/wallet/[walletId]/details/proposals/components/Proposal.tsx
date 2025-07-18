@@ -15,18 +15,19 @@ interface ProposalProps {
   proposal: MessageProposal;
   selectedWallet: MultisigWallet;
   handleSignProposal: (proposal: MessageProposal) => void;
+  handleSignProposalAndExecute: (proposal: MessageProposal) => void;
   executeMultisigLitAction: (proposal: MessageProposal) => void;
   handleCancelProposal: (proposal: MessageProposal) => void;
   userPkp: IRelayPKP;
   authMethodId: string | null;
   isSigningProposal: boolean;
-  isLoading: boolean;
+  isExecuting: boolean;
   isDisabled: boolean;
   isCancelingProposal: boolean;
 }
 
-export function Proposal({ proposal, selectedWallet, handleSignProposal, executeMultisigLitAction, handleCancelProposal, userPkp, authMethodId, isSigningProposal, isLoading, isDisabled, isCancelingProposal }: ProposalProps) {
-  const isPending = isSigningProposal || isLoading || isDisabled || isCancelingProposal;
+export function Proposal({ proposal, selectedWallet, handleSignProposal, handleSignProposalAndExecute, executeMultisigLitAction, handleCancelProposal, userPkp, authMethodId, isSigningProposal, isExecuting, isDisabled, isCancelingProposal }: ProposalProps) {
+  const isPending = isSigningProposal || isExecuting || isDisabled || isCancelingProposal;
 
   const transProposalStatus = useTranslations("ProposalStatus")
   const transProposalListItem = useTranslations("ProposalListItem")
@@ -300,15 +301,31 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
         )}
 
         {proposal.status === 'pending' && !signedByMe && (
-          <Button
-            className="rounded-full"
-            variant="default"
-            disabled={isPending}
-            onClick={() => handleSignProposal(proposal)}
-          >
-            {isSigningProposal && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {transProposalListItem(proposal.signatures.length + 1 >= displayThreshold ? "approve_and_execute" : "approve")}
-          </Button>
+          <>
+            {proposal.signatures.length + 1 < displayThreshold ? (
+              <Button
+                className="rounded-full"
+                variant="default"
+                disabled={isPending}
+                onClick={() => handleSignProposal(proposal)}
+              >
+                {isSigningProposal && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {transProposalListItem("approve")}
+              </Button>
+            ) : (
+              <>
+                <Button
+                  className="rounded-full"
+                  variant="default"
+                  disabled={isPending}
+                  onClick={() => handleSignProposalAndExecute(proposal)}
+                >
+                  {(isSigningProposal || isExecuting) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {transProposalListItem("approve_and_execute")}
+                </Button>
+              </>
+            )}
+          </>
         )}
 
         {proposal.status === 'pending' && proposal.signatures.length >= displayThreshold && signedByMe && (
@@ -318,7 +335,7 @@ export function Proposal({ proposal, selectedWallet, handleSignProposal, execute
             disabled={isPending}
             onClick={() => executeMultisigLitAction(proposal)}
           >
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isExecuting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {transProposalListItem("execute")}
           </Button>
         )}

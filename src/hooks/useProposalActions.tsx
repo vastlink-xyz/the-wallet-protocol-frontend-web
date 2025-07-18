@@ -8,16 +8,27 @@ import { sendProposalExecutedNotification } from "@/lib/notification/proposal-ex
 import { SUPPORTED_TOKENS_INFO } from "@/lib/web3/token";
 import { toast } from "react-toastify";
 import { MFAOtpDialog } from "@/components/Transaction/MFAOtpDialog";
+import { PinVerificationDialog } from "@/components/Transaction/PinVerificationDialog";
+import { PinService } from "@/services/pinService";
 
 export type ProposalDialogType =
   | { type: 'none' }
-  | { type: 'mfa'; proposal: MessageProposal };
+  | { type: 'mfa'; proposal: MessageProposal }
+  | { type: 'pin'; proposal: MessageProposal };
 
 // Custom error for MFA flow
 export class MFARequiredError extends Error {
   constructor(public proposal: MessageProposal) {
     super('MFA verification required');
     this.name = 'MFARequiredError';
+  }
+}
+
+// Custom error for PIN verification
+export class PinRequiredError extends Error {
+  constructor(public proposal: MessageProposal) {
+    super('PIN verification required');
+    this.name = 'PinRequiredError';
   }
 }
 
@@ -42,10 +53,11 @@ export interface UseProposalActionsParams {
 
 export interface UseProposalActionsReturn {
   handleSignProposal: (proposal: MessageProposal) => Promise<void>;
+  handleSignProposalAndExecute: (proposal: MessageProposal) => Promise<void>;
   executeMultisigLitAction: (proposal: MessageProposal) => Promise<void>;
   handleCancelProposal: (proposal: MessageProposal) => Promise<void>;
   isSigningProposal: (id: string) => boolean;
-  isLoading: (id: string) => boolean;
+  isExecuting: (id: string) => boolean;
   isDisabled: boolean;
   isCancelingProposal: (id: string) => boolean;
   dialog: React.ReactNode;
@@ -199,10 +211,18 @@ export function useProposalActions({
     if (!walletPkp || !wallet || !authMethod || !userPkp) return;
     
     let mfaRequired = false;
+    let pinRequired = false;
     
     try {
       setExecutingStates(prev => ({ ...prev, [proposal.id]: true }));
       setIsDisabled(true);
+      
+      // Check if PIN is required before execution
+      if (PinService.hasLocalPinData()) {
+        setDialog({ type: 'pin', proposal });
+        throw new PinRequiredError(proposal);
+      }
+      
       if (!litNodeClient.ready) {
         await litNodeClient.connect();
       }
@@ -215,6 +235,14 @@ export function useProposalActions({
         await handleExecuteTransactionProposal(proposal, sessionSigs);
       }
     } catch (err: any) {
+      // Handle PIN requirement - keep loading state active
+      if (err instanceof PinRequiredError) {
+        pinRequired = true;
+        // PIN dialog is already set, keep loading state and disabled state
+        // Don't clear states - let handlePinVerify handle the flow
+        return;
+      }
+      
       // Handle MFA requirement - keep loading state active
       if (err instanceof MFARequiredError) {
         mfaRequired = true;
@@ -231,17 +259,54 @@ export function useProposalActions({
         toast.error(err?.message || t('sign_proposal_failed'));
       }
     } finally {
-      // Only clear states if not in MFA flow
-      if (!mfaRequired) {
+      // Only clear states if not in MFA or PIN flow
+      if (!mfaRequired && !pinRequired) {
         setExecutingStates(prev => ({ ...prev, [proposal.id]: false }));
         setIsDisabled(false);
       }
     }
   };
 
-  // --- Fully parameterized, parent-compatible handleSignProposal ---
+  // --- Sign proposal only (no auto-execution) ---
   const handleSignProposal = async (proposal: MessageProposal) => {
-    // Parent components expect: sign, refresh notifications, fetchProposals, auto-execute if threshold, else refresh proposals/notifications
+    const wallet = walletMap.get(proposal.walletId);
+    const walletPkp = wallet?.pkp;
+    if (!walletPkp || !authMethod || !wallet || !userPkp || !authMethodId) return;
+    const isAuthValid = await verifyAuthOrRedirect();
+    if (!isAuthValid) return;
+    
+    try {
+      setSigningStates(prev => ({ ...prev, [proposal.id]: true }));
+      const response = await signProposal({
+        proposal,
+        wallet,
+        userPkp,
+        authMethod,
+        authMethodId,
+      });
+      if (response.data.success) {
+        toast.success(t('sign_proposal_succeess'));
+        // Always refresh notifications if provided
+        if (refreshNotifications) await refreshNotifications(authMethodId, userPkp?.ethAddress);
+        // Refresh proposals to show updated state
+        if (refreshProposals) await refreshProposals();
+        // Invalidate proposal notifications
+        if (invalidateProposalNotifications) await invalidateProposalNotifications();
+      }
+    } catch (err: any) {
+      const errorMessage = err?.message || '';
+      if (errorMessage.includes('Google JWT expired') || (err?.shortMessage && err.shortMessage.includes('Google JWT expired'))) {
+        handleExpiredAuth();
+      } else {
+        toast.error(err?.message || t('sign_proposal_failed'));
+      }
+    } finally {
+      setSigningStates(prev => ({ ...prev, [proposal.id]: false }));
+    }
+  };
+
+  // --- Sign proposal and auto-execute if threshold is reached ---
+  const handleSignProposalAndExecute = async (proposal: MessageProposal) => {
     const wallet = walletMap.get(proposal.walletId);
     const walletPkp = wallet?.pkp;
     if (!walletPkp || !authMethod || !wallet || !userPkp || !authMethodId) return;
@@ -269,8 +334,8 @@ export function useProposalActions({
           try {
             await executeMultisigLitAction(updatedProposal);
           } catch (err: any) {
-            // Check if MFA was triggered during execution
-            if (err instanceof MFARequiredError) {
+            // Check if PIN or MFA was triggered during execution
+            if (err instanceof PinRequiredError || err instanceof MFARequiredError) {
               mfaTriggered = true;
               throw err; // Re-throw to be caught by outer catch
             }
@@ -284,9 +349,9 @@ export function useProposalActions({
         }
       }
     } catch (err: any) {
-      if (err instanceof MFARequiredError) {
+      if (err instanceof PinRequiredError || err instanceof MFARequiredError) {
         mfaTriggered = true;
-        // MFA flow started, don't clear states
+        // PIN or MFA flow started, don't clear states
         return;
       }
       
@@ -320,6 +385,78 @@ export function useProposalActions({
     }
     const data = await response.json();
     setMfaMethodId(data.method_id);
+  };
+
+  const handlePinVerify = async (pin: string) => {
+    if (dialog.type !== 'pin') return;
+    if (!authMethod || !userPkp) throw new Error('Missing required information for PIN verification');
+    
+    const currentProposal = dialog.proposal;
+    
+    try {
+      // Verify PIN first
+      const storedPinData = PinService.getLocalPinData();
+      if (!storedPinData) {
+        toast.error('No PIN is set');
+        throw new Error('No PIN is set');
+      }
+      
+      const isPinValid = await PinService.verifyPin(
+        pin,
+        storedPinData,
+        {
+          litActionPkp: userPkp,
+          authMethod: authMethod
+        }
+      );
+      
+      if (!isPinValid) {
+        toast.error('Invalid PIN');
+        throw new Error('Invalid PIN'); // This will be caught by the dialog and won't close it
+      }
+      
+      // PIN verified, close dialog and continue with execution
+      setDialog({ type: 'none' });
+      
+      // Continue with transaction execution - states are already set from executeMultisigLitAction
+      if (!litNodeClient.ready) {
+        await litNodeClient.connect();
+      }
+      const sessionSigs = await getSessionSigsByPkp({ authMethod, pkp: userPkp, refreshStytchAccessToken: true });
+      const isWalletSettingsProposal = currentProposal.type === 'walletSettings';
+      const settingsData = currentProposal.settingsData;
+      
+      if (isWalletSettingsProposal && settingsData) {
+        await handleExecuteWalletSettingsProposal(currentProposal, settingsData, sessionSigs);
+      } else {
+        await handleExecuteTransactionProposal(currentProposal, sessionSigs);
+      }
+      
+      // On success, clear all states
+      setExecutingStates(prev => ({ ...prev, [currentProposal.id]: false }));
+      setSigningStates(prev => ({ ...prev, [currentProposal.id]: false }));
+      setIsDisabled(false);
+    } catch (error: any) {
+      console.error('Error verifying PIN or executing proposal:', error);
+      
+      // If it's a PIN validation error, just throw it to keep dialog open
+      if (error.message === 'Invalid PIN' || error.message === 'No PIN is set') {
+        throw error;
+      }
+      
+      // Check if MFA is required after PIN verification
+      if (error instanceof MFARequiredError) {
+        // MFA dialog should already be set by handleExecuteTransactionProposal
+        // Keep loading states active for MFA flow
+        return;
+      }
+      
+      // On other errors, clear states and close dialog
+      setExecutingStates(prev => ({ ...prev, [currentProposal.id]: false }));
+      setSigningStates(prev => ({ ...prev, [currentProposal.id]: false }));
+      setIsDisabled(false);
+      setDialog({ type: 'none' });
+    }
   };
 
   const handleOtpVerify = async (otp: string) => {
@@ -385,24 +522,40 @@ export function useProposalActions({
     }
   };
 
-  // Handle MFA dialog close
-  const handleMfaDialogClose = () => {
-    if (dialog.type === 'mfa') {
+  // Handle dialog close
+  const handleDialogClose = () => {
+    if (dialog.type === 'mfa' || dialog.type === 'pin') {
       // Clear all states when dialog is closed/cancelled
       setExecutingStates(prev => ({ ...prev, [dialog.proposal.id]: false }));
       setSigningStates(prev => ({ ...prev, [dialog.proposal.id]: false }));
       setIsDisabled(false);
+      
+      // Refresh proposals to ensure UI reflects current state
+      // This is important when user cancels MFA after successful approve
+      if (refreshProposals) {
+        refreshProposals();
+      }
     }
     setDialog({ type: 'none' });
   };
 
   // Dialog rendering (extensible for future types)
   let dialogElement: React.ReactNode | null = null;
-  if (dialog.type === 'mfa') {
+  if (dialog.type === 'pin') {
+    dialogElement = (
+      <PinVerificationDialog
+        isOpen={true}
+        onClose={handleDialogClose}
+        onPinVerify={handlePinVerify}
+        title={t("pin_verification_title")}
+        description={t("pin_verification_description")}
+      />
+    );
+  } else if (dialog.type === 'mfa') {
     dialogElement = (
       <MFAOtpDialog
         isOpen={true}
-        onClose={handleMfaDialogClose}
+        onClose={handleDialogClose}
         onOtpVerify={handleOtpVerify}
         sendOtp={handleSendOtp}
         identifier={userPhone}
@@ -414,10 +567,11 @@ export function useProposalActions({
 
   return {
     handleSignProposal,
+    handleSignProposalAndExecute,
     executeMultisigLitAction,
     handleCancelProposal,
     isSigningProposal: (id: string) => signingStates[id] || false,
-    isLoading: (id: string) => executingStates[id] || false,
+    isExecuting: (id: string) => executingStates[id] || false,
     isDisabled,
     isCancelingProposal: (id: string) => cancelingStates[id] || false,
     dialog: dialogElement,

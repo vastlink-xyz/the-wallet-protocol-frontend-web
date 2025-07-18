@@ -58,10 +58,11 @@ export default function ProposalsPage() {
   // Use the proposal actions hook
   const {
     handleSignProposal,
+    handleSignProposalAndExecute,
     executeMultisigLitAction,
     handleCancelProposal,
     isSigningProposal,
-    isLoading,
+    isExecuting,
     isDisabled,
     isCancelingProposal,
     dialog,
@@ -174,12 +175,13 @@ export default function ProposalsPage() {
                     proposal={proposal}
                     selectedWallet={wallet}
                     handleSignProposal={handleSignProposal}
+                    handleSignProposalAndExecute={handleSignProposalAndExecute}
                     executeMultisigLitAction={executeMultisigLitAction}
                     handleCancelProposal={handleCancelProposal}
                     userPkp={userPkp}
                     authMethodId={authMethodId}
                     isSigningProposal={isSigningProposal(proposal.id)}
-                    isLoading={isLoading(proposal.id)}
+                    isExecuting={isExecuting(proposal.id)}
                     isDisabled={isDisabled}
                     isCancelingProposal={isCancelingProposal(proposal.id)}
                   />

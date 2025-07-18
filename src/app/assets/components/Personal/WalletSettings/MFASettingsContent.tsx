@@ -93,6 +93,13 @@ export function MFASettingsContent({ isOpen, onPhoneUpdated, onMFAStatusChanged 
 
   return (
     <div className="space-y-4">
+      {/* PIN MFA */}
+      <MFAPin 
+        pinStatus={{ hasPin: PinService.hasLocalPinData() }}
+        authMethod={authMethod}
+        onSuccess={refreshMFAStatus}
+      />
+
       {/* Phone WhatsApp MFA */}
       <MFAPhoneWhatsApp 
         verifiedPhone={verifiedPhone}
@@ -100,12 +107,6 @@ export function MFASettingsContent({ isOpen, onPhoneUpdated, onMFAStatusChanged 
         onSuccess={refreshMFAStatus}
         onPhoneUpdated={onPhoneUpdated}
       />
-      {/* PIN MFA */}
-      {/* <MFAPin 
-        pinStatus={{ hasPin: PinService.hasLocalPinData() }}
-        authMethod={authMethod}
-        onSuccess={refreshMFAStatus}
-      /> */}
     </div>
   );
 } 

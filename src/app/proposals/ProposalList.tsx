@@ -146,10 +146,11 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
   // Use the proposal actions hook
   const {
     handleSignProposal,
+    handleSignProposalAndExecute,
     executeMultisigLitAction,
     handleCancelProposal,
     isSigningProposal,
-    isLoading,
+    isExecuting,
     isDisabled,
     isCancelingProposal,
     dialog,
@@ -261,12 +262,13 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
                 proposal={proposal}
                 selectedWallet={wallet}
                 handleSignProposal={handleSignProposal}
+                handleSignProposalAndExecute={handleSignProposalAndExecute}
                 executeMultisigLitAction={executeMultisigLitAction}
                 handleCancelProposal={handleCancelProposal}
                 userPkp={userPkp}
                 authMethodId={authMethodId}
                 isSigningProposal={isSigningProposal(proposal.id)}
-                isLoading={isLoading(proposal.id)}
+                isExecuting={isExecuting(proposal.id)}
                 isDisabled={isDisabled}
                 isCancelingProposal={isCancelingProposal(proposal.id)}
               />
