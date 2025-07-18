@@ -189,7 +189,7 @@ export function PersonalWalletSettings() {
         setShowMfaDialog(true);
       } else if (response.ok) {
         // If API returned success and no MFA required, settings were updated
-        toast.success("Your wallet settings have been updated successfully.");
+        toast.success(t("update_success"));
         invalidateMFANotifications();
         closePersonalWalletSettings();
       } else {
@@ -198,7 +198,7 @@ export function PersonalWalletSettings() {
       }
     } catch (error: any) {
       console.error('Error saving wallet settings:', error);
-      toast.error(error.message || "Failed to save wallet settings. Please try again.");
+      toast.error(error.message || t("update_failed"));
     } finally {
       setIsSaving(false);
     }
@@ -264,67 +264,68 @@ export function PersonalWalletSettings() {
     const data = await response.json();
     log('Settings updated successfully', data);
 
+    toast.success(t("update_success"));
+
     setShowMfaDialog(false);
-    toast.success("Your wallet settings have been updated successfully.");
     closePersonalWalletSettings(); // Close the settings dialog
   };
 
   return (
     <>
-      <Dialog open={isPersonalWalletSettingsOpen} onOpenChange={() => closePersonalWalletSettings()}>
-        <DialogContent className="p-0 max-w-[660px] sm:max-w-[660px]">
-          <DialogHeader className="border-b px-8 py-6">
-            <DialogTitle>{t("title")}</DialogTitle>
-          </DialogHeader>
+    <Dialog open={isPersonalWalletSettingsOpen} onOpenChange={() => closePersonalWalletSettings()}>
+      <DialogContent className="p-0 max-w-[660px] sm:max-w-[660px]">
+        <DialogHeader className="border-b px-8 py-6">
+          <DialogTitle>{t("title")}</DialogTitle>
+        </DialogHeader>
 
-        <div className="max-h-[60vh] overflow-y-auto p-8 pt-4">
-          {isMfaLoading ? (
-            <div className="flex justify-center items-center py-8">
-              <LogoLoading className='mt-0' />
-            </div>
-          ) : (
-            <>
-              <LabeledContainer label="Daily Withdraw Limits" className="mb-8">
-                {
-                  tokenLimits && (
-                    <>
-                      {!verifiedPhone && (
-                        <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-md">
-                          <p className="text-amber-800 text-sm">
-                            {t("notice")}
-                          </p>
-                        </div>
-                      )}
-                      <DailyWithdrawLimits
-                        initialLimits={tokenLimits}
-                        onChange={handleLimitsChange}
-                      />
-                    </>
-                  )
-                }
+      <div className="max-h-[60vh] overflow-y-auto p-8 pt-4">
+        {isMfaLoading ? (
+          <div className="flex justify-center items-center py-8">
+            <LogoLoading className='mt-0' />
+          </div>
+        ) : (
+          <>
+            <LabeledContainer label={t("daily_withdraw_title")} className="mb-8">
+              {
+                tokenLimits && (
+                  <>
+                    {!verifiedPhone && (
+                      <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-md">
+                        <p className="text-amber-800 text-sm">
+                          {t("daily_withdraw_description")}
+                        </p>
+                      </div>
+                    )}
+                    <DailyWithdrawLimits
+                      initialLimits={tokenLimits}
+                      onChange={handleLimitsChange}
+                    />
+                  </>
+                )
+              }
+            </LabeledContainer>
+
+              <LabeledContainer label={t("mfa_settings")}>
+                <MFASettingsContent
+                  isOpen={isPersonalWalletSettingsOpen}
+                  onPhoneUpdated={fetchUserPhone}
+                  onMFAStatusChanged={invalidateMFANotifications}
+                />
               </LabeledContainer>
 
-                <LabeledContainer label={t("mfa_settings")}>
-                  <MFASettingsContent
-                    isOpen={isPersonalWalletSettingsOpen}
-                    onPhoneUpdated={fetchUserPhone}
-                    onMFAStatusChanged={invalidateMFANotifications}
-                  />
-                </LabeledContainer>
-
-                <DialogFooter className="pt-4 space-x-2">
-                  <Button
-                    onClick={saveSettings}
-                    disabled={!isLimitValid || isSaving}
-                  >
-                    {t(isSaving ? 'saving' : 'save')}
-                  </Button>
-                </DialogFooter>
-              </>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+              <DialogFooter className="pt-4 space-x-2">
+                <Button
+                  onClick={saveSettings}
+                  disabled={!isLimitValid || isSaving}
+                >
+                  {t(isSaving ? 'saving' : 'save')}
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
 
       {/* Real MFA OTP Dialog for wallet settings */}
       <MFAOtpDialog

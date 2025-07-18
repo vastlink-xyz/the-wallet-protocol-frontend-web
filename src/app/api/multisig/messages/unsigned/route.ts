@@ -1,7 +1,6 @@
-import { NextRequest } from 'next/server'
-import { getMessageProposals, MessageProposal, getUnsignedProposalsByUser } from '../../storage'
-import { log } from '@/lib/utils'
 import { getUser } from '@/app/api/user/storage'
+import { NextRequest } from 'next/server'
+import { getMessageProposals, getUnsignedProposalsByUser, MessageProposal } from '../../storage'
 
 // Get unsigned message proposals for a user
 export async function GET(request: NextRequest) {

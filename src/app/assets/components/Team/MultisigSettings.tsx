@@ -48,10 +48,10 @@ export function MultisigSettings() {
         <DialogHeader className="border-b px-8 py-6">
           <DialogTitle>{t('title')}</DialogTitle>
           <DialogDescription>
-            A team wallet requires approval from multiple signers to execute any transaction.
+            {t('description')}
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="max-h-[60vh] overflow-y-auto p-8 pt-4">
           {isWalletLoading ? (
             <div className="flex justify-center items-center py-8">
