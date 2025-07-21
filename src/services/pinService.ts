@@ -116,6 +116,9 @@ export class PinService {
    * Store PinData to localStorage
    */
   static setLocalPinData(pinData: PinData) {
+    if (typeof window === 'undefined') {
+      return; // Server-side rendering
+    }
     localStorage.setItem(LOCAL_PIN_KEY, JSON.stringify(pinData));
   }
 
@@ -123,6 +126,9 @@ export class PinService {
    * Get PinData from localStorage
    */
   static getLocalPinData(): PinData | null {
+    if (typeof window === 'undefined') {
+      return null; // Server-side rendering
+    }
     const data = localStorage.getItem(LOCAL_PIN_KEY);
     if (!data) return null;
     try {
@@ -136,6 +142,9 @@ export class PinService {
    * Check if PIN is set in localStorage
    */
   static hasLocalPinData(): boolean {
+    if (typeof window === 'undefined') {
+      return false; // Server-side rendering
+    }
     return !!localStorage.getItem(LOCAL_PIN_KEY);
   }
 
@@ -143,6 +152,9 @@ export class PinService {
    * Remove PinData from localStorage
    */
   static removeLocalPinData() {
+    if (typeof window === 'undefined') {
+      return; // Server-side rendering
+    }
     localStorage.removeItem(LOCAL_PIN_KEY);
   }
 }

@@ -36,7 +36,7 @@ export function PersonalWalletSettings() {
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [authMethodId, setAuthMethodId] = useState<string | null>(null);
   const [isMfaLoading, setIsMfaLoading] = useState<boolean>(false);
-  const [pinStatus, setPinStatus] = useState<{ hasPin: boolean }>({ hasPin: PinService.hasLocalPinData() });
+  const [pinStatus, setPinStatus] = useState<{ hasPin: boolean }>({ hasPin: false });
 
   // State for real MFA Dialog
   const [showMfaDialog, setShowMfaDialog] = useState(false);
@@ -55,6 +55,11 @@ export function PersonalWalletSettings() {
     // Refresh PIN notifications when PIN status changes
     invalidatePinNotifications();
   };
+
+  // Initialize PIN status on client side
+  useEffect(() => {
+    setPinStatus({ hasPin: PinService.hasLocalPinData() });
+  }, []);
 
   useEffect(() => {
     const fetchAuthMethodId = async () => {
