@@ -35,7 +35,8 @@
   },
   "AppNavbar": {
     "testnets": "此处所有资产仅在测试网上",
-    "mfa_setup": "为了让您的钱包更安全，我们强烈建议您在<link>设置中配置每日提现限额和多因素认证（MFA）</link>"
+    "mfa_setup": "为了让您的钱包更安全，我们强烈建议您在<link>设置中配置每日提现限额和多因素认证（MFA）</link>",
+    "pin_setup": "为了让您的钱包更安全，我们强烈建议您<link>在设置中配置 PIN 码保护重要操作</link>"
   },
   "Sidebar": {
     "wallets": "钱包",
@@ -254,6 +255,9 @@
     "mfa_setup_title": "设置多因素认证",
     "mfa_setup_message": "为了让您的钱包更安全，我们强烈建议您在设置中配置每日提现限额和多因素认证（MFA）。",
     "mfa_setup_action": "设置多因素认证 →",
+    "pin_setup_title": "设置 PIN 码",
+    "pin_setup_message": "为了让您的钱包更安全，我们强烈建议您在设置中配置 PIN 码保护重要操作。",
+    "pin_setup_action": "设置 PIN 码 →",
     "empty_notification": "没有新的通知"
   },
   "NotificationMenu": {
@@ -263,6 +267,8 @@
     "proposals": "提案",
     "mfa_setup_title": "设置多因素认证",
     "mfa_setup_message": "为了让您的钱包更安全，我们强烈建议您<link>在设置中配置每日提现限额和多因素认证（MFA）</link>",
+    "pin_setup_title": "设置 PIN 码",
+    "pin_setup_message": "为了让您的钱包更安全，我们强烈建议您<link>在设置中配置 PIN 码保护重要操作</link>",
     "proposal_transaction_title": "{walletName} - 待处理提案",
     "proposal_transaction_message": "一个 {value} {symbol} 转账提案需要你审核。",
     "proposal_setting_title": "{walletName} - 请求更改设置",

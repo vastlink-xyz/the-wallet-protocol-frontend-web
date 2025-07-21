@@ -1,8 +1,9 @@
 
 import { MessageProposal } from '@/app/api/multisig/storage';
 import { shouldShowNotificationOnPath } from '@/constants/routes';
+import { PinService } from '@/services/pinService';
 
-export type NotificationType = 'mfa_setup' | 'pending_proposal';
+export type NotificationType = 'mfa_setup' | 'pending_proposal' | 'pin_setup';
 
 
 export interface BaseNotification<T = any> {
@@ -16,8 +17,9 @@ export interface BaseNotification<T = any> {
 
 export type MFANotification = BaseNotification<{ hasVerifiedPhone: boolean }>;
 export type PendingProposalNotification = BaseNotification<MessageProposal>;
+export type PinNotification = BaseNotification<{ hasPinSet: boolean }>;
 
-export type Notification = MFANotification | PendingProposalNotification;
+export type Notification = MFANotification | PendingProposalNotification | PinNotification;
 
 export interface NotificationContext {
   authMethodId: string | null;
@@ -38,6 +40,11 @@ export class NotificationService {
   public async getMFANotifications(): Promise<MFANotification[]> {
     const mfaNotification = await this.checkMFASetup();
     return mfaNotification ? [mfaNotification] : [];
+  }
+
+  public async getPinNotifications(): Promise<PinNotification[]> {
+    const pinNotification = await this.checkPinSetup();
+    return pinNotification ? [pinNotification] : [];
   }
 
   public async getPendingProposalNotifications(): Promise<PendingProposalNotification[]> {
@@ -105,6 +112,12 @@ export class NotificationService {
       notifications.push(mfaNotification);
     }
 
+    // Check PIN setup status
+    const pinNotification = await this.checkPinSetup();
+    if (pinNotification) {
+      notifications.push(pinNotification);
+    }
+
     return notifications;
   }
 
@@ -145,6 +158,27 @@ export class NotificationService {
       }
     } catch (error) {
       console.error('Error checking MFA status:', error);
+    }
+
+    return null;
+  }
+
+  private async checkPinSetup(): Promise<PinNotification | null> {
+    try {
+      // Check if PIN is set in localStorage using PinService
+      const hasPinSet = PinService.hasLocalPinData();
+
+      if (!hasPinSet) {
+        return {
+          id: 'pin_setup',
+          type: 'pin_setup',
+          title: 'Set PIN',
+          message: 'Add a PIN to secure your personal wallet transactions',
+          data: { hasPinSet }
+        };
+      }
+    } catch (error) {
+      console.error('Error checking PIN status:', error);
     }
 
     return null;

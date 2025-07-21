@@ -35,7 +35,8 @@
   },
   "AppNavbar": {
     "testnets": "All assets here are on testnets only",
-    "mfa_setup": "To make your wallets more secure, we highly recommend you to <link>set up daily withdrawal limits and MFA in settings</link>"
+    "mfa_setup": "To make your wallets more secure, we highly recommend you to <link>set up daily withdrawal limits and MFA in settings</link>",
+    "pin_setup": "To make your wallets more secure, we highly recommend you to <link>set up PIN for secure operations</link>"
   },
   "Sidebar": {
     "wallets": "Wallets",
@@ -254,6 +255,9 @@
     "mfa_setup_title": "Set MFA",
     "mfa_setup_message": "To make your wallets more secure, we highly recommend you to set up daily withdrawal limits and MFA insettings.",
     "mfa_setup_action": "Set MFA →",
+    "pin_setup_title": "Set PIN",
+    "pin_setup_message": "To make your wallets more secure, we highly recommend you to set up PIN for secure operations.",
+    "pin_setup_action": "Set PIN →",
     "empty_notification": "No new notifications"
   },
   "NotificationMenu": {
@@ -263,6 +267,8 @@
     "proposals": "Proposals",
     "mfa_setup_title": "Set MFA",
     "mfa_setup_message": "To make your wallets more secure, we highly recommend you to <link>set up daily withdrawal limits and MFA in settings</link>",
+    "pin_setup_title": "Set PIN",
+    "pin_setup_message": "To make your wallets more secure, we highly recommend you to <link>set up PIN for secure operations</link>",
     "proposal_transaction_title": "{walletName} - pending proposal",
     "proposal_transaction_message": "A {value} {symbol} transfer proposal requires your review.",
     "proposal_setting_title": "{walletName} - setting change requested",

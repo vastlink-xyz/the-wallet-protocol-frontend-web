@@ -56,17 +56,23 @@ export default function NotificationPage() {
                 height={14}
               />
               <span className="font-semibold">
-                {message.type === 'mfa_setup' ? transNotificationPage('mfa_setup_title') : message.message}
+                {message.type === 'mfa_setup' ? transNotificationPage('mfa_setup_title') : 
+                 message.type === 'pin_setup' ? transNotificationPage('pin_setup_title') : 
+                 message.message}
               </span>
               <p className="col-start-2 text-sm">
-                {message.type === 'mfa_setup' ? transNotificationPage('mfa_setup_message') : message.message}
+                {message.type === 'mfa_setup' ? transNotificationPage('mfa_setup_message') : 
+                 message.type === 'pin_setup' ? transNotificationPage('pin_setup_message') : 
+                 message.message}
               </p>
               <div className="w-full h-10 col-span-2 flex flex-row justify-end mt-4">
                 <span
                   onClick={() => showPersonalWalletSettings()}
                   className="font-semibold cursor-pointer"
                 >
-                  {transNotificationPage('mfa_setup_action')}
+                  {message.type === 'mfa_setup' ? transNotificationPage('mfa_setup_action') : 
+                   message.type === 'pin_setup' ? transNotificationPage('pin_setup_action') : 
+                   transNotificationPage('mfa_setup_action')}
                 </span>
               </div>
             </div>

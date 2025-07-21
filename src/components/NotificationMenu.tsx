@@ -149,7 +149,9 @@ export function NotificationMenu({
                 />
                 <div className="flex flex-row gap-2 items-center leading-5 line-clamp-2">
                   <span className="font-semibold">
-                    {securityNotification.type === 'mfa_setup' ? t('mfa_setup_title') : securityNotification.title}
+                    {securityNotification.type === 'mfa_setup' ? t('mfa_setup_title') : 
+                     securityNotification.type === 'pin_setup' ? t('pin_setup_title') : 
+                     securityNotification.title}
                   </span>
                   <span className="px-2 py-0.5 border border-notification-accent rounded-sm text-xs text-notification-accent">
                     {t('important')}
@@ -158,6 +160,15 @@ export function NotificationMenu({
                 <p className="col-start-2 text-sm">
                   {securityNotification.type === 'mfa_setup' ? t.rich(
                     'mfa_setup_message',
+                    {
+                      link: (children) => (
+                        <span onClick={() => showPersonalWalletSettings()} className='ml-1 font-semibold cursor-pointer text-gray-700 hover:text-gray-900 underline'>
+                          {children}
+                        </span>
+                      )
+                    }
+                  ) : securityNotification.type === 'pin_setup' ? t.rich(
+                    'pin_setup_message',
                     {
                       link: (children) => (
                         <span onClick={() => showPersonalWalletSettings()} className='ml-1 font-semibold cursor-pointer text-gray-700 hover:text-gray-900 underline'>

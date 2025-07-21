@@ -30,7 +30,7 @@ export function PersonalWalletSettings() {
 
   const { isPersonalWalletSettingsOpen, closePersonalWalletSettings } = useContext(PersonalWalletSettingsContext);
 
-  const { invalidateMFANotifications } = useNotifications({ enabled: false });
+  const { invalidateMFANotifications, invalidatePinNotifications } = useNotifications({ enabled: false });
   const [tokenLimits, setTokenLimits] = useState<Record<TokenType, string> | undefined>();
   const [isLimitValid, setIsLimitValid] = useState<boolean>(true);
   const [isSaving, setIsSaving] = useState<boolean>(false);
@@ -52,6 +52,8 @@ export function PersonalWalletSettings() {
   // Handle PIN status updates
   const handlePinStatusUpdate = () => {
     setPinStatus({ hasPin: PinService.hasLocalPinData() });
+    // Refresh PIN notifications when PIN status changes
+    invalidatePinNotifications();
   };
 
   useEffect(() => {

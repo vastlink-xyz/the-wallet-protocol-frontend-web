@@ -39,7 +39,7 @@ export function NotificationContainer() {
         >
           <div className="text-black/90 text-sm font-normal leading-snug flex items-center">
             {t.rich(
-              "mfa_setup",
+              notification.type,
               {
                 link: (children) => (
                   <span 

@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { usePathname } from 'next/navigation';
 import { useMemo, useCallback } from 'react';
-import { notificationService, Notification, MFANotification, PendingProposalNotification, NotificationContext } from '@/services/NotificationService';
+import { notificationService, Notification, MFANotification, PendingProposalNotification, PinNotification, NotificationContext } from '@/services/NotificationService';
 import { shouldShowNotificationOnPath } from '@/constants/routes';
 
 interface UseNotificationsOptions {
@@ -35,6 +35,23 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
     refetchOnWindowFocus: true,
   });
 
+  const pinQuery = useQuery({
+    queryKey: ['notifications', 'pin'],
+    queryFn: async (): Promise<PinNotification[]> => {
+      try {
+        if (!shouldShow) return [];
+        return await notificationService.getPinNotifications();
+      } catch (error) {
+        console.error('Error fetching PIN notifications:', error);
+        return [];
+      }
+    },
+    enabled: enabled && shouldShow,
+    refetchInterval: 60 * 60 * 1000, // Refetch every hour for PIN
+    staleTime: 5 * 1000,
+    refetchOnWindowFocus: true,
+  });
+
   const proposalsQuery = useQuery({
     queryKey: ['notifications', 'proposals'],
     queryFn: async (): Promise<PendingProposalNotification[]> => {
@@ -52,12 +69,13 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
     refetchOnWindowFocus: true,
   });
 
-  // Security notifications, currently just MFA
+  // Security notifications, includes MFA and PIN
   const securityNotifications = useMemo(() => {
     return [
       ...mfaQuery.data || [],
+      ...pinQuery.data || [],
     ]
-  }, [mfaQuery.data])
+  }, [mfaQuery.data, pinQuery.data])
 
   // Combine notifications
   const allNotifications = useMemo(() => {
@@ -68,6 +86,10 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
   // Invalidation functions
   const invalidateMFANotifications = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['notifications', 'mfa'] });
+  }, [queryClient]);
+
+  const invalidatePinNotifications = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['notifications', 'pin'] });
   }, [queryClient]);
 
   const invalidateProposalNotifications = useCallback(() => {
@@ -84,20 +106,22 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
     invalidateProposalNotifications();
   }, [queryClient, invalidateProposalNotifications]);
 
-  const isLoading = mfaQuery.isLoading || proposalsQuery.isLoading;
-  const error = mfaQuery.error || proposalsQuery.error;
+  const isLoading = mfaQuery.isLoading || pinQuery.isLoading || proposalsQuery.isLoading;
+  const error = mfaQuery.error || pinQuery.error || proposalsQuery.error;
 
   return {
     allNotifications,
     mfaNotifications: mfaQuery.data || [],
+    pinNotifications: pinQuery.data || [],
     securityNotifications,
     proposalNotifications: proposalsQuery.data || [],
     isLoading,
     error,
-    refetch: () => Promise.all([mfaQuery.refetch(), proposalsQuery.refetch()]),
+    refetch: () => Promise.all([mfaQuery.refetch(), pinQuery.refetch(), proposalsQuery.refetch()]),
     
     // Invalidation functions
     invalidateMFANotifications,
+    invalidatePinNotifications,
     invalidateProposalNotifications,
     refreshNotifications,
   };
