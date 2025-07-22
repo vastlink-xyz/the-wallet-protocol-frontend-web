@@ -3,6 +3,7 @@ import { connectToDatabase, UserModel } from './models'
 import crypto from 'crypto'
 import { getBtcAddressByPublicKey } from '@/lib/web3/btc'
 import { SUPPORTED_TOKEN_SYMBOLS, SUPPORTED_TOKENS_INFO } from '@/lib/web3/token'
+import { SecurityLayer } from '@/types/security'
 
 export interface UserAddresses {
   eth: string
@@ -22,6 +23,7 @@ export interface User {
   }
   walletSettings?: {
     dailyWithdrawLimits: Record<string, string>
+    securityLayers: SecurityLayer[]
   }
   addresses: UserAddresses
 }
@@ -120,13 +122,25 @@ export async function createUser({
       dailyWithdrawLimits[token] = SUPPORTED_TOKENS_INFO[token].defaultWithdrawLimit;
     });
     
+    // Create default Email OTP security layer as fallback
+    const defaultSecurityLayers: SecurityLayer[] = [
+      {
+        id: crypto.randomUUID(),
+        type: 'EMAIL_OTP',
+        isEnabled: true,
+        isFallback: true,
+        config: {}
+      }
+    ];
+    
     const userData = {
       id,
       authMethodId,
       email,
       addresses,
       walletSettings: {
-        dailyWithdrawLimits
+        dailyWithdrawLimits,
+        securityLayers: defaultSecurityLayers
       }
     };
     
@@ -265,6 +279,9 @@ export async function updateUserWalletSettings(
             ...walletSettings.dailyWithdrawLimits
           }
         }),
+        ...(walletSettings?.securityLayers && {
+          'walletSettings.securityLayers': walletSettings.securityLayers
+        }),
         updatedAt: new Date()
       }
     };
@@ -279,5 +296,20 @@ export async function updateUserWalletSettings(
   } catch (error) {
     console.error('Failed to update user wallet settings:', error);
     return null;
+  }
+}
+
+export async function getUserSecurityLayers(authMethodId: string): Promise<SecurityLayer[]> {
+  try {
+    const user = await getUser(authMethodId);
+    if (!user || !user.walletSettings?.securityLayers) {
+      return [];
+    }
+    
+    // Return enabled layers in array order (index as execution order)
+    return user.walletSettings.securityLayers.filter(layer => layer.isEnabled);
+  } catch (error) {
+    console.error('Failed to get user security layers:', error);
+    return [];
   }
 } 

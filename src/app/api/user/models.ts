@@ -63,7 +63,16 @@ const UserSchema = new mongoose.Schema({
       dailyWithdrawLimits: {
         BTC: "0.001",
         ETH: "0.001"
-      }
+      },
+      securityLayers: [
+        {
+          id: "",
+          type: "EMAIL_OTP",
+          isEnabled: true,
+          isFallback: true,
+          config: {}
+        }
+      ]
     }
   },
   createdAt: { type: Date, default: Date.now },
