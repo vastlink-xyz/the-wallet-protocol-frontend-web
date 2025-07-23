@@ -14,6 +14,7 @@ import { MFAPin } from '../MFAPin';
 import { getProviderByAuthMethodType } from '@/lib/lit';
 import { toast } from 'react-toastify';
 import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
+import { getAuthIdByAuthMethod } from '@lit-protocol/lit-auth-client';
 import { log } from '@/lib/utils';
 import { SUPPORTED_TOKENS_INFO, TokenType, SUPPORTED_TOKEN_SYMBOLS } from '@/lib/web3/token';
 import { MFAOtpDialog } from '@/components/Transaction/MFAOtpDialog';
@@ -50,16 +51,31 @@ export function PersonalWalletSettings() {
   const sessionJwt = authMethod?.accessToken;
 
   // Handle PIN status updates
-  const handlePinStatusUpdate = () => {
-    setPinStatus({ hasPin: PinService.hasLocalPinData() });
+  const handlePinStatusUpdate = async () => {
+    const authMethod = getAuthMethodFromStorage();
+    if (!authMethod) return;
+    const authMethodId = await getAuthIdByAuthMethod(authMethod);
+    const hasPin = await PinService.hasLocalPinData({
+      authMethodId,
+    });
+    setPinStatus({ hasPin });
     // Refresh PIN notifications when PIN status changes
     invalidatePinNotifications();
   };
 
   // Initialize PIN status on client side
   useEffect(() => {
-    setPinStatus({ hasPin: PinService.hasLocalPinData() });
-  }, []);
+    const initPinStatus = async () => {
+      const authMethod = getAuthMethodFromStorage();
+      if (!authMethod) return;
+      const authMethodId = await getAuthIdByAuthMethod(authMethod);
+      const hasPin = await PinService.hasLocalPinData({
+        authMethodId,
+      });
+      setPinStatus({ hasPin });
+    };
+    initPinStatus();
+  }, [isPersonalWalletSettingsOpen]);
 
   useEffect(() => {
     const fetchAuthMethodId = async () => {
@@ -331,6 +347,7 @@ export function PersonalWalletSettings() {
               <LabeledContainer label={t("mfa_settings")}>
                 <MFASettingsContent
                   isOpen={isPersonalWalletSettingsOpen}
+                  authMethodId={authMethodId}
                   onPhoneUpdated={fetchUserPhone}
                   onMFAStatusChanged={invalidateMFANotifications}
                 />

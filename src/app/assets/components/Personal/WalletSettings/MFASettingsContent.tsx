@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
-import { log } from '@/lib/utils';
 import { MFAPhoneWhatsApp } from './MFAPhoneWhatsApp';
-import { toast } from 'react-toastify';
-import { useTranslations } from 'next-intl';
+import { MFATOTP } from './MFATotp';
+import { SecurityLayer } from '@/types/security';
 
-// Define StytchPhoneNumber type based on expected API response
+// Define StytchPhoneNumber type based on expected API response (used by MFAPhoneWhatsApp component)
 interface StytchPhoneNumber {
   phone_id: string;
   phone_number: string;
@@ -14,80 +13,65 @@ interface StytchPhoneNumber {
 
 interface MFASettingsContentProps {
   isOpen: boolean;
+  authMethodId: string | null;
   onPhoneUpdated?: () => Promise<void>;
   onMFAStatusChanged?: () => void;
 }
 
-export function MFASettingsContent({ isOpen, onPhoneUpdated, onMFAStatusChanged }: MFASettingsContentProps) {
-  const t = useTranslations("MFASettings");
+export function MFASettingsContent({ isOpen, authMethodId, onPhoneUpdated, onMFAStatusChanged }: MFASettingsContentProps) {
 
   // Main component state
-  const [phoneNumbers, setPhoneNumbers] = useState<StytchPhoneNumber[]>([]);
-  // Remove pinStatus state, use local computed value
+  const [securityLayers, setSecurityLayers] = useState<SecurityLayer[]>([]);
 
   const prevIsOpen = useRef(isOpen);
   const authMethod = getAuthMethodFromStorage();
   const sessionJwt = authMethod?.accessToken || null;
 
-  // Fetch MFA status from API
-  const fetchMFAStatus = useCallback(async () => {
-    const token = sessionJwt;
-    log('MFASettingsContent: Session JWT token present:', !!token);
-    
-    if (!token) {
-      return;
-    }
+  // Fetch security layers
+  const fetchSecurityLayers = useCallback(async (authId: string) => {
+    if (!sessionJwt || !authId) return;
 
     try {
-      log('MFASettingsContent: fetching mfa status');
-      const response = await fetch('/api/mfa/status', {
-        method: 'GET',
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      
+      const response = await fetch(`/api/security/layers?authMethodId=${authId}`);
+
       if (!response.ok) {
-        const data = await response.json();
-        log('MFASettingsContent: Error response from API', data);
-        throw new Error(data.error || `Failed to fetch MFA status: ${response.status}`);
+        return;
       }
-      
+
       const data = await response.json();
-      log('MFASettingsContent: mfa status response', data);
-      
-      // Ensure phone_numbers field exists in data
-      if (data && Array.isArray(data.phone_numbers)) {
-        setPhoneNumbers(data.phone_numbers);
-        log('MFASettingsContent: phone numbers set to state', data.phone_numbers);
-      } else {
-        log('MFASettingsContent: No phone numbers found in response or invalid format', data);
-        setPhoneNumbers([]);
-      }
+      setSecurityLayers(data.securityLayers || []);
     } catch (err: any) {
-      toast.error(t("fetch_error"));
+      console.error('Error fetching security layers:', err);
     }
-  }, [sessionJwt, t]);
+  }, [sessionJwt]);
 
   // Helper to trigger a refresh of MFA methods and notify parent of changes
   const refreshMFAStatus = useCallback(async () => {
-    await fetchMFAStatus();
+    if (authMethodId) {
+      await fetchSecurityLayers(authMethodId);
+    }
     if (onMFAStatusChanged) {
       onMFAStatusChanged();
     }
-    // No need to update pinStatus, will be recomputed
-  }, [fetchMFAStatus, onMFAStatusChanged]);
+  }, [fetchSecurityLayers, authMethodId, onMFAStatusChanged]);
 
   // Effect to handle dialog open/close
   useEffect(() => {
-    if (isOpen) {
-      // Always fetch MFA status when dialog is open
-      log('MFASettingsContent: Dialog is open, fetching status');
-      fetchMFAStatus();
+    if (isOpen && authMethodId) {
+      fetchSecurityLayers(authMethodId);
     }
     prevIsOpen.current = isOpen;
-  }, [isOpen, fetchMFAStatus]);
+  }, [isOpen, fetchSecurityLayers, authMethodId]);
 
-  const verifiedPhone = phoneNumbers.find(p => p.verified) || null;
-  log('MFASettingsContent: Verified phone found:', verifiedPhone);
+  const whatsappLayer = securityLayers.find(layer => layer.type === 'WHATSAPP_OTP' && layer.isEnabled);
+  const hasTotp = securityLayers.some(layer => layer.type === 'TOTP' && layer.isEnabled);
+
+  // Create verifiedPhone object from security layer config if WhatsApp is enabled
+  const verifiedPhone = whatsappLayer && whatsappLayer.type === 'WHATSAPP_OTP' ? {
+    phone_id: whatsappLayer.config.phoneId,
+    phone_number: whatsappLayer.config.phoneNumber,
+    verified: true
+  } : null;
 
   return (
     <div className="space-y-4">
@@ -95,8 +79,17 @@ export function MFASettingsContent({ isOpen, onPhoneUpdated, onMFAStatusChanged 
       <MFAPhoneWhatsApp 
         verifiedPhone={verifiedPhone}
         sessionJwt={sessionJwt}
+        authMethodId={authMethodId}
         onSuccess={refreshMFAStatus}
         onPhoneUpdated={onPhoneUpdated}
+      />
+
+      {/* TOTP MFA */}
+      <MFATOTP 
+        hasTotp={hasTotp}
+        sessionJwt={sessionJwt}
+        authMethodId={authMethodId}
+        onSuccess={refreshMFAStatus}
       />
     </div>
   );

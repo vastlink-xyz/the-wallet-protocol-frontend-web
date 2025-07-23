@@ -296,5 +296,26 @@
     "verify_pin": "Verify PIN",
     "verifying": "Verifying...",
     "cancel": "Cancel"
+  },
+  "TOTPSettings": {
+    "title": "Authenticator App (TOTP)",
+    "active": "Authenticator app is active",
+    "configured": "Authenticator app is configured",
+    "setup": "Set Up Authenticator",
+    "removed": "Authenticator app removed successfully",
+    "confirm_remove": "Are you sure you want to remove your authenticator app?",
+    "scan_qr_code": "Scan QR Code",
+    "manual_secret": "Manual Secret",
+    "manual_secret_description": "If you can't scan the QR code, enter this secret key manually in your authenticator app:",
+    "backup_codes": "Backup Codes",
+    "backup_codes_description": "Save these backup codes in a safe place. You can use them to access your account if you lose access to your authenticator app:",
+    "continue_to_verify": "Continue to Verify",
+    "enter_code": "Enter Code from Authenticator",
+    "code_description": "Enter the 6-digit code from your authenticator app to complete setup:",
+    "verify_and_complete": "Verify and Complete",
+    "back": "Back",
+    "verifying": "Verifying...",
+    "setup_success": "Authenticator app set up successfully",
+    "copied_to_clipboard": "Copied to clipboard"
   }
 }

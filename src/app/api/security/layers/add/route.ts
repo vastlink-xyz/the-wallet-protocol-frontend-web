@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getUser, updateUserWalletSettings } from '../../../user/storage';
 import { SecurityLayer, SecurityLayerType } from '@/types/security';
 import { authenticateStytchSession } from '../../../stytch/sessionAuth';
+import { verifyStytchDataExists } from '../stytchValidation';
 import crypto from 'crypto';
 
 // POST /api/security/layers/add - Add a new security layer
@@ -36,13 +37,64 @@ export async function POST(request: NextRequest) {
     
     const currentLayers = user.walletSettings?.securityLayers || [];
     
-    // Check if layer type already exists (except EMAIL_OTP which can be fallback)
+    // Check if layer type already exists
     const existingLayer = currentLayers.find(layer => layer.type === layerType);
-    if (existingLayer && layerType !== 'EMAIL_OTP') {
+    if (existingLayer) {
+      // If layer exists but is disabled, enable it instead of creating new one
+      if (!existingLayer.isEnabled && (layerType === 'TOTP' || layerType === 'WHATSAPP_OTP')) {
+        // For Stytch-based layers, verify the data still exists in Stytch
+        const stytchDataExists = await verifyStytchDataExists(session.user_id, layerType);
+        if (!stytchDataExists) {
+          return NextResponse.json(
+            { error: `${layerType} data not found in Stytch. Please set up ${layerType} first.` },
+            { status: 400 }
+          );
+        }
+
+        // Enable the existing layer
+        const updatedLayers = currentLayers.map(layer => 
+          layer.id === existingLayer.id 
+            ? { ...layer, isEnabled: true, config: config }
+            : layer
+        );
+
+        const updatedUser = await updateUserWalletSettings(authMethodId, {
+          securityLayers: updatedLayers
+        });
+
+        if (!updatedUser) {
+          return NextResponse.json(
+            { error: 'Failed to enable security layer' },
+            { status: 500 }
+          );
+        }
+
+        return NextResponse.json({ 
+          success: true, 
+          updatedLayer: updatedLayers.find(l => l.id === existingLayer.id),
+          securityLayers: updatedUser.walletSettings?.securityLayers 
+        });
+      }
+      
       return NextResponse.json(
-        { error: `${layerType} layer already exists` },
-        { status: 400 }
+        { 
+          error: 'Security layer configuration already exists',
+          layerId: existingLayer.id,
+          isEnabled: existingLayer.isEnabled
+        },
+        { status: 409 }
       );
+    }
+
+    // For TOTP and WHATSAPP_OTP, verify they exist in Stytch first
+    if (layerType === 'TOTP' || layerType === 'WHATSAPP_OTP') {
+      const stytchDataExists = await verifyStytchDataExists(session.user_id, layerType);
+      if (!stytchDataExists) {
+        return NextResponse.json(
+          { error: `${layerType} data not found in Stytch. Please set up ${layerType} first.` },
+          { status: 400 }
+        );
+      }
     }
     
     const newLayer: SecurityLayer = {

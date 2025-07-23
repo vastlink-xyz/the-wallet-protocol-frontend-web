@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stytchClient } from '@/app/api/stytch/client';
 import { AuthenticatedSession, authenticateStytchSession } from '@/app/api/stytch/sessionAuth';
+import { log } from '@/lib/utils';
 
 export async function GET(req: NextRequest) {
   try {
     const session: AuthenticatedSession = await authenticateStytchSession(req);
     const userResponse = await stytchClient.users.get({ user_id: session.user_id });
+    log('MFAStatus: userResponse', JSON.stringify(userResponse, null, 2));
     
-    const phoneNumbers = userResponse.phone_numbers || [];
-
-    return NextResponse.json({ phone_numbers: phoneNumbers });
+    return NextResponse.json(userResponse);
 
   } catch (error: any) {
     console.error('Error in GET /api/mfa/status:', error);

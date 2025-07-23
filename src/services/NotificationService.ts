@@ -2,6 +2,7 @@
 import { MessageProposal } from '@/app/api/multisig/storage';
 import { shouldShowNotificationOnPath } from '@/constants/routes';
 import { PinService } from '@/services/pinService';
+import { AuthMethod } from '@lit-protocol/types';
 
 export type NotificationType = 'mfa_setup' | 'pending_proposal' | 'pin_setup';
 
@@ -42,8 +43,10 @@ export class NotificationService {
     return mfaNotification ? [mfaNotification] : [];
   }
 
-  public async getPinNotifications(): Promise<PinNotification[]> {
-    const pinNotification = await this.checkPinSetup();
+  public async getPinNotifications(authMethodId: string): Promise<PinNotification[]> {
+    const pinNotification = await this.checkPinSetup({
+      authMethodId
+    });
     return pinNotification ? [pinNotification] : [];
   }
 
@@ -113,7 +116,9 @@ export class NotificationService {
     }
 
     // Check PIN setup status
-    const pinNotification = await this.checkPinSetup();
+    const pinNotification = await this.checkPinSetup({
+      authMethodId: context.authMethodId
+    });
     if (pinNotification) {
       notifications.push(pinNotification);
     }
@@ -163,10 +168,16 @@ export class NotificationService {
     return null;
   }
 
-  private async checkPinSetup(): Promise<PinNotification | null> {
+  private async checkPinSetup({
+    authMethodId
+  }: {
+    authMethodId: string,
+  }): Promise<PinNotification | null> {
     try {
-      // Check if PIN is set in localStorage using PinService
-      const hasPinSet = PinService.hasLocalPinData();
+      // Check if PIN is set in database using PinService
+      const hasPinSet = await PinService.hasLocalPinData({
+        authMethodId,
+      });
 
       if (!hasPinSet) {
         return {

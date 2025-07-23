@@ -11,6 +11,7 @@ import { MFAOtpDialog } from "@/components/Transaction/MFAOtpDialog";
 import { PinVerificationDialog } from "@/components/Transaction/PinVerificationDialog";
 import { PinService } from "@/services/pinService";
 import { fetchProposals } from "./useProposals";
+import { getAuthIdByAuthMethod } from "@lit-protocol/lit-auth-client";
 
 export type ProposalDialogType =
   | { type: 'none' }
@@ -216,7 +217,10 @@ export function useProposalActions({
       setIsDisabled(true);
       
       // Check if PIN is required before execution
-      if (PinService.hasLocalPinData()) {
+      const hasPinData = await PinService.hasLocalPinData({
+        authMethodId: authMethodId!,
+      });
+      if (hasPinData) {
         setDialog({ type: 'pin', proposal });
         throw new PinRequiredError(proposal);
       }
@@ -393,7 +397,10 @@ export function useProposalActions({
     
     try {
       // Verify PIN first
-      const storedPinData = PinService.getLocalPinData();
+      const authMethodId = await getAuthIdByAuthMethod(authMethod!);
+      const storedPinData = await PinService.getLocalPinData({
+        authMethodId,
+      });
       if (!storedPinData) {
         toast.error('No PIN is set');
         throw new Error('No PIN is set');

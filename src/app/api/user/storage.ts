@@ -5,6 +5,33 @@ import { getBtcAddressByPublicKey } from '@/lib/web3/btc'
 import { SUPPORTED_TOKEN_SYMBOLS, SUPPORTED_TOKENS_INFO } from '@/lib/web3/token'
 import { SecurityLayer } from '@/types/security'
 
+// Create default security layers - only PIN and EMAIL_OTP
+// TOTP and WHATSAPP_OTP layers are created dynamically when user sets them up in Stytch
+function createDefaultSecurityLayers(): SecurityLayer[] {
+  return [
+    {
+      id: crypto.randomUUID(),
+      type: 'PIN',
+      isEnabled: false,
+      isFallback: false,
+      config: {
+        pinData: {
+          encryptedPinHash: '',
+          dataToEncryptHash: '',
+          accessControlConditions: []
+        }
+      }
+    },
+    {
+      id: crypto.randomUUID(),
+      type: 'EMAIL_OTP',
+      isEnabled: true, // Only Email OTP enabled as fallback
+      isFallback: true,
+      config: {}
+    }
+  ];
+}
+
 export interface UserAddresses {
   eth: string
   btc: string
@@ -122,16 +149,8 @@ export async function createUser({
       dailyWithdrawLimits[token] = SUPPORTED_TOKENS_INFO[token].defaultWithdrawLimit;
     });
     
-    // Create default Email OTP security layer as fallback
-    const defaultSecurityLayers: SecurityLayer[] = [
-      {
-        id: crypto.randomUUID(),
-        type: 'EMAIL_OTP',
-        isEnabled: true,
-        isFallback: true,
-        config: {}
-      }
-    ];
+    // Create all predefined security layers
+    const defaultSecurityLayers = createDefaultSecurityLayers();
     
     const userData = {
       id,

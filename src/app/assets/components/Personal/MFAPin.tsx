@@ -9,6 +9,7 @@ import { useTranslations } from 'next-intl';
 import { PinService, PinData } from '@/services/pinService';
 import { useUserData } from '@/hooks/useUserData';
 import { AuthMethod } from '@lit-protocol/types';
+import { getAuthIdByAuthMethod } from '@lit-protocol/lit-auth-client';
 
 // Interface for PIN status
 interface PinStatus {
@@ -143,7 +144,12 @@ export function MFAPin({
         litActionPkp: userData.litActionPkp,
         authMethod: authMethod!
       });
-      PinService.setLocalPinData(pinData);
+      const authMethodId = await getAuthIdByAuthMethod(authMethod!);
+      await PinService.setLocalPinData({
+        pinData,
+        authMethodId,
+        authMethod: authMethod!
+      });
       toast.success(t('pin_created'));
       setPin('');
       setConfirmPin('');
@@ -183,7 +189,10 @@ export function MFAPin({
     setIsLoading(true);
     try {
       log('MFAPin: Changing PIN with Lit Protocol');
-      const storedPinData = PinService.getLocalPinData();
+      const authMethodId = await getAuthIdByAuthMethod(authMethod!);
+      const storedPinData = await PinService.getLocalPinData({
+        authMethodId,
+      });
       if (!storedPinData) {
         toast.error('No PIN is set.');
         return;
@@ -204,7 +213,11 @@ export function MFAPin({
         litActionPkp: userData.litActionPkp,
         authMethod: authMethod!
       });
-      PinService.setLocalPinData(newPinData);
+      await PinService.setLocalPinData({
+        pinData: newPinData,
+        authMethodId: authMethodId,
+        authMethod: authMethod!
+      });
       toast.success(t('pin_changed'));
       setPin('');
       setConfirmPin('');
@@ -222,10 +235,19 @@ export function MFAPin({
   // Remove PIN
   const handleRemovePin = async () => {
     if (!window.confirm(t('confirm_remove_pin'))) return;
-    PinService.removeLocalPinData();
-    toast.success(t('pin_removed'));
-    setUiState('initial');
-    onSuccess();
+    try {
+      const authMethodId = await getAuthIdByAuthMethod(authMethod!);
+      await PinService.removeLocalPinData({
+        authMethodId: authMethodId,
+        authMethod: authMethod!
+      });
+      toast.success(t('pin_removed'));
+      setUiState('initial');
+      onSuccess();
+    } catch (error) {
+      console.error('Failed to remove PIN:', error);
+      toast.error('Failed to remove PIN');
+    }
   };
 
   // Show loading state while fetching user data
@@ -241,15 +263,6 @@ export function MFAPin({
   if (userError) {
     return (
       <FormContainer errorMessage={`Error loading user data: ${userError}`}>
-        <div></div>
-      </FormContainer>
-    );
-  }
-
-  // Show message if user has no PKP
-  if (!userData?.litActionPkp) {
-    return (
-      <FormContainer errorMessage={t('user_not_found')}>
         <div></div>
       </FormContainer>
     );

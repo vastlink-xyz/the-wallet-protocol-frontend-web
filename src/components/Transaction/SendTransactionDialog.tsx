@@ -8,6 +8,7 @@ import { Input } from "../ui/input";
 import { Loader2 } from "lucide-react";
 import { SelectToken } from "../SelectToken";
 import { AuthMethod, IRelayPKP } from "@lit-protocol/types";
+import { getAuthIdByAuthMethod } from "@lit-protocol/lit-auth-client";
 import { MFAOtpDialog } from "./MFAOtpDialog";
 import { isValidEmail, log } from "@/lib/utils";
 import { estimateGasFee } from "@/lib/web3/transaction";
@@ -335,7 +336,11 @@ export function SendTransactionDialog({
       setPendingTxState(null);
       return;
     }
-    const storedPinData = PinService.getLocalPinData();
+    if (!authMethod) throw new Error('No auth method found');
+    const authMethodId = await getAuthIdByAuthMethod(authMethod);
+    const storedPinData = await PinService.getLocalPinData({
+      authMethodId,
+    });
     if (!storedPinData) {
       setShowPinDialog(false);
       setPendingTxState(null);
@@ -379,10 +384,16 @@ export function SendTransactionDialog({
         onInviteUser({ to, recipientAddress, amount, tokenType, mfaMethodId, mfaPhoneNumber });
       } else {
         // If PIN is set locally and not disabled, show PIN dialog before sending transaction
-        if (!disablePin && PinService.hasLocalPinData()) {
-          setPendingTxState({ to, recipientAddress, amount, tokenType, mfaMethodId, mfaPhoneNumber });
-          setShowPinDialog(true);
-          return;
+        if (!disablePin && authMethod) {
+          const authMethodId = await getAuthIdByAuthMethod(authMethod);
+          const hasPinData = await PinService.hasLocalPinData({
+            authMethodId,
+          });
+          if (hasPinData) {
+            setPendingTxState({ to, recipientAddress, amount, tokenType, mfaMethodId, mfaPhoneNumber });
+            setShowPinDialog(true);
+            return;
+          }
         }
         // If there is a recipient address, send transaction to recipient
         await onSendTransaction({ to, recipientAddress, amount, tokenType, mfaMethodId, mfaPhoneNumber });

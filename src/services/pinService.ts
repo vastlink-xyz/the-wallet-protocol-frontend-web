@@ -2,9 +2,9 @@ import { encryptString } from "@lit-protocol/encryption";
 import { executeSecuredLitAction } from "@/lib/lit/executeLitAction";
 import { getSessionSigsByPkp, litNodeClient } from "@/lib/lit";
 import { AuthMethod } from "@lit-protocol/types";
+import { SecurityLayer } from "@/types/security";
 
 const LIT_ACTION_IPFS_ID = 'QmX3zpPjXTc9VH1fVETtSXELQ2Soynft68sYWo5MjXnFJ5';
-const LOCAL_PIN_KEY = 'lit_encrypted_pin_data';
 
 export interface PinData {
   encryptedPinHash: string;
@@ -113,48 +113,132 @@ export class PinService {
   }
 
   /**
-   * Store PinData to localStorage
+   * Store PinData to database via security layers API
    */
-  static setLocalPinData(pinData: PinData) {
-    if (typeof window === 'undefined') {
-      return; // Server-side rendering
+  static async setLocalPinData({
+    pinData,
+    authMethodId,
+    authMethod
+  }: {
+    pinData: PinData,
+    authMethodId: string,
+    authMethod: AuthMethod
+  }) {
+    try {
+      const response = await fetch('/api/security/layers/add', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authMethod.accessToken}`,
+        },
+        body: JSON.stringify({
+          authMethodId: authMethodId,
+          layerType: 'PIN',
+          config: {
+            pinData: pinData
+          }
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to store PIN to database');
+      }
+    } catch (error) {
+      console.error('Error storing PIN to database:', error);
+      throw error;
     }
-    localStorage.setItem(LOCAL_PIN_KEY, JSON.stringify(pinData));
   }
 
   /**
-   * Get PinData from localStorage
+   * Get PinData from database via security layers API
    */
-  static getLocalPinData(): PinData | null {
-    if (typeof window === 'undefined') {
-      return null; // Server-side rendering
-    }
-    const data = localStorage.getItem(LOCAL_PIN_KEY);
-    if (!data) return null;
+  static async getLocalPinData({
+    authMethodId,
+  }: {
+    authMethodId: string,
+  }): Promise<PinData | null> {
     try {
-      return JSON.parse(data);
-    } catch {
+      const response = await fetch(`/api/security/layers?authMethodId=${authMethodId}`);
+      
+      if (!response.ok) {
+        return null;
+      }
+      
+      const data = await response.json();
+
+      const pinLayer = data.securityLayers?.find((layer: SecurityLayer) => 
+        layer.type === 'PIN' && layer.isEnabled
+      );
+
+      return pinLayer?.config?.pinData || null;
+    } catch (error) {
+      console.error('Error getting PIN from database:', error);
       return null;
     }
   }
 
   /**
-   * Check if PIN is set in localStorage
+   * Check if PIN is set in database
    */
-  static hasLocalPinData(): boolean {
-    if (typeof window === 'undefined') {
-      return false; // Server-side rendering
-    }
-    return !!localStorage.getItem(LOCAL_PIN_KEY);
+  static async hasLocalPinData({
+    authMethodId,
+  }: {
+    authMethodId: string,
+  }): Promise<boolean> {
+    const pinData = await this.getLocalPinData({
+      authMethodId,
+    });
+    return !!pinData;
   }
 
   /**
-   * Remove PinData from localStorage
+   * Remove PinData from database by disabling the PIN layer
    */
-  static removeLocalPinData() {
-    if (typeof window === 'undefined') {
-      return; // Server-side rendering
+  static async removeLocalPinData({
+    authMethodId,
+    authMethod
+  }: {
+    authMethodId: string,
+    authMethod: AuthMethod
+  }) {
+    if (!authMethod || !authMethod.accessToken) {
+      throw new Error('Authentication required to remove PIN');
     }
-    localStorage.removeItem(LOCAL_PIN_KEY);
+
+    try {
+      // First get the PIN layer
+      const response = await fetch(`/api/security/layers?authMethodId=${authMethodId}`);
+
+      if (!response.ok) {
+        return;
+      }
+
+      const data = await response.json();
+      const pinLayer = data.securityLayers?.find((layer: SecurityLayer) => layer.type === 'PIN');
+      
+      if (pinLayer) {
+        // Disable the layer and clear config using update API
+        const updateResponse = await fetch('/api/security/layers/update', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authMethod.accessToken}`,
+          },
+          body: JSON.stringify({
+            authMethodId: authMethodId,
+            layerId: pinLayer.id,
+            isEnabled: false,
+            config: {}
+          }),
+        });
+
+        if (!updateResponse.ok) {
+          throw new Error('Failed to remove PIN from database');
+        }
+      }
+    } catch (error) {
+      console.error('Error removing PIN from database:', error);
+      throw error;
+    }
   }
 }

@@ -1,18 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUser, updateUserWalletSettings } from '../../../user/storage';
 import { authenticateStytchSession } from '../../../stytch/sessionAuth';
+import { verifyStytchDataExists } from '../stytchValidation';
 
-// PUT /api/security/layers/update - Update security layer configuration
+// PUT /api/security/layers/update - Update security layer fields (isEnabled, config, etc.)
 export async function PUT(request: NextRequest) {
   try {
     const session = await authenticateStytchSession(request);
     
     const body = await request.json();
-    const { authMethodId, layerId, config } = body;
+    const { authMethodId, layerId, ...updates } = body;
     
-    if (!authMethodId || !layerId || !config) {
+    if (!authMethodId || !layerId) {
       return NextResponse.json(
-        { error: 'Missing required fields: authMethodId, layerId, config' },
+        { error: 'Missing required fields: authMethodId, layerId' },
+        { status: 400 }
+      );
+    }
+
+    // Check if there are any fields to update
+    if (Object.keys(updates).length === 0) {
+      return NextResponse.json(
+        { error: 'No update fields provided' },
         { status: 400 }
       );
     }
@@ -35,10 +44,31 @@ export async function PUT(request: NextRequest) {
       );
     }
     
+    const targetLayer = currentLayers[layerIndex];
+    
+    // Prevent disabling fallback layers
+    if (updates.isEnabled === false && targetLayer.isFallback) {
+      return NextResponse.json(
+        { error: 'Cannot disable fallback security layer' },
+        { status: 400 }
+      );
+    }
+
+    // When enabling TOTP or WHATSAPP_OTP layers, verify Stytch data exists
+    if (updates.isEnabled === true && (targetLayer.type === 'TOTP' || targetLayer.type === 'WHATSAPP_OTP')) {
+      const stytchDataExists = await verifyStytchDataExists(session.user_id, targetLayer.type);
+      if (!stytchDataExists) {
+        return NextResponse.json(
+          { error: `${targetLayer.type} data not found in Stytch. Cannot enable layer.` },
+          { status: 400 }
+        );
+      }
+    }
+    
     const updatedLayers = [...currentLayers];
     updatedLayers[layerIndex] = {
-      ...updatedLayers[layerIndex],
-      config: config
+      ...targetLayer,
+      ...updates
     };
     
     // Update user's security layers

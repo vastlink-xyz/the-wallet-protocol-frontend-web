@@ -3,6 +3,8 @@ import { usePathname } from 'next/navigation';
 import { useMemo, useCallback } from 'react';
 import { notificationService, Notification, MFANotification, PendingProposalNotification, PinNotification, NotificationContext } from '@/services/NotificationService';
 import { shouldShowNotificationOnPath } from '@/constants/routes';
+import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
+import { getAuthIdByAuthMethod } from '@lit-protocol/lit-auth-client';
 
 interface UseNotificationsOptions {
   enabled?: boolean;
@@ -40,7 +42,10 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
     queryFn: async (): Promise<PinNotification[]> => {
       try {
         if (!shouldShow) return [];
-        return await notificationService.getPinNotifications();
+        const authMethod = getAuthMethodFromStorage();
+        if (!authMethod) return [];
+        const authMethodId = await getAuthIdByAuthMethod(authMethod);
+        return await notificationService.getPinNotifications(authMethodId);
       } catch (error) {
         console.error('Error fetching PIN notifications:', error);
         return [];

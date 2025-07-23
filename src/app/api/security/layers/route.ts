@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUser } from '../../user/storage';
-import { authenticateStytchSession } from '../../stytch/sessionAuth';
 
 // GET /api/security/layers - Get user's security layers
 export async function GET(request: NextRequest) {
   try {
-    const session = await authenticateStytchSession(request);
-    
     const { searchParams } = new URL(request.url);
     const authMethodId = searchParams.get('authMethodId');
     
@@ -18,6 +15,7 @@ export async function GET(request: NextRequest) {
     }
     
     const user = await getUser(authMethodId);
+    
     if (!user) {
       return NextResponse.json(
         { error: 'User not found' },
@@ -25,6 +23,7 @@ export async function GET(request: NextRequest) {
       );
     }
     
+    // Simply return all security layers from database
     const securityLayers = user.walletSettings?.securityLayers || [];
     return NextResponse.json({ securityLayers });
   } catch (error) {

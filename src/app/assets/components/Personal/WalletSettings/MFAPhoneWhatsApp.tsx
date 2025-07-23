@@ -25,6 +25,9 @@ interface MFAPhoneWhatsAppProps {
   // Session JWT for API calls
   sessionJwt: string | null;
   
+  // Auth method ID for API calls
+  authMethodId: string | null;
+  
   // Callback when phone number is successfully added/verified/removed
   onSuccess: () => void;
 
@@ -91,6 +94,7 @@ const ActionButtons: React.FC<{
 export function MFAPhoneWhatsApp({ 
   verifiedPhone, 
   sessionJwt,
+  authMethodId,
   onSuccess,
   onPhoneUpdated
 }: MFAPhoneWhatsAppProps) {
@@ -300,7 +304,7 @@ export function MFAPhoneWhatsApp({
       const data = await response.json();
       log('MFAPhoneWhatsApp: Phone added successfully', data);
 
-      handleOtpVerified()
+      await handleOtpVerified(data)
       return data;
     } else if (currentMethod.action === 'remove') {
       log('MFAPhoneWhatsApp: Verifying OTP for removing phone', { method_id: currentMethod.methodId, code: otp });
@@ -328,7 +332,7 @@ export function MFAPhoneWhatsApp({
       
       const data = await response.json();
       log('MFAPhoneWhatsApp: Phone removed successfully', data);
-      handleOtpVerified()
+      await handleOtpVerified()
       return data;
     } else {
       throw new Error(t('invalid_operation'));
@@ -336,12 +340,53 @@ export function MFAPhoneWhatsApp({
   };
 
   // Handle OTP verification completion
-  const handleOtpVerified = () => {
+  const handleOtpVerified = async (verificationData?: any) => {
     // Close the dialog
     setShowOtpDialog(false);
     
     // Set success message and reset state
     if (currentMethod?.action === 'add') {
+      // WhatsApp setup is complete! Now save to our security layers (similar to TOTP)
+      if (authMethodId && sessionJwt && verificationData) {
+        try {
+          // Extract the verified phone number from Stytch response
+          const verifiedPhoneFromStytch = verificationData.user?.phone_numbers?.find((p: any) => p.verified);
+          const phoneToStore = verifiedPhoneFromStytch?.phone_number || phoneNumber; // Fallback to user input
+          const phoneIdToStore = verifiedPhoneFromStytch?.phone_id;
+          const methodIdToStore = currentMethod?.methodId; // This is the stytchMethodId we need
+          
+          // Ensure we have all required fields
+          if (!phoneIdToStore || !methodIdToStore) {
+            throw new Error('Missing required phone verification data from Stytch');
+          }
+          
+          await fetch('/api/security/layers/add', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${sessionJwt}`,
+            },
+            body: JSON.stringify({
+              authMethodId,
+              layerType: 'WHATSAPP_OTP',
+              config: {
+                stytchMethodId: methodIdToStore,  // Store the method_id from OTP flow
+                phoneNumber: phoneToStore,        // Store the verified phone number from Stytch
+                phoneId: phoneIdToStore           // Store phone_id from Stytch
+              }
+            }),
+          });
+          log('MFAPhoneWhatsApp: Successfully added WhatsApp layer to security layers', { 
+            phoneNumber: phoneToStore, 
+            phoneId: phoneIdToStore,
+            stytchMethodId: methodIdToStore 
+          });
+        } catch (error) {
+          log('MFAPhoneWhatsApp: Error adding WhatsApp layer to security layers:', error);
+          // Don't fail the whole flow if security layers update fails
+        }
+      }
+      
       setSuccessMessage(t('phone_number_added'));
       setPhoneNumber('');
       setUiState('initial');
@@ -355,6 +400,27 @@ export function MFAPhoneWhatsApp({
         });
       }
     } else if (currentMethod?.action === 'remove') {
+      // WhatsApp removal is complete! Now update security layers
+      if (authMethodId && sessionJwt) {
+        try {
+          await fetch('/api/security/layers/remove', {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${sessionJwt}`,
+            },
+            body: JSON.stringify({
+              authMethodId,
+              layerType: 'WHATSAPP_OTP'
+            }),
+          });
+          log('MFAPhoneWhatsApp: Successfully updated security layers after WhatsApp removal');
+        } catch (error) {
+          log('MFAPhoneWhatsApp: Error updating security layers:', error);
+          // Don't fail the whole flow if security layers update fails
+        }
+      }
+      
       setSuccessMessage(t('phone_number_removed'));
     }
     

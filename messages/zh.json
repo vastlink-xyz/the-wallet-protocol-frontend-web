@@ -296,5 +296,26 @@
     "verify_pin": "验证PIN",
     "verifying": "验证中...",
     "cancel": "取消"
+  },
+  "TOTPSettings": {
+    "title": "TOTP认证",
+    "active": "TOTP已激活",
+    "configured": "已配置验证器应用",
+    "setup": "设置TOTP",
+    "removed": "TOTP已成功移除",
+    "confirm_remove": "您确定要移除TOTP认证吗？",
+    "scan_qr_code": "使用验证器应用扫描二维码",
+    "manual_secret": "手动输入密钥",
+    "manual_secret_description": "如果无法扫描二维码，请手动输入此密钥到您的验证器应用",
+    "backup_codes": "备用代码",
+    "backup_codes_description": "请安全保存这些备用代码，它们可以在您无法使用验证器应用时使用",
+    "continue_to_verify": "继续验证",
+    "enter_code": "输入TOTP验证码",
+    "code_description": "请输入验证器应用显示的6位验证码",
+    "verify_and_complete": "验证并完成设置",
+    "back": "返回",
+    "verifying": "验证中...",
+    "setup_success": "TOTP设置成功",
+    "copied_to_clipboard": "已复制到剪贴板"
   }
 }

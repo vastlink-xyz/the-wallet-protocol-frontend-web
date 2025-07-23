@@ -21,15 +21,19 @@ interface PinConfig {
 }
 
 interface WhatsAppOTPConfig {
-  stytchMethodId: string;
-  phoneNumber: string;
+  stytchMethodId: string;  // Stytch method ID for WhatsApp OTP
+  phoneNumber: string;     // The verified phone number
+  phoneId: string;         // Stytch phone_id for reference
 }
 
 interface TOTPConfig {
   stytchMethodId: string;
 }
 
-interface EmailOTPConfig {} // No configuration needed
+interface EmailOTPConfig {
+  // Email address comes from user's account, no additional config needed
+  _placeholder?: never;
+}
 
 // Generic interface to eliminate repetition
 interface TypedSecurityLayer<T extends SecurityLayerType, C> extends BaseSecurityLayer {
@@ -55,10 +59,6 @@ export interface UserSecurityLayers {
   layers: SecurityLayer[];
 }
 
-export interface SecurityRequirement {
-  requiresVerification: boolean;
-  requiredLayers: SecurityLayer[];
-}
 
 export interface SecurityProof {
   [layerType: string]: {
