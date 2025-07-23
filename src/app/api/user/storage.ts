@@ -11,19 +11,6 @@ function createDefaultSecurityLayers(): SecurityLayer[] {
   return [
     {
       id: crypto.randomUUID(),
-      type: 'PIN',
-      isEnabled: false,
-      isFallback: false,
-      config: {
-        pinData: {
-          encryptedPinHash: '',
-          dataToEncryptHash: '',
-          accessControlConditions: []
-        }
-      }
-    },
-    {
-      id: crypto.randomUUID(),
       type: 'EMAIL_OTP',
       isEnabled: true, // Only Email OTP enabled as fallback
       isFallback: true,

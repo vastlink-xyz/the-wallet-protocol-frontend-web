@@ -213,7 +213,7 @@ export function MFAPin({
         litActionPkp: userData.litActionPkp,
         authMethod: authMethod!
       });
-      await PinService.setLocalPinData({
+      await PinService.updateLocalPinData({
         pinData: newPinData,
         authMethodId: authMethodId,
         authMethod: authMethod!

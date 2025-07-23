@@ -150,6 +150,58 @@ export class PinService {
   }
 
   /**
+   * Update existing PIN data in database via security layers API
+   */
+  static async updateLocalPinData({
+    pinData,
+    authMethodId,
+    authMethod
+  }: {
+    pinData: PinData,
+    authMethodId: string,
+    authMethod: AuthMethod
+  }) {
+    try {
+      // First get the existing PIN layer
+      const response = await fetch(`/api/security/layers?authMethodId=${authMethodId}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to get existing PIN layer');
+      }
+      
+      const data = await response.json();
+      const pinLayer = data.securityLayers?.find((layer: SecurityLayer) => layer.type === 'PIN');
+      
+      if (!pinLayer) {
+        throw new Error('No existing PIN layer found');
+      }
+
+      // Update the existing layer
+      const updateResponse = await fetch('/api/security/layers/update', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authMethod.accessToken}`,
+        },
+        body: JSON.stringify({
+          authMethodId: authMethodId,
+          layerId: pinLayer.id,
+          config: {
+            pinData: pinData
+          }
+        }),
+      });
+
+      if (!updateResponse.ok) {
+        throw new Error('Failed to update PIN in database');
+      }
+    } catch (error) {
+      console.error('Error updating PIN in database:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Get PinData from database via security layers API
    */
   static async getLocalPinData({
