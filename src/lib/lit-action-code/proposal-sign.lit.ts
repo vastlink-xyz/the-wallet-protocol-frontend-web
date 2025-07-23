@@ -8,7 +8,7 @@ declare const authParams: any
 const _litActionCode = async () => {
   // verify auth token
   const res = await Lit.Actions.call({
-    ipfsId: 'QmNcUQ4jqnnjNue8T5RNekSQ2numbqshSiyXCnZi73QZ1u',
+    ipfsId: 'QmdeSZo7yUsfT4fVosxK55dz4fPEWokeFBPfRR2NdV9HJm',
     params: {
       ...authParams,
       publicKey,

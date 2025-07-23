@@ -10,7 +10,7 @@ declare const Lit: any
 const _litActionCode = async () => {
   const currentActionIpfsId = Lit.Auth.actionIpfsIds[0]
   console.log('currentActionIpfsId', currentActionIpfsId)
-  const ipfsIdForVerifyAuthTokenLitAction = 'QmNcUQ4jqnnjNue8T5RNekSQ2numbqshSiyXCnZi73QZ1u'
+  const ipfsIdForVerifyAuthTokenLitAction = 'QmdeSZo7yUsfT4fVosxK55dz4fPEWokeFBPfRR2NdV9HJm'
 
   async function editAuthmethod({
     pkpPublicKey,
