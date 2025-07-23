@@ -17,8 +17,10 @@ import { decryptDebugLitActionCode } from "@/app/debug/decrypt-lit-action";
 import { litActionCodeForUpdateMultisigWalletSettings } from "@/lib/lit-action-code/update-multisig-wallet-settings";
 import { litActionCodeForPersonalTransaction } from "@/lib/lit-action-code/personal-transaction.lit";
 import { litActionCodeForMultisigTransaction } from "@/lib/lit-action-code/multisig-transaction.lit";
+import { litActionCodeForCreateMultisigWallet } from "@/lib/lit-action-code/create-multisig-wallet";
 
-const litActionCode = verifyAuthTokenLitActionCode
+
+const litActionCode = litActionCodeForUpdateMultisigWalletSettings
 // const litActionCode = litActionCodeForPersonalTransaction
 
 interface ExecuteLitActionCodeProps {
@@ -62,7 +64,7 @@ export function ExecuteLitActionCode({
             authMethodType,
           },
           env: process.env.NEXT_PUBLIC_ENV,
-          devUrl: process.env.NEXT_PUBLIC_BASE_URL || '',
+          devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
           walletId: 'a18da2ed-7c5a-4587-baa6-d42ef26fe43a',
           proposalId: '05681f0d-f001-441a-b184-30a54a7a02ef',
         },
@@ -164,7 +166,7 @@ export function ExecuteLitActionCode({
           authMethodType: authMethod.authMethodType,
           publicKey: actionPkp?.publicKey,
           env: process.env.NEXT_PUBLIC_ENV,
-          devUrl: process.env.NEXT_PUBLIC_BASE_URL || '',
+          devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
         },
       });
       log('response', response);

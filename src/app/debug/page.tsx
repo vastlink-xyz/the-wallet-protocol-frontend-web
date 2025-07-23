@@ -151,7 +151,7 @@ export default function DebugPage() {
         message: 'Hello, world!',
         publicKey: pkp.publicKey,
         env: process.env.NEXT_PUBLIC_ENV,
-        devUrl: process.env.NEXT_PUBLIC_BASE_URL || '',
+        devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
       },
     })
 
@@ -250,7 +250,7 @@ export default function DebugPage() {
           publicKey: pkp.publicKey,
           litDatilNetwork: LIT_NETWORK.DatilDev,
           env: process.env.NEXT_PUBLIC_ENV,
-          devUrl: process.env.NEXT_PUBLIC_BASE_URL || '',
+          devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
           authMethodMetadata: {
             addOrRemove: 'add',
             keyType: 2,

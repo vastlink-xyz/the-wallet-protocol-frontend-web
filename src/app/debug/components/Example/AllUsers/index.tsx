@@ -9,13 +9,13 @@ import { PKPEthersWallet } from '@lit-protocol/pkp-ethers';
 import { log } from '@/lib/utils';
 import { AuthMethod, IRelayPKP, SessionSigs } from '@lit-protocol/types';
 import { User } from '@/app/api/user/storage';
-import { getPersonalSignIpfsId, getPersonalTransactionIpfsId } from '@/lib/lit/ipfs-id-env';
+import { getPersonalSignIpfsId, getPersonalTransactionIpfsId, getVerifyAuthTokenIpfsId } from '@/lib/lit/ipfs-id-env';
 import { LIT_NETWORK } from '@lit-protocol/constants';
 import { getBtcAddressByPublicKey } from '@/lib/web3/btc';
 import { litActionCodeForCommonUpgradableProxy } from '@/lib/lit-action-code/common-upgradable-proxy.lit';
 
-const upgradeIpfsHexFn = getPersonalTransactionIpfsId
-const removeIpfsIdHex = '0x12206d79ae56b8483352d4021cb77d647c140e3134cf596001aea124b86145e909ca'
+const upgradeIpfsHexFn = getPersonalSignIpfsId
+const removeIpfsIdHex = '0x1220df491e70a1f1893e2446cc3ad5a147b51c79afcd854d01f9b5826a20c815c649'
 
 interface UserProps {
   currentUserPkp: IRelayPKP | null;
@@ -114,7 +114,7 @@ export function AllUsers({
           publicKey: user.litActionPkp!.publicKey,
           litDatilNetwork: LIT_NETWORK.DatilDev,
           env: process.env.NEXT_PUBLIC_ENV,
-          devUrl: process.env.NEXT_PUBLIC_BASE_URL || '',
+          devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
           authMethodMetadata: {
             addOrRemove: 'add',
             keyType: 2,
@@ -149,7 +149,7 @@ export function AllUsers({
           publicKey: user.litActionPkp!.publicKey,
           litDatilNetwork: LIT_NETWORK.DatilDev,
           env: process.env.NEXT_PUBLIC_ENV,
-          devUrl: process.env.NEXT_PUBLIC_BASE_URL || '',
+          devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
           authMethodMetadata: {
             addOrRemove: 'remove',
             keyType: 2,

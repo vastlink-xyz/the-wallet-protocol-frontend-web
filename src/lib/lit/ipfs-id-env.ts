@@ -7,23 +7,23 @@ import { litActionCodeForCommonUpgradableProxy } from "../lit-action-code/common
 import { litActionCodeForUpdateMultisigWalletSettings } from "../lit-action-code/update-multisig-wallet-settings"
 import { litActionCodeForCreateMultisigWallet } from "../lit-action-code/create-multisig-wallet"
 
-const updateWalletSettingsIpfsId = 'QmaC6qdpdpSS3HZPFAayQt8aw1LWFMTwp7P12c2Bz3w9gb'
-const updateWalletSettingsIpfsIdHex = '0x1220b01b8f9785df09fae64c8c9bfb7f7b0faf81ecc7f9f8a2fcd89a31c57b62d748'
+const updateWalletSettingsIpfsId = 'QmRCJUJ7QwqcZyZM1MCncwx6PgbfmgkeYiRzc79jiZzUAY'
+const updateWalletSettingsIpfsIdHex = '0x12202a6f87ef3a17bbd113f8d9df3c07a9790d6056a0b7b46a88e5e5655a8e7152fd'
 
-const createWalletIpfsId = 'QmWWCfH9doco4zadnFk5wKYTfvnWx71ZoUCoUcMj69qPuk'
-const createWalletIpfsIdHex = '0x1220794fd99f5f8459c602e869a7af409bd7f3bf92b5d45f689bcf31b9f736a9a2ab'
+const createWalletIpfsId = 'QmY9nEaCUzpYJadmDapvpRhn72j2c8xjsu325DPxHq7WEQ'
+const createWalletIpfsIdHex = '0x122091cbfd3e3f34e2a0d3390e7eb4f020c3b9af5debb973322b5206d6be1e48f0cd'
 
 const verifyAuthTokenIpfsId = 'QmdeSZo7yUsfT4fVosxK55dz4fPEWokeFBPfRR2NdV9HJm'
 const verifyAuthTokenIpfsHex = '0x1220e36e072b05d2d058cdbbbedfd7c924f89895b727066a73e4e29f6a1f88b75d86'
 
-const multisigTransactionIpfsId = 'Qmet3eYVvhzGVJoKFys4HwLjiGWd4n9Cqryw9RhAGrbu6Q'
-const multisigTransactionIpfsHex = '0x1220f5c5eec0e10e9fcc6edb0fda07a24687bd15610e932b4e0c9e940307151b3689'
+const multisigTransactionIpfsId = 'QmUgPz93JZ3UZzWaop3ME1bszxdHBvqs8rgrVjyP97hD5d'
+const multisigTransactionIpfsHex = '0x12205e3516f96683a719f8b2ef39c4590a1f3b27dd51b6fad9fc398b5509245233dc'
 
-const personalSignIpfsId = 'QmPuiigzron8C1sS3XC9BWQUA1vfqXQZxe4V6X45hYQNHG'
-const personalSignIpfsIdHex = '0x1220175463483f4a83029a74c6f6588a4e5789b788ce3a7bec74486b1c692a2457ab'
+const personalSignIpfsId = 'QmbZqMoXFa2jZkc3MBoNuezBMvQ4pBmmqCf6ziMvSuwvkc'
+const personalSignIpfsIdHex = '0x1220c48885c1552dbf86675c26a605a216fdceaf80caf70d0a5b838a006c7767eee5'
 
-const personalTransactionIpfsId = 'QmdNGHwU4ukz8uqT3snNVVmfaztFXsg5JPYYXs6zzG8hAx'
-const personalTransactionIpfsIdHex = '0x1220df491e70a1f1893e2446cc3ad5a147b51c79afcd854d01f9b5826a20c815c649'
+const personalTransactionIpfsId = 'QmZqSkCMu9C4Lgxqjrx67upyPgti31kefGxFjFypopLVKL'
+const personalTransactionIpfsIdHex = '0x1220aad0df3870db9aa0ec9892faf69c1ce4c88c4e585c0fea05c1a7b77a617f917f'
 
 const upgradeIpfsId = 'QmTdAJGwtd1Ex1akC5zjzQsHTGtPKKj4WnDNQftLsXN6Um'
 const upgradeIpfsIdHex = '0x12204e852f217ab356ea529afc8584ef67340cae7b0cb0e76d8045735537f9323ca6'
