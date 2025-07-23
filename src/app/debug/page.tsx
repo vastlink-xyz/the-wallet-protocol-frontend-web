@@ -151,6 +151,7 @@ export default function DebugPage() {
         message: 'Hello, world!',
         publicKey: pkp.publicKey,
         env: process.env.NEXT_PUBLIC_ENV,
+        devUrl: process.env.NEXT_PUBLIC_BASE_URL || '',
       },
     })
 
@@ -249,6 +250,7 @@ export default function DebugPage() {
           publicKey: pkp.publicKey,
           litDatilNetwork: LIT_NETWORK.DatilDev,
           env: process.env.NEXT_PUBLIC_ENV,
+          devUrl: process.env.NEXT_PUBLIC_BASE_URL || '',
           authMethodMetadata: {
             addOrRemove: 'add',
             keyType: 2,
@@ -345,7 +347,7 @@ export default function DebugPage() {
       <Button onClick={handleCheckPermittedLitActions}>Check Permitted Lit Actions</Button>
       <Button onClick={handleGetSessionSigs}>Get Session Sigs</Button>
 
-      {authMethod && <Encryption authMethod={authMethod} />}
+      {/* {authMethod && <Encryption authMethod={authMethod} />} */}
     </div>
   );
 }

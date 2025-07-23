@@ -7,6 +7,7 @@ declare const toSignTransaction: any
 declare const transactionAmount: string // unit is ETH or BTC
 declare const chainType: string
 declare const env: string
+declare const devUrl: string
 declare const authParams: any
 
 declare const publicKeys: string[]
@@ -40,7 +41,7 @@ const go = async () => {
     let litDatilNetwork: 'datil-dev' | 'datil-test' | 'datil';
     switch (env) {
       case 'dev':
-        apiBaseUrl = 'https://4bb5-58-152-13-66.ngrok-free.app';
+        apiBaseUrl = devUrl;
         litDatilNetwork = 'datil-dev'
         break;
       case 'test':

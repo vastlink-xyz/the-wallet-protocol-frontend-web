@@ -6,6 +6,7 @@ declare const authMethodId: string;
 declare const authMethodType: number;
 declare const accessToken: string;
 declare const env: string
+declare const devUrl: string
 
 declare const ethers: any;
 // declare const Lit: any;
@@ -18,7 +19,7 @@ const _litActionCode = async () => {
   let apiBaseUrl: string;
   switch (env) {
     case 'dev':
-      apiBaseUrl = 'https://4bb5-58-152-13-66.ngrok-free.app';
+      apiBaseUrl = devUrl;
       break;
     case 'test':
       apiBaseUrl = 'https://dev-app-vastbase-eb1a4b4e8e63.herokuapp.com';

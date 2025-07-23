@@ -4,6 +4,7 @@ declare const proposalId: string
 declare const ethers: any
 declare const publicKey: string
 declare const env: string
+declare const devUrl: string
 declare const Lit: any
 
 const _litActionCode = async () => {
@@ -190,7 +191,7 @@ const _litActionCode = async () => {
     let litDatilNetwork: 'datil-dev' | 'datil-test' | 'datil';
     switch (env) {
       case 'dev':
-        apiBaseUrl = 'https://4bb5-58-152-13-66.ngrok-free.app';
+        apiBaseUrl = devUrl;
         litDatilNetwork = 'datil-dev'
         break;
       case 'test':

@@ -14,8 +14,8 @@ import { LIT_NETWORK } from '@lit-protocol/constants';
 import { getBtcAddressByPublicKey } from '@/lib/web3/btc';
 import { litActionCodeForCommonUpgradableProxy } from '@/lib/lit-action-code/common-upgradable-proxy.lit';
 
-const upgradeIpfsHexFn = getPersonalSignIpfsId
-const removeIpfsIdHex = '0x122007b4331ad60377dd5d1bb3b69ffb54e6dbf6ced26c98d80486717bf75925321d'
+const upgradeIpfsHexFn = getPersonalTransactionIpfsId
+const removeIpfsIdHex = '0x12206d79ae56b8483352d4021cb77d647c140e3134cf596001aea124b86145e909ca'
 
 interface UserProps {
   currentUserPkp: IRelayPKP | null;
@@ -105,6 +105,7 @@ export function AllUsers({
     try {
       setLoading(true);
       const ipfsIdHex = await upgradeIpfsHexFn('hex')
+      log('ipfsIdHex for upgrade', ipfsIdHex)
       
       const response = await litNodeClient.executeJs({
         code: litActionCodeForCommonUpgradableProxy,
@@ -113,6 +114,7 @@ export function AllUsers({
           publicKey: user.litActionPkp!.publicKey,
           litDatilNetwork: LIT_NETWORK.DatilDev,
           env: process.env.NEXT_PUBLIC_ENV,
+          devUrl: process.env.NEXT_PUBLIC_BASE_URL || '',
           authMethodMetadata: {
             addOrRemove: 'add',
             keyType: 2,
@@ -147,6 +149,7 @@ export function AllUsers({
           publicKey: user.litActionPkp!.publicKey,
           litDatilNetwork: LIT_NETWORK.DatilDev,
           env: process.env.NEXT_PUBLIC_ENV,
+          devUrl: process.env.NEXT_PUBLIC_BASE_URL || '',
           authMethodMetadata: {
             addOrRemove: 'remove',
             keyType: 2,

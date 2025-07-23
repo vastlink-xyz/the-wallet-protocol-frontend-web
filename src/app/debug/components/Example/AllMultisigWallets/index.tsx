@@ -72,6 +72,7 @@ export function AllMultisigWallets({
           publicKey: wallet.pkp.publicKey,
           litDatilNetwork: LIT_NETWORK.DatilDev,
           env: process.env.NEXT_PUBLIC_ENV,
+          devUrl: process.env.NEXT_PUBLIC_BASE_URL || '',
           authMethodMetadata: {
             addOrRemove: 'add',
             keyType: 2,
@@ -105,6 +106,7 @@ export function AllMultisigWallets({
           publicKey: wallet.pkp.publicKey,
           litDatilNetwork: LIT_NETWORK.DatilDev,
           env: process.env.NEXT_PUBLIC_ENV,
+          devUrl: process.env.NEXT_PUBLIC_BASE_URL || '',
           authMethodMetadata: {
             addOrRemove: 'remove',
             keyType: 2,

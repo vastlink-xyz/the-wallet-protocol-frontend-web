@@ -55,6 +55,7 @@ export const executeWalletSettingsProposal = async ({
       },
       publicKey: walletPkp.publicKey,
       env: process.env.NEXT_PUBLIC_ENV,
+      devUrl: process.env.NEXT_PUBLIC_BASE_URL || '',
       walletId: wallet.id,
       proposalId: proposal.id,
     },
@@ -207,6 +208,7 @@ export const executeTransactionProposal = async ({
     toSignTransaction: txData.toSign,
     transactionAmount: txDetails.value,
     env: process.env.NEXT_PUBLIC_ENV,
+    devUrl: process.env.NEXT_PUBLIC_BASE_URL || '',
     authParams: {
       accessToken: authMethod.accessToken,
       authMethodId: authMethodId,

@@ -58,6 +58,7 @@ export function Upgrade({
           publicKey: actionPkp!.publicKey,
           litDatilNetwork: LIT_NETWORK.DatilDev,
           env: process.env.NEXT_PUBLIC_ENV,
+          devUrl: process.env.NEXT_PUBLIC_BASE_URL || '',
           // authMethodMetadata: {
           //   addOrRemove: 'remove',
           //   keyType: 2,
@@ -142,6 +143,7 @@ export function Upgrade({
           publicKey: actionPkp!.publicKey,
           litDatilNetwork: LIT_NETWORK.DatilDev,
           env: process.env.NEXT_PUBLIC_ENV,
+          devUrl: process.env.NEXT_PUBLIC_BASE_URL || '',
           authMethodMetadata: {
             addOrRemove: 'remove',
             keyType: 2,

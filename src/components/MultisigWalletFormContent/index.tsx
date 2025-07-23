@@ -517,6 +517,7 @@ export function MultisigWalletFormContent({
           dataToEncryptHash,
           publicKey: pkpForMultisig.publicKey,
           env: process.env.NEXT_PUBLIC_ENV,
+          devUrl: process.env.NEXT_PUBLIC_BASE_URL || '',
         },
       });
       log('litaction res', litActionRes);

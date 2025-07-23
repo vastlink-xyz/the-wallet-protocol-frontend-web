@@ -46,6 +46,7 @@ export const signProposal = async ({
       message: proposal.message,
       publicKey: userPkp.publicKey,
       env: process.env.NEXT_PUBLIC_ENV,
+      devUrl: process.env.NEXT_PUBLIC_BASE_URL || '',
       authParams: {
         accessToken: authMethod.accessToken,
         authMethodId: authMethodId,
