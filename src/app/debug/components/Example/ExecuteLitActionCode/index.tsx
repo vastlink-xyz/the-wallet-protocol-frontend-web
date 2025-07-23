@@ -62,6 +62,7 @@ export function ExecuteLitActionCode({
             accessToken: authMethod.accessToken,
             authMethodId: authMethodId,
             authMethodType,
+            devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
           },
           env: process.env.NEXT_PUBLIC_ENV,
           devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',

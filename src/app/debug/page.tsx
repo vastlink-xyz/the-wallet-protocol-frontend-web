@@ -147,6 +147,7 @@ export default function DebugPage() {
           accessToken: authMethod.accessToken,
           authMethodId,
           authMethodType: authMethod.authMethodType,
+          devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
         },
         message: 'Hello, world!',
         publicKey: pkp.publicKey,

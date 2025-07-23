@@ -513,6 +513,7 @@ export function MultisigWalletFormContent({
             accessToken: authMethod.accessToken,
             authMethodId: authMethodId,
             authMethodType: authMethod.authMethodType,
+            devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
           },
           dataToEncryptHash,
           publicKey: pkpForMultisig.publicKey,
