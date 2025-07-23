@@ -28,6 +28,7 @@ export interface UserAddresses {
 export interface User {
   id: string
   authMethodId: string
+  sub: string // OAuth/JWT standard subject identifier
   email: string
   litActionPkp?: {
     ethAddress: string
@@ -47,6 +48,7 @@ function extractUserData(doc: any): User | null {
   if (!doc) return null;
   return {
     id: doc.id || doc._id?.toString(),
+    sub: doc.sub,
     authMethodId: doc.authMethodId,
     email: doc.email,
     litActionPkp: doc.litActionPkp || undefined,
@@ -62,6 +64,17 @@ export async function getUser(authMethodId: string): Promise<User | null> {
     return extractUserData(user);
   } catch (error) {
     console.error('Failed to get user:', error);
+    return null;
+  }
+}
+
+export async function getUserBySub(sub: string): Promise<User | null> {
+  try {
+    await connectToDatabase();
+    const user = await UserModel.findOne({ sub }).lean();
+    return extractUserData(user);
+  } catch (error) {
+    console.error('Failed to get user by sub:', error);
     return null;
   }
 }
@@ -118,10 +131,12 @@ export async function getAllUsers(): Promise<User[]> {
 
 export async function createUser({
   authMethodId,
+  sub,
   email,
   addresses
 }: {
   authMethodId: string,
+  sub: string,
   email: string,
   addresses?: UserAddresses
 }): Promise<User> {
@@ -142,6 +157,7 @@ export async function createUser({
     const userData = {
       id,
       authMethodId,
+      sub,
       email,
       addresses,
       walletSettings: {
@@ -167,6 +183,7 @@ export async function addPkpToUser(
   authMethodId: string, 
   pkp: IRelayPKP, 
   pkpType: PKPType,
+  sub: string,
   email?: string
 ): Promise<User | null> {
   try {
@@ -184,7 +201,7 @@ export async function addPkpToUser(
       const ethAddress = pkp.ethAddress || ''
       const btcAddress = getBtcAddressByPublicKey(pkp.publicKey) || ''
 
-      const newUser = await createUser({ authMethodId, email, addresses: { eth: ethAddress, btc: btcAddress } });
+      const newUser = await createUser({ authMethodId, sub, email, addresses: { eth: ethAddress, btc: btcAddress } });
       
       // Prepare update based on PKP type
       const updateField = 'litActionPkp';

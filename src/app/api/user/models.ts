@@ -50,6 +50,7 @@ export async function connectToDatabase(): Promise<mongoose.Connection> {
 const UserSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true },
   authMethodId: { type: String, required: true, unique: true },
+  sub: { type: String, required: true, unique: true }, // OAuth/JWT standard subject identifier (e.g., Stytch user_id)
   email: { type: String, required: true, unique: true },
   litActionPkp: {
     ethAddress: String,

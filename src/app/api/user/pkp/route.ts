@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { addPkpToUser, getUserPkps, PKPType, getUser } from '../storage';
+import { authenticateStytchSession } from '../../stytch/sessionAuth';
 
 // GET /api/user/pkp?authMethodId=xxx
 export async function GET(request: NextRequest) {
@@ -28,6 +29,10 @@ export async function GET(request: NextRequest) {
 // POST /api/user/pkp - Add or update a PKP for a user
 export async function POST(request: NextRequest) {
   try {
+    // Authenticate session and get sub from it
+    const session = await authenticateStytchSession(request);
+    const sub = session.user_id; // This is the Stytch user_id (sub)
+    
     const body = await request.json();
     const { authMethodId, pkp, pkpType } = body;
 
@@ -70,7 +75,7 @@ export async function POST(request: NextRequest) {
     console.log(`${action} ${type} PKP for user ${authMethodId}`);
 
     // Add or update the PKP
-    const updatedUser = await addPkpToUser(authMethodId, pkp, type);
+    const updatedUser = await addPkpToUser(authMethodId, pkp, type, sub);
     if (!updatedUser) {
       return NextResponse.json(
         { error: `Failed to ${action.toLowerCase()} PKP for user` },

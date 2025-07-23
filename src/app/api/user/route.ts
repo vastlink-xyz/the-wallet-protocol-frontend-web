@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUser, createUser } from './storage';
+import { authenticateStytchSession } from '../stytch/sessionAuth';
 
 // GET /api/user?authMethodId=xxx
 export async function GET(request: NextRequest) {
@@ -35,6 +36,10 @@ export async function GET(request: NextRequest) {
 // POST /api/user - Create a new user
 export async function POST(request: NextRequest) {
   try {
+    // Authenticate session and get sub from it
+    const session = await authenticateStytchSession(request);
+    const sub = session.user_id; // This is the Stytch user_id (sub)
+    
     const body = await request.json();
     const { authMethodId, email } = body;
 
@@ -61,6 +66,7 @@ export async function POST(request: NextRequest) {
     // Create new user
     const newUser = await createUser({
       authMethodId,
+      sub,
       email,
     });
     return NextResponse.json(newUser, { status: 201 });

@@ -15,6 +15,11 @@ import { getAuthMethodFromStorage, setAuthMethodToStorage, clearAuthMethodFromSt
 import { AUTH_METHOD_TYPE } from '@lit-protocol/constants';
 import { setUserDataToStorage } from '@/lib/storage/user';
 
+/**
+ * @deprecated This Google OAuth callback page is deprecated and should not be used.
+ * All authentication should go through Stytch flow instead.
+ * TODO: Remove this page and related Google OAuth functionality.
+ */
 export default function GoogleCallbackPage() {
   const router = useRouter();
   const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null);

@@ -155,7 +155,7 @@ export default function StytchCallbackPage() {
       const authMethodId = await stytchProvider.getAuthMethodId(authMethod);
       
       // Check if user has PKPs
-      const hasPkps = await checkUserPkps(authMethodId, userEmail);
+      const hasPkps = await checkUserPkps(authMethodId, authMethod, userEmail);
       log('has pkps', hasPkps);
       log('email', userEmail);
       
@@ -239,7 +239,7 @@ export default function StytchCallbackPage() {
   }
 
   // Check if user has PKPs
-  const checkUserPkps = async (authMethodId: string, userEmail: string | null): Promise<boolean> => {
+  const checkUserPkps = async (authMethodId: string, authMethod: AuthMethod, userEmail: string | null): Promise<boolean> => {
     try {
       if (!userEmail) {
         log('No email provided for PKP check');
@@ -259,6 +259,7 @@ export default function StytchCallbackPage() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authMethod.accessToken}`, // Add session JWT for authentication
           },
           body: JSON.stringify({ authMethodId, email: userEmail }),
         });
@@ -316,7 +317,7 @@ export default function StytchCallbackPage() {
     }
   };
 
-  const savePkpToDatabase = async (authMethodId: string, pkp: IRelayPKP, pkpType: 'session' | 'litAction') => {
+  const savePkpToDatabase = async (authMethodId: string, authMethod: AuthMethod, pkp: IRelayPKP, pkpType: 'session' | 'litAction') => {
     try {
       log('Attempting to save PKP to database:', {
         authMethodId,
@@ -329,8 +330,9 @@ export default function StytchCallbackPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authMethod.accessToken}`, // Add session JWT for authentication
         },
-        body: JSON.stringify({ authMethodId, pkp, pkpType, email }),
+        body: JSON.stringify({ authMethodId, pkp, pkpType }),
       });
       
       if (!response.ok) {
@@ -389,7 +391,7 @@ export default function StytchCallbackPage() {
       
       // Step 5: Save PKP to database with validation
       log('Saving PKP to database...');
-      const saveResult = await savePkpToDatabase(authMethodId, pkpForPersonal, 'litAction');
+      const saveResult = await savePkpToDatabase(authMethodId, authMethod, pkpForPersonal, 'litAction');
       
       if (!saveResult?.success) {
         throw new Error('Failed to save PKP to database');
