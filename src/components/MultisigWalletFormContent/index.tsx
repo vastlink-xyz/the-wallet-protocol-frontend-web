@@ -399,6 +399,7 @@ export function MultisigWalletFormContent({
       const createWalletIpfsIdHex = await getCreateWalletIpfsId("hex");
       const updateWalletIpfsIdHex = await getUpdateWalletIpfsId("hex");
       const multisigTransactionIpfsIdHex = await getMultisigTransactionIpfsId('hex')
+      const upgradeIpfsIdHex = await getUpgradeIpfsId('hex')
       const createWalletIpfsId = await getCreateWalletIpfsId("base58");
 
       // Determine actual signers for wallet creation
@@ -415,12 +416,14 @@ export function MultisigWalletFormContent({
         createWalletIpfsIdHex,
         updateWalletIpfsIdHex,
         multisigTransactionIpfsIdHex,
+        upgradeIpfsIdHex,
         authMethodId,
         ...signerAuthMethodIds.filter(id => id !== authMethodId) // Avoid duplicates
       ];
       
       // Create arrays with the same length for all parameters
       const allAuthMethodTypes = [
+        AUTH_METHOD_TYPE.LitAction,
         AUTH_METHOD_TYPE.LitAction,
         AUTH_METHOD_TYPE.LitAction,
         AUTH_METHOD_TYPE.LitAction,
@@ -431,6 +434,7 @@ export function MultisigWalletFormContent({
       const allAuthMethodPubkeys = allAuthMethodIds.map(() => '0x');
 
       const allAuthMethodScopes = [
+        [AUTH_METHOD_SCOPE.SignAnything],
         [AUTH_METHOD_SCOPE.SignAnything],
         [AUTH_METHOD_SCOPE.SignAnything],
         [AUTH_METHOD_SCOPE.SignAnything],
