@@ -4,6 +4,7 @@ import { SecurityLayer } from '@/types/security';
 import { authenticateStytchSession, getJwtTokenFromRequest } from '../../stytch/sessionAuth';
 import { stytchClient } from '../../stytch/client';
 import { log } from '@/lib/utils';
+import { SecurityLayerService } from '@/services/securityLayerService';
 
 interface VerifyForLitActionRequest {
   transactionAmount: string;
@@ -46,9 +47,10 @@ export async function POST(request: NextRequest) {
     }
 
     const securityLayers = user.walletSettings?.securityLayers || [];
+    const sortedLayers = SecurityLayerService.sortLayersByPriority(securityLayers);
     
     // 2. Check PIN requirements
-    const pinLayer = securityLayers.find((layer: SecurityLayer) => layer.type === 'PIN');
+    const pinLayer = SecurityLayerService.findLayerByType(sortedLayers, 'PIN');
     const isPinEnabled = pinLayer?.isEnabled || false;
 
     if (isPinEnabled && pinLayer) {
@@ -57,13 +59,13 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           success: false,
           requiresPIN: true,
-          pinData: pinLayer.config?.pinData,
+          pinData: pinLayer.type === 'PIN' ? pinLayer.config.pinData : undefined,
           error: 'PIN is required but not provided'
         });
       }
       
       // PIN is provided, return PIN data for lit action verification
-      if (!pinLayer.config?.pinData) {
+      if (pinLayer.type !== 'PIN' || !pinLayer.config.pinData) {
         return NextResponse.json({
           success: false,
           error: 'PIN data not found in security layer'
@@ -103,16 +105,26 @@ export async function POST(request: NextRequest) {
           console.log('Policy data received:', policyData);
           
           if (policyData.requiresMfa) {
-            // Get available MFA options from security layers
-            // All enabled MFA methods are available for user selection
-            const availableMFALayers = securityLayers.filter((layer: SecurityLayer) => 
-              layer.type !== 'PIN' && layer.isEnabled
+            // Get all OTP layers (MFA and fallback) that are enabled
+            const otpLayers = sortedLayers.filter((layer: SecurityLayer) => 
+              layer.category === 'otp' && layer.isEnabled
             );
             
+            // If no OTP layers available, ensure EMAIL_OTP fallback is available
+            let availableMFALayers = otpLayers;
+            if (availableMFALayers.length === 0) {
+              // Look for any EMAIL_OTP layer (fallback)
+              const emailLayer = SecurityLayerService.findLayerByType(sortedLayers, 'EMAIL_OTP');
+              if (emailLayer && emailLayer.isEnabled) {
+                availableMFALayers = [emailLayer];
+              }
+            }
+            
             console.log('MFA Layer Selection:', {
-              totalMFALayers: securityLayers.filter(l => l.type !== 'PIN').length,
+              totalOtpLayers: otpLayers.length,
               availableMethods: availableMFALayers.length,
-              availableTypes: availableMFALayers.map(l => l.type)
+              availableTypes: availableMFALayers.map(l => l.type),
+              priorities: availableMFALayers.map(l => `${l.type}:${l.priority}`)
             });
 
             const availableMFAOptions = availableMFALayers.map((layer: SecurityLayer) => {
@@ -145,7 +157,7 @@ export async function POST(request: NextRequest) {
               requiresMFA: true,
               availableMFAOptions,
               // Also return PIN data if PIN was provided
-              ...(isPinEnabled && pinCode && pinLayer ? { pinData: pinLayer.config?.pinData } : {}),
+              ...(isPinEnabled && pinCode && pinLayer && pinLayer.type === 'PIN' ? { pinData: pinLayer.config.pinData } : {}),
               error: 'MFA verification required'
             });
           } else {
@@ -225,7 +237,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       // Return PIN data if PIN was enabled (for lit action to verify)
-      ...(isPinEnabled && pinCode && pinLayer ? { pinData: pinLayer.config?.pinData } : {})
+      ...(isPinEnabled && pinCode && pinLayer && pinLayer.type === 'PIN' ? { pinData: pinLayer.config.pinData } : {})
     });
 
   } catch (error) {

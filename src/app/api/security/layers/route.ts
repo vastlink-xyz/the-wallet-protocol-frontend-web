@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUser } from '../../user/storage';
+import { SecurityLayerService } from '@/services/securityLayerService';
 
 // GET /api/security/layers - Get user's security layers
 export async function GET(request: NextRequest) {
@@ -23,9 +24,12 @@ export async function GET(request: NextRequest) {
       );
     }
     
-    // Simply return all security layers from database
+    // Return all security layers sorted by priority
     const securityLayers = user.walletSettings?.securityLayers || [];
-    return NextResponse.json({ securityLayers });
+    
+    return NextResponse.json({ 
+      securityLayers: SecurityLayerService.sortLayersByPriority(securityLayers)
+    });
   } catch (error) {
     console.error('Error in GET /api/security/layers:', error);
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';

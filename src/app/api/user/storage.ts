@@ -5,14 +5,16 @@ import { getBtcAddressByPublicKey } from '@/lib/web3/btc'
 import { SUPPORTED_TOKEN_SYMBOLS, SUPPORTED_TOKENS_INFO } from '@/lib/web3/token'
 import { SecurityLayer } from '@/types/security'
 
-// Create default security layers - only PIN and EMAIL_OTP
+// Create default security layers - only EMAIL_OTP as fallback
 // TOTP and WHATSAPP_OTP layers are created dynamically when user sets them up in Stytch
 function createDefaultSecurityLayers(): SecurityLayer[] {
   return [
     {
       id: crypto.randomUUID(),
       type: 'EMAIL_OTP',
-      isEnabled: true, // Only Email OTP enabled as fallback
+      category: 'otp',
+      priority: 20,
+      isEnabled: true,
       isFallback: true,
       config: {}
     }
@@ -325,12 +327,11 @@ export async function updateUserWalletSettings(
 export async function getUserSecurityLayers(authMethodId: string): Promise<SecurityLayer[]> {
   try {
     const user = await getUser(authMethodId);
-    if (!user || !user.walletSettings?.securityLayers) {
+    if (!user || !user.walletSettings || !user.walletSettings.securityLayers) {
       return [];
     }
     
-    // Return enabled layers in array order (index as execution order)
-    return user.walletSettings.securityLayers.filter(layer => layer.isEnabled);
+    return user.walletSettings.securityLayers || [];
   } catch (error) {
     console.error('Failed to get user security layers:', error);
     return [];

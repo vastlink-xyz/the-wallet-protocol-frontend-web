@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUser, updateUserWalletSettings } from '../../../user/storage';
-import { SecurityLayerType } from '@/types/security';
+import { SecurityLayer, SecurityLayerType } from '@/types/security';
 import { authenticateStytchSession } from '../../../stytch/sessionAuth';
+import { SecurityLayerService } from '@/services/securityLayerService';
 
 // DELETE /api/security/layers/remove - Remove or disable a security layer (database only)
 export async function DELETE(request: NextRequest) {
@@ -33,45 +34,59 @@ export async function DELETE(request: NextRequest) {
       );
     }
     
-    const currentLayers = user.walletSettings?.securityLayers || [];
+    // Validate layer type
+    if (!SecurityLayerService.validateLayerType(layerType)) {
+      return NextResponse.json(
+        { error: `Unsupported layer type: ${layerType}` },
+        { status: 400 }
+      );
+    }
+    
+    // Get current security layers array
+    const securityLayers = user.walletSettings?.securityLayers || [];
     
     // Find the layer to remove
-    const layerIndex = currentLayers.findIndex(layer => layer.type === layerType);
-    if (layerIndex === -1) {
+    const targetLayer = SecurityLayerService.findLayerByType(securityLayers, layerType as SecurityLayerType);
+    if (!targetLayer) {
       return NextResponse.json(
         { error: `Security layer of type ${layerType} not found` },
         { status: 404 }
       );
     }
     
-    const targetLayer = currentLayers[layerIndex];
+    const layerIndex = securityLayers.findIndex(layer => layer.id === targetLayer.id);
     
-    // Update database securityLayers
-    // For EMAIL_OTP layers, we disable them instead of removing completely
-    // For PIN, TOTP and WHATSAPP_OTP, we can remove them since they can be re-created
+    // Update database security layers
+    let updatedSecurityLayers: SecurityLayer[];
+    
     if (layerType === 'EMAIL_OTP') {
       // Just disable EMAIL_OTP layers
-      targetLayer.isEnabled = false;
-      targetLayer.isFallback = false;
+      updatedSecurityLayers = securityLayers.map(layer => 
+        layer.id === targetLayer.id 
+          ? { ...layer, isEnabled: false }
+          : layer
+      );
     } else {
       // Remove PIN, TOTP and WHATSAPP_OTP layers completely
-      currentLayers.splice(layerIndex, 1);
+      updatedSecurityLayers = [...securityLayers];
+      updatedSecurityLayers.splice(layerIndex, 1);
     }
     
-    // Update the user's security layers
-    const updatedSettings = {
-      ...user.walletSettings,
-      securityLayers: currentLayers
-    };
-    
-    await updateUserWalletSettings(authMethodId, updatedSettings);
+    await updateUserWalletSettings(authMethodId, {
+      securityLayers: updatedSecurityLayers
+    });
     
     const action = (layerType === 'EMAIL_OTP') ? 'disabled' : 'removed';
+    
+    // Get updated user data
+    const updatedUser = await getUser(authMethodId);
+    
+    const allLayers = updatedUser?.walletSettings?.securityLayers || [];
     
     return NextResponse.json({ 
       success: true, 
       message: `Security layer ${layerType} ${action} successfully`,
-      securityLayers: currentLayers
+      securityLayers: SecurityLayerService.sortLayersByPriority(allLayers)
     });
     
   } catch (error: any) {

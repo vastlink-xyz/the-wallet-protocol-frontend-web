@@ -170,7 +170,8 @@ export class PinService {
       }
       
       const data = await response.json();
-      const pinLayer = data.securityLayers?.find((layer: SecurityLayer) => layer.type === 'PIN');
+      const pinLayers = data.pinLayers || [];
+      const pinLayer = pinLayers.find((layer: SecurityLayer) => layer.type === 'PIN');
       
       if (!pinLayer) {
         throw new Error('No existing PIN layer found');
@@ -218,8 +219,10 @@ export class PinService {
       
       const data = await response.json();
 
-      const pinLayer = data.securityLayers?.find((layer: SecurityLayer) => 
-        layer.type === 'PIN' && layer.isEnabled
+      // Use the new unified structure
+      const securityLayers = data.securityLayers || [];
+      const pinLayer = securityLayers.find((layer: SecurityLayer) => 
+        layer.type === 'PIN' && layer.category === 'pin' && layer.isEnabled
       );
 
       return pinLayer?.config?.pinData || null;

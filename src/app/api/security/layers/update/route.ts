@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUser, updateUserWalletSettings } from '../../../user/storage';
+import { SecurityLayer } from '@/types/security';
 import { authenticateStytchSession } from '../../../stytch/sessionAuth';
 import { verifyStytchDataExists } from '../stytchValidation';
+import { SecurityLayerService } from '@/services/securityLayerService';
 
 // PUT /api/security/layers/update - Update security layer fields (isEnabled, config, etc.)
 export async function PUT(request: NextRequest) {
@@ -34,8 +36,9 @@ export async function PUT(request: NextRequest) {
       );
     }
     
-    const currentLayers = user.walletSettings?.securityLayers || [];
-    const layerIndex = currentLayers.findIndex(layer => layer.id === layerId);
+    // Find the layer in security layers array
+    const securityLayers = user.walletSettings?.securityLayers || [];
+    const layerIndex = securityLayers.findIndex(layer => layer.id === layerId);
     
     if (layerIndex === -1) {
       return NextResponse.json(
@@ -44,14 +47,11 @@ export async function PUT(request: NextRequest) {
       );
     }
     
-    const targetLayer = currentLayers[layerIndex];
+    const targetLayer = securityLayers[layerIndex];
     
-    // Prevent disabling fallback layers
-    if (updates.isEnabled === false && targetLayer.isFallback) {
-      return NextResponse.json(
-        { error: 'Cannot disable fallback security layer' },
-        { status: 400 }
-      );
+    // Prevent disabling EMAIL_OTP layers (they can be disabled but not removed)
+    if (updates.isEnabled === false && targetLayer.type === 'EMAIL_OTP') {
+      // This is allowed, EMAIL_OTP can be disabled
     }
 
     // When enabling TOTP or WHATSAPP_OTP layers, verify Stytch data exists
@@ -65,15 +65,16 @@ export async function PUT(request: NextRequest) {
       }
     }
     
-    const updatedLayers = [...currentLayers];
-    updatedLayers[layerIndex] = {
+    // Update the layer in security layers array
+    const updatedSecurityLayers = [...securityLayers];
+    updatedSecurityLayers[layerIndex] = {
       ...targetLayer,
       ...updates
     };
     
     // Update user's security layers
     const updatedUser = await updateUserWalletSettings(authMethodId, {
-      securityLayers: updatedLayers
+      securityLayers: updatedSecurityLayers
     });
     
     if (!updatedUser) {
@@ -83,10 +84,12 @@ export async function PUT(request: NextRequest) {
       );
     }
     
+    const allLayers = updatedUser.walletSettings?.securityLayers || [];
+    
     return NextResponse.json({ 
       success: true, 
-      updatedLayer: updatedLayers[layerIndex],
-      securityLayers: updatedUser.walletSettings?.securityLayers 
+      updatedLayer: updatedSecurityLayers[layerIndex],
+      securityLayers: SecurityLayerService.sortLayersByPriority(allLayers)
     });
   } catch (error) {
     console.error('Error in PUT /api/security/layers/update:', error);

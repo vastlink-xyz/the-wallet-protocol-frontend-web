@@ -7,7 +7,6 @@ export async function GET(req: NextRequest) {
   try {
     const session: AuthenticatedSession = await authenticateStytchSession(req);
     const userResponse = await stytchClient.users.get({ user_id: session.user_id });
-    log('MFAStatus: userResponse', JSON.stringify(userResponse, null, 2));
     
     return NextResponse.json(userResponse);
 

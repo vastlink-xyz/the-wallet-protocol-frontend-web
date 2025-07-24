@@ -3,7 +3,7 @@ import { getUser, updateUserWalletSettings } from '../../../user/storage';
 import { SecurityLayer, SecurityLayerType } from '@/types/security';
 import { authenticateStytchSession } from '../../../stytch/sessionAuth';
 import { verifyStytchDataExists } from '../stytchValidation';
-import crypto from 'crypto';
+import { SecurityLayerService } from '@/services/securityLayerService';
 
 // POST /api/security/layers/add - Add a new security layer
 export async function POST(request: NextRequest) {
@@ -35,10 +35,20 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const currentLayers = user.walletSettings?.securityLayers || [];
+    // Validate layer type
+    if (!SecurityLayerService.validateLayerType(layerType)) {
+      return NextResponse.json(
+        { error: `Unsupported layer type: ${layerType}` },
+        { status: 400 }
+      );
+    }
+    
+    // Get current security layers array
+    const securityLayers = user.walletSettings?.securityLayers || [];
+    const { category, priority } = SecurityLayerService.getCategoryAndPriority(layerType);
     
     // Check if layer type already exists
-    const existingLayer = currentLayers.find(layer => layer.type === layerType);
+    const existingLayer = SecurityLayerService.findLayerByType(securityLayers, layerType);
     if (existingLayer) {
       // If layer exists but is disabled, enable it instead of creating new one
       if (!existingLayer.isEnabled && (layerType === 'TOTP' || layerType === 'WHATSAPP_OTP' || layerType === 'PIN')) {
@@ -54,14 +64,14 @@ export async function POST(request: NextRequest) {
         }
 
         // Enable the existing layer
-        const updatedLayers = currentLayers.map(layer => 
+        const updatedSecurityLayers = securityLayers.map(layer => 
           layer.id === existingLayer.id 
             ? { ...layer, isEnabled: true, config: config }
             : layer
         );
 
         const updatedUser = await updateUserWalletSettings(authMethodId, {
-          securityLayers: updatedLayers
+          securityLayers: updatedSecurityLayers
         });
 
         if (!updatedUser) {
@@ -71,10 +81,13 @@ export async function POST(request: NextRequest) {
           );
         }
 
+        const updatedLayer = updatedSecurityLayers.find(l => l.id === existingLayer.id);
+        const allLayers = updatedUser.walletSettings?.securityLayers || [];
+        
         return NextResponse.json({ 
           success: true, 
-          updatedLayer: updatedLayers.find(l => l.id === existingLayer.id),
-          securityLayers: updatedUser.walletSettings?.securityLayers 
+          updatedLayer,
+          securityLayers: SecurityLayerService.sortLayersByPriority(allLayers)
         });
       }
       
@@ -99,19 +112,14 @@ export async function POST(request: NextRequest) {
       }
     }
     
-    const newLayer: SecurityLayer = {
-      id: crypto.randomUUID(),
-      type: layerType as SecurityLayerType,
-      isEnabled: true,
-      isFallback: false,
-      config: config
-    };
+    const newLayer = SecurityLayerService.createNewLayer(layerType as SecurityLayerType, config);
     
-    const updatedLayers = [...currentLayers, newLayer];
+    // Add new layer to security layers array
+    const updatedSecurityLayers = [...securityLayers, newLayer];
     
     // Update user's security layers
     const updatedUser = await updateUserWalletSettings(authMethodId, {
-      securityLayers: updatedLayers
+      securityLayers: updatedSecurityLayers
     });
     
     if (!updatedUser) {
@@ -121,10 +129,12 @@ export async function POST(request: NextRequest) {
       );
     }
     
+    const allLayers = updatedUser.walletSettings?.securityLayers || [];
+    
     return NextResponse.json({ 
       success: true, 
       newLayer: newLayer,
-      securityLayers: updatedUser.walletSettings?.securityLayers 
+      securityLayers: SecurityLayerService.sortLayersByPriority(allLayers)
     });
   } catch (error) {
     console.error('Error in POST /api/security/layers/add:', error);

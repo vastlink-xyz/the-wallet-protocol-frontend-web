@@ -65,10 +65,12 @@ const UserSchema = new mongoose.Schema({
         BTC: "0.001",
         ETH: "0.001"
       },
-      securityLayers: [
+      securityLayers: [      // Unified security layers array
         {
           id: "",
           type: "EMAIL_OTP",
+          category: "otp",
+          priority: 20,
           isEnabled: true,
           isFallback: true,
           config: {}

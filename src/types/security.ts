@@ -3,12 +3,15 @@
  */
 
 export type SecurityLayerType = 'PIN' | 'WHATSAPP_OTP' | 'TOTP' | 'EMAIL_OTP';
+export type SecurityLayerCategory = 'pin' | 'otp';
 
 // Base security layer interface
 interface BaseSecurityLayer {
   id: string;
+  category: SecurityLayerCategory;  // 'pin' or 'otp'
+  priority: number;                 // Lower number = higher priority (10, 20, 30...)
   isEnabled: boolean;
-  isFallback: boolean;  // Mark if this layer is a fallback security layer
+  isFallback?: boolean;             // Optional, mainly for backward compatibility
 }
 
 // Configuration interfaces for different types
@@ -53,12 +56,6 @@ export type SecurityLayer =
   | WhatsAppOTPSecurityLayer 
   | TOTPSecurityLayer 
   | EmailOTPSecurityLayer;
-
-export interface UserSecurityLayers {
-  authMethodId: string;
-  layers: SecurityLayer[];
-}
-
 
 export interface SecurityProof {
   [layerType: string]: {

@@ -3,6 +3,7 @@ import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
 import { MFAPhoneWhatsApp } from './MFAPhoneWhatsApp';
 import { MFATOTP } from './MFATotp';
 import { SecurityLayer } from '@/types/security';
+import { SecurityLayerService } from '@/services/securityLayerService';
 
 // Define StytchPhoneNumber type based on expected API response (used by MFAPhoneWhatsApp component)
 interface StytchPhoneNumber {
@@ -63,11 +64,13 @@ export function MFASettingsContent({ isOpen, authMethodId, onPhoneUpdated, onMFA
     prevIsOpen.current = isOpen;
   }, [isOpen, fetchSecurityLayers, authMethodId]);
 
-  const whatsappLayer = securityLayers.find(layer => layer.type === 'WHATSAPP_OTP' && layer.isEnabled);
-  const hasTotp = securityLayers.some(layer => layer.type === 'TOTP' && layer.isEnabled);
+  // Get MFA layers from unified security layers
+  const whatsappLayer = SecurityLayerService.findLayerByType(securityLayers, 'WHATSAPP_OTP');
+  const totpLayer = SecurityLayerService.findLayerByType(securityLayers, 'TOTP');
+  const hasTotp = totpLayer?.isEnabled || false;
 
   // Create verifiedPhone object from security layer config if WhatsApp is enabled
-  const verifiedPhone = whatsappLayer && whatsappLayer.type === 'WHATSAPP_OTP' ? {
+  const verifiedPhone = whatsappLayer && whatsappLayer.isEnabled && whatsappLayer.type === 'WHATSAPP_OTP' ? {
     phone_id: whatsappLayer.config.phoneId,
     phone_number: whatsappLayer.config.phoneNumber,
     verified: true
