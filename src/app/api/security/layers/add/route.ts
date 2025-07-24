@@ -41,14 +41,16 @@ export async function POST(request: NextRequest) {
     const existingLayer = currentLayers.find(layer => layer.type === layerType);
     if (existingLayer) {
       // If layer exists but is disabled, enable it instead of creating new one
-      if (!existingLayer.isEnabled && (layerType === 'TOTP' || layerType === 'WHATSAPP_OTP')) {
+      if (!existingLayer.isEnabled && (layerType === 'TOTP' || layerType === 'WHATSAPP_OTP' || layerType === 'PIN')) {
         // For Stytch-based layers, verify the data still exists in Stytch
-        const stytchDataExists = await verifyStytchDataExists(session.user_id, layerType);
-        if (!stytchDataExists) {
-          return NextResponse.json(
-            { error: `${layerType} data not found in Stytch. Please set up ${layerType} first.` },
-            { status: 400 }
-          );
+        if (layerType !== 'PIN') {
+          const stytchDataExists = await verifyStytchDataExists(session.user_id, layerType);
+          if (!stytchDataExists) {
+            return NextResponse.json(
+              { error: `${layerType} data not found in Stytch. Please set up ${layerType} first.` },
+              { status: 400 }
+            );
+          }
         }
 
         // Enable the existing layer

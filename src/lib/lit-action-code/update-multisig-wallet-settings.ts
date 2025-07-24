@@ -5,6 +5,7 @@ declare const ethers: any
 declare const publicKey: string
 declare const env: string
 declare const devUrl: string
+declare const pinCode: string
 declare const Lit: any
 
 const _litActionCode = async () => {
@@ -186,21 +187,80 @@ const _litActionCode = async () => {
     return
   }
 
-  try {
-    let apiBaseUrl: string;
-    let litDatilNetwork: 'datil-dev' | 'datil-test' | 'datil';
-    switch (env) {
-      case 'dev':
-        apiBaseUrl = devUrl;
-        litDatilNetwork = 'datil-dev'
-        break;
-      case 'test':
-        apiBaseUrl = 'https://dev-app-vastbase-eb1a4b4e8e63.herokuapp.com';
-        litDatilNetwork = 'datil-dev'
-        break;
-      default:
-        throw new Error(`Invalid Base URL`);
+  let apiBaseUrl: string;
+  let litDatilNetwork: 'datil-dev' | 'datil-test' | 'datil';
+  switch (env) {
+    case 'dev':
+      apiBaseUrl = devUrl;
+      litDatilNetwork = 'datil-dev'
+      break;
+    case 'test':
+      apiBaseUrl = 'https://dev-app-vastbase-eb1a4b4e8e63.herokuapp.com';
+      litDatilNetwork = 'datil-dev'
+      break;
+    default:
+      throw new Error(`Invalid Base URL`);
+  }
+
+  // Security verification for wallet settings (PIN only, no MFA)
+  const securityVerificationResult = await Lit.Actions.runOnce(
+    { 
+      waitForResponse: true, 
+      name: "verifySecurityForWalletSettings" 
+    },
+    async () => {
+      const response = await fetch(`${apiBaseUrl}/api/security/verify-for-lit-action`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authParams.accessToken}`
+        },
+        body: JSON.stringify({ 
+          transactionAmount: '0', // Wallet settings don't have transaction amounts
+          tokenType: 'ETH', // Dummy token type for wallet settings
+          contextType: 'multisigWalletSettings',
+          pinCode
+          // No MFA parameters for wallet settings
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        return JSON.stringify(data);
+      } else {
+        const errorData = await response.json();
+        return JSON.stringify({ success: false, error: errorData.error || 'Security verification failed' });
+      }
     }
+  );
+
+  console.log('Security verification result for wallet settings:', securityVerificationResult);
+  
+  const parsedVerificationResult = JSON.parse(securityVerificationResult as any);
+  
+  if (!parsedVerificationResult.success) {
+    // Check if PIN is required but not provided
+    if (parsedVerificationResult.requiresPIN) {
+      return Lit.Actions.setResponse({ 
+        response: JSON.stringify({ 
+          success: false,
+          requiresPIN: true,
+          pinData: parsedVerificationResult.pinData,
+          error: "PIN verification required for wallet settings"
+        }) 
+      });
+    }
+    
+    // Other security verification errors
+    return Lit.Actions.setResponse({ 
+      response: JSON.stringify({ 
+        success: false,
+        error: parsedVerificationResult.error || "Security verification failed"
+      }) 
+    });
+  }
+
+  try {
 
     const apiUrl = `${apiBaseUrl}/api/multisig?id=${walletId}`;
     const response = await fetch(apiUrl).then((response) => response.json());

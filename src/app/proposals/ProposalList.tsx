@@ -153,7 +153,8 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
     isExecuting,
     isDisabled,
     isCancelingProposal,
-    dialog,
+    PinDialog,
+    MFADialog,
   } = useProposalActions({
     walletMap,
     userPkp,
@@ -164,6 +165,7 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
     refreshNotifications: (authMethodId: string, ethAddress: string) => {
       refreshNotifications(authMethodId, ethAddress);
     },
+    invalidateProposalNotifications: () => {}, // No-op for proposals page
     t,
     handleExpiredAuth,
     verifyAuthOrRedirect,
@@ -276,7 +278,8 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
         })}
       </div>
 
-      {dialog}
+      {PinDialog}
+      {MFADialog}
     </>
   );
 });

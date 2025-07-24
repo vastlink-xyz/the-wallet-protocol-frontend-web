@@ -3,6 +3,7 @@ import { personalWalletDailyWithdrawLimitPolicy } from './PersonalWalletDailyWit
 import { personalWalletMFAUpdatePolicy } from './PersonalWalletMFAUpdatePolicy';
 import { personalWalletSettingsUpdatePolicy } from './PersonalWalletSettingsUpdatePolicy';
 import { multisigWalletDailyWithdrawLimitPolicy } from './MultisigWalletDailyWithdrawLimitPolicy';
+import { multisigWalletSettingsUpdatePolicy } from './MultisigWalletSettingsUpdatePolicy';
 
 class PolicyEnforcer {
   private policiesMap: Map<string, Policy<any>[]> = new Map();
@@ -12,6 +13,7 @@ class PolicyEnforcer {
     this.policiesMap.set('personalWalletMFAUpdate', [personalWalletMFAUpdatePolicy]);
     this.policiesMap.set('personalWalletSettingsUpdate', [personalWalletSettingsUpdatePolicy]);
     this.policiesMap.set('multisigWalletTransaction', [multisigWalletDailyWithdrawLimitPolicy]);
+    this.policiesMap.set('multisigWalletSettings', [multisigWalletSettingsUpdatePolicy]);
   }
 
   /**

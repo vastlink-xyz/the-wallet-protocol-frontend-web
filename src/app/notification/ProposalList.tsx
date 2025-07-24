@@ -122,7 +122,8 @@ export function ProposalsList({ proposals }: { proposals: PendingProposalNotific
     isExecuting,
     isDisabled,
     isCancelingProposal,
-    dialog,
+    PinDialog,
+    MFADialog,
   } = useProposalActions({
     walletMap,
     userPkp,
@@ -198,7 +199,8 @@ export function ProposalsList({ proposals }: { proposals: PendingProposalNotific
         })}
       </div>
 
-      {dialog}
+      {PinDialog}
+      {MFADialog}
     </>
   );
 }

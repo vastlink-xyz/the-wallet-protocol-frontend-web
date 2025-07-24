@@ -7,8 +7,8 @@ import { litActionCodeForCommonUpgradableProxy } from "../lit-action-code/common
 import { litActionCodeForUpdateMultisigWalletSettings } from "../lit-action-code/update-multisig-wallet-settings"
 import { litActionCodeForCreateMultisigWallet } from "../lit-action-code/create-multisig-wallet"
 
-const updateWalletSettingsIpfsId = 'QmRCJUJ7QwqcZyZM1MCncwx6PgbfmgkeYiRzc79jiZzUAY'
-const updateWalletSettingsIpfsIdHex = '0x12202a6f87ef3a17bbd113f8d9df3c07a9790d6056a0b7b46a88e5e5655a8e7152fd'
+const updateWalletSettingsIpfsId = 'QmNniRddfbZ7oiTSLNrwgLg6qdg2Mk97T97rpA7kbS6BVK'
+const updateWalletSettingsIpfsIdHex = '0x122006ad4d7ce4ccc19a23dc94eb13a9ac57eee06890d7aa6c2dd72ae26787cc812a'
 
 const createWalletIpfsId = 'QmY9nEaCUzpYJadmDapvpRhn72j2c8xjsu325DPxHq7WEQ'
 const createWalletIpfsIdHex = '0x122091cbfd3e3f34e2a0d3390e7eb4f020c3b9af5debb973322b5206d6be1e48f0cd'
@@ -16,8 +16,8 @@ const createWalletIpfsIdHex = '0x122091cbfd3e3f34e2a0d3390e7eb4f020c3b9af5debb97
 const verifyAuthTokenIpfsId = 'QmdeSZo7yUsfT4fVosxK55dz4fPEWokeFBPfRR2NdV9HJm'
 const verifyAuthTokenIpfsHex = '0x1220e36e072b05d2d058cdbbbedfd7c924f89895b727066a73e4e29f6a1f88b75d86'
 
-const multisigTransactionIpfsId = 'QmUgPz93JZ3UZzWaop3ME1bszxdHBvqs8rgrVjyP97hD5d'
-const multisigTransactionIpfsHex = '0x12205e3516f96683a719f8b2ef39c4590a1f3b27dd51b6fad9fc398b5509245233dc'
+const multisigTransactionIpfsId = 'QmdVHaXNfwxNpFzEpE9BGFneJrTnR3TWxsDKqWyVTJLv6o'
+const multisigTransactionIpfsHex = '0x1220e115a37a855ddf359f1312e382905ee009b131a3f5cf016e142d050e561cfb0c'
 
 const personalSignIpfsId = 'QmbZqMoXFa2jZkc3MBoNuezBMvQ4pBmmqCf6ziMvSuwvkc'
 const personalSignIpfsIdHex = '0x1220c48885c1552dbf86675c26a605a216fdceaf80caf70d0a5b838a006c7767eee5'

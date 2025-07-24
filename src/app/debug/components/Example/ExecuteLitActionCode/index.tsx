@@ -20,7 +20,9 @@ import { litActionCodeForMultisigTransaction } from "@/lib/lit-action-code/multi
 import { litActionCodeForCreateMultisigWallet } from "@/lib/lit-action-code/create-multisig-wallet";
 
 
-const litActionCode = litActionCodeForPersonalTransaction
+// const litActionCode = litActionCodeForUpdateMultisigWalletSettings
+const litActionCode = litActionCodeForMultisigTransaction
+// const litActionCode = litActionCodeForPersonalTransaction
 
 interface ExecuteLitActionCodeProps {
   authMethod: AuthMethod;

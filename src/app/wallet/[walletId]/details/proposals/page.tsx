@@ -68,7 +68,8 @@ export default function ProposalsPage() {
     isExecuting,
     isDisabled,
     isCancelingProposal,
-    dialog,
+    PinDialog,
+    MFADialog,
   } = useProposalActions({
     walletMap,
     userPkp,
@@ -79,6 +80,7 @@ export default function ProposalsPage() {
     refreshNotifications: (authMethodId: string, ethAddress: string) => {
       refreshNotifications(authMethodId, ethAddress);
     },
+    invalidateProposalNotifications: () => {}, // No-op for individual wallet proposals page
     t,
     handleExpiredAuth,
     verifyAuthOrRedirect,
@@ -194,7 +196,8 @@ export default function ProposalsPage() {
         )}
       </div>
 
-      {dialog}
+      {PinDialog}
+      {MFADialog}
     </>
   );
 }

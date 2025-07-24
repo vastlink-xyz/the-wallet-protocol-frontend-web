@@ -9,6 +9,7 @@ interface VerifyForLitActionRequest {
   transactionAmount: string;
   tokenType: string;
   contextType: string;
+  walletId?: string; // Optional walletId for multisig operations
   pinCode?: string;
   mfaType?: 'WHATSAPP_OTP' | 'TOTP' | 'EMAIL_OTP';
   mfaCode?: string;
@@ -27,6 +28,7 @@ export async function POST(request: NextRequest) {
       transactionAmount,
       tokenType,
       contextType,
+      walletId,
       pinCode,
       mfaType,
       mfaCode,
@@ -90,6 +92,7 @@ export async function POST(request: NextRequest) {
             transactionAmount,
             tokenType,
             contextType,
+            walletId, // Pass walletId for multisig policy checking
           })
         });
 

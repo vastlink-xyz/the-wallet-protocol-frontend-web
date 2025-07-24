@@ -16,6 +16,7 @@ interface IExecuteWalletSettingsProposalParams {
   walletPkp: IRelayPKP;
   authMethod: AuthMethod;
   authMethodId: string;
+  pinCode?: string;
 }
 
 interface IExecuteTransactionProposalParams {
@@ -25,8 +26,10 @@ interface IExecuteTransactionProposalParams {
   walletPkp: IRelayPKP;
   authMethod: AuthMethod;
   authMethodId: string;
-  otpCode: string;
-  mfaMethodId: string | null;
+  pinCode?: string;
+  mfaType?: string;
+  mfaCode?: string;
+  mfaMethodId?: string | null;
 }
 
 export const executeWalletSettingsProposal = async ({
@@ -36,6 +39,7 @@ export const executeWalletSettingsProposal = async ({
   walletPkp,
   authMethod,
   authMethodId,
+  pinCode,
 }: IExecuteWalletSettingsProposalParams) => {
   // Check if proposal is still pending
   if (proposal.status !== 'pending') {
@@ -59,6 +63,7 @@ export const executeWalletSettingsProposal = async ({
       devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
       walletId: wallet.id,
       proposalId: proposal.id,
+      pinCode: pinCode || '',
     },
   });
 
@@ -155,7 +160,9 @@ export const executeTransactionProposal = async ({
   authMethod,
   authMethodId,
   sessionSigs,
-  otpCode,
+  pinCode,
+  mfaType,
+  mfaCode,
   mfaMethodId,
 }: IExecuteTransactionProposalParams) => {
   // Check if proposal is still pending
@@ -216,7 +223,9 @@ export const executeTransactionProposal = async ({
       authMethodType: authMethod.authMethodType,
       devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
     },
-    otp: otpCode,
+    pinCode: pinCode || '',
+    mfaType: mfaType || '',
+    mfaCode: mfaCode || '',
     mfaMethodId,
     tokenType: proposal.transactionData?.tokenType,
   }

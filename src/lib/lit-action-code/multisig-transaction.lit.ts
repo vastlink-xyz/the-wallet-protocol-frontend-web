@@ -14,7 +14,9 @@ declare const publicKeys: string[]
 declare const requiredSignatures: number
 declare const publicKey: string
 declare const tokenType: string
-declare const otp: string
+declare const pinCode: string
+declare const mfaType: string
+declare const mfaCode: string
 declare const mfaMethodId: string
 
 const go = async () => {  
@@ -124,86 +126,77 @@ const go = async () => {
       });
     }
 
-    if (otp) {
-      // Verify OTP
-      // Use runOnce to ensure OTP verification only happens once
-      const verificationResult = await Lit.Actions.runOnce(
-        { 
-          waitForResponse: true, 
-          name: "verifyOtp" 
-        },
-        async () => {
-          const response = await fetch(`${apiBaseUrl}/api/mfa/whatsapp/verify-code`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${authParams.accessToken}`
-            },
-            body: JSON.stringify({ 
-              method_id: mfaMethodId, 
-              code: otp, 
-            })
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            return data.success
-          } else {
-            const errorData = await response.json();
-            return false
-          }
-        }
-      );
-
-      console.log('verifyOtp result from runOnce:', verificationResult);
-
-      if ((verificationResult as any) !== 'true') {
-        return Lit.Actions.setResponse({ 
-          response: JSON.stringify({ 
-            isValid,
-            error: "Invalid OTP or verification failed" 
-          }) 
+    // Use the unified security verification API
+    const securityVerificationResult = await Lit.Actions.runOnce(
+      { 
+        waitForResponse: true, 
+        name: "verifySecurityForLitAction" 
+      },
+      async () => {
+        const response = await fetch(`${apiBaseUrl}/api/security/verify-for-lit-action`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authParams.accessToken}`
+          },
+          body: JSON.stringify({ 
+            transactionAmount,
+            tokenType,
+            contextType: 'multisigWalletTransaction',
+            walletId, // Add walletId for multisig policy checking
+            pinCode,
+            mfaType,
+            mfaCode,
+            mfaMethodId
+          })
         });
-      }
-    } else {
-      // If the OTP is empty (e.g., on the first attempt), return an error to trigger the MFA flow on the frontend.
-      const needMfa = await Lit.Actions.runOnce(
-        { 
-          waitForResponse: true, 
-          name: "checkTransactionPolicy" 
-        },
-        async () => {
-          const response = await fetch(`${apiBaseUrl}/api/mfa/check-policy`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${authParams.accessToken}`,
-            },
-            body: JSON.stringify({
-              walletId,
-              transactionAmount,
-              contextType: 'multisigWalletTransaction',
-              tokenType,
-            })
-          });
+
+        if (response.ok) {
           const data = await response.json();
-          if (data.requiresMfa) {
-            return 'true';
-          }
+          return JSON.stringify(data);
+        } else {
+          const errorData = await response.json();
+          return JSON.stringify({ success: false, error: errorData.error || 'Security verification failed' });
         }
-      );
+      }
+    );
 
-      console.log('checkTransactionPolicy result from runOnce:', needMfa);
-
-      if ((needMfa as any) === 'true') {
+    console.log('Security verification result from runOnce:', securityVerificationResult);
+    
+    const parsedVerificationResult = JSON.parse(securityVerificationResult as any);
+    
+    if (!parsedVerificationResult.success) {
+      // Check if PIN is required but not provided
+      if (parsedVerificationResult.requiresPIN) {
         return Lit.Actions.setResponse({ 
           response: JSON.stringify({ 
-            requireMFA: true,
+            requiresPIN: true,
             isValid,
-            error: "Daily limit exceeded"
+            pinData: parsedVerificationResult.pinData,
+            error: "PIN verification required"
           }) 
         });
       }
+      
+      // Check if MFA is required
+      if (parsedVerificationResult.requiresMFA) {
+        return Lit.Actions.setResponse({ 
+          response: JSON.stringify({ 
+            requiresMFA: true,
+            isValid,
+            availableMFAOptions: parsedVerificationResult.availableMFAOptions,
+            error: "MFA verification required"
+          }) 
+        });
+      }
+      
+      // Other security verification errors
+      return Lit.Actions.setResponse({ 
+        response: JSON.stringify({ 
+          isValid,
+          error: parsedVerificationResult.error || "Security verification failed"
+        }) 
+      });
     }
 
     try {
