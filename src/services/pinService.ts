@@ -258,35 +258,21 @@ export class PinService {
     }
 
     try {
-      // First get the PIN layer
-      const response = await fetch(`/api/security/layers?authMethodId=${authMethodId}`);
+      // Remove the PIN layer completely using remove API
+      const removeResponse = await fetch('/api/security/layers/remove', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authMethod.accessToken}`,
+        },
+        body: JSON.stringify({
+          authMethodId: authMethodId,
+          layerType: 'PIN'
+        }),
+      });
 
-      if (!response.ok) {
-        return;
-      }
-
-      const data = await response.json();
-      const pinLayer = data.securityLayers?.find((layer: SecurityLayer) => layer.type === 'PIN');
-      
-      if (pinLayer) {
-        // Disable the layer and clear config using update API
-        const updateResponse = await fetch('/api/security/layers/update', {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authMethod.accessToken}`,
-          },
-          body: JSON.stringify({
-            authMethodId: authMethodId,
-            layerId: pinLayer.id,
-            isEnabled: false,
-            config: {}
-          }),
-        });
-
-        if (!updateResponse.ok) {
-          throw new Error('Failed to remove PIN from database');
-        }
+      if (!removeResponse.ok) {
+        throw new Error('Failed to remove PIN from database');
       }
     } catch (error) {
       console.error('Error removing PIN from database:', error);

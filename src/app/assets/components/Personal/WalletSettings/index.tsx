@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useCallback, useContext } from 'react';
+import React, { useState, useEffect, useCallback, useContext, useMemo } from 'react';
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -46,8 +46,8 @@ export function PersonalWalletSettings() {
   const [phoneId, setPhoneId] = useState<string | null>(null);
   const [pendingSettings, setPendingSettings] = useState<any>(null);
 
-  // Get user's session JWT
-  const authMethod = getAuthMethodFromStorage();
+  // Get user's session JWT - memoize to prevent unnecessary re-renders
+  const authMethod = useMemo(() => getAuthMethodFromStorage(), []);
   const sessionJwt = authMethod?.accessToken;
 
   // Handle PIN status updates
@@ -74,7 +74,10 @@ export function PersonalWalletSettings() {
       });
       setPinStatus({ hasPin });
     };
-    initPinStatus();
+
+    if (isPersonalWalletSettingsOpen) {
+      initPinStatus();
+    }
   }, [isPersonalWalletSettingsOpen]);
 
   useEffect(() => {

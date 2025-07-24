@@ -84,7 +84,25 @@ const go = async () => {
   );
 
   console.log('Security verification result:', securityVerifyResult);
-  const verifyData = JSON.parse(securityVerifyResult as unknown as string);
+  
+  // Handle the case where securityVerifyResult might already be a parsed object or a string
+  let verifyData;
+  if (typeof securityVerifyResult === 'string') {
+    try {
+      verifyData = JSON.parse(securityVerifyResult);
+    } catch (error) {
+      console.error('Failed to parse securityVerifyResult as JSON:', error);
+      console.log('Raw securityVerifyResult:', securityVerifyResult);
+      return Lit.Actions.setResponse({ 
+        response: JSON.stringify({ 
+          success: false, 
+          error: 'Invalid security verification response format' 
+        }) 
+      });
+    }
+  } else {
+    verifyData = securityVerifyResult;
+  }
 
   // Handle verification results
   if (!verifyData.success) {
@@ -133,8 +151,34 @@ const go = async () => {
 
     console.log('PIN verification result:', pinVerificationResult);
 
-    const pinResult = JSON.parse(pinVerificationResult);
-    if (!pinResult.isValid) {
+    // The PIN verification Lit Action returns a hash string, not a JSON object
+    // We need to check if the returned hash matches the expected decrypted PIN hash
+    let isValidPin = false;
+    
+    if (typeof pinVerificationResult === 'string') {
+      // The PIN verification result is the decrypted PIN hash
+      // We need to compare it with the hash of the provided PIN
+      const providedPinBuffer = new TextEncoder().encode(pinCode);
+      const providedPinHashBuffer = await crypto.subtle.digest('SHA-256', providedPinBuffer);
+      const providedPinHash = Array.from(new Uint8Array(providedPinHashBuffer))
+        .map(b => b.toString(16).padStart(2, '0')).join('');
+      
+      console.log('Decrypted PIN hash from Lit Action:', pinVerificationResult);
+      console.log('Computed hash of provided PIN:', providedPinHash);
+      
+      isValidPin = pinVerificationResult === providedPinHash;
+    } else {
+      // Fallback: try to parse as JSON if it's an object
+      try {
+        const pinResult = typeof pinVerificationResult === 'object' ? pinVerificationResult : JSON.parse(pinVerificationResult);
+        isValidPin = pinResult.isValid === true;
+      } catch (error) {
+        console.error('Failed to parse PIN verification result:', error);
+        isValidPin = false;
+      }
+    }
+    
+    if (!isValidPin) {
       return Lit.Actions.setResponse({ 
         response: JSON.stringify({ 
           error: "Invalid PIN" 

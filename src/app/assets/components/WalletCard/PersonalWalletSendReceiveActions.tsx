@@ -7,6 +7,7 @@ import { getProviderByAuthMethodType } from '@/lib/lit/providers'
 import { useAuthExpiration } from '@/hooks/useAuthExpiration'
 import { MultisigWalletAddresses } from "@/app/api/multisig/storage"
 import { executePersonalTransaction, inviteUser } from '@/services/personalTransactionService'
+import { useSecurityVerification } from '@/hooks/useSecurityVerification'
 
 interface WalletSendReceiveActionsProps {
   btcAddress: string
@@ -28,7 +29,6 @@ export function PersonalWalletSendReceiveActions({
   const [authMethodId, setAuthMethodId] = useState<string | null>(null)
   const [litActionPkp, setLitActionPkp] = useState<IRelayPKP | null>(null)
   const [showSendDialog, setShowSendDialog] = useState(false)
-  const [showMfa, setShowMfa] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const [resetAmount, setResetAmount] = useState(false)
 
@@ -57,6 +57,8 @@ export function PersonalWalletSendReceiveActions({
         if (userData.litActionPkp) {
           setLitActionPkp(userData.litActionPkp)
         }
+
+        // PIN requirement will be checked dynamically in useSecurityVerification
       } catch (error) {
         console.error("Error fetching user data:", error)
       }
@@ -65,23 +67,38 @@ export function PersonalWalletSendReceiveActions({
     fetchUserData()
   }, [])
 
-  const handleExecuteTransaction = async (state: SendTransactionDialogState) => {
+  // Create executeTransaction function for the hook
+  const executeTransactionWithSecurity = async (params: any) => {
     if (!litActionPkp || !authMethod || !authMethodId) {
       throw new Error('Missing required data')
     }
 
-    await executePersonalTransaction({
-      state,
+    return await executePersonalTransaction({
+      state: params.state,
       authMethod,
       authMethodId,
       litActionPkp,
       btcAddress,
       handleExpiredAuth,
-      setShowMfa,
       setIsSending,
       setResetAmount,
       onTransactionSuccess,
+      pinCode: params.pinCode,
+      mfaType: params.mfaType,
+      mfaCode: params.mfaCode,
+      mfaMethodId: params.mfaMethodId,
     })
+  }
+
+  // Initialize security verification hook
+  const securityVerification = useSecurityVerification({
+    authMethod,
+    executeTransaction: executeTransactionWithSecurity,
+  })
+
+  const handleExecuteTransaction = async (state: SendTransactionDialogState) => {
+    // Use the security verification hook to handle PIN and MFA verification
+    await securityVerification.verify({ state })
   }
 
   const handleInviteUser = async (state: SendTransactionDialogState) => {
@@ -99,17 +116,6 @@ export function PersonalWalletSendReceiveActions({
     })
   }
 
-  // MFA cancellation callback
-  const handleMfaCancel = () => {
-    setShowMfa(false)
-    setIsSending(false)
-  }
-
-  // MFA verification successful callback
-  const handleMfaVerify = async (state: SendTransactionDialogState) => {
-    // Verify OTP in lit action
-    await handleExecuteTransaction(state)
-  };
 
   return (
     <>
@@ -128,19 +134,22 @@ export function PersonalWalletSendReceiveActions({
             authMethod={authMethod}
             userLitAction={litActionPkp}
             showSendDialog={showSendDialog}
-            showMfa={showMfa}
+            showMfa={false}
             onSendTransaction={handleExecuteTransaction}
             onInviteUser={handleInviteUser}
-            isSending={isSending}
-            onMFACancel={handleMfaCancel}
-            onMFAVerify={handleMfaVerify}
+            isSending={securityVerification.isVerifying}
             onDialogOpenChange={setShowSendDialog}
             addresses={addresses || null}
             walletName={walletName}
             resetAmount={resetAmount}
+            disablePin={true}
           />
         )
       }
+
+      {/* Security Verification Dialogs */}
+      {securityVerification.PinDialog}
+      {securityVerification.MFADialog}
     </>
   )
 }

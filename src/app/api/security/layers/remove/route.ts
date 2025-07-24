@@ -47,14 +47,14 @@ export async function DELETE(request: NextRequest) {
     const targetLayer = currentLayers[layerIndex];
     
     // Update database securityLayers
-    // For PIN and EMAIL_OTP layers, we disable them instead of removing completely
-    // For TOTP and WHATSAPP_OTP, we can remove them since they can be re-created
-    if (layerType === 'PIN' || layerType === 'EMAIL_OTP') {
-      // Just disable these core layers
+    // For EMAIL_OTP layers, we disable them instead of removing completely
+    // For PIN, TOTP and WHATSAPP_OTP, we can remove them since they can be re-created
+    if (layerType === 'EMAIL_OTP') {
+      // Just disable EMAIL_OTP layers
       targetLayer.isEnabled = false;
       targetLayer.isFallback = false;
     } else {
-      // Remove TOTP and WHATSAPP_OTP layers completely
+      // Remove PIN, TOTP and WHATSAPP_OTP layers completely
       currentLayers.splice(layerIndex, 1);
     }
     
@@ -66,7 +66,7 @@ export async function DELETE(request: NextRequest) {
     
     await updateUserWalletSettings(authMethodId, updatedSettings);
     
-    const action = (layerType === 'PIN' || layerType === 'EMAIL_OTP') ? 'disabled' : 'removed';
+    const action = (layerType === 'EMAIL_OTP') ? 'disabled' : 'removed';
     
     return NextResponse.json({ 
       success: true, 

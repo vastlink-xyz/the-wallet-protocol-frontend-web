@@ -235,6 +235,8 @@ export function MFAPin({
   // Remove PIN
   const handleRemovePin = async () => {
     if (!window.confirm(t('confirm_remove_pin'))) return;
+    
+    setIsLoading(true);
     try {
       const authMethodId = await getAuthIdByAuthMethod(authMethod!);
       await PinService.removeLocalPinData({
@@ -247,6 +249,8 @@ export function MFAPin({
     } catch (error) {
       console.error('Failed to remove PIN:', error);
       toast.error('Failed to remove PIN');
+    } finally {
+      setIsLoading(false);
     }
   };
 

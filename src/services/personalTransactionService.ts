@@ -27,10 +27,14 @@ interface ExecuteTransactionParams {
   litActionPkp: IRelayPKP
   btcAddress: string
   handleExpiredAuth: () => void
-  setShowMfa: (show: boolean) => void
   setIsSending: (sending: boolean) => void
   setResetAmount: (reset: boolean) => void
   onTransactionSuccess?: () => void
+  // New security verification parameters
+  pinCode?: string
+  mfaType?: string
+  mfaCode?: string
+  mfaMethodId?: string
 }
 
 export const executePersonalTransaction = async ({
@@ -40,12 +44,15 @@ export const executePersonalTransaction = async ({
   litActionPkp,
   btcAddress,
   handleExpiredAuth,
-  setShowMfa,
   setIsSending,
   setResetAmount,
   onTransactionSuccess,
+  pinCode,
+  mfaType,
+  mfaCode,
+  mfaMethodId: newMfaMethodId,
 }: ExecuteTransactionParams) => {
-  const { to, recipientAddress, amount, tokenType, mfaMethodId, otpCode } = state
+  const { to, recipientAddress, amount, tokenType, mfaMethodId: stateMfaMethodId, otpCode } = state
 
   if (!litActionPkp) {
     throw new Error('No PKP exists')
@@ -91,15 +98,21 @@ export const executePersonalTransaction = async ({
         transactionAmount: amount,
         publicKey: litActionPkp.publicKey,
         env: process.env.NEXT_PUBLIC_ENV,
+        devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
         chainType: SUPPORTED_TOKENS_INFO[tokenType].chainType,
         authParams: {
           accessToken: authMethod.accessToken,
           authMethodId: authMethodId,
           authMethodType: authMethod.authMethodType,
+          devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
         },
         otp: otpCode || '',
-        mfaMethodId,
+        mfaMethodId: newMfaMethodId || stateMfaMethodId,
         tokenType,
+        // New security verification parameters
+        pinCode: pinCode || '',
+        mfaType: mfaType || '',
+        mfaCode: mfaCode || '',
       }
     })
 
@@ -131,8 +144,6 @@ export const executePersonalTransaction = async ({
       log('txReceipt', txReceipt)
       // Show success message with transaction hash
       toast.success(`Successfully sent ${amount} ${tokenInfo.symbol} to ${to}`)
-      // Don't auto-close dialog - let user close manually
-      setShowMfa(false)
       
       // Reset amount in SendTransactionDialog
       setResetAmount(true)
@@ -141,12 +152,23 @@ export const executePersonalTransaction = async ({
       
       // Call success callback
       onTransactionSuccess?.()
+      
+      return { success: true, txReceipt }
     } else {
-      if (result.requireMFA) {
-        // Show MFA flow
-        setShowMfa(true)
-        setIsSending(false)
-        toast.warning('Daily limit exceeded')
+      // Handle new response format from lit action
+      console.log('Checking MFA requirements:', { 
+        requiresMFA: result.requiresMFA, 
+        hasOptions: !!result.availableMFAOptions,
+        optionsLength: result.availableMFAOptions?.length 
+      });
+      
+      if (result.requiresMFA && result.availableMFAOptions) {
+        const mfaResponse = {
+          requiresMFA: true,
+          availableMFAOptions: result.availableMFAOptions,
+        };
+        console.log('Returning MFA response:', mfaResponse);
+        return mfaResponse;
       } else {
         throw new Error(result.error || 'Transaction failed')
       }

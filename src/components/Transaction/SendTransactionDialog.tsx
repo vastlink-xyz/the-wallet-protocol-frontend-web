@@ -16,8 +16,6 @@ import { fetchEthBalance, fetchERC20TokenBalance } from "@/lib/web3/eth";
 import { fetchBtcBalance } from "@/lib/web3/btc";
 import { MultisigWalletAddresses } from "@/app/api/multisig/storage";
 import { useTranslations } from "next-intl";
-import { PinService } from '@/services/pinService'
-import { PinVerificationDialog } from './PinVerificationDialog'
 import { toast } from "react-toastify";
 
 export interface SendTransactionDialogState {
@@ -96,9 +94,6 @@ export function SendTransactionDialog({
 
   const [isInviteUser, setIsInviteUser] = useState(false);
 
-  // PIN dialog state
-  const [showPinDialog, setShowPinDialog] = useState(false)
-  const [pendingTxState, setPendingTxState] = useState<null | SendTransactionDialogState>(null)
 
   // Load balance when token type changes
   useEffect(() => {
@@ -327,55 +322,6 @@ export function SendTransactionDialog({
     }
   }, [tokenType]);
 
-  // Handle PIN verification
-  const handlePinVerify = async (pin: string) => {
-    if (!pendingTxState) return;
-    if (disablePin) {
-      setShowPinDialog(false);
-      await onSendTransaction(pendingTxState);
-      setPendingTxState(null);
-      return;
-    }
-    if (!authMethod) throw new Error('No auth method found');
-    const authMethodId = await getAuthIdByAuthMethod(authMethod);
-    const storedPinData = await PinService.getLocalPinData({
-      authMethodId,
-    });
-    if (!storedPinData) {
-      setShowPinDialog(false);
-      setPendingTxState(null);
-      return;
-    }
-    if (!userLitAction) {
-      toast.error('No PKP found');
-      setShowPinDialog(false);
-      setPendingTxState(null);
-      return;
-    }
-    let isPinValid = false;
-    try {
-      isPinValid = await PinService.verifyPin(
-        pin,
-        storedPinData,
-        { litActionPkp: userLitAction, authMethod }
-      );
-      console.log('PIN valid:', isPinValid);
-    } catch (e) {
-      console.error('verifyPin error', e);
-      toast.error('PIN verification failed');
-      setShowPinDialog(false);
-      setPendingTxState(null);
-      return;
-    }
-    if (!isPinValid) {
-      toast.error('Invalid PIN');
-      return;
-    }
-    setShowPinDialog(false);
-    await onSendTransaction(pendingTxState);
-    console.log('onSendTransaction called');
-    setPendingTxState(null);
-  };
 
   const onSendClick = async () => {
     try {
@@ -383,19 +329,7 @@ export function SendTransactionDialog({
         // if there is no recipient address, invite user
         onInviteUser({ to, recipientAddress, amount, tokenType, mfaMethodId, mfaPhoneNumber });
       } else {
-        // If PIN is set locally and not disabled, show PIN dialog before sending transaction
-        if (!disablePin && authMethod) {
-          const authMethodId = await getAuthIdByAuthMethod(authMethod);
-          const hasPinData = await PinService.hasLocalPinData({
-            authMethodId,
-          });
-          if (hasPinData) {
-            setPendingTxState({ to, recipientAddress, amount, tokenType, mfaMethodId, mfaPhoneNumber });
-            setShowPinDialog(true);
-            return;
-          }
-        }
-        // If there is a recipient address, send transaction to recipient
+        // Send transaction to recipient - security verification is now handled by parent component
         await onSendTransaction({ to, recipientAddress, amount, tokenType, mfaMethodId, mfaPhoneNumber });
       }
     } catch (error) {
@@ -421,12 +355,6 @@ export function SendTransactionDialog({
         />
       )}
 
-      {/* PIN Verification Dialog - overlays on top of main dialog */}
-      <PinVerificationDialog
-        isOpen={showPinDialog}
-        onClose={() => { setShowPinDialog(false); setPendingTxState(null); }}
-        onPinVerify={handlePinVerify}
-      />
 
       {/* Main Send Transaction Dialog */}
     <Dialog open={showSendDialog} onOpenChange={onDialogOpenChange}>
