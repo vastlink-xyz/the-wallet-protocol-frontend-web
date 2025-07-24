@@ -13,6 +13,7 @@ import { PersonalWalletSettings } from './WalletSettings'
 import { executePersonalTransaction, inviteUser } from '@/services/personalTransactionService'
 import { User } from '@/app/api/user/storage'
 import { PersonalWalletSettingsContext } from '@/providers/PersonalWalletSettingsProvider'
+import { useSecurityVerification } from '@/hooks/useSecurityVerification'
 
 interface PersonalAssetsProps {
   authMethod: AuthMethod
@@ -29,12 +30,38 @@ export default function PersonalAssets({ authMethod, userData, authMethodId }: P
   const [btcAddress, setBtcAddress] = useState<string | null>(null)
   const [addresses, setAddresses] = useState<MultisigWalletAddresses | null>(null)
 
-  const [showMfa, setShowMfa] = useState(false)
   const [showSendDialog, setShowSendDialog] = useState(false)
-  const [isSending, setIsSending] = useState(false)
   const [resetAmount, setResetAmount] = useState(false)
 
   const { showPersonalWalletSettings } = useContext(PersonalWalletSettingsContext);
+
+  // Create executeTransaction function for the security hook
+  const executeTransactionWithSecurity = async (params: any) => {
+    if (!litActionPkp || !authMethodId) {
+      throw new Error('Missing required data')
+    }
+
+    return await executePersonalTransaction({
+      state: params.state,
+      authMethod,
+      authMethodId,
+      litActionPkp,
+      btcAddress: btcAddress || '',
+      handleExpiredAuth,
+      setIsSending: () => {}, // No-op since we use securityVerification.isVerifying
+      setResetAmount,
+      pinCode: params.pinCode,
+      mfaType: params.mfaType,
+      mfaCode: params.mfaCode,
+      mfaMethodId: params.mfaMethodId,
+    })
+  }
+
+  // Use the new security verification hook
+  const securityVerification = useSecurityVerification({
+    authMethod,
+    executeTransaction: executeTransactionWithSecurity,
+  });
 
   // Initialize data from props
   useEffect(() => {
@@ -48,34 +75,9 @@ export default function PersonalAssets({ authMethod, userData, authMethodId }: P
   }, [userData, authMethodId])
 
 
-  // MFA cancellation callback
-  const handleMfaCancel = () => {
-    setShowMfa(false)
-    setIsSending(false)
-  }
-
-  // MFA verification successful callback
-  const handleMfaVerify = async (state: SendTransactionDialogState) => {
-    // Verify OTP in lit action
-    await handleExecuteTransaction(state)
-  };
-
   const handleExecuteTransaction = async (state: SendTransactionDialogState) => {
-    if (!litActionPkp || !authMethodId) {
-      throw new Error('Missing required data')
-    }
-
-    await executePersonalTransaction({
-      state,
-      authMethod,
-      authMethodId,
-      litActionPkp,
-      btcAddress: btcAddress || '',
-      handleExpiredAuth,
-      setShowMfa,
-      setIsSending,
-      setResetAmount,
-    })
+    // Use the security verification hook to handle PIN and MFA verification
+    await securityVerification.verify({ state })
   }
 
   const handleDetailsClick = () => {
@@ -98,7 +100,7 @@ export default function PersonalAssets({ authMethod, userData, authMethodId }: P
       state,
       authMethod,
       authMethodId,
-      setIsSending,
+      setIsSending: () => {}, // No-op since we use securityVerification.isVerifying for transaction state
       setResetAmount,
       setShowSendDialog,
     })
@@ -134,20 +136,23 @@ export default function PersonalAssets({ authMethod, userData, authMethodId }: P
           <SendTransactionDialog
             authMethod={authMethod}
             showSendDialog={showSendDialog}
-            showMfa={showMfa}
+            showMfa={false}
             onSendTransaction={handleExecuteTransaction}
             onInviteUser={handleInviteUser}
-            isSending={isSending}
-            onMFACancel={handleMfaCancel}
-            onMFAVerify={handleMfaVerify}
+            isSending={securityVerification.isVerifying}
             onDialogOpenChange={setShowSendDialog}
             addresses={addresses || null}
             walletName={email || ''}
             resetAmount={resetAmount}
             userLitAction={litActionPkp}
+            disablePin={true}
           />
         )
       }
+
+      {/* Security verification dialogs */}
+      {securityVerification.PinDialog}
+      {securityVerification.MFADialog}
     </>
   )
 } 
