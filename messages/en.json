@@ -131,6 +131,7 @@
     "create_team_wallet": "Create a team wallet",
     "send": "Send",
     "receive": "Receive",
+    "swap": "Swap",
     "ramp": "Buy"
   },
   "PersonalWalletSettings": {

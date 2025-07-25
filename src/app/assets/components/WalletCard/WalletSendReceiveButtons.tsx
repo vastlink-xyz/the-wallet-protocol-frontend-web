@@ -1,9 +1,10 @@
-import { ArrowUpRightFromCircle, ArrowDownLeftFromCircle, PlusIcon } from "lucide-react"
+import { ArrowUpRightFromCircle, ArrowDownLeftFromCircle, PlusIcon, ArrowLeftRightIcon } from "lucide-react"
 import { ReceiveModal } from "./ReceiveModal"
 import { useCallback, useState } from "react"
 import { cn } from "@/lib/utils"
 import { useTranslations } from "next-intl"
 import { RampDialog } from "@/components/Transaction/RampDialog"
+import { useRouter } from "next/navigation"
 
 type buttons = "send" | "receive" | "swap" | "ramp"
 
@@ -25,6 +26,8 @@ export function WalletSendReceiveButtons({
   excludes,
 }: WalletSendReceiveButtonsProps) {
   const t = useTranslations('WalletCard');
+
+  const router = useRouter();
 
   const [receiveModalOpen, setReceiveModalOpen] = useState(false);
   const [showRampDialog, setShowRampDialog] = useState(false);
@@ -67,7 +70,19 @@ export function WalletSendReceiveButtons({
           </div>
         )}
 
-        {/* Receive Button */}
+        {/* Swap Button */}
+        {isButtonVisible("swap") && (
+          <div className="w-14 text-center cursor-pointer" onClick={() => router.push('/swap')}>
+            <div className="w-14 h-14 p-3 rounded-full border border-black/20 flex items-center justify-center">
+              <ArrowLeftRightIcon className="text-black" />
+            </div>
+            <p className="text-xs font-medium mt-1 text-black">
+              {t('swap')}
+            </p>
+          </div>
+        )}
+
+        {/* Ramp Button */}
         {isButtonVisible("ramp") && (
           <div className="w-14 text-center cursor-pointer" onClick={() => setShowRampDialog(true)}>
             <div className="w-14 h-14 p-3 rounded-full border border-black/20 flex items-center justify-center">
