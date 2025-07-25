@@ -69,14 +69,6 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    log('Sending proposal executed notification:', {
-      proposalId,
-      proposalType,
-      walletName,
-      approversCount: approvers.length,
-      proposer
-    })
-    
     // Get backend URL
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL
     if (!backendUrl) {

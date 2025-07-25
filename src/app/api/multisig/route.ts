@@ -165,7 +165,6 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json()
-    log('Update wallet request:', body)
     
     if (!body.id) {
       return Response.json(
