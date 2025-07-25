@@ -18,6 +18,7 @@
     "@lit-protocol/pkp-ethers": "^7.1.0",
     "@lit-protocol/types": "^7.1.0",
     "@mempool/mempool.js": "^3.0.0",
+    "@moonpay/moonpay-js": "^0.7.3",
     "@radix-ui/react-dialog": "^1.1.13",
     "@radix-ui/react-dropdown-menu": "^2.1.15",
     "@radix-ui/react-hover-card": "^1.1.14",

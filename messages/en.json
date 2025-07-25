@@ -130,7 +130,8 @@
   "WalletCard": {
     "create_team_wallet": "Create a team wallet",
     "send": "Send",
-    "receive": "Receive"
+    "receive": "Receive",
+    "ramp": "Buy"
   },
   "PersonalWalletSettings": {
     "title": "Personal Wallet Settings",
@@ -317,5 +318,10 @@
     "verifying": "Verifying...",
     "setup_success": "Authenticator app set up successfully",
     "copied_to_clipboard": "Copied to clipboard"
+  },
+  "MoonPay": {
+    "title": "MoonPay on-ramp / off-ramp",
+    "buy_button": "Buy Crypto with Fiat",
+    "sell_button": "Sell Crypto for Fiat"
   }
 }

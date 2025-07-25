@@ -1,8 +1,11 @@
-import { ArrowUpRightFromCircle, ArrowDownLeftFromCircle } from "lucide-react"
+import { ArrowUpRightFromCircle, ArrowDownLeftFromCircle, PlusIcon } from "lucide-react"
 import { ReceiveModal } from "./ReceiveModal"
-import { useState } from "react"
+import { useCallback, useState } from "react"
 import { cn } from "@/lib/utils"
 import { useTranslations } from "next-intl"
+import { RampDialog } from "@/components/Transaction/RampDialog"
+
+type buttons = "send" | "receive" | "swap" | "ramp"
 
 interface WalletSendReceiveButtonsProps {
   onSendClick: () => void
@@ -10,6 +13,7 @@ interface WalletSendReceiveButtonsProps {
   ethAddress: string
   walletName: string
   className?: string
+  excludes?: buttons[]
 }
 
 export function WalletSendReceiveButtons({
@@ -18,10 +22,20 @@ export function WalletSendReceiveButtons({
   ethAddress,
   walletName,
   className,
+  excludes,
 }: WalletSendReceiveButtonsProps) {
-  const t = useTranslations('WalletCard')
+  const t = useTranslations('WalletCard');
 
-  const [receiveModalOpen, setReceiveModalOpen] = useState(false)
+  const [receiveModalOpen, setReceiveModalOpen] = useState(false);
+  const [showRampDialog, setShowRampDialog] = useState(false);
+
+  const isButtonVisible = useCallback((button: buttons) => {
+    if (excludes === undefined) {
+      return true;
+    }
+
+    return !excludes.some((v) => v === button);
+  }, excludes || [])
 
   return (
     <>
@@ -30,24 +44,40 @@ export function WalletSendReceiveButtons({
         className
       )}>
         {/* Send Button */}
-        <div className="w-14 text-center cursor-pointer" onClick={onSendClick}>
-          <div className="w-14 h-14 p-3 rounded-full border border-black/20 flex items-center justify-center">
-            <ArrowUpRightFromCircle className="text-black" />
+        {isButtonVisible("send") && (
+          <div className="w-14 text-center cursor-pointer" onClick={onSendClick}>
+            <div className="w-14 h-14 p-3 rounded-full border border-black/20 flex items-center justify-center">
+              <ArrowUpRightFromCircle className="text-black" />
+            </div>
+            <p className="text-xs font-medium mt-1 text-black">
+              {t('send')}
+            </p>
           </div>
-          <p className="text-xs font-medium mt-1 text-black">
-            {t('send')}
-          </p>
-        </div>
+        )}
 
         {/* Receive Button */}
-        <div className="w-14 text-center cursor-pointer" onClick={() => setReceiveModalOpen(true)}>
-          <div className="w-14 h-14 p-3 rounded-full border border-black/20 flex items-center justify-center">
-            <ArrowDownLeftFromCircle className="text-black" />
+        {isButtonVisible("receive") && (
+          <div className="w-14 text-center cursor-pointer" onClick={() => setReceiveModalOpen(true)}>
+            <div className="w-14 h-14 p-3 rounded-full border border-black/20 flex items-center justify-center">
+              <ArrowDownLeftFromCircle className="text-black" />
+            </div>
+            <p className="text-xs font-medium mt-1 text-black">
+              {t('receive')}
+            </p>
           </div>
-          <p className="text-xs font-medium mt-1 text-black">
-            {t('receive')}
-          </p>
-        </div>
+        )}
+
+        {/* Receive Button */}
+        {isButtonVisible("ramp") && (
+          <div className="w-14 text-center cursor-pointer" onClick={() => setShowRampDialog(true)}>
+            <div className="w-14 h-14 p-3 rounded-full border border-black/20 flex items-center justify-center">
+              <PlusIcon className="text-black" />
+            </div>
+            <p className="text-xs font-medium mt-1 text-black">
+              {t('ramp')}
+            </p>
+          </div>
+        )}
       </div>
 
       <ReceiveModal
@@ -59,6 +89,10 @@ export function WalletSendReceiveButtons({
         footerText={walletName}
         onClose={setReceiveModalOpen}
       />
+
+      {isButtonVisible("ramp") && showRampDialog && (
+        <RampDialog open={showRampDialog} onOpenChange={setShowRampDialog} btcAddress={btcAddress} ethAddress={ethAddress} />
+      )}
     </>
   )
 }
