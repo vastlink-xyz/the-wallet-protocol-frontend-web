@@ -399,7 +399,7 @@ export function MultisigWalletFormContent({
       const createWalletIpfsIdHex = await getCreateWalletIpfsId("hex");
       const updateWalletIpfsIdHex = await getUpdateWalletIpfsId("hex");
       const multisigTransactionIpfsIdHex = await getMultisigTransactionIpfsId('hex')
-      const upgradeIpfsIdHex = await getUpgradeIpfsId('hex')
+      // const upgradeIpfsIdHex = await getUpgradeIpfsId('hex')
       const createWalletIpfsId = await getCreateWalletIpfsId("base58");
 
       // Determine actual signers for wallet creation
@@ -416,7 +416,7 @@ export function MultisigWalletFormContent({
         createWalletIpfsIdHex,
         updateWalletIpfsIdHex,
         multisigTransactionIpfsIdHex,
-        upgradeIpfsIdHex,
+        // upgradeIpfsIdHex,
         authMethodId,
         ...signerAuthMethodIds.filter(id => id !== authMethodId) // Avoid duplicates
       ];
@@ -426,7 +426,7 @@ export function MultisigWalletFormContent({
         AUTH_METHOD_TYPE.LitAction,
         AUTH_METHOD_TYPE.LitAction,
         AUTH_METHOD_TYPE.LitAction,
-        AUTH_METHOD_TYPE.LitAction,
+        // AUTH_METHOD_TYPE.LitAction,
         authMethodType,
         ...signerAuthMethodIds.filter(id => id !== authMethodId).map(() => authMethodType)
       ];
@@ -437,7 +437,7 @@ export function MultisigWalletFormContent({
         [AUTH_METHOD_SCOPE.SignAnything],
         [AUTH_METHOD_SCOPE.SignAnything],
         [AUTH_METHOD_SCOPE.SignAnything],
-        [AUTH_METHOD_SCOPE.SignAnything],
+        // [AUTH_METHOD_SCOPE.SignAnything],
         [AUTH_METHOD_SCOPE.PersonalSign],
         ...signerAuthMethodIds.filter(id => id !== authMethodId).map(() => [AUTH_METHOD_SCOPE.NoPermissions])
       ];
