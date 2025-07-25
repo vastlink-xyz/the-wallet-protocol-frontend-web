@@ -16,7 +16,7 @@ export interface BaseNotification<T = any> {
   data?: T;
 }
 
-export type MFANotification = BaseNotification<{ hasVerifiedPhone: boolean }>;
+export type MFANotification = BaseNotification;
 export type PendingProposalNotification = BaseNotification<MessageProposal>;
 export type PinNotification = BaseNotification<{ hasPinSet: boolean }>;
 
@@ -129,37 +129,33 @@ export class NotificationService {
 
   private async checkMFASetup(): Promise<MFANotification | null> {
     try {
-      // Get session JWT from auth method storage
+      // Get auth method from storage
       const { getAuthMethodFromStorage } = await import('@/lib/storage/authmethod');
       const authMethod = getAuthMethodFromStorage();
-      const sessionJwt = authMethod?.accessToken;
 
-      if (!sessionJwt) {
+      if (!authMethod) {
         return null;
       }
 
-      const response = await fetch('/api/mfa/status', {
-        method: 'GET',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionJwt}`
-        },
-      });
+      // Use SecurityLayerService to get user's security layers
+      const { SecurityLayerService } = await import('@/services/securityLayerService');
+      const securityLayers = await SecurityLayerService.getUserSecurityLayers(authMethod);
+      
+      // Check if user has more than 1 enabled OTP layer
+      // If only Email OTP (1 layer), it's not considered real MFA
+      const enabledOTPLayers = securityLayers.filter(layer => 
+        layer.category === 'otp' && layer.isEnabled
+      );
 
-      if (response.ok) {
-        const data = await response.json();
-        const phoneNumbers = data.phone_numbers || [];
-        const hasVerifiedPhone = phoneNumbers.some((p: any) => p.verified);
+      const hasRealMFASetup = enabledOTPLayers.length > 1;
 
-        if (!hasVerifiedPhone) {
-          return {
-            id: 'mfa_setup',
-            type: 'mfa_setup',
-            title: 'Set MFA',
-            message: `To make your wallets more secure, we highly recommend you to`,
-            data: { hasVerifiedPhone }
-          };
-        }
+      if (!hasRealMFASetup) {
+        return {
+          id: 'mfa_setup',
+          type: 'mfa_setup',
+          title: 'Set MFA',
+          message: `To make your wallets more secure, we highly recommend you to`
+        };
       }
     } catch (error) {
       console.error('Error checking MFA status:', error);
