@@ -8,6 +8,7 @@ import { Loader2 } from "lucide-react";
 import { AuthMethod } from "@lit-protocol/types";
 import { SecurityLayerService } from "@/services/securityLayerService";
 import { toast } from "react-toastify";
+import { useTranslations } from "next-intl";
 
 export interface MFAOption {
   type: 'WHATSAPP_OTP' | 'TOTP' | 'EMAIL_OTP';
@@ -32,6 +33,7 @@ export function MFASelectionDialog({
   authMethod,
   isSending
 }: MFASelectionDialogProps) {
+  const t = useTranslations('MFASelectionDialog');
   const [selectedMFAType, setSelectedMFAType] = useState<string>('');
   const [mfaCode, setMfaCode] = useState('');
   const [isSendingOTP, setIsSendingOTP] = useState(false);
@@ -40,10 +42,20 @@ export function MFASelectionDialog({
   const [currentMethodId, setCurrentMethodId] = useState<string | null>(null);
 
   const selectedOption = availableMFAOptions.find(option => option.type === selectedMFAType);
+  
+  // Get localized label for MFA type
+  const getLocalizedLabel = (type: string) => {
+    switch(type) {
+      case 'WHATSAPP_OTP': return t('whatsapp_otp');
+      case 'TOTP': return t('totp_label');
+      case 'EMAIL_OTP': return t('email_otp');
+      default: return type;
+    }
+  };
 
   const handleSendOTP = async () => {
     if (!selectedMFAType) {
-      toast.error('Please select an MFA method');
+      toast.error(t('select_method_error'));
       return;
     }
 
@@ -61,10 +73,10 @@ export function MFASelectionDialog({
       }
       
       setOtpSent(true);
-      toast.success(`OTP sent via ${selectedOption?.label}`);
+      toast.success(t('otp_sent_success', { method: getLocalizedLabel(selectedMFAType) }));
     } catch (error) {
       console.error('Failed to send OTP:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to send OTP');
+      toast.error(error instanceof Error ? error.message : t('send_otp_failed'));
     } finally {
       setIsSendingOTP(false);
     }
@@ -72,7 +84,7 @@ export function MFASelectionDialog({
 
   const handleVerifyMFA = async () => {
     if (!selectedMFAType || !mfaCode) {
-      toast.error('Please enter the verification code');
+      toast.error(t('enter_code_error'));
       return;
     }
 
@@ -96,7 +108,7 @@ export function MFASelectionDialog({
       await onMFAVerify(selectedMFAType, mfaCode, mfaMethodId);
     } catch (error) {
       console.error('MFA verification failed:', error);
-      toast.error('MFA verification failed');
+      toast.error(t('verification_failed'));
     } finally {
       setIsVerifyingMFA(false);
     }
@@ -123,13 +135,13 @@ export function MFASelectionDialog({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Additional Verification Required</DialogTitle>
+          <DialogTitle>{t('title')}</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4">
           <div>
             <p className="text-sm text-gray-600 mb-4">
-              This transaction requires additional verification. Please select a method:
+              {t('description')}
             </p>
             
             <RadioGroup
@@ -146,7 +158,7 @@ export function MFASelectionDialog({
                 <div key={option.type} className="flex items-center space-x-2">
                   <RadioGroupItem value={option.type} id={option.type} />
                   <Label htmlFor={option.type} className="cursor-pointer">
-                    {option.label}
+                    {getLocalizedLabel(option.type)}
                   </Label>
                 </div>
               ))}
@@ -165,10 +177,10 @@ export function MFASelectionDialog({
                   {isSendingOTP ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Sending...
+                      {t('sending')}
                     </>
                   ) : (
-                    `Send Code via ${selectedOption?.label}`
+                    t('send_code_via', { method: getLocalizedLabel(selectedMFAType) })
                   )}
                 </Button>
               )}
@@ -178,7 +190,7 @@ export function MFASelectionDialog({
                 <div className="p-3 bg-green-50 border border-green-200 rounded-md">
                   <div className="flex items-center justify-between">
                     <p className="text-sm text-green-800">
-                      Verification code sent to your {selectedOption?.label.toLowerCase()}
+                      {t('code_sent_to', { method: getLocalizedLabel(selectedMFAType).toLowerCase() })}
                     </p>
                     <Button
                       variant="ghost"
@@ -190,10 +202,10 @@ export function MFASelectionDialog({
                       {isSendingOTP ? (
                         <>
                           <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-                          Sending...
+                          {t('sending')}
                         </>
                       ) : (
-                        'Resend'
+                        t('resend')
                       )}
                     </Button>
                   </div>
@@ -205,14 +217,14 @@ export function MFASelectionDialog({
                 <div className="space-y-2">
                   <Label htmlFor="mfaCode">
                     {selectedMFAType === 'TOTP' 
-                      ? 'Enter code from your authenticator app'
-                      : 'Enter verification code'
+                      ? t('enter_totp_code')
+                      : t('enter_verification_code')
                     }
                   </Label>
                   <Input
                     id="mfaCode"
                     type="text"
-                    placeholder={selectedMFAType === 'TOTP' ? '000000' : 'Enter code'}
+                    placeholder={selectedMFAType === 'TOTP' ? t('totp_placeholder') : t('code_placeholder')}
                     value={mfaCode}
                     onChange={(e) => setMfaCode(e.target.value)}
                     disabled={isProcessing}
@@ -231,10 +243,10 @@ export function MFASelectionDialog({
                   {isVerifyingMFA ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Verifying...
+                      {t('verifying')}
                     </>
                   ) : (
-                    'Verify and Send Transaction'
+                    t('verify_button')
                   )}
                 </Button>
               )}
@@ -248,7 +260,7 @@ export function MFASelectionDialog({
             disabled={isProcessing}
             className="w-full"
           >
-            Cancel
+            {t('cancel')}
           </Button>
         </div>
       </DialogContent>

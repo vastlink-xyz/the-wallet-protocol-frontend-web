@@ -324,5 +324,28 @@
     "title": "MoonPay on-ramp / off-ramp",
     "buy_button": "Buy Crypto with Fiat",
     "sell_button": "Sell Crypto for Fiat"
+  },
+  "MFASelectionDialog": {
+    "title": "Additional Verification Required",
+    "description": "This transaction requires additional verification. Please select a method:",
+    "select_method_error": "Please select an MFA method",
+    "enter_code_error": "Please enter the verification code",
+    "send_code_via": "Send Code via {method}",
+    "sending": "Sending...",
+    "code_sent_to": "Verification code sent to your {method}",
+    "resend": "Resend",
+    "enter_totp_code": "Enter code from your authenticator app",
+    "enter_verification_code": "Enter verification code",
+    "totp_placeholder": "000000",
+    "code_placeholder": "Enter code",
+    "verify_button": "Verify and Send Transaction",
+    "verifying": "Verifying...",
+    "cancel": "Cancel",
+    "otp_sent_success": "OTP sent via {method}",
+    "send_otp_failed": "Failed to send OTP",
+    "verification_failed": "MFA verification failed",
+    "whatsapp_otp": "WhatsApp OTP",
+    "totp_label": "Authenticator App (TOTP)",
+    "email_otp": "Email OTP"
   }
 }

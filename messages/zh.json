@@ -324,5 +324,28 @@
     "title": "MoonPay 出金 / 入金",
     "buy_button": "购买加密货币",
     "sell_button": "出售加密货币"
+  },
+  "MFASelectionDialog": {
+    "title": "需要额外验证",
+    "description": "此交易需要额外验证，请选择验证方式：",
+    "select_method_error": "请选择MFA验证方式",
+    "enter_code_error": "请输入验证码",
+    "send_code_via": "通过{method}发送验证码",
+    "sending": "发送中...",
+    "code_sent_to": "验证码已发送至您的{method}",
+    "resend": "重新发送",
+    "enter_totp_code": "输入验证器应用中的验证码",
+    "enter_verification_code": "输入验证码",
+    "totp_placeholder": "000000",
+    "code_placeholder": "输入验证码",
+    "verify_button": "验证并发送交易",
+    "verifying": "验证中...",
+    "cancel": "取消",
+    "otp_sent_success": "验证码已通过{method}发送",
+    "send_otp_failed": "发送验证码失败",
+    "verification_failed": "MFA验证失败",
+    "whatsapp_otp": "WhatsApp OTP",
+    "totp_label": "验证器应用 (TOTP)",
+    "email_otp": "邮箱 OTP"
   }
 }
