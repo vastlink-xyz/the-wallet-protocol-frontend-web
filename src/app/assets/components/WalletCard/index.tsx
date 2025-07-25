@@ -1,11 +1,12 @@
-import { Settings, ChevronRightCircle, ArrowUpRightFromCircle, ArrowDownLeftFromCircle, Plus, PlusCircle, MoreHorizontal } from "lucide-react"
+import { Settings, ChevronRightCircle, ArrowUpRightFromCircle, ArrowDownLeftFromCircle, Plus, PlusCircle, MoreHorizontal, PlusIcon } from "lucide-react"
 import { getAvatarColor, getInitials } from "./helpers"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { Balance } from "./Balance"
 import { ReceiveModal } from "./ReceiveModal"
-import { useState } from "react"
+import { useCallback, useState, useTransition } from "react"
 import { cn } from "@/lib/utils"
 import { useTranslations } from "next-intl"
+import { RampDialog } from "@/components/Transaction/RampDialog"
 
 interface WalletCardProps {
   avatars: {
@@ -40,16 +41,32 @@ export function WalletCard({
   maxAvatars = 5,
   onCreateClick,
 }: WalletCardProps) {
-  const transCommon = useTranslations("Common")
-  const transWalletCard = useTranslations("WalletCard")
+  const transCommon = useTranslations("Common");
+  const transWalletCard = useTranslations("WalletCard");
 
   const [receiveModalOpen, setReceiveModalOpen] = useState(false);
   console.log('unsignedProposalsCount', unsignedProposalsCount)
+
+  const [showRampDialog, setShowRampDialog] = useState(false);
 
   const isPersonal = variant === 'personal'
   const isCreate = variant === 'create'
   const visibleAvatars = avatars.slice(0, maxAvatars)
   const remainingCount = Math.max(0, avatars.length - maxAvatars)
+
+  const handleSendClick = useCallback((e: React.MouseEvent<HTMLDivElement | SVGSVGElement>) => {
+    if (!showRampDialog) {
+      e.stopPropagation();
+      onSendClick();
+    }
+  }, [ showRampDialog, onSendClick ])
+
+  const handleDetailsClick = useCallback((e: React.MouseEvent<HTMLDivElement | SVGSVGElement>) => {
+    if (!showRampDialog) {
+      e.stopPropagation();
+      onDetailsClick();
+    }
+  }, [ showRampDialog, onDetailsClick ])
 
   // Create variant renders a simplified card
   if (isCreate) {
@@ -79,9 +96,7 @@ export function WalletCard({
         isPersonal ? "bg-[#181818]" : "bg-[#f5f5f5]",
         "cursor-pointer hover:shadow-lg",
       )}
-      onClick={() => {
-        onDetailsClick();
-      }}
+      onClick={handleDetailsClick}
     >
       <div className="flex items-center justify-end pointer-events-auto z-10">
         <div className={cn("text-[#979797]")}
@@ -101,10 +116,15 @@ export function WalletCard({
       </div>
 
       <div className="h-[150px]">
-        <p className={cn(
-          "text-lg text-center mb-[6px] font-bold cursor-pointer hover:opacity-80 transition-opacity",
-          isPersonal ? "text-[#ffffff]" : "text-[#000000]"
-        )} onClick={e => { e.stopPropagation(); onDetailsClick(); }}>{walletName}</p>
+        <p
+          className={cn(
+            "text-lg text-center mb-[6px] font-bold cursor-pointer hover:opacity-80 transition-opacity",
+            isPersonal ? "text-[#ffffff]" : "text-[#000000]",
+          )}
+          onClick={handleDetailsClick}
+        >
+          {walletName}
+        </p>
 
         <Balance variant={variant} addresses={{
           btc: btcAddress,
@@ -134,7 +154,7 @@ export function WalletCard({
       </div>
 
       <div className="flex justify-center gap-[40px] pointer-events-auto z-10">
-        <div className="w-14 text-center cursor-pointer" onClick={e => { e.stopPropagation(); onSendClick(); }}>
+        <div className="w-14 text-center cursor-pointer" onClick={handleSendClick}>
           <div className={cn(
             "w-14 h-14 p-3 rounded-full border flex items-center justify-center",
             isPersonal ? "border-white/20" : "border-black/20"
@@ -163,6 +183,20 @@ export function WalletCard({
             {transWalletCard("receive")}
           </p>
         </div>
+
+        {isPersonal && (
+          <div className="w-14 text-center cursor-pointer" onClick={e => { e.stopPropagation(); setShowRampDialog(true); }}>
+            <div className={cn(
+              "w-14 h-14 p-3 rounded-full border flex items-center justify-center",
+              isPersonal ? "border-white/20" : "border-black/20"
+            )}>
+              <PlusIcon className="text-white" />
+            </div>
+            <p className="text-xs font-medium mt-1 text-white">
+              {transWalletCard("ramp")}
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="flex justify-end mt-4 pointer-events-auto z-10">
@@ -173,7 +207,7 @@ export function WalletCard({
                 "cursor-pointer",
                 isPersonal ? "text-[#979797]" : "text-[#666666]"
               )} 
-              onClick={e => { e.stopPropagation(); onDetailsClick(); }}
+              onClick={handleDetailsClick}
             />
           </TooltipTrigger>
           <TooltipContent>
@@ -196,6 +230,10 @@ export function WalletCard({
         footerText={walletName}
         onClose={setReceiveModalOpen}
       />
+
+      {isPersonal && (
+        <RampDialog open={showRampDialog} onOpenChange={setShowRampDialog} btcAddress={btcAddress} ethAddress={ethAddress} />
+      )}
     </div>
   )
 }
