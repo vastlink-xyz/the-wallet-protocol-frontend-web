@@ -1,4 +1,4 @@
-import { Settings, ChevronRightCircle, ArrowUpRightFromCircle, ArrowDownLeftFromCircle, Plus, PlusCircle, MoreHorizontal, PlusIcon } from "lucide-react"
+import { Settings, ChevronRightCircle, ArrowUpRightFromCircle, ArrowDownLeftFromCircle, Plus, PlusCircle, MoreHorizontal, PlusIcon, ArrowLeftRightIcon } from "lucide-react"
 import { getAvatarColor, getInitials } from "./helpers"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { Balance } from "./Balance"
@@ -7,6 +7,7 @@ import { useCallback, useState, useTransition } from "react"
 import { cn } from "@/lib/utils"
 import { useTranslations } from "next-intl"
 import { RampDialog } from "@/components/Transaction/RampDialog"
+import { useRouter } from "next/navigation"
 
 interface WalletCardProps {
   avatars: {
@@ -41,6 +42,8 @@ export function WalletCard({
   maxAvatars = 5,
   onCreateClick,
 }: WalletCardProps) {
+  const router = useRouter();
+
   const transCommon = useTranslations("Common");
   const transWalletCard = useTranslations("WalletCard");
 
@@ -153,7 +156,10 @@ export function WalletCard({
         )}
       </div>
 
-      <div className="flex justify-center gap-[40px] pointer-events-auto z-10">
+      <div className={cn(
+        "flex flex-row items-center pointer-events-auto z-10",
+        isPersonal ? "justify-evenly" : "justify-center gap-10",
+      )}>
         <div className="w-14 text-center cursor-pointer" onClick={handleSendClick}>
           <div className={cn(
             "w-14 h-14 p-3 rounded-full border flex items-center justify-center",
@@ -183,6 +189,20 @@ export function WalletCard({
             {transWalletCard("receive")}
           </p>
         </div>
+
+        {isPersonal && (
+          <div className="w-14 text-center cursor-pointer" onClick={e => { e.stopPropagation(); router.push('/swap'); }}>
+            <div className={cn(
+              "w-14 h-14 p-3 rounded-full border flex items-center justify-center",
+              isPersonal ? "border-white/20" : "border-black/20"
+            )}>
+              <ArrowLeftRightIcon className="text-white" />
+            </div>
+            <p className="text-xs font-medium mt-1 text-white">
+              {transWalletCard("swap")}
+            </p>
+          </div>
+        )}
 
         {isPersonal && (
           <div className="w-14 text-center cursor-pointer" onClick={e => { e.stopPropagation(); setShowRampDialog(true); }}>
