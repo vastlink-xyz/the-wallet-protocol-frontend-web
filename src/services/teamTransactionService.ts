@@ -163,7 +163,9 @@ export const executeTeamTransactionProposal = async ({
     walletPkp,
     authMethod,
     authMethodId,
-    otpCode,
+    pinCode: '',
+    mfaType: '',
+    mfaCode: otpCode,
     mfaMethodId,
   })
 
