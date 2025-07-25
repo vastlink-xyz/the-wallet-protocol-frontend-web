@@ -15,7 +15,7 @@ import { getBtcAddressByPublicKey } from '@/lib/web3/btc';
 import { litActionCodeForCommonUpgradableProxy } from '@/lib/lit-action-code/common-upgradable-proxy.lit';
 
 const upgradeIpfsHexFn = getPersonalTransactionIpfsId
-const removeIpfsIdHex = '0x1220b0668f1ef6fd3ffcec27703c89e21f08213a9366fdb28b3df726be0d4a9074b2'
+const removeIpfsIdHex = '0x1220ffd04b80d774aa61424d3e65f417cba800467cc012f2b923ed86c479717bc1e4'
 
 interface UserProps {
   currentUserPkp: IRelayPKP | null;

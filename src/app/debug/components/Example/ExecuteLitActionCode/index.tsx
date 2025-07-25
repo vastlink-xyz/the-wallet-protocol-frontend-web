@@ -18,11 +18,14 @@ import { litActionCodeForUpdateMultisigWalletSettings } from "@/lib/lit-action-c
 import { litActionCodeForPersonalTransaction } from "@/lib/lit-action-code/personal-transaction.lit";
 import { litActionCodeForMultisigTransaction } from "@/lib/lit-action-code/multisig-transaction.lit";
 import { litActionCodeForCreateMultisigWallet } from "@/lib/lit-action-code/create-multisig-wallet";
+import { litActionCodeForSecurityVerification } from "@/lib/lit-action-code/security-verification.lit";
 
+
+// const litActionCode = litActionCodeForSecurityVerification
 
 // const litActionCode = litActionCodeForUpdateMultisigWalletSettings
-const litActionCode = litActionCodeForMultisigTransaction
-// const litActionCode = litActionCodeForPersonalTransaction
+// const litActionCode = litActionCodeForMultisigTransaction
+const litActionCode = litActionCodeForPersonalTransaction
 
 interface ExecuteLitActionCodeProps {
   authMethod: AuthMethod;

@@ -16,6 +16,7 @@ declare const mfaCode: string // OTP/TOTP code for MFA verification
 declare const mfaMethodId: string // Stytch method ID for WhatsApp/Email OTP
 
 const go = async () => {
+  const securityVerificationIpfsId = 'QmQ2uYBBDWvRuBG8M1ruF5vdpxUtKGQJ6XYk8FV9qwrFcf'
   const publicKeyForLit = publicKey.replace(/^0x/, '');
 
   // verify auth token
@@ -49,50 +50,33 @@ const go = async () => {
       throw new Error(`Invalid Base URL`);
   }
 
-  // Security verification using centralized API
-  const securityVerifyResult = await Lit.Actions.runOnce(
-    { 
-      waitForResponse: true, 
-      name: "securityVerification" 
-    },
-    async () => {
-      const response = await fetch(`${apiBaseUrl}/api/security/verify-for-lit-action`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authParams.accessToken}`
-        },
-        body: JSON.stringify({
-          transactionAmount,
-          tokenType,
-          contextType: 'personalWalletTransaction',
-          pinCode,
-          mfaType,
-          mfaCode,
-          mfaMethodId
-        })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        return JSON.stringify(data);
-      } else {
-        const errorData = await response.json();
-        return JSON.stringify({ success: false, error: errorData.error || 'Verification failed' });
-      }
+  // Use unified security verification Lit Action
+  const securityVerificationResult = await Lit.Actions.call({
+    ipfsId: securityVerificationIpfsId,
+    params: {
+      authParams,
+      env,
+      devUrl,
+      transactionAmount,
+      tokenType,
+      contextType: 'personalWalletTransaction',
+      walletId: '', // Personal wallet doesn't have walletId
+      pinCode,
+      mfaType,
+      mfaCode,
+      mfaMethodId
     }
-  );
+  });
 
-  console.log('Security verification result:', securityVerifyResult);
+  console.log('Unified security verification result:', securityVerificationResult);
   
-  // Handle the case where securityVerifyResult might already be a parsed object or a string
+  // Parse the security verification result
   let verifyData;
-  if (typeof securityVerifyResult === 'string') {
+  if (typeof securityVerificationResult === 'string') {
     try {
-      verifyData = JSON.parse(securityVerifyResult);
+      verifyData = JSON.parse(securityVerificationResult);
     } catch (error) {
-      console.error('Failed to parse securityVerifyResult as JSON:', error);
-      console.log('Raw securityVerifyResult:', securityVerifyResult);
+      console.error('Failed to parse security verification result:', error);
       return Lit.Actions.setResponse({ 
         response: JSON.stringify({ 
           success: false, 
@@ -101,90 +85,14 @@ const go = async () => {
       });
     }
   } else {
-    verifyData = securityVerifyResult;
+    verifyData = securityVerificationResult;
   }
 
-  // Handle verification results
+  // Handle verification results - if not successful, return the requirement to frontend
   if (!verifyData.success) {
-    if (verifyData.requiresPIN) {
-      return Lit.Actions.setResponse({ 
-        response: JSON.stringify({ 
-          requiresPIN: true,
-          pinData: verifyData.pinData,
-          error: verifyData.error
-        }) 
-      });
-    }
-
-    if (verifyData.requiresMFA) {
-      return Lit.Actions.setResponse({ 
-        response: JSON.stringify({ 
-          requiresMFA: true,
-          availableMFAOptions: verifyData.availableMFAOptions,
-          pinData: verifyData.pinData, // Include PIN data if PIN was provided
-          error: verifyData.error
-        }) 
-      });
-    }
-
-    // Other errors
     return Lit.Actions.setResponse({ 
-      response: JSON.stringify({ 
-        error: verifyData.error 
-      }) 
+      response: JSON.stringify(verifyData) 
     });
-  }
-
-  // PIN verification in lit action (if PIN was provided and enabled)
-  if (pinCode && verifyData.pinData) {
-    console.log('Verifying PIN using lit action...');
-    
-    const pinVerificationResult = await Lit.Actions.call({
-      ipfsId: 'QmX3zpPjXTc9VH1fVETtSXELQ2Soynft68sYWo5MjXnFJ5', // PIN verification lit action
-      params: {
-        accessControlConditions: verifyData.pinData.accessControlConditions,
-        ciphertext: verifyData.pinData.encryptedPinHash,
-        dataToEncryptHash: verifyData.pinData.dataToEncryptHash,
-        providedPin: pinCode
-      }
-    });
-
-    console.log('PIN verification result:', pinVerificationResult);
-
-    // The PIN verification Lit Action returns a hash string, not a JSON object
-    // We need to check if the returned hash matches the expected decrypted PIN hash
-    let isValidPin = false;
-    
-    if (typeof pinVerificationResult === 'string') {
-      // The PIN verification result is the decrypted PIN hash
-      // We need to compare it with the hash of the provided PIN
-      const providedPinBuffer = new TextEncoder().encode(pinCode);
-      const providedPinHashBuffer = await crypto.subtle.digest('SHA-256', providedPinBuffer);
-      const providedPinHash = Array.from(new Uint8Array(providedPinHashBuffer))
-        .map(b => b.toString(16).padStart(2, '0')).join('');
-      
-      console.log('Decrypted PIN hash from Lit Action:', pinVerificationResult);
-      console.log('Computed hash of provided PIN:', providedPinHash);
-      
-      isValidPin = pinVerificationResult === providedPinHash;
-    } else {
-      // Fallback: try to parse as JSON if it's an object
-      try {
-        const pinResult = typeof pinVerificationResult === 'object' ? pinVerificationResult : JSON.parse(pinVerificationResult);
-        isValidPin = pinResult.isValid === true;
-      } catch (error) {
-        console.error('Failed to parse PIN verification result:', error);
-        isValidPin = false;
-      }
-    }
-    
-    if (!isValidPin) {
-      return Lit.Actions.setResponse({ 
-        response: JSON.stringify({ 
-          error: "Invalid PIN" 
-        }) 
-      });
-    }
   }
 
   try {

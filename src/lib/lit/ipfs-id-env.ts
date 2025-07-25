@@ -6,6 +6,7 @@ import { litActionCodeForPersonalTransaction } from "../lit-action-code/personal
 import { litActionCodeForCommonUpgradableProxy } from "../lit-action-code/common-upgradable-proxy.lit"
 import { litActionCodeForUpdateMultisigWalletSettings } from "../lit-action-code/update-multisig-wallet-settings"
 import { litActionCodeForCreateMultisigWallet } from "../lit-action-code/create-multisig-wallet"
+import { litActionCodeForSecurityVerification } from "../lit-action-code/security-verification.lit"
 
 const updateWalletSettingsIpfsId = 'QmNniRddfbZ7oiTSLNrwgLg6qdg2Mk97T97rpA7kbS6BVK'
 const updateWalletSettingsIpfsIdHex = '0x122006ad4d7ce4ccc19a23dc94eb13a9ac57eee06890d7aa6c2dd72ae26787cc812a'
@@ -22,11 +23,14 @@ const multisigTransactionIpfsHex = '0x1220e115a37a855ddf359f1312e382905ee009b131
 const personalSignIpfsId = 'QmbZqMoXFa2jZkc3MBoNuezBMvQ4pBmmqCf6ziMvSuwvkc'
 const personalSignIpfsIdHex = '0x1220c48885c1552dbf86675c26a605a216fdceaf80caf70d0a5b838a006c7767eee5'
 
-const personalTransactionIpfsId = 'QmS6g1Lksr3s1dPHAZMGCJe3xsiL5HP2dA9DZFpXfrv1e3'
-const personalTransactionIpfsIdHex = '0x122037da15443ed4d0ec3582f144834cf1aedcf9f14263dbc062e90e6da3713cff7c'
+const personalTransactionIpfsId = 'QmUdprzWAzVKCfA7F5osiQivyJDN52fxfxYJZ4d663nbXU'
+const personalTransactionIpfsIdHex = '0x12205d8c79bf1c2ef24e8e3bd8c45ccc52dad4d04d6fe4462c6e51675ee3c3f0ad37'
 
 const upgradeIpfsId = 'QmTdAJGwtd1Ex1akC5zjzQsHTGtPKKj4WnDNQftLsXN6Um'
 const upgradeIpfsIdHex = '0x12204e852f217ab356ea529afc8584ef67340cae7b0cb0e76d8045735537f9323ca6'
+
+const securityVerificationIpfsId = 'QmQ2uYBBDWvRuBG8M1ruF5vdpxUtKGQJ6XYk8FV9qwrFcf' // TODO: Replace with actual IPFS ID when deployed
+const securityVerificationIpfsIdHex = '0x1220192bafae343aaa8f0b3daf1fbae32df693aabf915aaeb48c7787f1b89b125114'
 
 
 export const getUpdateWalletIpfsId = async (outputFormat: "base58" | "hex") => {
@@ -130,6 +134,21 @@ export const getUpgradeIpfsId = async (outputFormat: "base58" | "hex") => {
       return upgradeIpfsId
     } else {
       return upgradeIpfsIdHex
+    }
+  }
+}
+
+export const getSecurityVerificationIpfsId = async (outputFormat: "base58" | "hex") => {
+  if (process.env.NEXT_PUBLIC_ENV === 'dev') {
+    return await getLitActionIpfsCid({
+      input: litActionCodeForSecurityVerification,
+      outputFormat: outputFormat
+    })
+  } else {
+    if (outputFormat === "base58") {
+      return securityVerificationIpfsId
+    } else {
+      return securityVerificationIpfsIdHex
     }
   }
 }
