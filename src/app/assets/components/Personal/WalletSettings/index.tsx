@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useCallback, useContext, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useContext } from 'react';
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -48,9 +48,19 @@ export function PersonalWalletSettings() {
   const [phoneId, setPhoneId] = useState<string | null>(null);
   const [pendingSettings, setPendingSettings] = useState<any>(null);
 
-  // Get user's session JWT - memoize to prevent unnecessary re-renders
-  const authMethod = useMemo(() => getAuthMethodFromStorage(), []);
+  // Get auth method - use useState to make it reactive
+  const [authMethod, setAuthMethod] = useState(() => getAuthMethodFromStorage());
   const sessionJwt = authMethod?.accessToken;
+
+  // Refresh auth method when dialog opens
+  useEffect(() => {
+    if (isPersonalWalletSettingsOpen) {
+      const currentAuthMethod = getAuthMethodFromStorage();
+      if (currentAuthMethod) {
+        setAuthMethod(currentAuthMethod);
+      }
+    }
+  }, [isPersonalWalletSettingsOpen]);
 
   // sving wallet settings
   const saveWalletSettings = async () => {
