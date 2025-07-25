@@ -1,9 +1,9 @@
-import { Settings, ChevronRightCircle, ArrowUpRightFromCircle, ArrowDownLeftFromCircle, Plus, PlusCircle, MoreHorizontal, PlusIcon, ArrowLeftRightIcon } from "lucide-react"
-import { getAvatarColor, getInitials } from "./helpers"
+import { Settings, ArrowUpRightFromCircle, ArrowDownLeftFromCircle, PlusCircle, MoreHorizontal, PlusIcon, ArrowLeftRightIcon } from "lucide-react"
+import { getInitials } from "./helpers"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { Balance } from "./Balance"
 import { ReceiveModal } from "./ReceiveModal"
-import { useCallback, useState, useTransition } from "react"
+import { useCallback, useState } from "react"
 import { cn } from "@/lib/utils"
 import { useTranslations } from "next-intl"
 import { RampDialog } from "@/components/Transaction/RampDialog"
@@ -17,6 +17,7 @@ interface WalletCardProps {
   walletId?: string
   WalletSettings?: React.ReactNode
   onSendClick: () => void
+  onSwapClick: () => void
   onDetailsClick: () => void
   btcAddress: string
   ethAddress: string
@@ -33,6 +34,7 @@ export function WalletCard({
   walletId,
   WalletSettings,
   onSendClick,
+  onSwapClick,
   onDetailsClick,
   btcAddress,
   ethAddress,
@@ -217,6 +219,21 @@ export function WalletCard({
             </p>
           </div>
         )}
+
+        <div className="w-14 text-center cursor-pointer" onClick={e => { e.stopPropagation(); onSwapClick(); }}>
+          <div className={cn(
+            "w-14 h-14 p-3 rounded-full border flex items-center justify-center",
+            isPersonal ? "border-white/20" : "border-black/20"
+          )}>
+            <ArrowLeftRightIcon className={cn(isPersonal ? "text-white" : "text-black")} />
+          </div>
+          <p className={cn(
+            "text-xs font-medium mt-1",
+            isPersonal ? "text-white" : "text-black"
+          )}>
+            {transWalletCard("swap")}
+          </p>
+        </div>
       </div>
 
       <div className="flex justify-end mt-4 pointer-events-auto z-10">

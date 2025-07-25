@@ -15,8 +15,7 @@ export async function PUT(request: NextRequest) {
       eth: string;
     };
 
-    const currency = request.nextUrl.searchParams.get('currency') || 'usd';
-    const price = await getPrice(currency);
+    const price = await getPrice();
 
     const tasks = SUPPORTED_TOKENS_ARRAY.map(async (token) => {
       const walletAddress = addressByTokenSymbol(token.symbol, addresses);
@@ -69,7 +68,6 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({
       total,
-      currency,
       details: results,
     });
   } catch (error) {

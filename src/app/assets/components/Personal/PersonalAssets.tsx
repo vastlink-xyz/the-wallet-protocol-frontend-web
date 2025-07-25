@@ -14,6 +14,7 @@ import { executePersonalTransaction, inviteUser } from '@/services/personalTrans
 import { User } from '@/app/api/user/storage'
 import { PersonalWalletSettingsContext } from '@/providers/PersonalWalletSettingsProvider'
 import { useSecurityVerification } from '@/hooks/useSecurityVerification'
+import { SwapDialog } from '@/components/Transaction/SwapDialog'
 
 interface PersonalAssetsProps {
   authMethod: AuthMethod
@@ -31,6 +32,7 @@ export default function PersonalAssets({ authMethod, userData, authMethodId }: P
   const [addresses, setAddresses] = useState<MultisigWalletAddresses | null>(null)
 
   const [showSendDialog, setShowSendDialog] = useState(false)
+  const [showSwapDialog, setShowSwapDialog] = useState(false)
   const [resetAmount, setResetAmount] = useState(false)
 
   const { showPersonalWalletSettings } = useContext(PersonalWalletSettingsContext);
@@ -122,6 +124,9 @@ export default function PersonalAssets({ authMethod, userData, authMethodId }: P
             onSendClick={() => {
               setShowSendDialog(true)
             }}
+            onSwapClick={() => {
+              setShowSwapDialog(true)
+            }}
             onWalletSettingsClick={handleWalletSettingsClick}
             onDetailsClick={handleDetailsClick}
             btcAddress={btcAddress}
@@ -146,6 +151,16 @@ export default function PersonalAssets({ authMethod, userData, authMethodId }: P
             resetAmount={resetAmount}
             userLitAction={litActionPkp}
             disablePin={true}
+          />
+        )
+      }
+
+      {
+        (authMethodId && litActionPkp && showSwapDialog) && (
+          <SwapDialog
+            open={showSwapDialog}
+            onOpenChange={setShowSwapDialog}
+            authMethod={authMethod}
           />
         )
       }

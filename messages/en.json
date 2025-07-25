@@ -347,5 +347,19 @@
     "whatsapp_otp": "WhatsApp OTP",
     "totp_label": "Authenticator App (TOTP)",
     "email_otp": "Email OTP"
+  },
+  "SwapDialog": {
+    "title": "THORChain swap",
+    "swap": "Swap",
+    "from": "From",
+    "to": "To",
+    "enter_amount": "Enter Amount",
+    "balance": "Balance: ",
+    "reference": "Reference price: ",
+    "estimated_output": "Estimated output: ",
+    "free": "Free",
+    "network_fee": "Network Fee",
+    "affiliate_fee": "Affiliate Fee",
+    "estimated_slippage": "Estimated Slippage"
   }
 }

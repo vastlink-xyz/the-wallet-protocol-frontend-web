@@ -10,6 +10,7 @@ type buttons = "send" | "receive" | "swap" | "ramp"
 
 interface WalletSendReceiveButtonsProps {
   onSendClick: () => void
+  onSwapClick: () => void
   btcAddress: string
   ethAddress: string
   walletName: string
@@ -19,6 +20,7 @@ interface WalletSendReceiveButtonsProps {
 
 export function WalletSendReceiveButtons({
   onSendClick,
+  onSwapClick,
   btcAddress,
   ethAddress,
   walletName,

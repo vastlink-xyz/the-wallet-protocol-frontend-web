@@ -8,6 +8,7 @@ import { useNotifications } from "@/hooks/useNotifications"
 import { User } from "@/app/api/user/storage"
 import { MessageProposal, MultisigWallet } from "@/app/api/multisig/storage"
 import { createAndApproveTransactionProposal, executeTeamTransactionProposal, inviteTeamUser, handleTeamMfaVerify } from "@/services/teamTransactionService"
+import { SwapDialog } from "@/components/Transaction/SwapDialog"
 
 interface TeamWalletSendReceiveActionsProps {
   wallet: MultisigWallet
@@ -21,6 +22,7 @@ export function TeamWalletSendReceiveActions({
   refreshProposals,
 }: TeamWalletSendReceiveActionsProps) {
   const [showSendDialog, setShowSendDialog] = useState(false)
+  const [showSwapDialog, setShowSwapDialog] = useState(false)
   const [showMfaDialog, setShowMfaDialog] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null)
@@ -160,6 +162,7 @@ export function TeamWalletSendReceiveActions({
       {/* Send/Receive Buttons */}
       <WalletSendReceiveButtons
         onSendClick={() => setShowSendDialog(true)}
+        onSwapClick={() => setShowSwapDialog(true)}
         btcAddress={wallet.addresses.btc}
         ethAddress={wallet.addresses.eth}
         walletName={wallet.name}
@@ -182,6 +185,18 @@ export function TeamWalletSendReceiveActions({
             onMFAVerify={handleMfaVerify}
             addresses={wallet.addresses || null}
             walletName={wallet.name}
+          />
+        )
+      }
+
+      {/*Swap Dialog */}
+      {
+        showSwapDialog && authMethod && (
+          <SwapDialog
+            open={showSwapDialog}
+            onOpenChange={setShowSwapDialog}
+            authMethod={authMethod}
+            teamWalletId={wallet.id}
           />
         )
       }

@@ -8,6 +8,7 @@ import { useAuthExpiration } from '@/hooks/useAuthExpiration'
 import { MultisigWalletAddresses } from "@/app/api/multisig/storage"
 import { executePersonalTransaction, inviteUser } from '@/services/personalTransactionService'
 import { useSecurityVerification } from '@/hooks/useSecurityVerification'
+import { SwapDialog } from "@/components/Transaction/SwapDialog"
 
 interface WalletSendReceiveActionsProps {
   btcAddress: string
@@ -29,6 +30,8 @@ export function PersonalWalletSendReceiveActions({
   const [authMethodId, setAuthMethodId] = useState<string | null>(null)
   const [litActionPkp, setLitActionPkp] = useState<IRelayPKP | null>(null)
   const [showSendDialog, setShowSendDialog] = useState(false)
+  const [showSwapDialog, setShowSwapDialog] = useState(false)
+  const [showMfa, setShowMfa] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const [resetAmount, setResetAmount] = useState(false)
 
@@ -122,6 +125,7 @@ export function PersonalWalletSendReceiveActions({
       {/* Send/Receive Buttons */}
       <WalletSendReceiveButtons
         onSendClick={() => setShowSendDialog(true)}
+        onSwapClick={() => setShowSwapDialog(true)}
         btcAddress={btcAddress}
         ethAddress={ethAddress}
         walletName={walletName}
@@ -143,6 +147,17 @@ export function PersonalWalletSendReceiveActions({
             walletName={walletName}
             resetAmount={resetAmount}
             disablePin={true}
+          />
+        )
+      }
+
+      {/*Swap Dialog */}
+      {
+        showSwapDialog && authMethod && (
+          <SwapDialog
+            open={showSwapDialog}
+            onOpenChange={setShowSwapDialog}
+            authMethod={authMethod}
           />
         )
       }
