@@ -7,7 +7,6 @@ import { policyEnforcer } from '@/services/policies/PolicyEnforcer';
 export async function POST(request: NextRequest) {
   try {
     const session: AuthenticatedSession = await authenticateStytchSession(request);
-    log('Authenticated session in verify-code:', session);
 
     const body = await request.json();
     const { contextType, ...contextParams } = body;

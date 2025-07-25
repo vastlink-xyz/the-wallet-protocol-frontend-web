@@ -112,7 +112,6 @@ class PersonalWalletDailyWithdrawLimitPolicy extends Policy<TransactionOperation
       }
       
       const userData = await response.json();
-      log('userData', userData);
       
       // Pass userData to both helper functions
       const dailyLimitStr = await getUserDailyWithdrawalLimit(userData, context.tokenType);

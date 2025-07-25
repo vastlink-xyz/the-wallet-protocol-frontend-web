@@ -25,6 +25,8 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { PersonalWalletSettingsContext } from '@/providers/PersonalWalletSettingsProvider';
 import { useTranslations } from 'next-intl';
 import { PinService } from '@/services/pinService';
+import { useSecurityVerification } from '@/hooks/useSecurityVerification';
+import { SecurityVerificationService } from '@/services/securityVerificationService';
 
 export function PersonalWalletSettings() {
   const t = useTranslations("PersonalWalletSettings");
@@ -49,6 +51,52 @@ export function PersonalWalletSettings() {
   // Get user's session JWT - memoize to prevent unnecessary re-renders
   const authMethod = useMemo(() => getAuthMethodFromStorage(), []);
   const sessionJwt = authMethod?.accessToken;
+
+  // sving wallet settings
+  const saveWalletSettings = async () => {
+    if (!authMethodId || !tokenLimits) {
+      throw new Error('Missing required data');
+    }
+
+    // Prepare wallet settings to update
+    const dailyWithdrawLimits: Record<string, string> = {};
+    SUPPORTED_TOKEN_SYMBOLS.forEach(symbol => {
+      dailyWithdrawLimits[SUPPORTED_TOKENS_INFO[symbol].symbol] = tokenLimits[symbol];
+    });
+
+    const settings = { dailyWithdrawLimits };
+
+    // Save settings
+    const response = await fetch('/api/user/settings', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${sessionJwt}`
+      },
+      body: JSON.stringify({
+        authMethodId,
+        walletSettings: settings,
+      })
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      return { message: 'Settings updated successfully' };
+    } else {
+      throw new Error(data.error || 'Failed to save settings');
+    }
+  };
+
+  // Security verification hook for PIN + MFA
+  const securityVerification = useSecurityVerification({
+    authMethod,
+    executeTransaction: SecurityVerificationService.createProtectedAction({
+      contextType: 'forceMFA',
+      sessionJwt: sessionJwt || '',
+      businessLogic: saveWalletSettings
+    })
+  });
 
   // Handle PIN status updates
   const handlePinStatusUpdate = async () => {
@@ -188,47 +236,14 @@ export function PersonalWalletSettings() {
     setIsSaving(true);
 
     try {
-      // Prepare wallet settings to update
-      const dailyWithdrawLimits: Record<string, string> = {};
-
-      // Add limits for each token
-      SUPPORTED_TOKEN_SYMBOLS.forEach(symbol => {
-        dailyWithdrawLimits[SUPPORTED_TOKENS_INFO[symbol].symbol] = tokenLimits[symbol];
-      });
-
-      const settings = {
-        dailyWithdrawLimits
-      };
-
-      // Store settings for later use if MFA is required
-      setPendingSettings(settings);
-
-      // Call the API to update wallet settings
-      const response = await fetch('/api/user/settings', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionJwt}`
-        },
-        body: JSON.stringify({
-          authMethodId,
-          walletSettings: settings,
-        })
-      });
-
-      const responseData = await response.json();
-
-      if (responseData.requiresMfa) {
-        // If MFA is required, show the OTP dialog
-        setShowMfaDialog(true);
-      } else if (response.ok) {
-        // If API returned success and no MFA required, settings were updated
+      const result = await securityVerification.verify({});
+      
+      if (result.success) {
         toast.success(t("update_success"));
         invalidateMFANotifications();
         closePersonalWalletSettings();
       } else {
-        // Handle other error cases
-        throw new Error(responseData.error || 'Failed to save settings');
+        toast.error(result.error || t("update_failed"));
       }
     } catch (error: any) {
       console.error('Error saving wallet settings:', error);
@@ -359,9 +374,9 @@ export function PersonalWalletSettings() {
               <DialogFooter className="pt-4 space-x-2">
                 <Button
                   onClick={saveSettings}
-                  disabled={!isLimitValid || isSaving}
+                  disabled={!isLimitValid || isSaving || securityVerification.isVerifying}
                 >
-                  {t(isSaving ? 'saving' : 'save')}
+                  {t(isSaving || securityVerification.isVerifying ? 'saving' : 'save')}
                 </Button>
               </DialogFooter>
             </>
@@ -380,6 +395,10 @@ export function PersonalWalletSettings() {
         title={t("opt_dialog_title")}
         description={t("opt_dialog_description")}
       />
+
+      {/* PIN and MFA dialogs from security verification hook */}
+      {securityVerification.PinDialog}
+      {securityVerification.MFADialog}
     </>
   );
 }

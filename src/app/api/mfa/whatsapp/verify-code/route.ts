@@ -6,7 +6,6 @@ import { log } from '@/lib/utils'; // Assuming log is a utility you want to keep
 export async function POST(req: NextRequest) {
   try {
     const session: AuthenticatedSession = await authenticateStytchSession(req);
-    log('Authenticated session in verify-code:', session);
 
     const body = await req.json();
     const { method_id, code } = body; // method_id is the phone_id from the send-code step

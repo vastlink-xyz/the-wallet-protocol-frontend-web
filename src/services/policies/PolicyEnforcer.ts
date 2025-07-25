@@ -4,6 +4,7 @@ import { personalWalletMFAUpdatePolicy } from './PersonalWalletMFAUpdatePolicy';
 import { personalWalletSettingsUpdatePolicy } from './PersonalWalletSettingsUpdatePolicy';
 import { multisigWalletDailyWithdrawLimitPolicy } from './MultisigWalletDailyWithdrawLimitPolicy';
 import { multisigWalletSettingsUpdatePolicy } from './MultisigWalletSettingsUpdatePolicy';
+import { forceMFAPolicy } from './ForceMFAPolicy';
 
 class PolicyEnforcer {
   private policiesMap: Map<string, Policy<any>[]> = new Map();
@@ -14,6 +15,7 @@ class PolicyEnforcer {
     this.policiesMap.set('personalWalletSettingsUpdate', [personalWalletSettingsUpdatePolicy]);
     this.policiesMap.set('multisigWalletTransaction', [multisigWalletDailyWithdrawLimitPolicy]);
     this.policiesMap.set('multisigWalletSettings', [multisigWalletSettingsUpdatePolicy]);
+    this.policiesMap.set('forceMFA', [forceMFAPolicy]);
   }
 
   /**
