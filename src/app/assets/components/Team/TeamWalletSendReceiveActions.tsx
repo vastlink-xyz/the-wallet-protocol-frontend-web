@@ -163,7 +163,7 @@ export function TeamWalletSendReceiveActions({
         btcAddress={wallet.addresses.btc}
         ethAddress={wallet.addresses.eth}
         walletName={wallet.name}
-        excludes={["ramp"]}
+        excludes={["swap", "ramp"]}
       />
       
       {/* Send Transaction Dialog */}

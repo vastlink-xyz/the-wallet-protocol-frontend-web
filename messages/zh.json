@@ -131,6 +131,7 @@
     "create_team_wallet": "创建团队钱包",
     "send": "发送",
     "receive": "接收",
+    "swap": "兑换",
     "ramp": "出入金"
   },
   "PersonalWalletSettings": {
