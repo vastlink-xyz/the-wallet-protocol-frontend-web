@@ -23,9 +23,9 @@ import { litActionCodeForSecurityVerification } from "@/lib/lit-action-code/secu
 
 // const litActionCode = litActionCodeForSecurityVerification
 
-// const litActionCode = litActionCodeForUpdateMultisigWalletSettings
+const litActionCode = litActionCodeForUpdateMultisigWalletSettings
 // const litActionCode = litActionCodeForMultisigTransaction
-const litActionCode = litActionCodeForPersonalTransaction
+// const litActionCode = litActionCodeForPersonalTransaction
 
 interface ExecuteLitActionCodeProps {
   authMethod: AuthMethod;

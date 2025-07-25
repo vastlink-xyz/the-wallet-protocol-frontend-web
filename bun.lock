@@ -13,6 +13,7 @@
         "@lit-protocol/pkp-ethers": "^7.1.0",
         "@lit-protocol/types": "^7.1.0",
         "@mempool/mempool.js": "^3.0.0",
+        "@moonpay/moonpay-js": "^0.7.3",
         "@radix-ui/react-dialog": "^1.1.13",
         "@radix-ui/react-dropdown-menu": "^2.1.15",
         "@radix-ui/react-hover-card": "^1.1.14",
@@ -376,6 +377,8 @@
     "@modelcontextprotocol/sdk": ["@modelcontextprotocol/sdk@1.11.2", "", { "dependencies": { "content-type": "^1.0.5", "cors": "^2.8.5", "cross-spawn": "^7.0.3", "eventsource": "^3.0.2", "express": "^5.0.1", "express-rate-limit": "^7.5.0", "pkce-challenge": "^5.0.0", "raw-body": "^3.0.0", "zod": "^3.23.8", "zod-to-json-schema": "^3.24.1" } }, "sha512-H9vwztj5OAqHg9GockCQC06k1natgcxWQSRpQcPJf6i5+MWBzfKkRtxGbjQf0X2ihii0ffLZCRGbYV2f2bjNCQ=="],
 
     "@mongodb-js/saslprep": ["@mongodb-js/saslprep@1.2.2", "", { "dependencies": { "sparse-bitfield": "^3.0.3" } }, "sha512-EB0O3SCSNRUFk66iRCpI+cXzIjdswfCs7F6nOC3RAGJ7xr5YhaicvsRwJ9eyzYvYRlCSDUO/c7g4yNulxKC1WA=="],
+
+    "@moonpay/moonpay-js": ["@moonpay/moonpay-js@0.7.3", "", {}, "sha512-viLH7KqT0WKSrC9yWF+NYOV5DFr7XSkSftpeI9ze6BSeoLEA8lRpq0bik8OfpGSUxCbYQKvKbAgJTviRiGkyfQ=="],
 
     "@moralisweb3/api-utils": ["@moralisweb3/api-utils@2.27.2", "", { "dependencies": { "@moralisweb3/common-core": "^2.27.2", "@moralisweb3/common-evm-utils": "^2.27.2", "axios": "^1.2.1" } }, "sha512-Z1Ipe+bJZqQcL3p6vtlB8Ih5ne0UJJpXutv4Qg/OGym+YrQpBNCummEQWSAMt6874IQDqNcCJzeBEpcipkzQ+Q=="],
 

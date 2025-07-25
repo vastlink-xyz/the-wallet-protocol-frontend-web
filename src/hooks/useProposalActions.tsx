@@ -92,6 +92,9 @@ export function useProposalActions({
         authMethod: authMethod!,
         authMethodId: authMethodId!,
         pinCode: verificationParams.pinCode || '',
+        mfaType: verificationParams.mfaType || '',
+        mfaCode: verificationParams.mfaCode || '',
+        mfaMethodId: verificationParams.mfaMethodId || '',
       });
     },
   });
@@ -207,6 +210,9 @@ export function useProposalActions({
     authMethod,
     authMethodId,
     pinCode,
+    mfaType,
+    mfaCode,
+    mfaMethodId,
   }: any) => {
     const response = await executeWalletSettingsProposal({
       proposal,
@@ -216,6 +222,9 @@ export function useProposalActions({
       authMethod,
       authMethodId,
       pinCode,
+      mfaType,
+      mfaCode,
+      mfaMethodId,
     });
     
     if (response.data.success) {

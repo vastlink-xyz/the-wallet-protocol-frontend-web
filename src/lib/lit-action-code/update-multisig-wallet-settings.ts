@@ -5,7 +5,10 @@ declare const ethers: any
 declare const publicKey: string
 declare const env: string
 declare const devUrl: string
-declare const pinCode: string
+declare const pinCode: string | undefined
+declare const mfaType: string | undefined
+declare const mfaCode: string | undefined
+declare const mfaMethodId: string | undefined
 declare const Lit: any
 
 const _litActionCode = async () => {
@@ -202,61 +205,49 @@ const _litActionCode = async () => {
       throw new Error(`Invalid Base URL`);
   }
 
-  // Security verification for wallet settings (PIN only, no MFA)
-  const securityVerificationResult = await Lit.Actions.runOnce(
-    { 
-      waitForResponse: true, 
-      name: "verifySecurityForWalletSettings" 
-    },
-    async () => {
-      const response = await fetch(`${apiBaseUrl}/api/security/verify-for-lit-action`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authParams.accessToken}`
-        },
-        body: JSON.stringify({ 
-          transactionAmount: '0', // Wallet settings don't have transaction amounts
-          tokenType: 'ETH', // Dummy token type for wallet settings
-          contextType: 'multisigWalletSettings',
-          pinCode
-          // No MFA parameters for wallet settings
-        })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        return JSON.stringify(data);
-      } else {
-        const errorData = await response.json();
-        return JSON.stringify({ success: false, error: errorData.error || 'Security verification failed' });
-      }
+  // Use unified security verification Lit Action
+  const securityVerificationIpfsId = 'QmQ2uYBBDWvRuBG8M1ruF5vdpxUtKGQJ6XYk8FV9qwrFcf'
+  const securityVerificationResult = await Lit.Actions.call({
+    ipfsId: securityVerificationIpfsId,
+    params: {
+      authParams,
+      env,
+      devUrl,
+      transactionAmount: '0', // Wallet settings don't have transaction amounts
+      tokenType: 'ETH', // Dummy token type for wallet settings
+      contextType: 'multisigWalletSettings',
+      walletId,
+      pinCode: pinCode || '',
+      mfaType: mfaType || '',
+      mfaCode: mfaCode || '',
+      mfaMethodId: mfaMethodId || ''
     }
-  );
+  });
 
-  console.log('Security verification result for wallet settings:', securityVerificationResult);
+  console.log('Unified security verification result for wallet settings:', securityVerificationResult);
   
-  const parsedVerificationResult = JSON.parse(securityVerificationResult as any);
-  
-  if (!parsedVerificationResult.success) {
-    // Check if PIN is required but not provided
-    if (parsedVerificationResult.requiresPIN) {
+  // Parse the security verification result
+  let verifyData;
+  if (typeof securityVerificationResult === 'string') {
+    try {
+      verifyData = JSON.parse(securityVerificationResult);
+    } catch (error) {
+      console.error('Failed to parse security verification result:', error);
       return Lit.Actions.setResponse({ 
         response: JSON.stringify({ 
-          success: false,
-          requiresPIN: true,
-          pinData: parsedVerificationResult.pinData,
-          error: "PIN verification required for wallet settings"
+          success: false, 
+          error: 'Invalid security verification response format' 
         }) 
       });
     }
-    
-    // Other security verification errors
+  } else {
+    verifyData = securityVerificationResult;
+  }
+
+  // Handle verification results - if not successful, return the requirement to frontend
+  if (!verifyData.success) {
     return Lit.Actions.setResponse({ 
-      response: JSON.stringify({ 
-        success: false,
-        error: parsedVerificationResult.error || "Security verification failed"
-      }) 
+      response: JSON.stringify(verifyData) 
     });
   }
 

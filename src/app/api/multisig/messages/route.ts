@@ -145,7 +145,6 @@ export async function PUT(request: NextRequest) {
     
     const proposals = await getMessageProposals(walletId)
     const proposal = proposals.find(p => p.id === proposalId)
-    log('proposalId', proposalId, proposals)
     
     if (!proposal) {
       return Response.json(

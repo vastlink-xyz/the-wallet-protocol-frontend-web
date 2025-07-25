@@ -17,6 +17,9 @@ interface IExecuteWalletSettingsProposalParams {
   authMethod: AuthMethod;
   authMethodId: string;
   pinCode?: string;
+  mfaType?: string;
+  mfaCode?: string;
+  mfaMethodId?: string | null;
 }
 
 interface IExecuteTransactionProposalParams {
@@ -40,6 +43,9 @@ export const executeWalletSettingsProposal = async ({
   authMethod,
   authMethodId,
   pinCode,
+  mfaType,
+  mfaCode,
+  mfaMethodId,
 }: IExecuteWalletSettingsProposalParams) => {
   // Check if proposal is still pending
   if (proposal.status !== 'pending') {
@@ -64,6 +70,9 @@ export const executeWalletSettingsProposal = async ({
       walletId: wallet.id,
       proposalId: proposal.id,
       pinCode: pinCode || '',
+      mfaType: mfaType || '',
+      mfaCode: mfaCode || '',
+      mfaMethodId: mfaMethodId || '',
     },
   });
 

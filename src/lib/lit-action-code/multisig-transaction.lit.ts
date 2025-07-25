@@ -126,75 +126,52 @@ const go = async () => {
       });
     }
 
-    // Use the unified security verification API
-    const securityVerificationResult = await Lit.Actions.runOnce(
-      { 
-        waitForResponse: true, 
-        name: "verifySecurityForLitAction" 
-      },
-      async () => {
-        const response = await fetch(`${apiBaseUrl}/api/security/verify-for-lit-action`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authParams.accessToken}`
-          },
-          body: JSON.stringify({ 
-            transactionAmount,
-            tokenType,
-            contextType: 'multisigWalletTransaction',
-            walletId, // Add walletId for multisig policy checking
-            pinCode,
-            mfaType,
-            mfaCode,
-            mfaMethodId
-          })
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          return JSON.stringify(data);
-        } else {
-          const errorData = await response.json();
-          return JSON.stringify({ success: false, error: errorData.error || 'Security verification failed' });
-        }
+    // Use unified security verification Lit Action
+    const securityVerificationIpfsId = 'QmQ2uYBBDWvRuBG8M1ruF5vdpxUtKGQJ6XYk8FV9qwrFcf'
+    const securityVerificationResult = await Lit.Actions.call({
+      ipfsId: securityVerificationIpfsId,
+      params: {
+        authParams,
+        env,
+        devUrl,
+        transactionAmount,
+        tokenType,
+        contextType: 'multisigWalletTransaction',
+        walletId,
+        pinCode,
+        mfaType,
+        mfaCode,
+        mfaMethodId
       }
-    );
+    });
 
-    console.log('Security verification result from runOnce:', securityVerificationResult);
+    console.log('Unified security verification result:', securityVerificationResult);
     
-    const parsedVerificationResult = JSON.parse(securityVerificationResult as any);
-    
-    if (!parsedVerificationResult.success) {
-      // Check if PIN is required but not provided
-      if (parsedVerificationResult.requiresPIN) {
+    // Parse the security verification result
+    let verifyData;
+    if (typeof securityVerificationResult === 'string') {
+      try {
+        verifyData = JSON.parse(securityVerificationResult);
+      } catch (error) {
+        console.error('Failed to parse security verification result:', error);
         return Lit.Actions.setResponse({ 
           response: JSON.stringify({ 
-            requiresPIN: true,
+            success: false,
             isValid,
-            pinData: parsedVerificationResult.pinData,
-            error: "PIN verification required"
+            error: 'Invalid security verification response format' 
           }) 
         });
       }
-      
-      // Check if MFA is required
-      if (parsedVerificationResult.requiresMFA) {
-        return Lit.Actions.setResponse({ 
-          response: JSON.stringify({ 
-            requiresMFA: true,
-            isValid,
-            availableMFAOptions: parsedVerificationResult.availableMFAOptions,
-            error: "MFA verification required"
-          }) 
-        });
-      }
-      
-      // Other security verification errors
+    } else {
+      verifyData = securityVerificationResult;
+    }
+
+    // Handle verification results - if not successful, return the requirement to frontend
+    if (!verifyData.success) {
       return Lit.Actions.setResponse({ 
-        response: JSON.stringify({ 
-          isValid,
-          error: parsedVerificationResult.error || "Security verification failed"
+        response: JSON.stringify({
+          ...verifyData,
+          isValid
         }) 
       });
     }
