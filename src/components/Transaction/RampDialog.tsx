@@ -22,7 +22,7 @@ async function showMoonPay(flow: "buy" | "sell", btcAddress: string, ethAddress:
 
   const widget = moonPay?.({
     flow,
-    environment: process.env.NEXT_PUBLIC_MOONPAY_PRODUCTION === "1" ? "production" : "sandbox",
+    environment: process.env.NEXT_PUBLIC_ENV === "production" ? "production" : "sandbox",
     params: {
       apiKey: process.env.NEXT_PUBLIC_MOONPAY_API_KEY!,
       walletAddresses: JSON.stringify({
@@ -33,7 +33,7 @@ async function showMoonPay(flow: "buy" | "sell", btcAddress: string, ethAddress:
     variant: "overlay",
     handlers: {
       async onInitiateDeposit(props) {
-        const prefix = process.env.NEXT_PUBLIC_MOONPAY_PRODUCTION !== "1" ? "test" : "";
+        const prefix = process.env.NEXT_PUBLIC_ENV !== "production" ? "test" : "";
         return {
           depositId: `${prefix}_${props.depositWalletAddress}_${props.transactionId}`,
           cancelTransactionOnError: false,
