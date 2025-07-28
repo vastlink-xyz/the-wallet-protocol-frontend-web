@@ -1,9 +1,9 @@
-import { Settings, ChevronRightCircle, ArrowUpRightFromCircle, ArrowDownLeftFromCircle, Plus, PlusCircle, MoreHorizontal, PlusIcon, ArrowLeftRightIcon } from "lucide-react"
-import { getAvatarColor, getInitials } from "./helpers"
+import { Settings, ArrowUpRightFromCircle, ArrowDownLeftFromCircle, PlusCircle, MoreHorizontal, PlusIcon, ArrowLeftRightIcon } from "lucide-react"
+import { getInitials } from "./helpers"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { Balance } from "./Balance"
 import { ReceiveModal } from "./ReceiveModal"
-import { useCallback, useState, useTransition } from "react"
+import { useCallback, useState } from "react"
 import { cn } from "@/lib/utils"
 import { useTranslations } from "next-intl"
 import { RampDialog } from "@/components/Transaction/RampDialog"
@@ -17,6 +17,7 @@ interface WalletCardProps {
   walletId?: string
   WalletSettings?: React.ReactNode
   onSendClick: () => void
+  onSwapClick: () => void
   onDetailsClick: () => void
   btcAddress: string
   ethAddress: string
@@ -33,6 +34,7 @@ export function WalletCard({
   walletId,
   WalletSettings,
   onSendClick,
+  onSwapClick,
   onDetailsClick,
   btcAddress,
   ethAddress,
@@ -42,8 +44,6 @@ export function WalletCard({
   maxAvatars = 5,
   onCreateClick,
 }: WalletCardProps) {
-  const router = useRouter();
-
   const transCommon = useTranslations("Common");
   const transWalletCard = useTranslations("WalletCard");
 
@@ -191,7 +191,7 @@ export function WalletCard({
         </div>
 
         {isPersonal && (
-          <div className="w-14 text-center cursor-pointer" onClick={e => { e.stopPropagation(); router.push('/swap'); }}>
+          <div className="w-14 text-center cursor-pointer" onClick={e => { e.stopPropagation(); onSwapClick(); }}>
             <div className={cn(
               "w-14 h-14 p-3 rounded-full border flex items-center justify-center",
               isPersonal ? "border-white/20" : "border-black/20"

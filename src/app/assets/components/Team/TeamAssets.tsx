@@ -11,6 +11,7 @@ import { WalletCard } from '@/app/assets/components/WalletCard'
 import { WalletCardSkeleton } from '@/app/assets/components/WalletCard/WalletCardSkeleton'
 import { createAndApproveTransactionProposal, executeTeamTransactionProposal, inviteTeamUser, handleTeamMfaVerify } from '@/services/teamTransactionService'
 import { MultisigSettingsContext } from '@/providers/MultisigSettingsProvider'
+import { SwapDialog } from '@/components/Transaction/SwapDialog'
 
 interface TeamAssetsProps {
   authMethod: AuthMethod
@@ -34,6 +35,8 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ authMethod, use
 
   const [showSendDialog, setShowSendDialog] = useState(false)
   const [isSending, setIsSending] = useState(false)
+
+  const [showSwapDialog, setShowSwapDialog] = useState(false)
 
   const [showMfaDialog, setShowMfaDialog] = useState(false);
   const [currentProposal, setCurrentProposal] = useState<MessageProposal | null>(null)
@@ -87,6 +90,11 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ authMethod, use
   const handleSendClick = (wallet: MultisigWalletWithUnsignedProposalsCount) => {
     setSelectedWallet(wallet)
     setIsSending(false)
+    setShowSendDialog(true)
+  }
+
+  const handleSwapClick = (wallet: MultisigWalletWithUnsignedProposalsCount) => {
+    setSelectedWallet(wallet)
     setShowSendDialog(true)
   }
 
@@ -217,6 +225,7 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ authMethod, use
               avatars={wallet.signers.map(signer => ({ email: signer.email }))}
               walletName={wallet.name}
               onSendClick={() => handleSendClick(wallet)}
+              onSwapClick={() => handleSwapClick(wallet)}
               onWalletSettingsClick={() => handleWalletSettingsClick(wallet)}
               onDetailsClick={() => handleDetailsClick(wallet.id)}
               btcAddress={wallet.addresses.btc}
@@ -229,6 +238,7 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ authMethod, use
             avatars={[]}
             walletName=""
             onSendClick={() => {}}
+            onSwapClick={() => {}}
             onDetailsClick={() => {}}
             btcAddress=""
             ethAddress=""
@@ -239,7 +249,7 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ authMethod, use
       )}
 
       {
-        showSendDialog && (
+        (authMethodId && showSendDialog) && (
           <SendTransactionDialog
             authMethod={authMethod}
             disablePin={true}
@@ -253,6 +263,17 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ authMethod, use
             onMFAVerify={handleMfaVerify}
             addresses={selectedWallet?.addresses || null}
             walletName={selectedWallet?.name}
+          />
+        )
+      }
+
+      {
+        (authMethodId && selectedWallet && showSwapDialog) && (
+          <SwapDialog
+            open={showSwapDialog}
+            onOpenChange={setShowSwapDialog}
+            authMethod={authMethod}
+            teamWalletId={selectedWallet.id}
           />
         )
       }
