@@ -8,7 +8,7 @@ import { Button } from "../ui/button";
 import { ArrowLeftRightIcon, Loader2Icon, ShoppingCartIcon } from "lucide-react";
 
 import { loadMoonPay } from '@moonpay/moonpay-js';
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 interface RampDialog {
   open?: boolean
@@ -17,7 +17,7 @@ interface RampDialog {
   ethAddress: string
 }
 
-async function showMoonPay(flow: "buy" | "sell", btcAddress: string, ethAddress: string) {
+async function showMoonPay(flow: "buy" | "sell", btcAddress: string, ethAddress: string, locale?: string) {
   const moonPay = await loadMoonPay();
 
   const widget = moonPay?.({
@@ -29,6 +29,7 @@ async function showMoonPay(flow: "buy" | "sell", btcAddress: string, ethAddress:
         btc: btcAddress,
         eth: ethAddress,
       }),
+      language: locale,
     },
     variant: "overlay",
     handlers: {
@@ -49,6 +50,8 @@ async function showMoonPay(flow: "buy" | "sell", btcAddress: string, ethAddress:
 }
 
 export function RampDialog({ open, onOpenChange, btcAddress, ethAddress }: RampDialog) {
+  const locale = useLocale();
+  
   const t = useTranslations("MoonPay");
 
   const [isBuyPending, setIsBuyPending] = useState(false);
@@ -73,7 +76,7 @@ export function RampDialog({ open, onOpenChange, btcAddress, ethAddress }: RampD
 
     try {
       setIsBuyPending(true);
-      await showMoonPay("buy", btcAddress, ethAddress)
+      await showMoonPay("buy", btcAddress, ethAddress, locale)
 
       setIsBuyPending(false);
       onOpenChange?.(false);
@@ -88,7 +91,7 @@ export function RampDialog({ open, onOpenChange, btcAddress, ethAddress }: RampD
 
     try {
       setIsSellPending(true);
-      await showMoonPay("sell", btcAddress, ethAddress)
+      await showMoonPay("sell", btcAddress, ethAddress, locale)
 
       setIsSellPending(false);
       onOpenChange?.(false);
@@ -106,7 +109,7 @@ export function RampDialog({ open, onOpenChange, btcAddress, ethAddress }: RampD
               {t("title")}
             </DialogTitle>
           </DialogHeader>
-          <div className="w-full h-32 flex flex-row justify-between items-center">
+          <div className="w-full h-32 p-8 flex flex-row justify-between items-center">
             <Button
               className="rounded-full"
               variant="default"
