@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 import Image from 'next/image';
 
@@ -27,8 +27,11 @@ import debounce from '@/lib/debounce';
 import { useTranslations } from 'next-intl';
 import { createWallet, executeSwap, SupportedToken } from '@/lib/swap/executeSwap';
 import { toast } from 'react-toastify';
+import { MFAOtpDialog } from './MFAOtpDialog';
+import { executePersonalTransaction } from '@/services/personalTransactionService';
+import { useSecurityVerification } from '@/hooks/useSecurityVerification';
 
-type translate = (key: string) => string;
+type translate = (key: string, params?: any) => string;
 
 type onTokenChange = (token: SupportedToken) => void
 
@@ -79,6 +82,18 @@ const SUPPORTED_TOKENS: SupportedToken[] = [
     chainType: 'UTXO',
   },
 ];
+
+const MFAContext = createContext<{
+  isOpen?: boolean,
+  open: (
+    onClose?: (otp: string) => Promise<void>,
+    onCancel?: () => void,
+  ) => void;
+  close: () => void;
+}>({
+  open(onClose, onCancel) {},
+  close() {},
+});
 
 interface SwapDialogProps {
   open: boolean;
@@ -372,6 +387,8 @@ function SwapDetails({
 }
 
 function SwapContent({ t, authMethod, teamWalletId }: { t: translate, authMethod?: AuthMethod, teamWalletId?: string }) {
+  const mfaContex = useContext(MFAContext);
+
   const [isSwapping, setIsSwapping] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
   const [amonut, setAmount] = useState<number | null>(null);
@@ -380,7 +397,7 @@ function SwapContent({ t, authMethod, teamWalletId }: { t: translate, authMethod
   const [assessedValue, setAssessedValue] = useState<AssessedValue | null>(null);
 
   // Fetch user data using custom hook
-  const { userData } = useUserData(authMethod || null)
+  const { userData, authMethodId } = useUserData(authMethod || null)
 
   const {
     data: wallets,
@@ -459,18 +476,18 @@ function SwapContent({ t, authMethod, teamWalletId }: { t: translate, authMethod
     setToToken(newToToken)
   }
 
-  const handleSwap = useCallback(async () => {
+  const handleSwap = useCallback(async (otp?: string) => {
     if (isSwapping) {
       return;
     }
 
-    if (!authMethod || !userData?.litActionPkp || !addresses) {
-      toast.error("Missing authentication data");
+    if (!authMethod || !authMethodId || !userData?.litActionPkp || !addresses) {
+      toast.error(t('authentication_failed'));
       return;
     }
 
     if (!amonut) {
-      toast.error("Invalid amount");
+      toast.error(t('invalid_amount'));
       return;
     }
 
@@ -480,9 +497,10 @@ function SwapContent({ t, authMethod, teamWalletId }: { t: translate, authMethod
       const wallet = await createWallet(
         userData.litActionPkp,
         authMethod,
-        userData.authMethodId,
+        authMethodId,
         addresses.eth,
         addresses.btc,
+        otp,
       );
 
       const destAddress = (toToken.symbol === 'BTC')
@@ -491,14 +509,40 @@ function SwapContent({ t, authMethod, teamWalletId }: { t: translate, authMethod
       await executeSwap(wallet, amonut, fromToken, toToken, destAddress);
     } catch (err) {
       if (err instanceof Error) {
+        if (err.message.includes('MFA required')) {
+          mfaContex.open(handleMFAClose, handleMFACancel);
+          return;
+        }
         toast.error(err.message);
       } else {
-        toast.error(`failed to swap ${amonut} ${fromToken.symbol} to ${toToken.symbol}`);
+        toast.error(t('swap_failed', {
+          value: amonut,
+          from_symbol: fromToken.symbol,
+          to_symbol: toToken.symbol,
+        }));
       }
     }
 
     setIsSwapping(false);
   }, [isSwapping, amonut, authMethod, userData, addresses]);
+
+  const handleMFAClose = async (otp: string) => {
+    await handleSwap(otp);
+    mfaContex.close();
+  };
+
+  const handleMFACancel = () => {
+    setIsSwapping(false);
+    mfaContex.close();
+  };
+
+    // Initialize security verification hook
+  const securityVerification = useSecurityVerification({
+    authMethod: authMethod || null,
+    executeTransaction: async () => {
+      await handleSwap();
+    },
+  });
 
   return (
     <div>
@@ -532,7 +576,7 @@ function SwapContent({ t, authMethod, teamWalletId }: { t: translate, authMethod
         variant="default"
         disabled={isSwapping}
         className="mt-4 w-full h-14 rounded-full font-bold text-lg"
-        onClick={handleSwap}
+        onClick={async () => await securityVerification.verify({})}
       >
         {isSwapping && <Loader2Icon className="animate-spin h-6 w-6 text-muted-foreground" />}
         {t('swap')}
@@ -542,17 +586,138 @@ function SwapContent({ t, authMethod, teamWalletId }: { t: translate, authMethod
   );
 }
 
+function SwapMFADialog({
+  t,
+  authMethod,
+  open,
+  onClose,
+  onCancel,
+}: {
+  t: translate,
+  authMethod?: AuthMethod,
+  open?: boolean,
+  onClose?: (otp: string) => Promise<void>,
+  onCancel?: () => void,
+}) {
+  // MFA state
+  const [mfaMethodId, setMfaMethodId] = useState<string | null>(null);
+  const [mfaPhoneNumber, setMfaPhoneNumber] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchMfaData = async () => {
+      if (!authMethod) {
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/mfa/get-user-phone', {
+          headers: {
+            'Authorization': `Bearer ${authMethod.accessToken}`
+          }
+        });
+
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.error || 'Failed to fetch phone number');
+        }
+
+        const data = await response.json();
+        const phones = data.phones || [];
+
+        if (phones.length > 0) {
+          // Update phone state
+          const phone = phones[0];
+          console.log('phone', phone)
+          setMfaPhoneNumber(phone.phone_number);
+          setMfaMethodId(phone.phone_id);
+        } else {
+          throw new Error('No verified phone number found for your account');
+        }
+      } catch (error) {
+        console.error('Error fetching user phone:', error);
+      }
+    }
+
+    fetchMfaData()
+  }, [ authMethod ]);
+
+  // Function to send OTP
+  const handleSendOtp = useCallback(async () => {
+    if (!authMethod) {
+      toast.error(t('authentication_failed'));
+      return;
+    }
+
+    const response = await fetch('/api/mfa/whatsapp/send-code', {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authMethod?.accessToken}`,
+      },
+      body: JSON.stringify({ phone_number: mfaPhoneNumber }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      toast.error(t('authentication_failed'));
+
+      throw new Error(errorData.error || t('send_otp_failed'));
+    }
+  }, [ authMethod ]);
+
+  if (!open || !mfaPhoneNumber) {
+    return null;
+  }
+
+  return (<MFAOtpDialog
+    isOpen={open || false}
+    onClose={() => onCancel?.()}
+    onOtpVerify={async (otp) => await onClose?.(otp)}
+    sendOtp={handleSendOtp}
+    identifier={mfaPhoneNumber}
+    title={t('mfa_title')}
+    description={t('mfa_description')}
+  />);
+}
+
 export function SwapDialog({ open, onOpenChange, authMethod, teamWalletId }: SwapDialogProps) {
   const t = useTranslations('SwapDialog');
 
+  const [showMfa, setShowMfa] = useState(false);
+  const [onClose, setOnClose] = useState<((opt: string) => Promise<void>) | null>(null);
+  const [onCancel, setOnCancel] = useState<(() => void) | null>(null);
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{t('title')}</DialogTitle>
-        </DialogHeader>
-        <SwapContent t={t} authMethod={authMethod} teamWalletId={teamWalletId} />
-      </DialogContent>
-    </Dialog>
+    <MFAContext.Provider value={{
+      isOpen: false,
+      open: (onClose, onCancel) => {
+        setShowMfa(true);
+        setOnClose(onClose || null);
+        setOnCancel(onCancel || null);
+      },
+      close: () => {
+        setShowMfa(false);
+        setOnClose(null);
+        setOnCancel(null);
+      },
+    }}>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="flex flex-col max-w-full h-full mt-12 tablet:grid tablet:max-w-[calc(100%-2rem)] tablet:h-auto tablet:mt-0">
+          <DialogHeader>
+            <DialogTitle>{t('title')}</DialogTitle>
+          </DialogHeader>
+          <SwapContent t={t} authMethod={authMethod} teamWalletId={teamWalletId} />
+        </DialogContent>
+      </Dialog>
+
+      <SwapMFADialog
+        t={t}
+        authMethod={authMethod}
+        open={showMfa}
+        onClose={onClose || undefined}
+        onCancel={onCancel || undefined}
+      />
+
+    </MFAContext.Provider>
   );
 }

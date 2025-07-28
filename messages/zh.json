@@ -360,6 +360,12 @@
     "free": "免费",
     "network_fee": "Network Fee",
     "affiliate_fee": "Affiliate Fee",
-    "estimated_slippage": "Estimated Slippage"
+    "estimated_slippage": "Estimated Slippage",
+    "mfa_title": "兑换验证",
+    "mfa_description": "请验证您的交易",
+    "authentication_failed": "缺少认证信息",
+    "send_otp_failed": "发送验证码失败",
+    "invalid_amount": "无效的金额",
+    "swap_failed": "兑换{value}{from_symbol}到{to_symbol}失败"
   }
 }

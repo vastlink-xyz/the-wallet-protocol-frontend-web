@@ -44,8 +44,6 @@ export function WalletCard({
   maxAvatars = 5,
   onCreateClick,
 }: WalletCardProps) {
-  const router = useRouter();
-
   const transCommon = useTranslations("Common");
   const transWalletCard = useTranslations("WalletCard");
 
@@ -193,7 +191,7 @@ export function WalletCard({
         </div>
 
         {isPersonal && (
-          <div className="w-14 text-center cursor-pointer" onClick={e => { e.stopPropagation(); router.push('/swap'); }}>
+          <div className="w-14 text-center cursor-pointer" onClick={e => { e.stopPropagation(); onSwapClick(); }}>
             <div className={cn(
               "w-14 h-14 p-3 rounded-full border flex items-center justify-center",
               isPersonal ? "border-white/20" : "border-black/20"
@@ -219,21 +217,6 @@ export function WalletCard({
             </p>
           </div>
         )}
-
-        <div className="w-14 text-center cursor-pointer" onClick={e => { e.stopPropagation(); onSwapClick(); }}>
-          <div className={cn(
-            "w-14 h-14 p-3 rounded-full border flex items-center justify-center",
-            isPersonal ? "border-white/20" : "border-black/20"
-          )}>
-            <ArrowLeftRightIcon className={cn(isPersonal ? "text-white" : "text-black")} />
-          </div>
-          <p className={cn(
-            "text-xs font-medium mt-1",
-            isPersonal ? "text-white" : "text-black"
-          )}>
-            {transWalletCard("swap")}
-          </p>
-        </div>
       </div>
 
       <div className="flex justify-end mt-4 pointer-events-auto z-10">

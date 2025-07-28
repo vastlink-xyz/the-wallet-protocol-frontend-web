@@ -4,7 +4,6 @@ import { useCallback, useState } from "react"
 import { cn } from "@/lib/utils"
 import { useTranslations } from "next-intl"
 import { RampDialog } from "@/components/Transaction/RampDialog"
-import { useRouter } from "next/navigation"
 
 type buttons = "send" | "receive" | "swap" | "ramp"
 
@@ -28,8 +27,6 @@ export function WalletSendReceiveButtons({
   excludes,
 }: WalletSendReceiveButtonsProps) {
   const t = useTranslations('WalletCard');
-
-  const router = useRouter();
 
   const [receiveModalOpen, setReceiveModalOpen] = useState(false);
   const [showRampDialog, setShowRampDialog] = useState(false);
@@ -74,7 +71,7 @@ export function WalletSendReceiveButtons({
 
         {/* Swap Button */}
         {isButtonVisible("swap") && (
-          <div className="w-14 text-center cursor-pointer" onClick={() => router.push('/swap')}>
+          <div className="w-14 text-center cursor-pointer" onClick={() => onSwapClick()}>
             <div className="w-14 h-14 p-3 rounded-full border border-black/20 flex items-center justify-center">
               <ArrowLeftRightIcon className="text-black" />
             </div>

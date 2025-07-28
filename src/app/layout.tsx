@@ -16,7 +16,6 @@ import { MultisigSettings } from "./assets/components/Team/MultisigSettings";
 import { MultisigSettingsProvider } from "@/providers/MultisigSettingsProvider";
 import {NextIntlClientProvider} from 'next-intl';
 import {getLocale} from 'next-intl/server';
-import { SwapDialog } from "@/components/Transaction/SwapDialog";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -73,7 +72,6 @@ export default async function RootLayout({
 
                   <PersonalWalletSettings />
                   <MultisigSettings />
-                  <SwapDialog />
 
                   <ToastContainer
                     position="top-center"

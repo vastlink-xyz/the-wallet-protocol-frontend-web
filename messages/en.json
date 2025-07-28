@@ -360,6 +360,12 @@
     "free": "Free",
     "network_fee": "Network Fee",
     "affiliate_fee": "Affiliate Fee",
-    "estimated_slippage": "Estimated Slippage"
+    "estimated_slippage": "Estimated Slippage",
+    "mfa_title": "Swap Verification",
+    "mfa_description": "Please verify your swap transaction",
+    "authentication_failed": "Authentication information is missing",
+    "send_otp_failed": "Failed to send OTP",
+    "invalid_amount": "Invalid amount",
+    "swap_failed": "Failed to swap {value} {from_symbol} to {to_symbol}"
   }
 }
