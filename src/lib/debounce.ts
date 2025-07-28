@@ -18,6 +18,7 @@ function debounce<T extends (...args: any[]) => any>(
   // Return a new function
   return function(this: ThisParameterType<T>, ...args: Parameters<T>) {
     // Preserve the `this` context
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const context = this;
 
     // Clear the previous timeout if it exists
