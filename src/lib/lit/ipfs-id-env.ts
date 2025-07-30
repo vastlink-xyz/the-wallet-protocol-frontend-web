@@ -7,6 +7,7 @@ import { litActionCodeForCommonUpgradableProxy } from "../lit-action-code/common
 import { litActionCodeForUpdateMultisigWalletSettings } from "../lit-action-code/update-multisig-wallet-settings"
 import { litActionCodeForCreateMultisigWallet } from "../lit-action-code/create-multisig-wallet"
 import { litActionCodeForSecurityVerification } from "../lit-action-code/security-verification.lit"
+import { litActionCodeForMultiProviderAuth } from "../lit-action-code/multi-provider-auth.lit"
 
 const updateWalletSettingsIpfsId = 'QmTtpVJ8uv5J5zyLGXanATWAvPkynYdycMfkD6LfJMiUu8'
 const updateWalletSettingsIpfsIdHex = '0x1220528813ec1bf7e2a5e56a0fba21f03d599a46982c5da2b004fedac8c1d40861e3'
@@ -32,6 +33,8 @@ const upgradeIpfsIdHex = '0x12204e852f217ab356ea529afc8584ef67340cae7b0cb0e76d80
 const securityVerificationIpfsId = 'QmQ2uYBBDWvRuBG8M1ruF5vdpxUtKGQJ6XYk8FV9qwrFcf' // TODO: Replace with actual IPFS ID when deployed
 const securityVerificationIpfsIdHex = '0x1220192bafae343aaa8f0b3daf1fbae32df693aabf915aaeb48c7787f1b89b125114'
 
+const multiProviderAuthIpfsId = 'QmTFDFWLmE1DqKWA39WR2KzausGXKDGy9gZTUkavSYgeqw'
+const multiProviderAuthIpfsIdHex = '0x122048e5be932c7302f4f84b8e621fae8de0abf1c9a278822320c58d1987b300a5b2'
 
 export const getUpdateWalletIpfsId = async (outputFormat: "base58" | "hex") => {
   if (process.env.NEXT_PUBLIC_ENV === 'dev') {
@@ -149,6 +152,21 @@ export const getSecurityVerificationIpfsId = async (outputFormat: "base58" | "he
       return securityVerificationIpfsId
     } else {
       return securityVerificationIpfsIdHex
+    }
+  }
+}
+
+export const getMultiProviderAuthIpfsId = async (outputFormat: "base58" | "hex") => {
+  if (process.env.NEXT_PUBLIC_ENV === 'dev') {
+    return await getLitActionIpfsCid({
+      input: litActionCodeForMultiProviderAuth,
+      outputFormat: outputFormat
+    })
+  } else {
+    if (outputFormat === "base58") {
+      return multiProviderAuthIpfsId
+    } else {
+      return multiProviderAuthIpfsIdHex
     }
   }
 }

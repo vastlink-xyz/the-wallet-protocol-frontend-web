@@ -1,13 +1,14 @@
 'use client'
 
 import { Button } from "@/components/ui/button"
-import { getLitActionIpfsCid, getPKPs, getSessionSigsByPkp, litNodeClient, mintPersonalPKP, mintPKP } from "@/lib/lit"
+import { getLitActionIpfsCid, getPKPs, getSessionSigsByPkp, litNodeClient, mintPersonalPKP, mintPKP, getMultiProviderSessionSigs } from "@/lib/lit"
 import { log } from "@/lib/utils";
-import { AccessControlConditions, AuthMethod, SessionSigs } from "@lit-protocol/types";
+import { AccessControlConditions, SessionSigs } from "@lit-protocol/types";
 import { useEffect, useState } from "react";
 import { AUTH_METHOD_SCOPE, AUTH_METHOD_TYPE, LIT_ABILITY, LIT_CHAINS, LIT_NETWORK } from "@lit-protocol/constants";
 import { Example } from "./components/Example";
 import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
+import { getUserFromStorage, User, setUserDataToStorage } from '@/lib/storage/user';
 import { fetchEthTransactionHistory } from "@/lib/web3/eth";
 import { getChainIdByChainName } from "@/lib/web3/token";
 import { getAuthIdByAuthMethod } from "@lit-protocol/lit-auth-client";
@@ -31,9 +32,9 @@ import { Encryption } from "./components/Encryption";
 // }
 
 const pkp = {
-  "ethAddress" : "0x828166387109c7E3cD7f2Dd53982AcCAB13a7a88",
-  "publicKey" : "0x04b6edbf182efdb25e07aae229961efad01031f246d31f197d5c00a475e8f5a0f59ed8b69fc2ca39d529feff90225db9aba2ddfd0aee55b09c91d9f67c06ea659f",
-  "tokenId" : "0x91adbc8b8c16c70e2e88f38e825d3b5702143fe6e8ee4259ae788a4a8c7b7405",
+  "ethAddress" : "0x3c15E16424239D5007c7a910887B2bfFed709764",
+  "publicKey" : "0x04d3a7a0e3aebbbfc1ebebec1f20cbe2514b73f0ef80445fc5c4d0051104415086691ed52507ca9d988f62a2572066d97d2506252efc18903b1bb4e17eb0e7a1fb",
+  "tokenId" : "0x74b08d483cdb5b192073500443e528deab59c76a57ae44f5dce603b0554b54d7",
 }
 
 const accessControlConditions: AccessControlConditions = [
@@ -52,14 +53,25 @@ const accessControlConditions: AccessControlConditions = [
 ];
 
 export default function DebugPage() {
-  const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null);
+  const [authMethod, setAuthMethod] = useState<any | null>(null); // Use any for compatibility
   const [sessionSigs, setSessionSigs] = useState<SessionSigs | null>(null);
+  const [userData, setUserData] = useState<User | null>(null);
 
   // Initialize by reading authMethod from localStorage
   useEffect(() => {
     const storedAuthMethod = getAuthMethodFromStorage();
     if (storedAuthMethod) {
       setAuthMethod(storedAuthMethod);
+    }
+
+    // Also try to get user data
+    const storedUserData = localStorage.getItem('user');
+    if (storedUserData) {
+      try {
+        setUserData(JSON.parse(storedUserData));
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+      }
     }
   }, []);
 
@@ -316,6 +328,120 @@ export default function DebugPage() {
     setSessionSigs(sessionSigs)
   }
 
+  const handleGetMultiProviderSessionSigs = async () => {
+    if (!authMethod) {
+      log('No auth method found in storage');
+      return;
+    }
+
+    if (!userData?.litActionPkp) {
+      log('No user PKP found in storage. Please complete authentication first.');
+      return;
+    }
+    
+    try {
+      log('Getting multi-provider session sigs with:', {
+        authMethodType: authMethod.authMethodType,
+        pkp: userData.litActionPkp.ethAddress,
+      });
+
+      const sessionSigs = await getMultiProviderSessionSigs({
+        authMethod, 
+        pkp: userData.litActionPkp,
+      });
+
+      setSessionSigs(sessionSigs);
+      log('Multi-provider session sigs generated successfully', sessionSigs);
+    } catch (error) {
+      console.error('Error getting multi-provider session sigs:', error);
+      log('Error:', error);
+    }
+  }
+
+  const handleFetchUserFromAPI = async () => {
+    if (!authMethod) {
+      log('No auth method found. Cannot fetch user data.');
+      return;
+    }
+
+    try {
+      log('Fetching user data from API...');
+      
+      // Parse the access token to get user email
+      const authTokenData = JSON.parse(authMethod.accessToken);
+      const userEmail = authTokenData.userEmail;
+      
+      log('Request data:', {
+        providerType: authTokenData.providerType,
+        userEmail: userEmail,
+        hasAccessToken: !!authTokenData.accessToken
+      });
+      
+      const response = await fetch('/api/user/by-provider', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          providerType: authTokenData.providerType,
+          accessToken: authTokenData.accessToken,
+          userEmail: userEmail,
+        }),
+      });
+
+      log('Response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        log('API error response:', errorText);
+        throw new Error(`API call failed: ${response.status} - ${errorText}`);
+      }
+
+      const apiUserData = await response.json();
+      log('User data fetched successfully:', apiUserData);
+      
+      // Store the fetched user data
+      setUserData(apiUserData);
+      setUserDataToStorage(apiUserData);
+      
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      log('Error fetching user data:', error);
+    }
+  };
+
+  const handleFetchUserByAuthMethodId = async () => {
+    if (!authMethod) {
+      log('No auth method found. Cannot fetch user data.');
+      return;
+    }
+
+    try {
+      log('Fetching user data by authMethodId...');
+      
+      const response = await fetch(`/api/user?authMethodId=${authMethod.authMethodId}`);
+      
+      log('Response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        log('API error response:', errorText);
+        throw new Error(`API call failed: ${response.status} - ${errorText}`);
+      }
+
+      const apiUserData = await response.json();
+      log('User data fetched successfully by authMethodId:', apiUserData);
+      
+      // Store the fetched user data
+      setUserData(apiUserData);
+      setUserDataToStorage(apiUserData);
+      
+    } catch (error) {
+      console.error('Error fetching user data by authMethodId:', error);
+      log('Error fetching user data by authMethodId:', error);
+    }
+  };
+
   const handleShowToast = () => {
     toast.success('Hello, world! This is a very long message that should wrap to the next line. This is a very long message that should wrap to the next line.', {
       autoClose: false,
@@ -328,6 +454,25 @@ export default function DebugPage() {
       <div className="flex flex-wrap gap-2">
         <Button onClick={handleGetAllPKPs}>All PKPs</Button>
         <Button onClick={handleShowToast}>toast</Button>
+        <Button onClick={handleFetchUserFromAPI}>Fetch User by Provider</Button>
+        <Button onClick={handleFetchUserByAuthMethodId}>Fetch User by AuthMethodId</Button>
+      </div>
+
+      {/* Debug info display */}
+      <div className="border rounded-lg p-4 bg-gray-50">
+        <h3 className="font-bold mb-2">Debug Info:</h3>
+        <div className="text-sm space-y-1">
+          <div>Auth Method: {authMethod ? '✅ Found' : '❌ Not found'}</div>
+          <div>User Data: {userData ? '✅ Found' : '❌ Not found'}</div>
+          <div>User PKP: {userData?.litActionPkp ? '✅ Found' : '❌ Not found'}</div>
+          {userData?.litActionPkp && (
+            <div className="ml-2">
+              <div>PKP Address: {userData.litActionPkp.ethAddress}</div>
+              <div>PKP Token ID: {userData.litActionPkp.tokenId}</div>
+            </div>
+          )}
+          <div>Session Sigs: {sessionSigs ? '✅ Generated' : '❌ Not generated'}</div>
+        </div>
       </div>
 
       <div className="border rounded-lg p-6 bg-white">
@@ -346,7 +491,8 @@ export default function DebugPage() {
       <Button onClick={handleDecrypt}>Decrypt</Button>
       <Button onClick={handleUpgrade}>Upgrade</Button>
       <Button onClick={handleCheckPermittedLitActions}>Check Permitted Lit Actions</Button>
-      <Button onClick={handleGetSessionSigs}>Get Session Sigs</Button>
+      <Button onClick={handleGetSessionSigs}>Get Session Sigs (Old)</Button>
+      <Button onClick={handleGetMultiProviderSessionSigs}>Get Multi-Provider Session Sigs</Button>
 
       {/* {authMethod && <Encryption authMethod={authMethod} />} */}
     </div>

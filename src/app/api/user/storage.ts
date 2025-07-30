@@ -4,6 +4,7 @@ import crypto from 'crypto'
 import { getBtcAddressByPublicKey } from '@/lib/web3/btc'
 import { SUPPORTED_TOKEN_SYMBOLS, SUPPORTED_TOKENS_INFO } from '@/lib/web3/token'
 import { SecurityLayer } from '@/types/security'
+import { AuthProvider, AuthProviderType } from '@/lib/lit/custom-auth'
 
 // Create default security layers - only EMAIL_OTP as fallback
 // TOTP and WHATSAPP_OTP layers are created dynamically when user sets them up in Stytch
@@ -30,8 +31,8 @@ export interface UserAddresses {
 export interface User {
   id: string
   authMethodId: string
-  sub: string // OAuth/JWT standard subject identifier
-  email: string
+  primaryEmail: string
+  authProviders: AuthProvider[]
   litActionPkp?: {
     ethAddress: string
     publicKey: string
@@ -50,9 +51,9 @@ function extractUserData(doc: any): User | null {
   if (!doc) return null;
   return {
     id: doc.id || doc._id?.toString(),
-    sub: doc.sub,
     authMethodId: doc.authMethodId,
-    email: doc.email,
+    primaryEmail: doc.primaryEmail,
+    authProviders: doc.authProviders || [],
     litActionPkp: doc.litActionPkp || undefined,
     walletSettings: doc.walletSettings || undefined,
     addresses: doc.addresses || undefined
@@ -66,17 +67,6 @@ export async function getUser(authMethodId: string): Promise<User | null> {
     return extractUserData(user);
   } catch (error) {
     console.error('Failed to get user:', error);
-    return null;
-  }
-}
-
-export async function getUserBySub(sub: string): Promise<User | null> {
-  try {
-    await connectToDatabase();
-    const user = await UserModel.findOne({ sub }).lean();
-    return extractUserData(user);
-  } catch (error) {
-    console.error('Failed to get user by sub:', error);
     return null;
   }
 }
@@ -133,13 +123,18 @@ export async function getAllUsers(): Promise<User[]> {
 
 export async function createUser({
   authMethodId,
-  sub,
-  email,
+  primaryEmail,
+  authProvider,
   addresses
 }: {
   authMethodId: string,
-  sub: string,
-  email: string,
+  primaryEmail: string,
+  authProvider: {
+    providerType: AuthProviderType,
+    sub: string,
+    email?: string,
+    metadata?: any
+  },
   addresses?: UserAddresses
 }): Promise<User> {
   try {
@@ -159,8 +154,16 @@ export async function createUser({
     const userData = {
       id,
       authMethodId,
-      sub,
-      email,
+      primaryEmail,
+      authProviders: [{
+        providerType: authProvider.providerType,
+        sub: authProvider.sub,
+        email: authProvider.email,
+        isEnabled: true,
+        isPrimary: true, // First provider is always primary
+        metadata: authProvider.metadata,
+        createdAt: new Date()
+      }],
       addresses,
       walletSettings: {
         dailyWithdrawLimits,
@@ -185,8 +188,14 @@ export async function addPkpToUser(
   authMethodId: string, 
   pkp: IRelayPKP, 
   pkpType: PKPType,
-  sub: string,
-  email?: string
+  authProvider: {
+    providerType: AuthProviderType,
+    sub: string,
+    email?: string,
+    isEnabled: boolean,
+    isPrimary: boolean,
+    metadata?: any
+  }
 ): Promise<User | null> {
   try {
     await connectToDatabase();
@@ -196,14 +205,19 @@ export async function addPkpToUser(
     
     // If user doesn't exist, create one
     if (!existingUser) {
-      if (!email) {
+      if (!authProvider.email) {
         throw new Error('Email is required to create a new user');
       }
 
       const ethAddress = pkp.ethAddress || ''
       const btcAddress = getBtcAddressByPublicKey(pkp.publicKey) || ''
 
-      const newUser = await createUser({ authMethodId, sub, email, addresses: { eth: ethAddress, btc: btcAddress } });
+      const newUser = await createUser({ 
+        authMethodId, 
+        primaryEmail: authProvider.email,
+        authProvider,
+        addresses: { eth: ethAddress, btc: btcAddress } 
+      });
       
       // Prepare update based on PKP type
       const updateField = 'litActionPkp';
@@ -255,6 +269,61 @@ export async function addPkpToUser(
     return extractUserData(updatedUser);
   } catch (error) {
     console.error('Failed to add PKP to user:', error);
+    return null;
+  }
+}
+
+// Add additional auth provider to existing user
+export async function addAuthProviderToUser(
+  authMethodId: string,
+  authProvider: {
+    providerType: AuthProviderType,
+    sub: string,
+    email?: string,
+    metadata?: any
+  }
+): Promise<User | null> {
+  try {
+    await connectToDatabase();
+    
+    // Check if user exists
+    const existingUser = await UserModel.findOne({ authMethodId });
+    if (!existingUser) {
+      throw new Error(`No user found with authMethodId: ${authMethodId}`);
+    }
+    
+    // Check if this provider already exists for the user
+    const providerExists = existingUser.authProviders?.some(
+      (provider: any) => provider.providerType === authProvider.providerType && provider.sub === authProvider.sub
+    );
+    
+    if (providerExists) {
+      throw new Error(`Provider ${authProvider.providerType} with sub ${authProvider.sub} already exists for this user`);
+    }
+    
+    // Add new auth provider
+    const updatedUser = await UserModel.findOneAndUpdate(
+      { authMethodId },
+      {
+        $push: {
+          authProviders: {
+            providerType: authProvider.providerType,
+            sub: authProvider.sub,
+            email: authProvider.email,
+            isEnabled: true,
+            isPrimary: false, // Additional providers are not primary
+            metadata: authProvider.metadata,
+            createdAt: new Date()
+          }
+        },
+        updatedAt: new Date()
+      },
+      { new: true }
+    ).lean();
+    
+    return extractUserData(updatedUser);
+  } catch (error) {
+    console.error('Failed to add auth provider to user:', error);
     return null;
   }
 }
@@ -337,3 +406,34 @@ export async function getUserSecurityLayers(authMethodId: string): Promise<Secur
     return [];
   }
 } 
+
+/**
+ * Helper function to find user by provider email
+ * This searches for users where authProviders array contains a provider
+ * with the specified type and email
+ */
+export async function findUserByProviderEmail(providerType: AuthProviderType, email: string) {
+  try {
+    await connectToDatabase();
+    
+    const user = await UserModel.findOne({
+      'authProviders': {
+        $elemMatch: {
+          providerType: providerType,
+          email: email.toLowerCase(),
+          isEnabled: true
+        }
+      }
+    }).lean();
+
+    if (!user) return null;
+
+    // Remove MongoDB internal fields and return clean user data
+    const { _id, __v, ...cleanUser } = user as any;
+    return cleanUser;
+
+  } catch (error) {
+    console.error('Error in findUserByProviderEmail:', error);
+    return null;
+  }
+}

@@ -48,10 +48,24 @@ export async function connectToDatabase(): Promise<mongoose.Connection> {
 
 // User Schema
 const UserSchema = new mongoose.Schema({
-  id: { type: String, required: true, unique: true },
-  authMethodId: { type: String, required: true, unique: true },
-  sub: { type: String, required: true, unique: true }, // OAuth/JWT standard subject identifier (e.g., Stytch user_id)
-  email: { type: String, required: true, unique: true },
+  id: { type: String, required: true, unique: true }, // Primary user ID (UUID)
+  authMethodId: { type: String, required: true, unique: true }, // ID used by Lit Protocol
+  primaryEmail: { type: String, required: true, unique: true }, // Primary email
+  
+  // Support multiple provider authentication info
+  authProviders: [{
+    providerType: { 
+      type: String,
+      required: true 
+    },
+    sub: { type: String, required: true }, // Provider user ID
+    email: { type: String }, // Email returned by provider
+    isEnabled: { type: Boolean, default: true },
+    isPrimary: { type: Boolean, default: false }, // set email as primary login method
+    metadata: { type: mongoose.Schema.Types.Mixed }, // Additional info
+    createdAt: { type: Date, default: Date.now }
+  }],
+  
   litActionPkp: {
     ethAddress: String,
     publicKey: String,

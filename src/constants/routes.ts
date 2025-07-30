@@ -8,7 +8,6 @@ export const PROTECTED_ROUTES = [
   '/wallet',
   '/proposals',
   '/swap',
-  '/debug',
   '/notification',
 ] as const;
 
@@ -17,7 +16,8 @@ export const PUBLIC_ROUTES = [
   '/',
   '/invite',
   '/auth/google-callback',
-  '/auth/stytch-callback'
+  '/auth/stytch-callback',
+  '/debug',
 ] as const;
 
 /**

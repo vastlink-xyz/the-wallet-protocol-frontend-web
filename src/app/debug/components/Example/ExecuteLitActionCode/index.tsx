@@ -19,11 +19,12 @@ import { litActionCodeForPersonalTransaction } from "@/lib/lit-action-code/perso
 import { litActionCodeForMultisigTransaction } from "@/lib/lit-action-code/multisig-transaction.lit";
 import { litActionCodeForCreateMultisigWallet } from "@/lib/lit-action-code/create-multisig-wallet";
 import { litActionCodeForSecurityVerification } from "@/lib/lit-action-code/security-verification.lit";
+import { litActionCodeForMultiProviderAuth } from "@/lib/lit-action-code/multi-provider-auth.lit";
 
 
-// const litActionCode = litActionCodeForSecurityVerification
+const litActionCode = litActionCodeForMultiProviderAuth
 
-const litActionCode = litActionCodeForUpdateMultisigWalletSettings
+// const litActionCode = litActionCodeForUpdateMultisigWalletSettings
 // const litActionCode = litActionCodeForMultisigTransaction
 // const litActionCode = litActionCodeForPersonalTransaction
 

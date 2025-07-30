@@ -1,11 +1,17 @@
-import { AuthMethod } from "@lit-protocol/types";
 import { AUTH_METHOD_STORAGE_KEY } from "../lit/config";
+
+// Define our custom auth method type for Vastbase multi-provider system
+interface VastbaseAuthMethod {
+  authMethodType: number; // Hex string from keccak256
+  authMethodId: string;
+  accessToken: string;
+}
 
 /**
  * Get auth method from localStorage
- * @returns AuthMethod object or null if not found or invalid
+ * @returns VastbaseAuthMethod object or null if not found or invalid
  */
-export function getAuthMethodFromStorage(): AuthMethod | null {
+export function getAuthMethodFromStorage(): VastbaseAuthMethod | null {
   // Check if we're in browser environment
   if (typeof window === 'undefined') {
     return null;
@@ -39,10 +45,10 @@ export function getAuthMethodTypeFromStorage() {
 
 /**
  * Set auth method in localStorage
- * @param authMethod The auth method object to store
+ * @param authMethod The Vastbase auth method object to store
  * @returns void
  */
-export function setAuthMethodToStorage(authMethod: AuthMethod): void {
+export function setAuthMethodToStorage(authMethod: VastbaseAuthMethod): void {
   // Check if we're in browser environment
   if (typeof window === 'undefined') {
     return;

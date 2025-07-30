@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { addPkpToUser, getUserPkps, PKPType, getUser } from '../storage';
 import { authenticateStytchSession } from '../../stytch/sessionAuth';
+import { AuthProviderType } from '@/lib/lit/custom-auth';
 
 // GET /api/user/pkp?authMethodId=xxx
 export async function GET(request: NextRequest) {
@@ -54,7 +55,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate PKP type
-    // kkktodo
     let type = PKPType.Session;
     if (pkpType) {
       if (pkpType === 'litAction') {
@@ -74,8 +74,18 @@ export async function POST(request: NextRequest) {
     const action = hasExistingPkp ? 'Updating' : 'Adding';
     console.log(`${action} ${type} PKP for user ${authMethodId}`);
 
-    // Add or update the PKP
-    const updatedUser = await addPkpToUser(authMethodId, pkp, type, sub);
+    // Get user's email from their auth providers
+    const userEmail = existingUser?.primaryEmail || existingUser?.authProviders?.[0]?.email;
+
+    // Add or update the PKP with multi-provider architecture
+    const updatedUser = await addPkpToUser(authMethodId, pkp, type, {
+      providerType: AuthProviderType.EMAIL, // Stytch email OTP
+      sub: sub,
+      email: userEmail,
+      isPrimary: true,
+      isEnabled: true,
+    });
+    
     if (!updatedUser) {
       return NextResponse.json(
         { error: `Failed to ${action.toLowerCase()} PKP for user` },
