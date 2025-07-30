@@ -44,7 +44,7 @@ export function Encryption({ authMethod }: { authMethod: AuthMethod }) {
   const LIT_ACTION_IPFS_ID = 'QmX3zpPjXTc9VH1fVETtSXELQ2Soynft68sYWo5MjXnFJ5'; // Replace with your actual Lit Action IPFS ID
 
   // Get current user data including litActionPkp
-  const { userData, authMethodId, isLoading: isLoadingUser, error: userError } = useUserData(authMethod);
+  const { userData, authMethodId, isLoading: isLoadingUser, error: userError } = useUserData();
 
   // Encryption function
   const handleEncrypt = async () => {

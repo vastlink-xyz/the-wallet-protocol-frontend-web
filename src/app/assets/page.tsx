@@ -34,7 +34,7 @@ export default function PortfolioPage() {
   }, [router])
 
   // Fetch user data using custom hook
-  const { userData, authMethodId, isLoading, error, hasPkp } = useUserData(authMethod)
+  const { userData, authMethodId, isLoading, error, hasPkp } = useUserData()
 
   // Handle PKP validation
   useEffect(() => {
@@ -74,13 +74,13 @@ export default function PortfolioPage() {
     </header>
 
     <div className="flex flex-wrap gap-10">
-      <PersonalAssets 
-        authMethod={authMethod} 
+      <PersonalAssets
+        authMethod={authMethod}
         userData={userData}
         authMethodId={authMethodId}
       />
-      <TeamAssets 
-        ref={teamAssetsRef} 
+      <TeamAssets
+        ref={teamAssetsRef}
         authMethod={authMethod}
         userData={userData}
         authMethodId={authMethodId}

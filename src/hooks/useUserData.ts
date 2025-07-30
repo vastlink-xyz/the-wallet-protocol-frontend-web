@@ -1,5 +1,4 @@
 import { useQuery } from '@tanstack/react-query'
-import { AuthMethod } from '@lit-protocol/types'
 import { User } from '@/app/api/user/storage'
 import { useMemo } from 'react'
 import { getAuthMethodIdFromStorage } from '@/lib/storage/authmethod'
@@ -24,12 +23,17 @@ async function fetchUserData(authMethodId: string): Promise<User> {
 
 // Combined fetch function for both authMethodId and user data
 async function fetchUserWithAuthId(): Promise<{ user: User; authMethodId: string }> {
-  const authMethodId = getAuthMethodIdFromStorage() || ''
+  const authMethodId = getAuthMethodIdFromStorage()
+  
+  if (!authMethodId) {
+    throw new Error('No auth method ID found in storage')
+  }
+  
   const user = await fetchUserData(authMethodId)
   return { user, authMethodId }
 }
 
-export function useUserData(authMethod: AuthMethod | null): UseUserDataReturn {
+export function useUserData(): UseUserDataReturn {
   // Use React Query to fetch user data
   const {
     data,
@@ -37,14 +41,8 @@ export function useUserData(authMethod: AuthMethod | null): UseUserDataReturn {
     error,
     refetch
   } = useQuery({
-    queryKey: ['userData', authMethod?.accessToken], // Use accessToken as part of key for cache invalidation
-    queryFn: () => {
-      if (!authMethod) {
-        throw new Error('No auth method provided')
-      }
-      return fetchUserWithAuthId()
-    },
-    enabled: !!authMethod, // Only run query when authMethod exists
+    queryKey: ['userData'],
+    queryFn: fetchUserWithAuthId,
     staleTime: 5 * 60 * 1000, // Consider data stale after 5 minutes
     gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
   })

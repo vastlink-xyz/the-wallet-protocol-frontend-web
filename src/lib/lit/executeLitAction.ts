@@ -22,7 +22,9 @@ export async function executeSecuredLitAction({
   jsParams: any;
 }): Promise<any> {
   // Connect to Lit network (if not already connected)
-  await litNodeClient.connect();
+  if (!litNodeClient.ready) {
+    await litNodeClient.connect();
+  }
   
   console.log(`Executing secured Lit Action: ${litActionIpfsId}`);
   console.log(pkpPublicKey, authMethod)

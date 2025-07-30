@@ -1,15 +1,8 @@
 import {
-  GoogleProvider,
-  AppleProvider,
   LitRelay,
-  StytchAuthFactorOtpProvider,
 } from '@lit-protocol/lit-auth-client';
 import { LitNodeClient } from '@lit-protocol/lit-node-client';
-import {
-  SELECTED_LIT_NETWORK,
-  GOOGLE_SIGNIN_REDIRECT,
-} from './config';
-import { AUTH_METHOD_TYPE } from '@lit-protocol/constants';
+import { SELECTED_LIT_NETWORK } from './config';
 
 // Initialize Lit Node Client
 export const litNodeClient: LitNodeClient = new LitNodeClient({

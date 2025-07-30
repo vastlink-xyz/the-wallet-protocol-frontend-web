@@ -397,7 +397,7 @@ function SwapContent({ t, authMethod, teamWalletId }: { t: translate, authMethod
   const [assessedValue, setAssessedValue] = useState<AssessedValue | null>(null);
 
   // Fetch user data using custom hook
-  const { userData, authMethodId } = useUserData(authMethod || null)
+  const { userData, authMethodId } = useUserData()
 
   const {
     data: wallets,

@@ -32,7 +32,7 @@ export function useSecurityVerification({
   authMethod,
 }: UseSecurityVerificationParams): UseSecurityVerificationResult {
   // Get user data for PIN verification
-  const { userData } = useUserData(authMethod);
+  const { userData } = useUserData();
   
   // State for PIN dialog
   const [showPinDialog, setShowPinDialog] = useState(false);

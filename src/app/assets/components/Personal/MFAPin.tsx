@@ -91,7 +91,7 @@ export function MFAPin({
 }: MFAPinProps) {
   const t = useTranslations("MFASettings");
   // Get user data for Lit Protocol operations
-  const { userData, isLoading: isLoadingUser, error: userError } = useUserData(authMethod);
+  const { userData, isLoading: isLoadingUser, error: userError } = useUserData();
   const [uiState, setUiState] = useState<PinUiState>('initial');
   const [pin, setPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
