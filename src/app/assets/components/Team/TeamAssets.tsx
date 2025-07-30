@@ -75,14 +75,12 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ userData, authM
   }, [userData, authMethodId])
 
   const handleWalletSettingsClick = (wallet: MultisigWalletWithUnsignedProposalsCount) => {
-    if (userPkp && authMethodId && authMethod) {
+    if (userPkp) {
       setSelectedWallet(wallet)
       showMultisigSettings({
         mode: 'edit',
         walletId: wallet.id,
-        authMethod,
         userPkp,
-        authMethodId,
         onSuccess: handleRefreshWallets,
       })
     }
@@ -106,17 +104,15 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ userData, authM
 
   // Create team wallet function exposed via ref
   const handleCreateTeamWallet = () => {
-    if (userPkp && authMethodId && authMethod) {
+    if (userPkp) {
       setSelectedWallet(undefined)
       showMultisigSettings({
         mode: 'create',
-        authMethod,
         userPkp,
-        authMethodId,
         onSuccess: handleRefreshWallets,
       })
     } else {
-      console.error('Missing userPkp or authMethodId or authMethod')
+      console.error('Missing userPkp')
     }
   }
 

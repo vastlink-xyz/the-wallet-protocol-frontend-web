@@ -1,6 +1,6 @@
 import { encryptString } from "@lit-protocol/encryption";
 import { executeSecuredLitAction } from "@/lib/lit/executeLitAction";
-import { getSessionSigsByPkp, litNodeClient } from "@/lib/lit";
+import { getMultiProviderSessionSigs, litNodeClient } from "@/lib/lit";
 import { VastbaseAuthMethod } from "@/lib/lit/custom-auth";
 import { SecurityLayer } from "@/types/security";
 
@@ -77,10 +77,12 @@ export class PinService {
       if (!litNodeClient.ready) {
         await litNodeClient.connect();
       }
-      const sessionSigs = await getSessionSigsByPkp({ 
-        authMethod: userData.authMethod, 
-        pkp: userData.litActionPkp, 
-        refreshStytchAccessToken: true 
+      const sessionSigs = await getMultiProviderSessionSigs({
+        pkpPublicKey: userData.litActionPkp.publicKey,
+        pkpTokenId: userData.litActionPkp.tokenId,
+        accessToken: userData.authMethod.accessToken,
+        providerType: userData.authMethod.providerType,
+        userEmail: userData.authMethod.primaryEmail,
       });
       const response = await executeSecuredLitAction({
         pkpPublicKey: userData.litActionPkp.publicKey,

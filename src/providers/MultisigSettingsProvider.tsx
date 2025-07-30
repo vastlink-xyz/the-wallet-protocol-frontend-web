@@ -1,14 +1,12 @@
 'use client'
 
-import { AuthMethod, IRelayPKP } from "@lit-protocol/types";
+import { IRelayPKP } from "@lit-protocol/types";
 import { createContext, useState } from "react";
 
 export interface MultisigSettingsParams {
   mode: 'create' | 'edit'
   walletId?: string
-  authMethod: AuthMethod
   userPkp: IRelayPKP
-  authMethodId: string
   onSuccess?: () => void
 }
 

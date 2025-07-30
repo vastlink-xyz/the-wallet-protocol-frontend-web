@@ -1,9 +1,10 @@
-import { getSessionSigsByPkp } from '@/lib/lit';
+import { getMultiProviderSessionSigs } from '@/lib/lit/pkpManager';
 import {
   LitBtcClientKeystore as BtcClient,
   LitEvmClientKeystore as EthClient,
 } from '@/lib/xchain-lit-signer/xchain-lit-signer';
-import { AuthMethod, IRelayPKP } from '@lit-protocol/types';
+import { IRelayPKP } from '@lit-protocol/types';
+import { AuthProviderType, getVastbaseAuthMethodType } from '@/lib/lit/custom-auth';
 import {
   AssetBTC,
   BTCChain,
@@ -47,17 +48,21 @@ export type SupportedToken = {
 
 export async function createWallet(
   litActionPkp: IRelayPKP,
-  authMethod: AuthMethod,
+  accessToken: string,
   authMethodId: string,
+  providerType: AuthProviderType,
+  userEmail: string,
   ethAddress: string,
   btcAddress: string,
   mfaMethodId?: string,
   otpCode?: string
 ) {
-  const sessionSigs = await getSessionSigsByPkp({
-    authMethod: authMethod!,
-    pkp: litActionPkp,
-    refreshStytchAccessToken: true,
+  const sessionSigs = await getMultiProviderSessionSigs({
+    pkpPublicKey: litActionPkp.publicKey,
+    pkpTokenId: litActionPkp.tokenId,
+    accessToken,
+    providerType,
+    userEmail,
   });
 
   const ethTestNetwork = ethers.providers.getNetwork('sepolia');
@@ -85,9 +90,9 @@ export async function createWallet(
       sessionSigs: sessionSigs,
       publicKey: litActionPkp.publicKey,
       authParams: {
-        accessToken: authMethod.accessToken,
+        accessToken: accessToken,
         authMethodId: authMethodId,
-        authMethodType: authMethod.authMethodType,
+        authMethodType: getVastbaseAuthMethodType(),
       },
       otp: otpCode || '',
       mfaMethodId: mfaMethodId || '',
@@ -107,9 +112,9 @@ export async function createWallet(
       sessionSigs: sessionSigs,
       publicKey: litActionPkp.publicKey,
       authParams: {
-        accessToken: authMethod.accessToken,
+        accessToken: accessToken,
         authMethodId: authMethodId,
-        authMethodType: authMethod.authMethodType,
+        authMethodType: getVastbaseAuthMethodType(),
       },
       otp: otpCode || '',
       mfaMethodId: mfaMethodId || '',

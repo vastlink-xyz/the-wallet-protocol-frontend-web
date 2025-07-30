@@ -6,39 +6,37 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SignerEmailField } from '@/components/SignerEmailField'
 import { Loader2, Plus, Trash2 } from 'lucide-react'
-import { AuthMethod, IRelayPKP } from '@lit-protocol/types'
+import { IRelayPKP } from '@lit-protocol/types'
 import { toast } from 'react-toastify'
 import axios from 'axios'
 import { isValidEmail, log } from '@/lib/utils'
 import { 
-  getSessionSigsByPkp, 
   litNodeClient, 
   mintPKP
 } from '@/lib/lit'
+import { getMultiProviderSessionSigs } from '@/lib/lit/pkpManager'
 import { encryptString } from '@lit-protocol/encryption'
 import { AUTH_METHOD_SCOPE, AUTH_METHOD_TYPE } from '@lit-protocol/constants'
-import { getCreateWalletIpfsId, getMultisigTransactionIpfsId, getUpdateWalletIpfsId, getUpgradeIpfsId, getPersonalSignIpfsId } from '@/lib/lit/ipfs-id-env'
+import { getCreateWalletIpfsId, getMultisigTransactionIpfsId, getUpdateWalletIpfsId } from '@/lib/lit/ipfs-id-env'
 import { useAuthExpiration } from '@/hooks/useAuthExpiration'
 import { isTokenValid } from '@/lib/jwt'
-import { TokenType, SUPPORTED_TOKEN_SYMBOLS, SUPPORTED_TOKENS_INFO } from '@/lib/web3/token'
+import { TokenType } from '@/lib/web3/token'
 import { MFASettings, MultisigWallet, MultisigWalletMetadata } from '@/app/api/multisig/storage'
 import { LabeledContainer } from '../LabeledContainer'
 import { DailyWithdrawLimits, getDefaultDailyWithdrawLimits } from '../Transaction/DailyWithdrawLimits'
-import { getPrimaryEmailFromStorage } from '@/lib/storage/authmethod'
+import { getPrimaryEmailFromStorage, getAuthMethodFromStorage, getAuthMethodIdFromStorage } from '@/lib/storage/authmethod'
 import { sendTeamNotification } from '@/lib/notification/team-notificatioin'
-import { sendProposalExecutedNotification } from '@/lib/notification/proposal-executed-notification'
 import { MessageProposal } from '@/app/api/multisig/storage'
 import { signProposal } from '@/app/wallet/[walletId]/details/proposals/utils/sign-proposal'
 import { fetchProposal } from '@/app/wallet/[walletId]/details/proposals/utils/proposal'
 import { executeWalletSettingsProposal } from '@/app/wallet/[walletId]/details/proposals/utils/execute-proposal'
 import { generateSettingsChangeDescriptions } from '@/app/wallet/[walletId]/details/proposals/utils/settingsDescriptionUtils'
 import { useTranslations } from 'next-intl'
+import { getVastbaseAuthMethodType } from '@/lib/lit/custom-auth'
 
 interface MultisigWalletFormContentProps {
   mode: 'create' | 'edit'
-  authMethod: AuthMethod
   userPkp: IRelayPKP
-  authMethodId: string
   wallet?: MultisigWallet // Only needed for edit mode
   onCancel?: () => void
   onSuccess?: () => void
@@ -103,19 +101,20 @@ const sendEmailToSigners = async (
 
 export function MultisigWalletFormContent({
   mode,
-  authMethod,
   userPkp,
-  authMethodId,
   wallet,
   onCancel,
   onSuccess
 }: MultisigWalletFormContentProps) {
   const transCommon = useTranslations('Common')
   const transWallet = useTranslations('TeamWalletSettings')
-  
   const { handleExpiredAuth } = useAuthExpiration();
   const [isLoading, setIsLoading] = useState(false)
   const [verifiedPhone, setVerifiedPhone] = useState<string | null>(null)
+  
+  // Get auth method data directly from localStorage
+  const authMethod = getAuthMethodFromStorage()
+  const authMethodId = getAuthMethodIdFromStorage() || ''
   
   // Form states - initial values depend on mode
   const [signers, setSigners] = useState<any[]>(
@@ -158,11 +157,20 @@ export function MultisigWalletFormContent({
 
   // Get current user's email from authMethod
   let currentUserEmail = '';
-  if (authMethod.accessToken) {
+  if (authMethod?.accessToken) {
     const email = getPrimaryEmailFromStorage()
     if (email) {
       currentUserEmail = email;
     }
+  }
+
+  // Early return if no auth method is available
+  if (!authMethod) {
+    return (
+      <div className="p-4 text-center">
+        <p className="text-red-500">Authentication required. Please log in again.</p>
+      </div>
+    )
   }
 
   // Fetch user's phone number for MFA verification
@@ -323,7 +331,7 @@ export function MultisigWalletFormContent({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authMethod.accessToken}`
+          'Authorization': `Bearer ${authMethod?.accessToken}`
         },
         body: JSON.stringify({
           walletId,
@@ -359,7 +367,7 @@ export function MultisigWalletFormContent({
       return;
     }
 
-    const authMethodType = authMethod.authMethodType
+    const authMethodType = getVastbaseAuthMethodType()
 
     // Check for unconfirmed new signer
     if (showAddSignerForm && newSignerEmail.trim() !== '') {
@@ -504,7 +512,13 @@ export function MultisigWalletFormContent({
       log('encrypt data');
 
       // Get session signatures
-      const sessionSigs = await getSessionSigsByPkp({authMethod, pkp: userPkp, refreshStytchAccessToken: true});
+      const sessionSigs = await getMultiProviderSessionSigs({
+        pkpPublicKey: userPkp.publicKey,
+        pkpTokenId: userPkp.tokenId,
+        accessToken: authMethod.accessToken,
+        providerType: authMethod.providerType,
+        userEmail: authMethod.primaryEmail,
+      });
       log('session sigs', sessionSigs);
 
       // Execute Lit Action to create wallet
@@ -515,7 +529,7 @@ export function MultisigWalletFormContent({
           authParams: {
             accessToken: authMethod.accessToken,
             authMethodId: authMethodId,
-            authMethodType: authMethod.authMethodType,
+            authMethodType: getVastbaseAuthMethodType(),
             devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
           },
           dataToEncryptHash,
@@ -603,7 +617,8 @@ export function MultisigWalletFormContent({
   };
 
   const autoSignProposal = async (proposal: MessageProposal) => {
-    if (!wallet) {
+    if (!wallet || !authMethod) {
+      console.error('Missing required data for proposal signing')
       return
     }
 
@@ -611,8 +626,10 @@ export function MultisigWalletFormContent({
       proposal,
       wallet,
       userPkp,
-      authMethod,
+      accessToken: authMethod.accessToken,
       authMethodId,
+      providerType: authMethod.providerType,
+      userEmail: authMethod.primaryEmail,
     })
 
     if (response.data.success) {
@@ -633,7 +650,18 @@ export function MultisigWalletFormContent({
   };
 
   const autoExecuteProposal = async (proposal: MessageProposal, wallet: MultisigWallet) => {
-    const sessionSigs = await getSessionSigsByPkp({authMethod, pkp: userPkp, refreshStytchAccessToken: true});
+    if (!authMethod) {
+      console.error('Auth method not available')
+      return
+    }
+    
+    const sessionSigs = await getMultiProviderSessionSigs({
+      pkpPublicKey: userPkp.publicKey,
+      pkpTokenId: userPkp.tokenId,
+      accessToken: authMethod.accessToken,
+      providerType: authMethod.providerType,
+      userEmail: authMethod.primaryEmail,
+    });
     const walletPkp = wallet.pkp
 
     const response = await executeWalletSettingsProposal({
@@ -641,7 +669,7 @@ export function MultisigWalletFormContent({
       sessionSigs,
       wallet,
       walletPkp,
-      authMethod,
+      accessToken: authMethod.accessToken,
       authMethodId,
     })
 

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { MessageProposal, MultisigWallet } from "@/app/api/multisig/storage";
-import { getSessionSigsByPkp, litNodeClient } from "@/lib/lit";
+import { litNodeClient } from "@/lib/lit";
+import { getMultiProviderSessionSigs } from "@/lib/lit/pkpManager";
 import { signProposal } from "@/app/wallet/[walletId]/details/proposals/utils/sign-proposal";
 import { executeTransactionProposal, executeWalletSettingsProposal } from "@/app/wallet/[walletId]/details/proposals/utils/execute-proposal";
 import { broadcastTransactionByTokenType } from "@/lib/web3/transaction";
@@ -9,12 +10,15 @@ import { SUPPORTED_TOKENS_INFO } from "@/lib/web3/token";
 import { toast } from "react-toastify";
 import { useSecurityVerification } from "@/hooks/useSecurityVerification";
 import { fetchProposals } from "./useProposals";
+import { AuthProviderType } from "@/lib/lit/custom-auth";
 
 export interface UseProposalActionsParams {
   walletMap: Map<string, MultisigWallet>;
   userPkp: any;
-  authMethod: any;
+  accessToken: string;
   authMethodId: string | null;
+  providerType: AuthProviderType;
+  userEmail: string;
   userPhone: string | null;
   /** Refresh proposals list. Can be async or sync. */
   refreshProposals: () => any | Promise<any>;
@@ -43,8 +47,10 @@ export interface UseProposalActionsReturn {
 export function useProposalActions({
   walletMap,
   userPkp,
-  authMethod,
+  accessToken,
   authMethodId,
+  providerType,
+  userEmail,
   userPhone,
   refreshProposals,
   refreshNotifications,
@@ -60,7 +66,6 @@ export function useProposalActions({
 
   // Security verification for transaction proposals (PIN + MFA)
   const transactionSecurityVerification = useSecurityVerification({
-    authMethod,
     executeTransaction: async (params: any) => {
       const { proposal, sessionSigs, wallet, walletPkp, ...verificationParams } = params;
       return await executeTransactionProposalWithSecurity({
@@ -68,7 +73,7 @@ export function useProposalActions({
         sessionSigs,
         wallet,
         walletPkp,
-        authMethod: authMethod!,
+        accessToken,
         authMethodId: authMethodId!,
         pinCode: verificationParams.pinCode || '',
         mfaType: verificationParams.mfaType || '',
@@ -80,7 +85,6 @@ export function useProposalActions({
 
   // Security verification for wallet settings proposals (PIN only)
   const settingsSecurityVerification = useSecurityVerification({
-    authMethod,
     executeTransaction: async (params: any) => {
       const { proposal, sessionSigs, wallet, walletPkp, settingsData, ...verificationParams } = params;
       return await executeWalletSettingsProposalWithSecurity({
@@ -89,7 +93,7 @@ export function useProposalActions({
         wallet,
         walletPkp,
         settingsData,
-        authMethod: authMethod!,
+        accessToken,
         authMethodId: authMethodId!,
         pinCode: verificationParams.pinCode || '',
         mfaType: verificationParams.mfaType || '',
@@ -105,7 +109,7 @@ export function useProposalActions({
     sessionSigs,
     wallet,
     walletPkp,
-    authMethod,
+    accessToken,
     authMethodId,
     pinCode,
     mfaType,
@@ -117,7 +121,7 @@ export function useProposalActions({
       sessionSigs,
       wallet,
       walletPkp,
-      authMethod,
+      accessToken,
       authMethodId,
       pinCode,
       mfaType,
@@ -207,7 +211,7 @@ export function useProposalActions({
     wallet,
     walletPkp,
     settingsData,
-    authMethod,
+    accessToken,
     authMethodId,
     pinCode,
     mfaType,
@@ -219,7 +223,7 @@ export function useProposalActions({
       sessionSigs,
       wallet,
       walletPkp,
-      authMethod,
+      accessToken,
       authMethodId,
       pinCode,
       mfaType,
@@ -242,7 +246,7 @@ export function useProposalActions({
   const executeMultisigLitAction = async (proposal: MessageProposal) => {
     const wallet = walletMap.get(proposal.walletId);
     const walletPkp = wallet?.pkp;
-    if (!walletPkp || !wallet || !authMethod || !userPkp) return;
+    if (!walletPkp || !wallet || !userPkp || !accessToken || !authMethodId) return;
     
     try {
       setExecutingStates(prev => ({ ...prev, [proposal.id]: true }));
@@ -251,7 +255,13 @@ export function useProposalActions({
       if (!litNodeClient.ready) {
         await litNodeClient.connect();
       }
-      const sessionSigs = await getSessionSigsByPkp({ authMethod, pkp: userPkp, refreshStytchAccessToken: true });
+      const sessionSigs = await getMultiProviderSessionSigs({
+        pkpPublicKey: userPkp.publicKey,
+        pkpTokenId: userPkp.tokenId,
+        accessToken,
+        providerType,
+        userEmail,
+      });
       
       const isWalletSettingsProposal = proposal.type === 'walletSettings';
       const settingsData = proposal.settingsData;
@@ -293,7 +303,7 @@ export function useProposalActions({
   const handleSignProposal = async (proposal: MessageProposal) => {
     const wallet = walletMap.get(proposal.walletId);
     const walletPkp = wallet?.pkp;
-    if (!walletPkp || !authMethod || !wallet || !userPkp || !authMethodId) return;
+    if (!walletPkp || !wallet || !userPkp || !authMethodId || !accessToken) return;
     const isAuthValid = await verifyAuthOrRedirect();
     if (!isAuthValid) return;
     
@@ -303,8 +313,10 @@ export function useProposalActions({
         proposal,
         wallet,
         userPkp,
-        authMethod,
+        accessToken,
         authMethodId,
+        providerType,
+        userEmail,
       });
       if (response.data.success) {
         toast.success(t('sign_proposal_succeess'));
@@ -328,7 +340,7 @@ export function useProposalActions({
   const handleSignProposalAndExecute = async (proposal: MessageProposal) => {
     const wallet = walletMap.get(proposal.walletId);
     const walletPkp = wallet?.pkp;
-    if (!walletPkp || !authMethod || !wallet || !userPkp || !authMethodId) return;
+    if (!walletPkp || !wallet || !userPkp || !authMethodId || !accessToken) return;
     const isAuthValid = await verifyAuthOrRedirect();
     if (!isAuthValid) return;
     
@@ -338,8 +350,10 @@ export function useProposalActions({
         proposal,
         wallet,
         userPkp,
-        authMethod,
+        accessToken,
         authMethodId,
+        providerType,
+        userEmail,
       });
       if (response.data.success) {
         if (refreshNotifications) await refreshNotifications(authMethodId, userPkp?.ethAddress);

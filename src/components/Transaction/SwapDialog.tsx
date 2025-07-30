@@ -13,10 +13,9 @@ import {
   SelectValue,
 } from '../ui/select';
 import { Button } from '../ui/button';
-import { ArrowDownUpIcon, ChevronDownIcon, ChevronUpIcon, Loader2, Loader2Icon } from 'lucide-react';
+import { ArrowDownUpIcon, ChevronDownIcon, ChevronUpIcon, Loader2Icon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { estimateSwap } from '@/lib/swap/estimateSwap';
-import { AuthMethod } from '@lit-protocol/types';
 import { useUserData } from '@/hooks/useUserData';
 import { useTeamWallets } from '@/hooks/useTeamWallets';
 import { SUPPORTED_TOKENS_INFO, TokenType } from '@/lib/web3/token';
@@ -28,8 +27,8 @@ import { useTranslations } from 'next-intl';
 import { createWallet, executeSwap, SupportedToken } from '@/lib/swap/executeSwap';
 import { toast } from 'react-toastify';
 import { MFAOtpDialog } from './MFAOtpDialog';
-import { executePersonalTransaction } from '@/services/personalTransactionService';
 import { useSecurityVerification } from '@/hooks/useSecurityVerification';
+import { getAuthMethodFromStorage, getAuthMethodIdFromStorage } from '@/lib/storage/authmethod';
 
 type translate = (key: string, params?: any) => string;
 
@@ -98,7 +97,6 @@ const MFAContext = createContext<{
 interface SwapDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  authMethod?: AuthMethod;
   teamWalletId?: string;
 }
 
@@ -386,7 +384,7 @@ function SwapDetails({
   );
 }
 
-function SwapContent({ t, authMethod, teamWalletId }: { t: translate, authMethod?: AuthMethod, teamWalletId?: string }) {
+function SwapContent({ t, teamWalletId }: { t: translate, teamWalletId?: string }) {
   const mfaContex = useContext(MFAContext);
 
   const [isSwapping, setIsSwapping] = useState(false);
@@ -396,8 +394,12 @@ function SwapContent({ t, authMethod, teamWalletId }: { t: translate, authMethod
   const [toToken, setToToken] = useState(SUPPORTED_TOKENS[1]);
   const [assessedValue, setAssessedValue] = useState<AssessedValue | null>(null);
 
+  // Get auth method data directly from localStorage
+  const authMethod = getAuthMethodFromStorage()
+  const authMethodId = getAuthMethodIdFromStorage() || ''
+
   // Fetch user data using custom hook
-  const { userData, authMethodId } = useUserData()
+  const { userData } = useUserData()
 
   const {
     data: wallets,
@@ -538,7 +540,6 @@ function SwapContent({ t, authMethod, teamWalletId }: { t: translate, authMethod
 
     // Initialize security verification hook
   const securityVerification = useSecurityVerification({
-    authMethod: authMethod || null,
     executeTransaction: async () => {
       await handleSwap();
     },
@@ -588,17 +589,18 @@ function SwapContent({ t, authMethod, teamWalletId }: { t: translate, authMethod
 
 function SwapMFADialog({
   t,
-  authMethod,
   open,
   onClose,
   onCancel,
 }: {
   t: translate,
-  authMethod?: AuthMethod,
   open?: boolean,
   onClose?: (otp: string) => Promise<void>,
   onCancel?: () => void,
 }) {
+  // Get auth method data directly from localStorage
+  const authMethod = getAuthMethodFromStorage()
+  
   // MFA state
   const [mfaMethodId, setMfaMethodId] = useState<string | null>(null);
   const [mfaPhoneNumber, setMfaPhoneNumber] = useState<string | null>(null);
@@ -680,7 +682,7 @@ function SwapMFADialog({
   />);
 }
 
-export function SwapDialog({ open, onOpenChange, authMethod, teamWalletId }: SwapDialogProps) {
+export function SwapDialog({ open, onOpenChange, teamWalletId }: SwapDialogProps) {
   const t = useTranslations('SwapDialog');
 
   const [showMfa, setShowMfa] = useState(false);
@@ -706,13 +708,12 @@ export function SwapDialog({ open, onOpenChange, authMethod, teamWalletId }: Swa
           <DialogHeader>
             <DialogTitle>{t('title')}</DialogTitle>
           </DialogHeader>
-          <SwapContent t={t} authMethod={authMethod} teamWalletId={teamWalletId} />
+          <SwapContent t={t} teamWalletId={teamWalletId} />
         </DialogContent>
       </Dialog>
 
       <SwapMFADialog
         t={t}
-        authMethod={authMethod}
         open={showMfa}
         onClose={onClose || undefined}
         onCancel={onCancel || undefined}

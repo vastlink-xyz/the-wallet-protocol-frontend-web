@@ -1,7 +1,7 @@
-import { AUTH_METHOD_TYPE } from '@lit-protocol/constants';
-import { AuthMethod } from '@lit-protocol/types';
 import { jwtDecode } from 'jwt-decode';
 import { log } from '../utils';
+import { VastbaseAuthMethod, getVastbaseAuthMethodType } from '../lit/custom-auth';
+import { AUTH_METHOD_TYPE } from '@lit-protocol/constants';
 
 /**
  * Extract email address from Google JWT token
@@ -82,22 +82,23 @@ async function isStytchTokenValid(token: string): Promise<boolean> {
 
 /**
  * Unified function to verify if a token is valid based on its type
- * @param type The authentication method type from AUTH_METHOD_TYPE
- * @param token The token to verify
+ * @param authMethod The VastbaseAuthMethod object containing token and type info
  * @returns Promise resolving to true if token is valid, false otherwise
  */
-export async function isTokenValid(authMethod: AuthMethod): Promise<boolean> {
+export async function isTokenValid(authMethod: VastbaseAuthMethod): Promise<boolean> {
   if (!authMethod) return false;
 
-  if (authMethod.authMethodType === AUTH_METHOD_TYPE.GoogleJwt) {
+  const authMethodType = getVastbaseAuthMethodType();
+
+  if (authMethodType === AUTH_METHOD_TYPE.GoogleJwt) {
     return isGoogleTokenValid(authMethod.accessToken);
   }
 
-  if (authMethod.authMethodType === AUTH_METHOD_TYPE.StytchEmailFactorOtp) {
+  if (authMethodType === AUTH_METHOD_TYPE.StytchEmailFactorOtp) {
     return isStytchTokenValid(authMethod.accessToken);
   }
 
-  console.error(`Unsupported authmethod type: ${authMethod.authMethodType}`);
+  console.error(`Unsupported authmethod type: ${authMethodType}`);
   return false;
 }
 
@@ -114,10 +115,12 @@ export function getUserIdFromToken(token: string): string | null {
 export async function getNewStytchAccessToken(token: string): Promise<string> {
   if (!token) return '';
   
+  const authMethodType = getVastbaseAuthMethodType();
+  
   const verifyTokenRes = await fetch(`/api/verify-token`, {
     method: 'POST',
     body: JSON.stringify({
-      authMethodType: AUTH_METHOD_TYPE.StytchEmailFactorOtp,
+      authMethodType: authMethodType,
       accessToken: token,
     }),
   })

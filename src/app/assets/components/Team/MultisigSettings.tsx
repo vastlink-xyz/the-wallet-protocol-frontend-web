@@ -62,9 +62,7 @@ export function MultisigSettings() {
               <MultisigWalletFormContent
                 mode={params.mode}
                 wallet={wallet}
-                authMethod={params.authMethod}
                 userPkp={params.userPkp}
-                authMethodId={params.authMethodId}
                 onCancel={() => closeMultisigSettings()}
                 onSuccess={() => {
                   if (params.onSuccess) {
