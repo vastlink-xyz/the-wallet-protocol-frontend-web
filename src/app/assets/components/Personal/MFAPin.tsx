@@ -8,8 +8,7 @@ import { toast } from 'react-toastify';
 import { useTranslations } from 'next-intl';
 import { PinService, PinData } from '@/services/pinService';
 import { useUserData } from '@/hooks/useUserData';
-import { AuthMethod } from '@lit-protocol/types';
-import { getAuthIdByAuthMethod } from '@lit-protocol/lit-auth-client';
+import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
 
 // Interface for PIN status
 interface PinStatus {
@@ -22,9 +21,6 @@ type PinUiState = 'initial' | 'setup' | 'change';
 interface MFAPinProps {
   // Current PIN status information
   pinStatus: PinStatus | null;
-  
-  // Auth method for Lit Protocol operations
-  authMethod: AuthMethod | null;
   
   // Callback when PIN is successfully added/changed/removed
   onSuccess: () => void;
@@ -86,12 +82,12 @@ const ActionButtons: React.FC<{
 
 export function MFAPin({ 
   pinStatus, 
-  authMethod,
   onSuccess
 }: MFAPinProps) {
   const t = useTranslations("MFASettings");
-  // Get user data for Lit Protocol operations
+  // Get user data and auth method for Lit Protocol operations
   const { userData, isLoading: isLoadingUser, error: userError } = useUserData();
+  const authMethod = getAuthMethodFromStorage();
   const [uiState, setUiState] = useState<PinUiState>('initial');
   const [pin, setPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
@@ -125,7 +121,7 @@ export function MFAPin({
   // Add PIN (setup)
   const handleAddPin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!userData?.litActionPkp) {
+    if (!userData?.litActionPkp || !authMethod) {
       toast.error(t('user_not_found'));
       return;
     }
@@ -142,13 +138,12 @@ export function MFAPin({
       log('MFAPin: Creating PIN with Lit Protocol');
       const pinData = await PinService.createPinHash(pin, {
         litActionPkp: userData.litActionPkp,
-        authMethod: authMethod!
+        authMethod: authMethod
       });
-      const authMethodId = await getAuthIdByAuthMethod(authMethod!);
       await PinService.setLocalPinData({
         pinData,
-        authMethodId,
-        authMethod: authMethod!
+        authMethodId: userData.authMethodId,
+        accessToken: authMethod.accessToken
       });
       toast.success(t('pin_created'));
       setPin('');
@@ -166,7 +161,7 @@ export function MFAPin({
   // Change PIN
   const handleChangePin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!userData?.litActionPkp) {
+    if (!userData?.litActionPkp || !authMethod) {
       toast.error(t('user_not_found'));
       return;
     }
@@ -189,9 +184,8 @@ export function MFAPin({
     setIsLoading(true);
     try {
       log('MFAPin: Changing PIN with Lit Protocol');
-      const authMethodId = await getAuthIdByAuthMethod(authMethod!);
       const storedPinData = await PinService.getLocalPinData({
-        authMethodId,
+        authMethodId: userData.authMethodId,
       });
       if (!storedPinData) {
         toast.error('No PIN is set.');
@@ -202,7 +196,7 @@ export function MFAPin({
         storedPinData,
         {
           litActionPkp: userData.litActionPkp,
-          authMethod: authMethod!
+          authMethod: authMethod
         }
       );
       if (!isCurrentPinValid) {
@@ -211,12 +205,12 @@ export function MFAPin({
       }
       const newPinData = await PinService.createPinHash(pin, {
         litActionPkp: userData.litActionPkp,
-        authMethod: authMethod!
+        authMethod: authMethod
       });
       await PinService.updateLocalPinData({
         pinData: newPinData,
-        authMethodId: authMethodId,
-        authMethod: authMethod!
+        authMethodId: userData.authMethodId,
+        accessToken: authMethod.accessToken
       });
       toast.success(t('pin_changed'));
       setPin('');
@@ -236,12 +230,16 @@ export function MFAPin({
   const handleRemovePin = async () => {
     if (!window.confirm(t('confirm_remove_pin'))) return;
     
+    if (!authMethod) {
+      toast.error(t('user_not_found'));
+      return;
+    }
+    
     setIsLoading(true);
     try {
-      const authMethodId = await getAuthIdByAuthMethod(authMethod!);
       await PinService.removeLocalPinData({
-        authMethodId: authMethodId,
-        authMethod: authMethod!
+        authMethodId: userData!.authMethodId,
+        accessToken: authMethod.accessToken
       });
       toast.success(t('pin_removed'));
       setUiState('initial');

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react"
 import { WalletSendReceiveButtons } from "@/app/assets/components/WalletCard/WalletSendReceiveButtons"
 import { SendTransactionDialog, SendTransactionDialogState } from "@/components/Transaction/SendTransactionDialog"
 import { getAuthMethodFromStorage, getAuthMethodIdFromStorage } from "@/lib/storage/authmethod"
-import { AuthMethod, IRelayPKP } from "@lit-protocol/types"
+import { IRelayPKP } from "@lit-protocol/types"
 import { useNotifications } from "@/hooks/useNotifications"
 import { User } from "@/app/api/user/storage"
 import { MessageProposal, MultisigWallet } from "@/app/api/multisig/storage"
@@ -24,11 +24,13 @@ export function TeamWalletSendReceiveActions({
   const [showSwapDialog, setShowSwapDialog] = useState(false)
   const [showMfaDialog, setShowMfaDialog] = useState(false)
   const [isSending, setIsSending] = useState(false)
-  const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null)
-  const [authMethodId, setAuthMethodId] = useState<string>('')
   const [userPkp, setUserPkp] = useState<IRelayPKP | null>(null)
   const [user, setUser] = useState<User | null>(null)
   const [currentProposal, setCurrentProposal] = useState<MessageProposal | null>(null)
+  
+  // Get auth method data directly from localStorage
+  const authMethod = getAuthMethodFromStorage()
+  const authMethodId = getAuthMethodIdFromStorage() || ''
   
   // Notifications hook for UI refresh
   const { refreshNotifications } = useNotifications({
@@ -37,14 +39,8 @@ export function TeamWalletSendReceiveActions({
   
   useEffect(() => {
     const fetchUserData = async () => {
-      try {
-        const storedAuthMethod = getAuthMethodFromStorage()
-        if (!storedAuthMethod) return
-        
-        setAuthMethod(storedAuthMethod)
-
-        const authMethodId = getAuthMethodIdFromStorage() || ''
-        setAuthMethodId(authMethodId)
+      try {        
+        if (!authMethodId) return
         
         // Fetch user's information from database API
         const userResponse = await fetch(`/api/user?authMethodId=${authMethodId}`)
@@ -66,7 +62,7 @@ export function TeamWalletSendReceiveActions({
     }
     
     fetchUserData()
-  }, [])
+  }, [authMethodId])
   
   const handleCreateAndApproveTransactionProposal = async (state: SendTransactionDialogState) => {
     if (!wallet || !userPkp || !authMethod || !authMethodId || !user) {
@@ -77,8 +73,10 @@ export function TeamWalletSendReceiveActions({
       state,
       wallet,
       userPkp,
-      authMethod,
+      accessToken: authMethod.accessToken,
       authMethodId,
+      providerType: authMethod.providerType,
+      userEmail: authMethod.primaryEmail,
       user,
       setIsSending,
       refreshNotifications,
@@ -108,8 +106,10 @@ export function TeamWalletSendReceiveActions({
       proposal,
       wallet: walletParam,
       userPkp,
-      authMethod,
+      accessToken: authMethod.accessToken,
       authMethodId,
+      providerType: authMethod.providerType,
+      userEmail: authMethod.primaryEmail,
       refreshNotifications,
       refreshProposals,
       onProposalChange,
@@ -128,7 +128,7 @@ export function TeamWalletSendReceiveActions({
 
     await inviteTeamUser({
       state,
-      authMethod,
+      accessToken: authMethod.accessToken,
       authMethodId,
       setIsSending,
       setShowSendDialog,
@@ -148,7 +148,7 @@ export function TeamWalletSendReceiveActions({
 
     await handleTeamMfaVerify({
       state,
-      authMethod,
+      accessToken: authMethod.accessToken,
       userPkp,
       currentProposal,
       wallet,
@@ -172,7 +172,6 @@ export function TeamWalletSendReceiveActions({
       {
         showSendDialog && authMethod && (
           <SendTransactionDialog
-            authMethod={authMethod}
             disablePin={true}
             showSendDialog={showSendDialog}
             showMfa={showMfaDialog}
@@ -194,7 +193,6 @@ export function TeamWalletSendReceiveActions({
           <SwapDialog
             open={showSwapDialog}
             onOpenChange={setShowSwapDialog}
-            authMethod={authMethod}
             teamWalletId={wallet.id}
           />
         )

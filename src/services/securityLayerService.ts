@@ -1,5 +1,3 @@
-import { AuthMethod } from "@lit-protocol/types";
-import { getAuthIdByAuthMethod } from "@lit-protocol/lit-auth-client";
 import { SecurityLayer, SecurityLayerType } from "@/types/security";
 import crypto from 'crypto';
 
@@ -15,16 +13,14 @@ export class SecurityLayerService {
   /**
    * Get user's security layers from API
    */
-  static async getUserSecurityLayers(authMethod: AuthMethod): Promise<SecurityLayer[]> {
-    const authMethodId = await getAuthIdByAuthMethod(authMethod);
-    
+  static async getUserSecurityLayers(accessToken: string, authMethodId: string): Promise<SecurityLayer[]> {
     if (!authMethodId) {
-      throw new Error('Failed to get authMethodId from authMethod');
+      throw new Error('authMethodId is required');
     }
     
     const response = await fetch(`/api/security/layers?authMethodId=${authMethodId}`, {
       headers: {
-        'Authorization': `Bearer ${authMethod.accessToken}`,
+        'Authorization': `Bearer ${accessToken}`,
       },
     });
     
@@ -74,8 +70,8 @@ export class SecurityLayerService {
   /**
    * Check if PIN verification is required (simple check)
    */
-  static async requiresPINVerification(authMethod: AuthMethod): Promise<boolean> {
-    const securityLayers = await this.getUserSecurityLayers(authMethod);
+  static async requiresPINVerification(accessToken: string, authMethodId: string): Promise<boolean> {
+    const securityLayers = await this.getUserSecurityLayers(accessToken, authMethodId);
     const pinLayer = securityLayers.find(layer => layer.type === 'PIN' && layer.category === 'pin');
     return pinLayer?.isEnabled || false;
   }
@@ -84,7 +80,7 @@ export class SecurityLayerService {
    * Send OTP for the specified MFA method (frontend utility)
    */
   static async sendMFACode(
-    authMethod: AuthMethod, 
+    accessToken: string, 
     mfaType: SecurityLayerType, 
     config?: any
   ): Promise<string | null> {
@@ -93,10 +89,10 @@ export class SecurityLayerService {
         if (!config?.phoneNumber) {
           throw new Error('Phone number is required for WhatsApp OTP');
         }
-        return await this.sendWhatsAppOTP(authMethod, config.phoneNumber);
+        return await this.sendWhatsAppOTP(accessToken, config.phoneNumber);
         
       case 'EMAIL_OTP':
-        return await this.sendEmailOTP(authMethod);
+        return await this.sendEmailOTP(accessToken);
         
       case 'TOTP':
         // TOTP doesn't require sending a code, user uses their authenticator app
@@ -108,12 +104,12 @@ export class SecurityLayerService {
   }
   
   // Private helper methods for sending OTP
-  private static async sendWhatsAppOTP(authMethod: AuthMethod, phoneNumber: string): Promise<string> {
+  private static async sendWhatsAppOTP(accessToken: string, phoneNumber: string): Promise<string> {
     const response = await fetch('/api/mfa/whatsapp/send-code', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authMethod.accessToken}`,
+        'Authorization': `Bearer ${accessToken}`,
       },
       body: JSON.stringify({ phone_number: phoneNumber }),
     });
@@ -127,12 +123,12 @@ export class SecurityLayerService {
     return data.method_id;
   }
   
-  private static async sendEmailOTP(authMethod: AuthMethod): Promise<string> {
+  private static async sendEmailOTP(accessToken: string): Promise<string> {
     const response = await fetch('/api/mfa/email/send-code', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authMethod.accessToken}`,
+        'Authorization': `Bearer ${accessToken}`,
       },
     });
     

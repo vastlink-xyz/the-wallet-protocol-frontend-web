@@ -1,6 +1,6 @@
-import { AuthMethod, IRelayPKP } from '@lit-protocol/types'
+import { IRelayPKP } from '@lit-protocol/types'
 import { toast } from 'react-toastify'
-import { getSessionSigsByPkp } from '@/lib/lit'
+import { getMultiProviderSessionSigs } from '@/lib/lit/pkpManager'
 import { log } from '@/lib/utils'
 import { SUPPORTED_TOKENS_INFO, TokenType } from '@/lib/web3/token'
 import { broadcastTransactionByTokenType } from '@/lib/web3/transaction'
@@ -12,13 +12,16 @@ import axios from 'axios'
 import { signProposal } from '@/app/wallet/[walletId]/details/proposals/utils/sign-proposal'
 import { fetchProposal } from '@/app/wallet/[walletId]/details/proposals/utils/proposal'
 import { executeTransactionProposal } from '@/app/wallet/[walletId]/details/proposals/utils/execute-proposal'
+import { AuthProviderType } from '@/lib/lit/custom-auth'
 
 interface CreateAndApproveTransactionProposalParams {
   state: SendTransactionDialogState
   wallet: MultisigWallet
   userPkp: IRelayPKP
-  authMethod: AuthMethod
+  accessToken: string
   authMethodId: string
+  providerType: AuthProviderType
+  userEmail: string
   user: User
   setIsSending: (sending: boolean) => void
   refreshNotifications: (authMethodId: string, ethAddress?: string) => void
@@ -37,8 +40,10 @@ export const createAndApproveTransactionProposal = async ({
   state,
   wallet,
   userPkp,
-  authMethod,
+  accessToken,
   authMethodId,
+  providerType,
+  userEmail,
   user,
   setIsSending,
   refreshNotifications,
@@ -63,14 +68,14 @@ export const createAndApproveTransactionProposal = async ({
       createdBy: {
         authMethodId: authMethodId,
         ethAddress: userPkp?.ethAddress,
-        email: user?.email
+        email: user?.primaryEmail
       },
       message: JSON.stringify(txData),
       transactionData: txData,
       sendEmail: true,
       signers: wallet?.signers,
       walletName: wallet?.name,
-      proposer: user?.email,
+      proposer: user?.primaryEmail,
     })
 
     if (response.data.success) {
@@ -80,8 +85,10 @@ export const createAndApproveTransactionProposal = async ({
         proposal,
         wallet,
         userPkp,
-        authMethod,
+        accessToken,
         authMethodId,
+        providerType,
+        userEmail,
       })
 
       if (res.data.success) {
@@ -122,8 +129,10 @@ interface ExecuteTransactionProposalParams {
   proposal: MessageProposal
   wallet: MultisigWallet
   userPkp: IRelayPKP
-  authMethod: AuthMethod
+  accessToken: string
   authMethodId: string
+  providerType: AuthProviderType
+  userEmail: string
   refreshNotifications: (authMethodId: string, ethAddress?: string) => void
   refreshProposals?: () => Promise<any>
   onProposalChange?: () => void
@@ -138,8 +147,10 @@ export const executeTeamTransactionProposal = async ({
   proposal,
   wallet,
   userPkp,
-  authMethod,
+  accessToken,
   authMethodId,
+  providerType,
+  userEmail,
   refreshNotifications,
   refreshProposals,
   onProposalChange,
@@ -149,7 +160,13 @@ export const executeTeamTransactionProposal = async ({
   mfaMethodId = null,
   setCurrentProposal,
 }: ExecuteTransactionProposalParams) => {
-  const sessionSigs = await getSessionSigsByPkp({authMethod, pkp: userPkp, refreshStytchAccessToken: true})
+  const sessionSigs = await getMultiProviderSessionSigs({
+    pkpPublicKey: userPkp.publicKey,
+    pkpTokenId: userPkp.tokenId,
+    accessToken,
+    providerType,
+    userEmail,
+  })
   const walletPkp = wallet.pkp
 
   const {
@@ -161,7 +178,7 @@ export const executeTeamTransactionProposal = async ({
     sessionSigs,
     wallet,
     walletPkp,
-    authMethod,
+    accessToken,
     authMethodId,
     pinCode: '',
     mfaType: '',
@@ -260,7 +277,7 @@ export const executeTeamTransactionProposal = async ({
 
 interface InviteTeamUserParams {
   state: SendTransactionDialogState
-  authMethod: AuthMethod
+  accessToken: string
   authMethodId: string
   setIsSending: (sending: boolean) => void
   setShowSendDialog: (show: boolean) => void
@@ -268,7 +285,7 @@ interface InviteTeamUserParams {
 
 export const inviteTeamUser = async ({
   state,
-  authMethod,
+  accessToken,
   authMethodId,
   setIsSending,
   setShowSendDialog,
@@ -282,7 +299,7 @@ export const inviteTeamUser = async ({
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authMethod?.accessToken}`
+        'Authorization': `Bearer ${accessToken}`
       },
       body: JSON.stringify({
         recipientEmail: to,
@@ -313,7 +330,7 @@ export const inviteTeamUser = async ({
 
 interface MfaVerifyParams {
   state: SendTransactionDialogState
-  authMethod: AuthMethod
+  accessToken: string
   userPkp: IRelayPKP
   currentProposal: MessageProposal
   wallet: MultisigWallet
@@ -327,7 +344,7 @@ interface MfaVerifyParams {
 
 export const handleTeamMfaVerify = async ({
   state,
-  authMethod,
+  accessToken,
   userPkp,
   currentProposal,
   wallet,
@@ -336,7 +353,7 @@ export const handleTeamMfaVerify = async ({
   const { otpCode, mfaMethodId } = state
 
   // Verify OTP in lit action
-  if (!authMethod || !userPkp || !currentProposal || !wallet) {
+  if (!accessToken || !userPkp || !currentProposal || !wallet) {
     throw new Error('Missing required information for OTP verification')
   }
 

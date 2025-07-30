@@ -62,7 +62,7 @@ export function MFASelectionDialog({
     try {
       setIsSendingOTP(true);
       const methodId = await SecurityLayerService.sendMFACode(
-        authMethod, 
+        authMethod.accessToken, 
         selectedMFAType as any, 
         selectedOption?.config
       );

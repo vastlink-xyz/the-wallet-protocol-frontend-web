@@ -1,9 +1,7 @@
 
 import { MessageProposal } from '@/app/api/multisig/storage';
 import { shouldShowNotificationOnPath } from '@/constants/routes';
-import { getAuthMethodIdFromStorage } from '@/lib/storage/authmethod';
 import { PinService } from '@/services/pinService';
-import { AuthMethod } from '@lit-protocol/types';
 
 export type NotificationType = 'mfa_setup' | 'pending_proposal' | 'pin_setup';
 
@@ -25,6 +23,7 @@ export type Notification = MFANotification | PendingProposalNotification | PinNo
 
 export interface NotificationContext {
   authMethodId: string | null;
+  accessToken: string | null;
   currentPath: string;
 }
 
@@ -39,8 +38,8 @@ export class NotificationService {
   }
 
   // Separate methods for getting specific notification types
-  public async getMFANotifications(): Promise<MFANotification[]> {
-    const mfaNotification = await this.checkMFASetup();
+  public async getMFANotifications(accessToken: string, authMethodId: string): Promise<MFANotification[]> {
+    const mfaNotification = await this.checkMFASetup(accessToken, authMethodId);
     return mfaNotification ? [mfaNotification] : [];
   }
 
@@ -51,17 +50,8 @@ export class NotificationService {
     return pinNotification ? [pinNotification] : [];
   }
 
-  public async getPendingProposalNotifications(): Promise<PendingProposalNotification[]> {
+  public async getPendingProposalNotifications(authMethodId: string): Promise<PendingProposalNotification[]> {
     try {
-      const { getAuthMethodFromStorage } = await import('@/lib/storage/authmethod');
-      const authMethod = getAuthMethodFromStorage();
-      
-      if (!authMethod) {
-        return [];
-      }
-
-      const authMethodId = getAuthMethodIdFromStorage() || ''
-
       const response = await fetch(`/api/multisig/messages/unsigned?authMethodId=${authMethodId}`, {
         method: 'GET',
         headers: { 
@@ -101,14 +91,14 @@ export class NotificationService {
   }
 
   public async getNotifications(context: NotificationContext): Promise<Notification[]> {
-    if (!this.shouldShowOnPath(context.currentPath) || !context.authMethodId) {
+    if (!this.shouldShowOnPath(context.currentPath) || !context.authMethodId || !context.accessToken) {
       return [];
     }
 
     const notifications: Notification[] = [];
 
     // Check MFA setup status
-    const mfaNotification = await this.checkMFASetup();
+    const mfaNotification = await this.checkMFASetup(context.accessToken, context.authMethodId);
     if (mfaNotification) {
       notifications.push(mfaNotification);
     }
@@ -125,19 +115,11 @@ export class NotificationService {
   }
 
 
-  private async checkMFASetup(): Promise<MFANotification | null> {
+  private async checkMFASetup(accessToken: string, authMethodId: string): Promise<MFANotification | null> {
     try {
-      // Get auth method from storage
-      const { getAuthMethodFromStorage } = await import('@/lib/storage/authmethod');
-      const authMethod = getAuthMethodFromStorage();
-
-      if (!authMethod) {
-        return null;
-      }
-
       // Use SecurityLayerService to get user's security layers
       const { SecurityLayerService } = await import('@/services/securityLayerService');
-      const securityLayers = await SecurityLayerService.getUserSecurityLayers(authMethod);
+      const securityLayers = await SecurityLayerService.getUserSecurityLayers(accessToken, authMethodId);
       
       // Check if user has more than 1 enabled OTP layer
       // If only Email OTP (1 layer), it's not considered real MFA

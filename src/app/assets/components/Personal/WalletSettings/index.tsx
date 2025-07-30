@@ -99,7 +99,6 @@ export function PersonalWalletSettings() {
 
   // Security verification hook for PIN + MFA
   const securityVerification = useSecurityVerification({
-    authMethod,
     executeTransaction: SecurityVerificationService.createProtectedAction({
       contextType: 'forceMFA',
       sessionJwt: sessionJwt || '',
@@ -359,7 +358,6 @@ export function PersonalWalletSettings() {
               <LabeledContainer label={t("mfa_pin_settings")} className="mb-8">
                 <MFAPin
                   pinStatus={pinStatus}
-                  authMethod={authMethod}
                   onSuccess={handlePinStatusUpdate}
                 />
               </LabeledContainer>

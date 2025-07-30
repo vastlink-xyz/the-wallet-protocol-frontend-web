@@ -2,19 +2,20 @@ import { MessageProposal, MultisigWallet } from "@/app/api/multisig/storage";
 import { litNodeClient } from "@/lib/lit";
 import { getMultisigTransactionIpfsId, getUpdateWalletIpfsId } from "@/lib/lit/ipfs-id-env";
 import { log } from "@/lib/utils";
-import { AuthMethod, IRelayPKP } from "@lit-protocol/types";
+import { IRelayPKP } from "@lit-protocol/types";
 import axios from "axios";
 import { fetchUpdatedWallet, getTransactionDetails, sendNotificationsToNewSigners } from "./proposal";
 import { sendProposalExecutedNotification } from "@/lib/notification/proposal-executed-notification";
 import { SUPPORTED_TOKENS_INFO, TokenType } from "@/lib/web3/token";
 import { getToSignTransactionByTokenType } from "@/lib/web3/transaction";
+import { getVastbaseAuthMethodType } from "@/lib/lit/custom-auth";
 
 interface IExecuteWalletSettingsProposalParams {
   proposal: MessageProposal;
   sessionSigs: any;
   wallet: MultisigWallet;
   walletPkp: IRelayPKP;
-  authMethod: AuthMethod;
+  accessToken: string;
   authMethodId: string;
   pinCode?: string;
   mfaType?: string;
@@ -27,7 +28,7 @@ interface IExecuteTransactionProposalParams {
   sessionSigs: any;
   wallet: MultisigWallet;
   walletPkp: IRelayPKP;
-  authMethod: AuthMethod;
+  accessToken: string;
   authMethodId: string;
   pinCode?: string;
   mfaType?: string;
@@ -40,7 +41,7 @@ export const executeWalletSettingsProposal = async ({
   sessionSigs,
   wallet,
   walletPkp,
-  authMethod,
+  accessToken,
   authMethodId,
   pinCode,
   mfaType,
@@ -59,9 +60,9 @@ export const executeWalletSettingsProposal = async ({
     sessionSigs,
     jsParams: {
       authParams: {
-        accessToken: authMethod.accessToken,
+        accessToken,
         authMethodId: authMethodId,
-        authMethodType: authMethod.authMethodType,
+        authMethodType: getVastbaseAuthMethodType(),
         devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
       },
       publicKey: walletPkp.publicKey,
@@ -166,7 +167,7 @@ export const executeTransactionProposal = async ({
   proposal,
   walletPkp,
   wallet,
-  authMethod,
+  accessToken,
   authMethodId,
   sessionSigs,
   pinCode,
@@ -227,9 +228,9 @@ export const executeTransactionProposal = async ({
     env: process.env.NEXT_PUBLIC_ENV,
     devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
     authParams: {
-      accessToken: authMethod.accessToken,
+      accessToken,
       authMethodId: authMethodId,
-      authMethodType: authMethod.authMethodType,
+      authMethodType: getVastbaseAuthMethodType(),
       devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
     },
     pinCode: pinCode || '',

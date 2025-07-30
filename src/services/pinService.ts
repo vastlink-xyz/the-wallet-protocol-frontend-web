@@ -1,7 +1,7 @@
 import { encryptString } from "@lit-protocol/encryption";
 import { executeSecuredLitAction } from "@/lib/lit/executeLitAction";
 import { getSessionSigsByPkp, litNodeClient } from "@/lib/lit";
-import { AuthMethod } from "@lit-protocol/types";
+import { VastbaseAuthMethod } from "@/lib/lit/custom-auth";
 import { SecurityLayer } from "@/types/security";
 
 const LIT_ACTION_IPFS_ID = 'QmX3zpPjXTc9VH1fVETtSXELQ2Soynft68sYWo5MjXnFJ5';
@@ -18,7 +18,7 @@ export interface UserData {
     ethAddress: string;
     tokenId: string;
   };
-  authMethod: AuthMethod;
+  authMethod: VastbaseAuthMethod;
 }
 
 export class PinService {
@@ -118,18 +118,18 @@ export class PinService {
   static async setLocalPinData({
     pinData,
     authMethodId,
-    authMethod
+    accessToken
   }: {
     pinData: PinData,
     authMethodId: string,
-    authMethod: AuthMethod
+    accessToken: string
   }) {
     try {
       const response = await fetch('/api/security/layers/add', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authMethod.accessToken}`,
+          'Authorization': `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
           authMethodId: authMethodId,
@@ -155,11 +155,11 @@ export class PinService {
   static async updateLocalPinData({
     pinData,
     authMethodId,
-    authMethod
+    accessToken
   }: {
     pinData: PinData,
     authMethodId: string,
-    authMethod: AuthMethod
+    accessToken: string
   }) {
     try {
       // First get the existing PIN layer
@@ -182,7 +182,7 @@ export class PinService {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authMethod.accessToken}`,
+          'Authorization': `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
           authMethodId: authMethodId,
@@ -251,12 +251,12 @@ export class PinService {
    */
   static async removeLocalPinData({
     authMethodId,
-    authMethod
+    accessToken
   }: {
     authMethodId: string,
-    authMethod: AuthMethod
+    accessToken: string
   }) {
-    if (!authMethod || !authMethod.accessToken) {
+    if (!accessToken) {
       throw new Error('Authentication required to remove PIN');
     }
 
@@ -266,7 +266,7 @@ export class PinService {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authMethod.accessToken}`,
+          'Authorization': `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
           authMethodId: authMethodId,

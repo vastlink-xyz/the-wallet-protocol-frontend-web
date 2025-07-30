@@ -1,24 +1,30 @@
 import { MessageProposal, MultisigWallet } from "@/app/api/multisig/storage";
-import { getSessionSigsByPkp, litNodeClient } from "@/lib/lit";
+import { litNodeClient } from "@/lib/lit";
 import { getPersonalSignIpfsId } from "@/lib/lit/ipfs-id-env";
 import { log } from "@/lib/utils";
-import { AuthMethod, IRelayPKP } from "@lit-protocol/types";
+import { IRelayPKP } from "@lit-protocol/types";
 import axios from "axios";
+import { getMultiProviderSessionSigs } from "@/lib/lit/pkpManager";
+import { getVastbaseAuthMethodType, AuthProviderType } from "@/lib/lit/custom-auth";
 
 interface ISignPrposalParams {
   proposal: MessageProposal;
   wallet: MultisigWallet;
   userPkp: IRelayPKP;
-  authMethod: AuthMethod;
+  accessToken: string;
   authMethodId: string;
+  providerType: AuthProviderType;
+  userEmail: string;
 }
 
 export const signProposal = async ({
   proposal,
   wallet,
   userPkp,
-  authMethod,
+  accessToken,
   authMethodId,
+  providerType,
+  userEmail,
 }: ISignPrposalParams) => {
   // Validate that the current user is a signer of the wallet
   const isUserSigner = wallet.signers.some(signer => 
@@ -36,7 +42,13 @@ export const signProposal = async ({
     await litNodeClient.connect();
   }
 
-  const sessionSigs = await getSessionSigsByPkp({authMethod, pkp: userPkp, refreshStytchAccessToken: true})
+  const sessionSigs = await getMultiProviderSessionSigs({
+    pkpPublicKey: userPkp.publicKey,
+    pkpTokenId: userPkp.tokenId,
+    accessToken,
+    providerType,
+    userEmail,
+  })
   log('session sigs', sessionSigs)
 
   const actionResponse = await litNodeClient.executeJs({
@@ -48,9 +60,9 @@ export const signProposal = async ({
       env: process.env.NEXT_PUBLIC_ENV,
       devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
       authParams: {
-        accessToken: authMethod.accessToken,
+        accessToken,
         authMethodId: authMethodId,
-        authMethodType: authMethod.authMethodType,
+        authMethodType: getVastbaseAuthMethodType(),
         devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
       },
     }

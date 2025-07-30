@@ -111,8 +111,8 @@ export function useSecurityVerification({
 
   // The main verify function
   const verify = useCallback(async (params: VerifyParams) => {
-    if (!authMethod) {
-      return { success: false, error: 'No auth method available' };
+    if (!authMethod || !userData) {
+      return { success: false, error: 'No auth method or user data available' };
     }
     
     setIsVerifying(true);
@@ -122,7 +122,7 @@ export function useSecurityVerification({
     // Step 1: Dynamically check if PIN verification is required
     let isPinRequired = false;
     try {
-      isPinRequired = await SecurityLayerService.requiresPINVerification(authMethod);
+      isPinRequired = await SecurityLayerService.requiresPINVerification(authMethod.accessToken, userData.authMethodId);
     } catch (error) {
       console.error('Error checking PIN requirement:', error);
       // If we can't check, assume PIN is not required to avoid blocking the transaction

@@ -30,7 +30,6 @@ interface MultisigWalletWithUnsignedProposalsCount extends MultisigWallet {
 const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ userData, authMethodId }, ref) => {
   const [userPkp, setUserPkp] = useState<IRelayPKP | null>(null)
   const [user, setUser] = useState<User | null>(null)
-  const [mode, setMode] = useState<'create' | 'edit'>('create')
   const [selectedWallet, setSelectedWallet] = useState<MultisigWalletWithUnsignedProposalsCount | undefined>()
 
   const [showSendDialog, setShowSendDialog] = useState(false)
@@ -48,7 +47,7 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ userData, authM
     enabled: false, // only need the refresh function
   });
 
-  // Get auth method data from localStorage
+  // Get auth method data directly from localStorage
   const authMethod = getAuthMethodFromStorage()
   
   // Handler to refresh team wallets data
@@ -76,9 +75,8 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ userData, authM
   }, [userData, authMethodId])
 
   const handleWalletSettingsClick = (wallet: MultisigWalletWithUnsignedProposalsCount) => {
-    if (userPkp && authMethodId) {
+    if (userPkp && authMethodId && authMethod) {
       setSelectedWallet(wallet)
-      setMode('edit')
       showMultisigSettings({
         mode: 'edit',
         walletId: wallet.id,
@@ -108,8 +106,7 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ userData, authM
 
   // Create team wallet function exposed via ref
   const handleCreateTeamWallet = () => {
-    if (userPkp && authMethodId) {
-      setMode('create')
+    if (userPkp && authMethodId && authMethod) {
       setSelectedWallet(undefined)
       showMultisigSettings({
         mode: 'create',
@@ -119,7 +116,7 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ userData, authM
         onSuccess: handleRefreshWallets,
       })
     } else {
-      console.error('Missing userPkp or authMethodId')
+      console.error('Missing userPkp or authMethodId or authMethod')
     }
   }
 
@@ -137,8 +134,10 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ userData, authM
       state,
       wallet: selectedWallet,
       userPkp,
-      authMethod,
+      accessToken: authMethod.accessToken,
       authMethodId,
+      providerType: authMethod.providerType,
+      userEmail: authMethod.primaryEmail,
       user,
       setIsSending,
       refreshNotifications,
@@ -166,8 +165,10 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ userData, authM
       proposal,
       wallet,
       userPkp,
-      authMethod,
+      accessToken: authMethod.accessToken,
       authMethodId,
+      providerType: authMethod.providerType,
+      userEmail: authMethod.primaryEmail,
       refreshNotifications,
       setShowSendDialog,
       setShowMfaDialog,
@@ -184,7 +185,7 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ userData, authM
 
     await inviteTeamUser({
       state,
-      authMethod,
+      accessToken: authMethod.accessToken,
       authMethodId,
       setIsSending,
       setShowSendDialog,
@@ -204,7 +205,7 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ userData, authM
 
     await handleTeamMfaVerify({
       state,
-      authMethod,
+      accessToken: authMethod.accessToken,
       userPkp,
       currentProposal,
       wallet: selectedWallet,
@@ -258,7 +259,6 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ userData, authM
       {
         (authMethodId && showSendDialog) && (
           <SendTransactionDialog
-            authMethod={authMethod}
             disablePin={true}
             showSendDialog={showSendDialog}
             showMfa={showMfaDialog}
@@ -279,7 +279,6 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ userData, authM
           <SwapDialog
             open={showSwapDialog}
             onOpenChange={setShowSwapDialog}
-            authMethod={authMethod}
             teamWalletId={selectedWallet.id}
           />
         )

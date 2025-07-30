@@ -3,8 +3,7 @@ import { usePathname } from 'next/navigation';
 import { useMemo, useCallback } from 'react';
 import { notificationService, Notification, MFANotification, PendingProposalNotification, PinNotification, NotificationContext } from '@/services/NotificationService';
 import { shouldShowNotificationOnPath } from '@/constants/routes';
-import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
-import { getAuthIdByAuthMethod } from '@lit-protocol/lit-auth-client';
+import { getAuthMethodFromStorage, getAuthMethodIdFromStorage } from '@/lib/storage/authmethod';
 
 interface UseNotificationsOptions {
   enabled?: boolean;
@@ -25,7 +24,10 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
     queryFn: async (): Promise<MFANotification[]> => {
       try {
         if (!shouldShow) return [];
-        return await notificationService.getMFANotifications();
+        const authMethod = getAuthMethodFromStorage();
+        const authMethodId = getAuthMethodIdFromStorage();
+        if (!authMethod || !authMethodId) return [];
+        return await notificationService.getMFANotifications(authMethod.accessToken, authMethodId);
       } catch (error) {
         console.error('Error fetching MFA notifications:', error);
         return [];
@@ -42,9 +44,8 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
     queryFn: async (): Promise<PinNotification[]> => {
       try {
         if (!shouldShow) return [];
-        const authMethod = getAuthMethodFromStorage();
-        if (!authMethod) return [];
-        const authMethodId = await getAuthIdByAuthMethod(authMethod);
+        const authMethodId = getAuthMethodIdFromStorage();
+        if (!authMethodId) return [];
         return await notificationService.getPinNotifications(authMethodId);
       } catch (error) {
         console.error('Error fetching PIN notifications:', error);
@@ -62,7 +63,9 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
     queryFn: async (): Promise<PendingProposalNotification[]> => {
       try {
         if (!shouldShow) return [];
-        return await notificationService.getPendingProposalNotifications();
+        const authMethodId = getAuthMethodIdFromStorage();
+        if (!authMethodId) return [];
+        return await notificationService.getPendingProposalNotifications(authMethodId);
       } catch (error) {
         console.error('Error fetching proposal notifications:', error);
         return [];
