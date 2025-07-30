@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import PersonalAssets from "./components/Personal/PersonalAssets";
-import { AuthMethod } from "@lit-protocol/types";
+import { VastbaseAuthMethod } from "@/lib/storage/authmethod";
 import { getAuthMethodFromStorage } from "@/lib/storage";
 import { LogoLoading } from "@/components/LogoLoading";
 import { TeamAssetsRef, TeamAssets } from "./components/Team/TeamAssets";
@@ -21,7 +21,7 @@ export default function PortfolioPage() {
 
   const teamAssetsRef = useRef<TeamAssetsRef>(null)
 
-  const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null)
+  const [authMethod, setAuthMethod] = useState<VastbaseAuthMethod | null>(null)
 
   // Load auth method from storage
   useEffect(() => {

@@ -14,7 +14,7 @@ import { LogoLoading } from '@/components/LogoLoading';
 import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
 import { getEmailFromGoogleToken, getUserIdFromToken } from '@/lib/jwt';
 import { AUTH_METHOD_TYPE } from '@lit-protocol/constants';
-import { getUserEmailFromStorage } from '@/lib/storage/user';
+import { getPrimaryEmailFromAuth } from '@/lib/storage/authmethod';
 
 export default function InvitePage() {
   const [invitation, setInvitation] = useState<PendingInvitation | null>(null);
@@ -72,7 +72,7 @@ export default function InvitePage() {
         let userEmail: string | null = null;
 
         // First try to get email from localStorage (cached)
-        userEmail = getUserEmailFromStorage();
+        userEmail = getPrimaryEmailFromAuth();
 
         // If not cached, extract from auth method
         if (!userEmail && authMethod?.authMethodType === AUTH_METHOD_TYPE.GoogleJwt && authMethod?.accessToken) {

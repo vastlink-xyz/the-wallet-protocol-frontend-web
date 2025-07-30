@@ -7,7 +7,6 @@ import { LogoLoading } from '@/components/LogoLoading';
 import { toast } from 'react-toastify';
 import { parseError } from '@/lib/error';
 import { AuthProviderType, generateUnifiedAuthMethodId, getVastbaseAuthMethodType } from '@/lib/lit/custom-auth';
-import { setUserDataToStorage } from '@/lib/storage/user';
 import { setAuthMethodToStorage } from '@/lib/storage/authmethod';
 import { IRelayPKP } from '@lit-protocol/types';
 import { User } from '@/app/api/user/storage';
@@ -353,18 +352,9 @@ export default function UnifiedAuthCallbackPage() {
       setAuthMethodToStorage({
         authMethodType: getVastbaseAuthMethodType(),
         authMethodId: generateUnifiedAuthMethodId(callbackParams.userEmail),
-        accessToken: JSON.stringify({
-          providerType: callbackParams.providerType,
-          accessToken: callbackParams.accessToken,
-          userEmail: callbackParams.userEmail,
-        }),
-      });
-
-      // Store user data with essential information
-      setUserDataToStorage({
-        userId: user.id,
-        email: callbackParams.userEmail,
-        authMethodId: user.authMethodId,
+        providerType: callbackParams.providerType,
+        primaryEmail: callbackParams.userEmail,
+        accessToken: callbackParams.accessToken,
       });
 
       log('Authentication data stored successfully');

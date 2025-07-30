@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { AUTH_METHOD_SCOPE, AUTH_METHOD_TYPE, LIT_ABILITY, LIT_CHAINS, LIT_NETWORK } from "@lit-protocol/constants";
 import { Example } from "./components/Example";
 import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
-import { getUserFromStorage, User, setUserDataToStorage } from '@/lib/storage/user';
+import { getUserFromStorage, User } from '@/lib/storage/user';
 import { fetchEthTransactionHistory } from "@/lib/web3/eth";
 import { getChainIdByChainName } from "@/lib/web3/token";
 import { getAuthIdByAuthMethod } from "@lit-protocol/lit-auth-client";
@@ -402,7 +402,6 @@ export default function DebugPage() {
       
       // Store the fetched user data
       setUserData(apiUserData);
-      setUserDataToStorage(apiUserData);
       
     } catch (error) {
       console.error('Error fetching user data:', error);
@@ -434,7 +433,6 @@ export default function DebugPage() {
       
       // Store the fetched user data
       setUserData(apiUserData);
-      setUserDataToStorage(apiUserData);
       
     } catch (error) {
       console.error('Error fetching user data by authMethodId:', error);

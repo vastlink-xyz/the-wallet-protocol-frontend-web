@@ -24,7 +24,7 @@ import { TokenType, SUPPORTED_TOKEN_SYMBOLS, SUPPORTED_TOKENS_INFO } from '@/lib
 import { MFASettings, MultisigWallet, MultisigWalletMetadata } from '@/app/api/multisig/storage'
 import { LabeledContainer } from '../LabeledContainer'
 import { DailyWithdrawLimits, getDefaultDailyWithdrawLimits } from '../Transaction/DailyWithdrawLimits'
-import { getUserEmailFromStorage } from '@/lib/storage/user'
+import { getPrimaryEmailFromAuth } from '@/lib/storage/authmethod'
 import { sendTeamNotification } from '@/lib/notification/team-notificatioin'
 import { sendProposalExecutedNotification } from '@/lib/notification/proposal-executed-notification'
 import { MessageProposal } from '@/app/api/multisig/storage'
@@ -159,7 +159,7 @@ export function MultisigWalletFormContent({
   // Get current user's email from authMethod
   let currentUserEmail = '';
   if (authMethod.accessToken) {
-    const email = getUserEmailFromStorage()
+    const email = getPrimaryEmailFromAuth()
     if (email) {
       currentUserEmail = email;
     }

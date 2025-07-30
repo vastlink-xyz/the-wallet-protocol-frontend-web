@@ -11,7 +11,6 @@ import axios from 'axios';
 import { setAuthMethodToStorage } from '@/lib/storage/authmethod';
 import { toast } from 'react-toastify';
 import { parseError } from '@/lib/error';
-import { setUserDataToStorage } from '@/lib/storage/user';
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 

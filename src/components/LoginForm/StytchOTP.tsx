@@ -10,11 +10,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { useRouter } from 'next/navigation';
 import { Mail } from 'lucide-react';
 import axios from 'axios';
-import { setAuthMethodToStorage } from '@/lib/storage/authmethod';
+import { setAuthMethodToStorage, VastbaseAuthMethod } from '@/lib/storage/authmethod';
 import { AUTH_METHOD_TYPE } from '@lit-protocol/constants';
+import { AuthProviderType, getVastbaseAuthMethodType, generateUnifiedAuthMethodId } from '@/lib/lit/custom-auth';
 import { toast } from 'react-toastify';
 import { parseError } from '@/lib/error';
-import { setUserDataToStorage } from '@/lib/storage/user';
 import { STYTCH_SESSION_DURATION_MINUTES } from '@/lib/stytch/constants';
 import { useTranslations } from 'next-intl';
 
@@ -101,11 +101,18 @@ const StytchOTP = ({
       
       log('authMethod from stytch', authMethod);
       
-      // Store Stytch authentication method
-      setAuthMethodToStorage(authMethod);
-
-      setUserDataToStorage({ email });
+      // Convert to VastbaseAuthMethod format
+      const vastbaseAuthMethod: VastbaseAuthMethod = {
+        authMethodType: getVastbaseAuthMethodType(),
+        authMethodId: generateUnifiedAuthMethodId(email),
+        providerType: AuthProviderType.EMAIL_OTP,
+        primaryEmail: email,
+        accessToken: authMethod.accessToken,
+      };
       
+      // Store Stytch authentication method
+      setAuthMethodToStorage(vastbaseAuthMethod);
+
       // Redirect to Stytch callback page
       const redirectPath = STYTCH_SIGNIN_REDIRECT.replace(window.location.origin, '');
       if (invitationId) {

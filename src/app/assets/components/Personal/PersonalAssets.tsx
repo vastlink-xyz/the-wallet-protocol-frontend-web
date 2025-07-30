@@ -2,14 +2,11 @@
 
 import { useState, useEffect, useContext } from 'react'
 import { AuthMethod, IRelayPKP } from '@lit-protocol/types'
-import { Loader2 } from 'lucide-react'
-import { getProviderByAuthMethodType } from '@/lib/lit/providers'
 import { SendTransactionDialog, SendTransactionDialogState } from '@/components/Transaction/SendTransactionDialog'
 import { useAuthExpiration } from '@/hooks/useAuthExpiration'
 import { MultisigWalletAddresses } from '@/app/api/multisig/storage'
 import { WalletCard } from '@/app/assets/components/WalletCard'
 import { WalletCardSkeleton } from '@/app/assets/components/WalletCard/WalletCardSkeleton'
-import { PersonalWalletSettings } from './WalletSettings'
 import { executePersonalTransaction, inviteUser } from '@/services/personalTransactionService'
 import { User } from '@/app/api/user/storage'
 import { PersonalWalletSettingsContext } from '@/providers/PersonalWalletSettingsProvider'
@@ -68,7 +65,7 @@ export default function PersonalAssets({ authMethod, userData, authMethodId }: P
   // Initialize data from props
   useEffect(() => {
     if (userData && authMethodId) {
-      setEmail(userData.email)
+      setEmail(userData.primaryEmail)
       setLitActionPkp(userData.litActionPkp ?? null)
       setBtcAddress(userData.addresses?.btc ?? null)
       setAddresses(userData.addresses ?? null)

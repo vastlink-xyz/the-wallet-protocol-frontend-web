@@ -1,6 +1,6 @@
 import { MessageProposal, MultisigWallet } from "@/app/api/multisig/storage";
 import { sendTeamNotification } from "@/lib/notification/team-notificatioin";
-import { getUserEmailFromStorage } from "@/lib/storage/user";
+import { getPrimaryEmailFromAuth } from "@/lib/storage/authmethod";
 import { IRelayPKP } from "@lit-protocol/types";
 import axios from "axios";
 import { generateSettingsChangeDescriptions } from "./settingsDescriptionUtils";
@@ -84,7 +84,7 @@ export const sendNotificationsToNewSigners = async (originalWallet: MultisigWall
     // Send email notifications to new signers if any
     if (newSigners.length > 0) {
       // Get current user's email
-      const currentUserEmail = getUserEmailFromStorage()
+      const currentUserEmail = getPrimaryEmailFromAuth() || ''
       
       // Build wallet link
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;

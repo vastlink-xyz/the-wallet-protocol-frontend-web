@@ -12,8 +12,6 @@ import { isSignInRedirect, getProviderFromUrl } from '@lit-protocol/lit-auth-cli
 import { AuthMethod, IRelayPKP } from '@lit-protocol/types';
 import { getEmailFromGoogleToken } from '@/lib/jwt';
 import { getAuthMethodFromStorage, setAuthMethodToStorage, clearAuthMethodFromStorage } from '@/lib/storage/authmethod';
-import { AUTH_METHOD_TYPE } from '@lit-protocol/constants';
-import { setUserDataToStorage } from '@/lib/storage/user';
 
 /**
  * @deprecated This Google OAuth callback page is deprecated and should not be used.
@@ -53,7 +51,6 @@ export default function GoogleCallbackPage() {
           const userEmail = authMethod.accessToken ? getEmailFromGoogleToken(authMethod.accessToken) : null;
           if (userEmail) {
             setEmail(userEmail);
-            setUserDataToStorage({ email: userEmail });
           }
           
           setAuthMethod(authMethod);
@@ -78,12 +75,6 @@ export default function GoogleCallbackPage() {
         if (userEmail) {
           setEmail(userEmail);
           
-          // Store user email in localStorage
-          try {
-            setUserDataToStorage({ email: userEmail });
-          } catch (error) {
-            console.error('Failed to save user email to localStorage:', error);
-          }
         }
 
         redirectAfterAuthentication(storedAuthMethod)
