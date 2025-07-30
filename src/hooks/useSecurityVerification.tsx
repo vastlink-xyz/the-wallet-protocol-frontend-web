@@ -3,14 +3,13 @@ import { useState, useCallback } from 'react';
 import { PinVerificationDialog } from '@/components/Transaction/PinVerificationDialog';
 import { MFASelectionDialog, MFAOption } from '@/components/Transaction/MFASelectionDialog';
 import React from 'react';
-import { AuthMethod } from '@lit-protocol/types';
 import { useUserData } from './useUserData';
 import { PinService } from '@/services/pinService';
 import { SecurityLayerService } from '@/services/securityLayerService';
 import { toast } from 'react-toastify';
+import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
 
 interface UseSecurityVerificationParams {
-  authMethod: AuthMethod | null;
   // Function to call the transaction (should call lit action), returns a Promise with the lit action response
   executeTransaction: (params: any) => Promise<any>;
 }
@@ -29,10 +28,10 @@ interface UseSecurityVerificationResult {
 
 export function useSecurityVerification({
   executeTransaction,
-  authMethod,
 }: UseSecurityVerificationParams): UseSecurityVerificationResult {
-  // Get user data for PIN verification
+  // Get user data and auth method
   const { userData } = useUserData();
+  const authMethod = getAuthMethodFromStorage();
   
   // State for PIN dialog
   const [showPinDialog, setShowPinDialog] = useState(false);

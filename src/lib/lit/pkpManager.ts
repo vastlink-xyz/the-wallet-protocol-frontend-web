@@ -4,36 +4,27 @@ import {
   LIT_ABILITY,
 } from '@lit-protocol/constants';
 import {
-  AuthMethod,
   IRelayPKP,
   MintRequestBody,
   SessionSigs,
 } from '@lit-protocol/types';
-import { LitRelay } from '@lit-protocol/lit-auth-client';
 import { LitActionResource, LitPKPResource } from '@lit-protocol/auth-helpers';
 import { log } from '@/lib/utils';
 import { getMultiProviderAuthIpfsId, getPersonalTransactionIpfsId, getUpgradeIpfsId } from './ipfs-id-env';
 import { getPersonalSignIpfsId } from './ipfs-id-env';
-import { generateUnifiedAuthMethodId, getVastbaseAuthMethodType } from './custom-auth';
-import { SELECTED_LIT_NETWORK } from './config';
+import { generateUnifiedAuthMethodId, getVastbaseAuthMethodType, AuthProviderType } from './custom-auth';
 import { litNodeClient, litRelay } from './providers';
 /**
  * Get all PKPs for the user
- * @param authMethod Authentication method
+ * Note: This function is currently not implemented and returns empty array
  */
-export async function getPKPs({
-  authMethod,
-}: {
-  authMethod: AuthMethod,
-}): Promise<IRelayPKP[]> {
+export async function getPKPs(): Promise<IRelayPKP[]> {
   return [];
 }
 
 export async function mintPKP({
-  authMethod,
   options,
 }: {
-  authMethod: AuthMethod,
   options: MintRequestBody,
 }
 ): Promise<IRelayPKP> {
@@ -207,33 +198,21 @@ export async function mintPersonalPKP({
  * This function is designed for our custom auth system using Lit Actions for verification
  */
 export async function getMultiProviderSessionSigs({
-  authMethod,
-  pkp,
+  pkpPublicKey,
+  pkpTokenId,
+  accessToken,
+  providerType,
+  userEmail,
 }: {
-  authMethod: {
-    authMethodType: string;
-    authMethodId: string;
-    accessToken: string;
-  };
-  pkp: IRelayPKP;
+  pkpPublicKey: string;
+  pkpTokenId: string;
+  accessToken: string;
+  providerType: AuthProviderType;
+  userEmail: string;
 }): Promise<SessionSigs> {
   try {
     if (!litNodeClient.ready) {
       await litNodeClient.connect();
-    }
-
-    log('Getting session sigs for multi-provider auth:', {
-      authMethodType: authMethod.authMethodType,
-      authMethodId: authMethod.authMethodId,
-      pkpEthAddress: pkp.ethAddress,
-    });
-
-    // Parse the accessToken to get provider details
-    let authTokenData;
-    try {
-      authTokenData = JSON.parse(authMethod.accessToken);
-    } catch (error) {
-      throw new Error('Invalid accessToken format in authMethod');
     }
 
     // Get the multi-provider auth Lit Action IPFS ID
@@ -242,15 +221,15 @@ export async function getMultiProviderSessionSigs({
     log('Using multi-provider auth Lit Action:', multiProviderAuthIpfsId);
 
     const sessionSigs = await litNodeClient.getPkpSessionSigs({
-      pkpPublicKey: pkp.publicKey,
+      pkpPublicKey,
       // Use Lit Action for custom authentication verification
       litActionIpfsId: multiProviderAuthIpfsId,
       jsParams: {
-        providerType: authTokenData.providerType,
-        accessToken: authTokenData.accessToken,
-        userEmail: authTokenData.userEmail,
-        pkpTokenId: pkp.tokenId,
-        authMethodType: authMethod.authMethodType,
+        providerType,
+        accessToken,
+        userEmail,
+        pkpTokenId,
+        authMethodType: getVastbaseAuthMethodType(),
         env: process.env.NEXT_PUBLIC_ENV || 'dev',
         devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
       },

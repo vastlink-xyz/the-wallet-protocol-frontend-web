@@ -443,7 +443,6 @@ export function MultisigWalletFormContent({
       ];
 
       const pkpForMultisig = await mintPKP({
-        authMethod,
         options: {
           permittedAuthMethodTypes: allAuthMethodTypes,
           permittedAuthMethodIds: allAuthMethodIds,

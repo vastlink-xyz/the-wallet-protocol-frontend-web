@@ -44,7 +44,6 @@ export function EditAuthmethod({
     const ipfsId = await uploadViaPinata(editAuthmethodForDebugLitActionCode);
     log('ipfsId', ipfsId)
     const pkp = await mintPKP({
-      authMethod,
       options: {
         permittedAuthMethodTypes: [AUTH_METHOD_TYPE.LitAction],
         permittedAuthMethodIds: [ipfsIdHex],

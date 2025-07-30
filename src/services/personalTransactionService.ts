@@ -1,12 +1,13 @@
-import { AuthMethod, IRelayPKP } from '@lit-protocol/types'
+import { IRelayPKP } from '@lit-protocol/types'
 import { broadcastTransactionByTokenType, getToSignTransactionByTokenType } from '@/lib/web3/transaction'
 import { SUPPORTED_TOKENS_INFO, TokenType } from '@/lib/web3/token'
-import { getSessionSigsByPkp } from '@/lib/lit/sessionManager'
+import { getMultiProviderSessionSigs } from '@/lib/lit/pkpManager'
 import { getPersonalTransactionIpfsId } from '@/lib/lit/ipfs-id-env'
 import { toast } from 'react-toastify'
 import { litNodeClient } from '@/lib/lit/providers'
 import { log } from '@/lib/utils'
 import { SendTransactionDialogState } from '@/components/Transaction/SendTransactionDialog'
+import { AuthProviderType } from '@/lib/lit/custom-auth'
 
 export const sendAddressByTokenType = (tokenType: TokenType, litActionPkp: IRelayPKP | null, btcAddress: string) => {
   if (tokenType === 'ETH') {
@@ -22,8 +23,11 @@ export const sendAddressByTokenType = (tokenType: TokenType, litActionPkp: IRela
 
 interface ExecuteTransactionParams {
   state: SendTransactionDialogState
-  authMethod: AuthMethod
+  accessToken: string
+  authMethodType: number
   authMethodId: string
+  providerType: AuthProviderType
+  userEmail: string
   litActionPkp: IRelayPKP
   btcAddress: string
   handleExpiredAuth: () => void
@@ -39,8 +43,11 @@ interface ExecuteTransactionParams {
 
 export const executePersonalTransaction = async ({
   state,
-  authMethod,
+  accessToken,
+  authMethodType,
   authMethodId,
+  providerType,
+  userEmail,
   litActionPkp,
   btcAddress,
   handleExpiredAuth,
@@ -81,10 +88,12 @@ export const executePersonalTransaction = async ({
       await litNodeClient.connect()
     }
 
-    const sessionSigs = await getSessionSigsByPkp({
-      authMethod, 
-      pkp: litActionPkp,
-      refreshStytchAccessToken: true,
+    const sessionSigs = await getMultiProviderSessionSigs({
+      pkpPublicKey: litActionPkp.publicKey,
+      pkpTokenId: litActionPkp.tokenId,
+      accessToken,
+      providerType,
+      userEmail,
     })
 
     const ipfsId = await getPersonalTransactionIpfsId('base58')
@@ -101,9 +110,9 @@ export const executePersonalTransaction = async ({
         devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
         chainType: SUPPORTED_TOKENS_INFO[tokenType].chainType,
         authParams: {
-          accessToken: authMethod.accessToken,
+          accessToken: accessToken,
           authMethodId: authMethodId,
-          authMethodType: authMethod.authMethodType,
+          authMethodType: authMethodType,
           devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
         },
         otp: otpCode || '',
@@ -190,7 +199,7 @@ export const executePersonalTransaction = async ({
 
 interface InviteUserParams {
   state: SendTransactionDialogState
-  authMethod: AuthMethod
+  accessToken: string
   authMethodId: string
   setIsSending: (sending: boolean) => void
   setResetAmount: (reset: boolean) => void
@@ -199,7 +208,7 @@ interface InviteUserParams {
 
 export const inviteUser = async ({
   state,
-  authMethod,
+  accessToken,
   authMethodId,
   setIsSending,
   setResetAmount,
@@ -214,7 +223,7 @@ export const inviteUser = async ({
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authMethod?.accessToken}`
+        'Authorization': `Bearer ${accessToken}`
       },
       body: JSON.stringify({
         recipientEmail: to,

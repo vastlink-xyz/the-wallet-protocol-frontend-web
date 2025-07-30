@@ -75,13 +75,11 @@ export default function PortfolioPage() {
 
     <div className="flex flex-wrap gap-10">
       <PersonalAssets
-        authMethod={authMethod}
         userData={userData}
         authMethodId={authMethodId}
       />
       <TeamAssets
         ref={teamAssetsRef}
-        authMethod={authMethod}
         userData={userData}
         authMethodId={authMethodId}
       />

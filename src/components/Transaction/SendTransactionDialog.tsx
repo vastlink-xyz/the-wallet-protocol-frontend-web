@@ -7,7 +7,7 @@ import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { Loader2 } from "lucide-react";
 import { SelectToken } from "../SelectToken";
-import { AuthMethod, IRelayPKP } from "@lit-protocol/types";
+import { IRelayPKP } from "@lit-protocol/types";
 import { getAuthIdByAuthMethod } from "@lit-protocol/lit-auth-client";
 import { MFAOtpDialog } from "./MFAOtpDialog";
 import { isValidEmail, log } from "@/lib/utils";
@@ -17,6 +17,7 @@ import { fetchBtcBalance } from "@/lib/web3/btc";
 import { MultisigWalletAddresses } from "@/app/api/multisig/storage";
 import { useTranslations } from "next-intl";
 import { toast } from "react-toastify";
+import { getAuthMethodFromStorage } from "@/lib/storage/authmethod";
 
 export interface SendTransactionDialogState {
   to: string
@@ -29,7 +30,6 @@ export interface SendTransactionDialogState {
 }
 
 interface SendTransactionDialogProps {
-  authMethod: AuthMethod
   showSendDialog: boolean
   showMfa: boolean
   onSendTransaction: (state: SendTransactionDialogState) => Promise<void>
@@ -46,7 +46,6 @@ interface SendTransactionDialogProps {
 }
 
 export function SendTransactionDialog({
-  authMethod,
   showSendDialog,
   showMfa,
   onSendTransaction,
@@ -61,6 +60,12 @@ export function SendTransactionDialog({
   userLitAction,
   disablePin = false,
 }: SendTransactionDialogProps) {
+  // Get auth method from localStorage
+  const authMethod = getAuthMethodFromStorage()
+  
+  if (!authMethod) {
+    return null // or some error state
+  }
   const t = useTranslations('SendTransactionDialog')
 
   // transaction state

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useContext } from 'react'
-import { AuthMethod, IRelayPKP } from '@lit-protocol/types'
+import { IRelayPKP } from '@lit-protocol/types'
 import { SendTransactionDialog, SendTransactionDialogState } from '@/components/Transaction/SendTransactionDialog'
 import { useAuthExpiration } from '@/hooks/useAuthExpiration'
 import { MultisigWalletAddresses } from '@/app/api/multisig/storage'
@@ -12,14 +12,14 @@ import { User } from '@/app/api/user/storage'
 import { PersonalWalletSettingsContext } from '@/providers/PersonalWalletSettingsProvider'
 import { useSecurityVerification } from '@/hooks/useSecurityVerification'
 import { SwapDialog } from '@/components/Transaction/SwapDialog'
+import { getAuthMethodFromStorage } from '@/lib/storage/authmethod'
 
 interface PersonalAssetsProps {
-  authMethod: AuthMethod
   userData: User
   authMethodId: string
 }
 
-export default function PersonalAssets({ authMethod, userData, authMethodId }: PersonalAssetsProps) {
+export default function PersonalAssets({ userData, authMethodId }: PersonalAssetsProps) {
   const { handleExpiredAuth } = useAuthExpiration()
 
   const [litActionPkp, setLitActionPkp] = useState<IRelayPKP | null>(null)
@@ -34,16 +34,22 @@ export default function PersonalAssets({ authMethod, userData, authMethodId }: P
 
   const { showPersonalWalletSettings } = useContext(PersonalWalletSettingsContext);
 
+  // Get auth method data from localStorage
+  const authMethod = getAuthMethodFromStorage()
+  
   // Create executeTransaction function for the security hook
   const executeTransactionWithSecurity = async (params: any) => {
-    if (!litActionPkp || !authMethodId) {
+    if (!litActionPkp || !authMethodId || !authMethod) {
       throw new Error('Missing required data')
     }
 
     return await executePersonalTransaction({
       state: params.state,
-      authMethod,
+      accessToken: authMethod.accessToken,
+      authMethodType: authMethod.authMethodType,
       authMethodId,
+      providerType: authMethod.providerType,
+      userEmail: authMethod.primaryEmail,
       litActionPkp,
       btcAddress: btcAddress || '',
       handleExpiredAuth,
@@ -58,7 +64,6 @@ export default function PersonalAssets({ authMethod, userData, authMethodId }: P
 
   // Use the new security verification hook
   const securityVerification = useSecurityVerification({
-    authMethod,
     executeTransaction: executeTransactionWithSecurity,
   });
 
@@ -72,6 +77,10 @@ export default function PersonalAssets({ authMethod, userData, authMethodId }: P
       setIsLoading(false)
     }
   }, [userData, authMethodId])
+
+  if (!authMethod) {
+    return <div>Authentication required</div>
+  }
 
 
   const handleExecuteTransaction = async (state: SendTransactionDialogState) => {
@@ -97,7 +106,7 @@ export default function PersonalAssets({ authMethod, userData, authMethodId }: P
 
     await inviteUser({
       state,
-      authMethod,
+      accessToken: authMethod.accessToken,
       authMethodId,
       setIsSending: () => {}, // No-op since we use securityVerification.isVerifying for transaction state
       setResetAmount,
@@ -136,7 +145,6 @@ export default function PersonalAssets({ authMethod, userData, authMethodId }: P
       {
         (authMethodId && litActionPkp && showSendDialog) && (
           <SendTransactionDialog
-            authMethod={authMethod}
             showSendDialog={showSendDialog}
             showMfa={false}
             onSendTransaction={handleExecuteTransaction}

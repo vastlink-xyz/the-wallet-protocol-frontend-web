@@ -1,6 +1,6 @@
 'use client'
 
-import { AuthMethod, IRelayPKP } from '@lit-protocol/types'
+import { IRelayPKP } from '@lit-protocol/types'
 import { useCallback, useEffect, useState, forwardRef, useImperativeHandle, useContext } from 'react'
 import { MessageProposal, MultisigWallet } from '@/app/api/multisig/storage'
 import { SendTransactionDialog, SendTransactionDialogState } from '@/components/Transaction/SendTransactionDialog'
@@ -12,9 +12,9 @@ import { WalletCardSkeleton } from '@/app/assets/components/WalletCard/WalletCar
 import { createAndApproveTransactionProposal, executeTeamTransactionProposal, inviteTeamUser, handleTeamMfaVerify } from '@/services/teamTransactionService'
 import { MultisigSettingsContext } from '@/providers/MultisigSettingsProvider'
 import { SwapDialog } from '@/components/Transaction/SwapDialog'
+import { getAuthMethodFromStorage } from '@/lib/storage/authmethod'
 
 interface TeamAssetsProps {
-  authMethod: AuthMethod
   userData: User
   authMethodId: string
 }
@@ -27,7 +27,7 @@ interface MultisigWalletWithUnsignedProposalsCount extends MultisigWallet {
   unsignedProposalsCount: number
 }
 
-const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ authMethod, userData, authMethodId }, ref) => {
+const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ userData, authMethodId }, ref) => {
   const [userPkp, setUserPkp] = useState<IRelayPKP | null>(null)
   const [user, setUser] = useState<User | null>(null)
   const [mode, setMode] = useState<'create' | 'edit'>('create')
@@ -48,6 +48,9 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ authMethod, use
     enabled: false, // only need the refresh function
   });
 
+  // Get auth method data from localStorage
+  const authMethod = getAuthMethodFromStorage()
+  
   // Handler to refresh team wallets data
   const handleRefreshWallets = useCallback(() => {
     refreshNotifications(authMethodId, userPkp?.ethAddress);
@@ -207,6 +210,10 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ authMethod, use
       wallet: selectedWallet,
       executeTransactionHandler: handleExecuteTransactionProposal,
     })
+  }
+
+  if (!authMethod) {
+    return <div>Authentication required</div>
   }
 
   return (
