@@ -6,8 +6,7 @@ import { Proposal } from "@/app/wallet/[walletId]/details/proposals/components/P
 import { IRelayPKP } from "@lit-protocol/types";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
-import { getAuthMethodFromStorage } from "@/lib/storage/authmethod";
-import { getProviderByAuthMethodType } from "@/lib/lit";
+import { getAuthMethodFromStorage, getAuthMethodIdFromStorage } from "@/lib/storage/authmethod";
 import { LogoLoading } from "@/components/LogoLoading";
 import { useAuthExpiration } from "@/hooks/useAuthExpiration";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -43,8 +42,7 @@ export function ProposalsList({ proposals }: { proposals: PendingProposalNotific
         }
 
         setAuthMethod(authMethodFromStorage);
-        const provider = getProviderByAuthMethodType(authMethodFromStorage.authMethodType);
-        const authMethodIdValue = await provider.getAuthMethodId(authMethodFromStorage);
+        const authMethodIdValue = getAuthMethodIdFromStorage() || ''
         setAuthMethodId(authMethodIdValue);
 
         const userResponse = await fetch(`/api/user?authMethodId=${authMethodIdValue}`);

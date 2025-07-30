@@ -11,9 +11,8 @@ import {
 } from "@/components/ui/dialog";
 import { MFASettingsContent } from './MFASettingsContent';
 import { MFAPin } from '../MFAPin';
-import { getProviderByAuthMethodType } from '@/lib/lit';
 import { toast } from 'react-toastify';
-import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
+import { getAuthMethodFromStorage, getAuthMethodIdFromStorage } from '@/lib/storage/authmethod';
 import { getAuthIdByAuthMethod } from '@lit-protocol/lit-auth-client';
 import { log } from '@/lib/utils';
 import { SUPPORTED_TOKENS_INFO, TokenType, SUPPORTED_TOKEN_SYMBOLS } from '@/lib/web3/token';
@@ -143,14 +142,7 @@ export function PersonalWalletSettings() {
       try {
         setIsMfaLoading(true);
         // Get auth method directly from storage
-        const authMethod = getAuthMethodFromStorage();
-        if (!authMethod) {
-          console.error('No auth method found in storage');
-          return;
-        }
-
-        const provider = getProviderByAuthMethodType(authMethod.authMethodType);
-        const id = await provider.getAuthMethodId(authMethod);
+        const id = getAuthMethodIdFromStorage();
         setAuthMethodId(id);
 
         if (id) {

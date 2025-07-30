@@ -18,6 +18,15 @@ export interface AuthProvider {
   createdAt: Date;
 }
 
+// Define our custom auth method type for Vastbase multi-provider system
+export interface VastbaseAuthMethod {
+  authMethodType: number;
+  authMethodId: string;
+  accessToken: string;
+  providerType: AuthProviderType;
+  primaryEmail: string;
+}
+
 /**
  * Generate unified auth method ID for multi-provider authentication
  */

@@ -1,7 +1,5 @@
 'use client'
 
-import StytchOTP from './StytchOTP';
-import Social from './Social';
 import Image from 'next/image';
 
 export default function LoginForm() {
@@ -33,7 +31,6 @@ export default function LoginForm() {
 
         {/* Email Login Section */}
         <div>
-          <StytchOTP />
         </div>
       </div>
     </div>

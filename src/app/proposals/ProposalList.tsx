@@ -7,8 +7,7 @@ import { Proposal } from "@/app/wallet/[walletId]/details/proposals/components/P
 import { IRelayPKP } from "@lit-protocol/types";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
-import { getAuthMethodFromStorage } from "@/lib/storage/authmethod";
-import { getProviderByAuthMethodType } from "@/lib/lit";
+import { getAuthMethodFromStorage, getAuthMethodIdFromStorage } from "@/lib/storage/authmethod";
 import { LogoLoading } from "@/components/LogoLoading";
 import { cn } from "@/lib/utils";
 import { useAuthExpiration } from "@/hooks/useAuthExpiration";
@@ -57,8 +56,7 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
         }
 
         setAuthMethod(authMethodFromStorage);
-        const provider = getProviderByAuthMethodType(authMethodFromStorage.authMethodType);
-        const authMethodIdValue = await provider.getAuthMethodId(authMethodFromStorage);
+        const authMethodIdValue = getAuthMethodIdFromStorage() || ''
         setAuthMethodId(authMethodIdValue);
 
         const userResponse = await fetch(`/api/user?authMethodId=${authMethodIdValue}`);

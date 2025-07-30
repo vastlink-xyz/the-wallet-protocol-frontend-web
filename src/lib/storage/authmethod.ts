@@ -1,14 +1,5 @@
 import { AUTH_METHOD_STORAGE_KEY } from "../lit/config";
-import { AuthProviderType } from "../lit/custom-auth";
-
-// Define our custom auth method type for Vastbase multi-provider system
-export interface VastbaseAuthMethod {
-  authMethodType: number;
-  authMethodId: string;
-  accessToken: string;
-  providerType: AuthProviderType;
-  primaryEmail: string;
-}
+import { AuthProviderType, VastbaseAuthMethod } from "../lit/custom-auth";
 
 /**
  * Get auth method from localStorage
@@ -46,6 +37,11 @@ export function getAuthMethodTypeFromStorage() {
   return authMethod?.authMethodType || null;
 }
 
+export function getAuthMethodIdFromStorage() {
+  const authMethod = getAuthMethodFromStorage();
+  return authMethod?.authMethodId || null;
+}
+
 /**
  * Set auth method in localStorage
  * @param authMethod The Vastbase auth method object to store
@@ -81,7 +77,7 @@ export function clearAuthMethodFromStorage(): void {
  * Get primary email from stored auth method
  * @returns Primary email string or null if not found
  */
-export function getPrimaryEmailFromAuth(): string | null {
+export function getPrimaryEmailFromStorage(): string | null {
   const authMethod = getAuthMethodFromStorage();
   return authMethod?.primaryEmail || null;
 }
@@ -90,7 +86,7 @@ export function getPrimaryEmailFromAuth(): string | null {
  * Get provider type from stored auth method
  * @returns Provider type or null if not found
  */
-export function getProviderTypeFromAuth(): AuthProviderType | null {
+export function getProviderTypeFromStorage(): AuthProviderType | null {
   const authMethod = getAuthMethodFromStorage();
   return authMethod?.providerType || null;
 }

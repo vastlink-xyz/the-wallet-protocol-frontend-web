@@ -3,8 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { MultisigWallet } from "@/app/api/multisig/storage";
 import { IRelayPKP, AuthMethod } from "@lit-protocol/types";
-import { getAuthMethodFromStorage } from "@/lib/storage/authmethod";
-import { getProviderByAuthMethodType } from '@/lib/lit';
+import { getAuthMethodFromStorage, getAuthMethodIdFromStorage } from "@/lib/storage/authmethod";
 
 interface WalletContextType {
   wallet: MultisigWallet | null;
@@ -60,8 +59,7 @@ export function WalletProvider({
         }
         
         // Step 2: Get authMethodId (this step must be executed after getting authMethod)
-        const provider = getProviderByAuthMethodType(storedAuthMethod.authMethodType);
-        const currentAuthMethodId = await provider.getAuthMethodId(storedAuthMethod);
+        const currentAuthMethodId = getAuthMethodIdFromStorage() || ''
         setAuthMethodId(currentAuthMethodId);
         
         // Step 3: Use Promise.all to fetch remaining data in parallel

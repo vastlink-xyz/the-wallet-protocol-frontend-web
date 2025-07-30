@@ -1,14 +1,14 @@
 'use client'
 
 import { Button } from "@/components/ui/button"
-import { getLitActionIpfsCid, getPKPs, getSessionSigsByPkp, litNodeClient, mintPersonalPKP, mintPKP, getMultiProviderSessionSigs } from "@/lib/lit"
+import { getLitActionIpfsCid, getPKPs, getSessionSigsByPkp, litNodeClient, getMultiProviderSessionSigs } from "@/lib/lit"
 import { log } from "@/lib/utils";
 import { AccessControlConditions, SessionSigs } from "@lit-protocol/types";
 import { useEffect, useState } from "react";
 import { AUTH_METHOD_SCOPE, AUTH_METHOD_TYPE, LIT_ABILITY, LIT_CHAINS, LIT_NETWORK } from "@lit-protocol/constants";
 import { Example } from "./components/Example";
 import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
-import { getUserFromStorage, User } from '@/lib/storage/user';
+import { User } from '@/app/api/user/storage';
 import { fetchEthTransactionHistory } from "@/lib/web3/eth";
 import { getChainIdByChainName } from "@/lib/web3/token";
 import { getAuthIdByAuthMethod } from "@lit-protocol/lit-auth-client";
@@ -126,18 +126,6 @@ export default function DebugPage() {
     const response = await fetch(url.toString())
     const data = await response.json()
     log('response', data)
-  }
-
-  const handleMintPKP = async () => {
-    if (!authMethod) {
-      return
-    }
-
-    const pkp = await mintPersonalPKP({
-      authMethod,
-    })
-
-    log('pkp', pkp)
   }
   
   const handleExecuteLitActionCode = async () => {
@@ -483,7 +471,6 @@ export default function DebugPage() {
       <Button onClick={handleFetchEthTransactionHistory}>Fetch ETH transaction history</Button>
       <Button onClick={handleFetchBtcTransactionHistory}>Fetch BTC transaction history</Button>
       <Button onClick={handleTest}>Test</Button>
-      <Button onClick={handleMintPKP}>Mint PKP</Button>
       <Button onClick={handleExecuteLitActionCode}>Execute Lit Action Code</Button>
       <Button onClick={handleEncrypt}>Encrypt</Button>
       <Button onClick={handleDecrypt}>Decrypt</Button>

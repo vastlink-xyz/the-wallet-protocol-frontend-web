@@ -12,12 +12,11 @@ import {
 import { LitRelay } from '@lit-protocol/lit-auth-client';
 import { LitActionResource, LitPKPResource } from '@lit-protocol/auth-helpers';
 import { log } from '@/lib/utils';
-import { getProviderByAuthMethodType } from './providers';
 import { getMultiProviderAuthIpfsId, getPersonalTransactionIpfsId, getUpgradeIpfsId } from './ipfs-id-env';
 import { getPersonalSignIpfsId } from './ipfs-id-env';
 import { generateUnifiedAuthMethodId, getVastbaseAuthMethodType } from './custom-auth';
 import { SELECTED_LIT_NETWORK } from './config';
-import { litNodeClient } from './providers';
+import { litNodeClient, litRelay } from './providers';
 /**
  * Get all PKPs for the user
  * @param authMethod Authentication method
@@ -27,71 +26,7 @@ export async function getPKPs({
 }: {
   authMethod: AuthMethod,
 }): Promise<IRelayPKP[]> {
-  const provider = getProviderByAuthMethodType(authMethod.authMethodType)
-
-  if (!provider) {
-    throw new Error('Provider not available for this auth method');
-  }
-  
-  const allPKPs = await provider.fetchPKPsThroughRelayer(authMethod);
-  log('all pkps', authMethod, allPKPs);
-  return allPKPs;
-}
-
-/**
- * Mint a PKP permanently bound to a specific Lit Action
- * This PKP will only be able to execute the specified Lit Action and cannot be modified
- */
-export async function mintPersonalPKP({
-  authMethod,
-}: {
-  authMethod: AuthMethod,
-}
-): Promise<IRelayPKP> {
-  const provider = getProviderByAuthMethodType(authMethod.authMethodType)
-    
-  if (!provider) {
-    throw new Error('Provider not available for this auth method');
-  }
-  
-  const personalSignIpfsIdHex = await getPersonalSignIpfsId('hex')
-  const personalTransactionIpfsIdHex = await getPersonalTransactionIpfsId('hex')
-  // const upgradeIpfsIdHex = await getUpgradeIpfsId('hex')
-
-  const authMethodId = await provider.getAuthMethodId(authMethod);
-
-  // Set permissions for Lit Action bound PKP
-  const options: MintRequestBody = {
-    permittedAuthMethodTypes: [
-      AUTH_METHOD_TYPE.LitAction,
-      AUTH_METHOD_TYPE.LitAction,
-      // AUTH_METHOD_TYPE.LitAction,
-      authMethod.authMethodType,
-    ],
-    permittedAuthMethodIds: [
-      personalSignIpfsIdHex,
-      personalTransactionIpfsIdHex,
-      // upgradeIpfsIdHex,
-      authMethodId
-    ],
-    permittedAuthMethodPubkeys: ['0x', '0x', '0x'],
-    permittedAuthMethodScopes: [
-      [AUTH_METHOD_SCOPE.SignAnything],
-      [AUTH_METHOD_SCOPE.SignAnything], 
-      // [AUTH_METHOD_SCOPE.SignAnything],
-      [AUTH_METHOD_SCOPE.PersonalSign]
-    ],
-    addPkpEthAddressAsPermittedAddress: false,
-    sendPkpToItself: true,
-    keyType: 2 // Standard PKP type
-  };
-  
-  // Use the generic mintPKP function
-  const newPKP = await mintPKP({ authMethod, options });
-
-  console.log(`Send PKP to itself option enabled, no additional burn step needed`);
-
-  return newPKP;
+  return [];
 }
 
 export async function mintPKP({
@@ -102,17 +37,21 @@ export async function mintPKP({
   options: MintRequestBody,
 }
 ): Promise<IRelayPKP> {
-  const provider = getProviderByAuthMethodType(authMethod.authMethodType)
-
-  // Mint PKP through relay server
-  const txHash = await provider.mintPKPThroughRelayer(authMethod, options);
+  // Call relay to mint PKP
+  const mintResponse = await litRelay.mintPKP(JSON.stringify(options));
+    
+  if (!mintResponse || !mintResponse.requestId) {
+    throw new Error('Missing mint response or request ID from relay server');
+  }
+  
+  log('PKP mint request submitted:', mintResponse.requestId);
 
   let attempts = 3;
   let response = null;
 
   while (attempts > 0) {
     try {
-      response = await provider.relay.pollRequestUntilTerminalState(txHash);
+      response = await litRelay.pollRequestUntilTerminalState(mintResponse.requestId);
       break;
     } catch (err) {
       console.warn('Minting failed, retrying...', err);
@@ -144,7 +83,7 @@ export async function mintPKP({
  * Mint PKP using LitRelay directly for custom auth methods
  * This function bypasses the provider system for custom authentication
  */
-export async function mintCustomAuthPKP({
+export async function mintPersonalPKP({
   userEmail,
   providerType,
 }: {
@@ -153,12 +92,6 @@ export async function mintCustomAuthPKP({
 }): Promise<IRelayPKP> {
   try {
     log('Starting custom auth PKP minting for:', { userEmail, providerType });
-    
-    // Initialize LitRelay
-    const litRelay = new LitRelay({
-      relayUrl: LitRelay.getRelayUrl(SELECTED_LIT_NETWORK),
-      relayApiKey: 'test-api-key',
-    });
 
     const personalSignIpfsIdHex = await getPersonalSignIpfsId('hex')
     const personalTransactionIpfsIdHex = await getPersonalTransactionIpfsId('hex')

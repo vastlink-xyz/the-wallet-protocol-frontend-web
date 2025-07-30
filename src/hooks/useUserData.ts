@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { AuthMethod } from '@lit-protocol/types'
-import { getProviderByAuthMethodType } from '@/lib/lit'
 import { User } from '@/app/api/user/storage'
 import { useMemo } from 'react'
+import { getAuthMethodIdFromStorage } from '@/lib/storage/authmethod'
 
 interface UseUserDataReturn {
   userData: User | null
@@ -11,12 +11,6 @@ interface UseUserDataReturn {
   error: string | null
   hasPkp: boolean
   refetch: () => void
-}
-
-// Separate function to get authMethodId
-async function getAuthMethodId(authMethod: AuthMethod): Promise<string> {
-  const provider = getProviderByAuthMethodType(authMethod.authMethodType)
-  return await provider.getAuthMethodId(authMethod)
 }
 
 // Fetch user data function
@@ -29,8 +23,8 @@ async function fetchUserData(authMethodId: string): Promise<User> {
 }
 
 // Combined fetch function for both authMethodId and user data
-async function fetchUserWithAuthId(authMethod: AuthMethod): Promise<{ user: User; authMethodId: string }> {
-  const authMethodId = await getAuthMethodId(authMethod)
+async function fetchUserWithAuthId(): Promise<{ user: User; authMethodId: string }> {
+  const authMethodId = getAuthMethodIdFromStorage() || ''
   const user = await fetchUserData(authMethodId)
   return { user, authMethodId }
 }
@@ -48,7 +42,7 @@ export function useUserData(authMethod: AuthMethod | null): UseUserDataReturn {
       if (!authMethod) {
         throw new Error('No auth method provided')
       }
-      return fetchUserWithAuthId(authMethod)
+      return fetchUserWithAuthId()
     },
     enabled: !!authMethod, // Only run query when authMethod exists
     staleTime: 5 * 60 * 1000, // Consider data stale after 5 minutes

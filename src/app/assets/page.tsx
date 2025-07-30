@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import PersonalAssets from "./components/Personal/PersonalAssets";
-import { VastbaseAuthMethod } from "@/lib/storage/authmethod";
+import { VastbaseAuthMethod } from "@/lib/lit/custom-auth";
 import { getAuthMethodFromStorage } from "@/lib/storage";
 import { LogoLoading } from "@/components/LogoLoading";
 import { TeamAssetsRef, TeamAssets } from "./components/Team/TeamAssets";

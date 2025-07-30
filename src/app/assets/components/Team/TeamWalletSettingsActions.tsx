@@ -1,7 +1,6 @@
 import { useState, useEffect, useContext } from "react"
 import { WalletSettingsButton } from "@/app/assets/components/WalletCard/WalletSettingsButton"
-import { getAuthMethodFromStorage } from "@/lib/storage/authmethod"
-import { getProviderByAuthMethodType } from "@/lib/lit"
+import { getAuthMethodFromStorage, getAuthMethodIdFromStorage } from "@/lib/storage/authmethod"
 import { AuthMethod, IRelayPKP } from "@lit-protocol/types"
 import { useNotifications } from "@/hooks/useNotifications"
 import { MultisigWallet } from "@/app/api/multisig/storage"
@@ -34,8 +33,7 @@ export function TeamWalletSettingsActions({
         if (!storedAuthMethod) return
         
         setAuthMethod(storedAuthMethod)
-        const provider = getProviderByAuthMethodType(storedAuthMethod.authMethodType)
-        const authMethodId = await provider.getAuthMethodId(storedAuthMethod)
+        const authMethodId = getAuthMethodIdFromStorage() || ''
         setAuthMethodId(authMethodId)
         
         // Fetch user's information from database API

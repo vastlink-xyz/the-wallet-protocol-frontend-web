@@ -19,44 +19,7 @@ export const litNodeClient: LitNodeClient = new LitNodeClient({
 });
 
 // Initialize LitRelay
-const litRelay = new LitRelay({
+export const litRelay = new LitRelay({
   relayUrl: LitRelay.getRelayUrl(SELECTED_LIT_NETWORK),
   relayApiKey: 'test-api-key',
 });
-
-const googleProvider = new GoogleProvider({
-  relay: litRelay,
-  litNodeClient,
-  redirectUri: GOOGLE_SIGNIN_REDIRECT,
-});
-
-const stytchEmailOtpProvider = new StytchAuthFactorOtpProvider<'email'>(
-  {
-    relay: litRelay,
-    litNodeClient,
-  },
-  { appId: process.env.NEXT_PUBLIC_STYTCH_PROJECT_ID! },
-  'email',
-);
-
-// const appleProvider = new AppleProvider({
-//   relay: litRelay,
-//   litNodeClient,
-// });
-
-/**
- * Get the appropriate authentication provider based on the auth method type
- * @param authMethodType Authentication method type ('google', 'stytch', 'apple')
- * @returns The corresponding authentication provider
- */
-export function getProviderByAuthMethodType(authMethodType: number) {
-  switch (authMethodType) {
-    case AUTH_METHOD_TYPE.GoogleJwt:
-      return googleProvider;
-    case AUTH_METHOD_TYPE.StytchEmailFactorOtp:
-      return stytchEmailOtpProvider;
-    default:
-      throw new Error(`Unsupported auth method type: ${authMethodType}`);
-  }
-}
-

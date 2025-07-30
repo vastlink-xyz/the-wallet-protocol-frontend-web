@@ -10,9 +10,8 @@ import { CopyAddress } from '@/components/ui/CopyAddress'
 import Image from 'next/image'
 import { estimateSwap } from '@/lib/swap/estimateSwap'
 import { useRouter } from 'next/navigation'
-import { getAuthMethodFromStorage } from '@/lib/storage/authmethod'
+import { getAuthMethodFromStorage, getAuthMethodIdFromStorage } from '@/lib/storage/authmethod'
 import { AuthMethod, IRelayPKP } from '@lit-protocol/types'
-import { getProviderByAuthMethodType } from '@/lib/lit/providers'
 import { fetchERC20TokenBalance, fetchEthBalance } from "@/lib/web3/eth"
 import { getSessionSigsByPkp } from '@/lib/lit'
 import { ethers } from 'ethers'
@@ -124,8 +123,7 @@ export default function SwapPage() {
             try {
                 setIsLoading(true)
                 // Get user's authMethodId
-                const provider = getProviderByAuthMethodType(authMethod.authMethodType)
-                const authMethodId = await provider.getAuthMethodId(authMethod)
+                const authMethodId = getAuthMethodIdFromStorage() || ''
                 setAuthMethodId(authMethodId)
 
                 // Fetch user's information from database API

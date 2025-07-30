@@ -2,8 +2,7 @@ import { useState, useEffect } from "react"
 import { WalletSendReceiveButtons } from "./WalletSendReceiveButtons"
 import { SendTransactionDialog, SendTransactionDialogState } from "@/components/Transaction/SendTransactionDialog"
 import { AuthMethod, IRelayPKP } from '@lit-protocol/types'
-import { getAuthMethodFromStorage } from "@/lib/storage/authmethod"
-import { getProviderByAuthMethodType } from '@/lib/lit/providers'
+import { getAuthMethodFromStorage, getAuthMethodIdFromStorage } from "@/lib/storage/authmethod"
 import { useAuthExpiration } from '@/hooks/useAuthExpiration'
 import { MultisigWalletAddresses } from "@/app/api/multisig/storage"
 import { executePersonalTransaction, inviteUser } from '@/services/personalTransactionService'
@@ -43,8 +42,7 @@ export function PersonalWalletSendReceiveActions({
         if (!storedAuthMethod) return
         
         setAuthMethod(storedAuthMethod)
-        const provider = getProviderByAuthMethodType(storedAuthMethod.authMethodType)
-        const authMethodId = await provider.getAuthMethodId(storedAuthMethod)
+        const authMethodId = getAuthMethodIdFromStorage() || ''
         setAuthMethodId(authMethodId)
         
         // Fetch user's information from database API

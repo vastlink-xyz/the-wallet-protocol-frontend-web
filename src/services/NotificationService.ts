@@ -1,6 +1,7 @@
 
 import { MessageProposal } from '@/app/api/multisig/storage';
 import { shouldShowNotificationOnPath } from '@/constants/routes';
+import { getAuthMethodIdFromStorage } from '@/lib/storage/authmethod';
 import { PinService } from '@/services/pinService';
 import { AuthMethod } from '@lit-protocol/types';
 
@@ -59,10 +60,7 @@ export class NotificationService {
         return [];
       }
 
-      // Get the provider and derive authMethodId
-      const { getProviderByAuthMethodType } = await import('@/lib/lit');
-      const provider = getProviderByAuthMethodType(authMethod.authMethodType);
-      const authMethodId = await provider.getAuthMethodId(authMethod);
+      const authMethodId = getAuthMethodIdFromStorage() || ''
 
       const response = await fetch(`/api/multisig/messages/unsigned?authMethodId=${authMethodId}`, {
         method: 'GET',

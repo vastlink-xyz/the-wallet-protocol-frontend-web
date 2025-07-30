@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react"
 import { WalletSendReceiveButtons } from "@/app/assets/components/WalletCard/WalletSendReceiveButtons"
 import { SendTransactionDialog, SendTransactionDialogState } from "@/components/Transaction/SendTransactionDialog"
-import { getAuthMethodFromStorage } from "@/lib/storage/authmethod"
-import { getProviderByAuthMethodType } from "@/lib/lit"
+import { getAuthMethodFromStorage, getAuthMethodIdFromStorage } from "@/lib/storage/authmethod"
 import { AuthMethod, IRelayPKP } from "@lit-protocol/types"
 import { useNotifications } from "@/hooks/useNotifications"
 import { User } from "@/app/api/user/storage"
@@ -43,8 +42,8 @@ export function TeamWalletSendReceiveActions({
         if (!storedAuthMethod) return
         
         setAuthMethod(storedAuthMethod)
-        const provider = getProviderByAuthMethodType(storedAuthMethod.authMethodType)
-        const authMethodId = await provider.getAuthMethodId(storedAuthMethod)
+
+        const authMethodId = getAuthMethodIdFromStorage() || ''
         setAuthMethodId(authMethodId)
         
         // Fetch user's information from database API

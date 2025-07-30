@@ -10,6 +10,7 @@ import { AuthProviderType, generateUnifiedAuthMethodId, getVastbaseAuthMethodTyp
 import { setAuthMethodToStorage } from '@/lib/storage/authmethod';
 import { IRelayPKP } from '@lit-protocol/types';
 import { User } from '@/app/api/user/storage';
+import { mintPersonalPKP } from '@/lib/lit';
 
 interface CallbackParams {
   providerType: AuthProviderType;
@@ -288,17 +289,14 @@ export default function UnifiedAuthCallbackPage() {
 
   /**
    * Use Custom Auth Method to mint PKP
-   * Calls the mintCustomAuthPKP function from pkpManager
+   * Calls the mintPersonalPKP function from pkpManager
    */
   const mintCustomAuthPKP = async (callbackParams: CallbackParams, user: any): Promise<IRelayPKP> => {
     try {
       log('Starting PKP minting process for user:', user.id);
       
-      // Import the mint function from pkpManager
-      const { mintCustomAuthPKP: mintPKP } = await import('@/lib/lit/pkpManager');
-      
       // Call the mint function
-      const pkp = await mintPKP({
+      const pkp = await mintPersonalPKP({
         userEmail: callbackParams.userEmail,
         providerType: callbackParams.providerType,
       });

@@ -3,11 +3,12 @@ import { EditAuthmethod } from "./EditAuthmethod";
 import { ExecuteLitActionCode } from "./ExecuteLitActionCode";
 import { Upgrade } from "./Upgrade";
 import { useState, useEffect, useCallback } from "react";
-import { getProviderByAuthMethodType, getSessionSigs } from "@/lib/lit";
+import { getSessionSigs } from "@/lib/lit";
 import { log } from "@/lib/utils";
 import { AllUsers } from "./AllUsers";
 import { AllMultisigWallets } from "./AllMultisigWallets";
 import { BtcDemo } from "./BtcDemo";
+import { getAuthMethodIdFromStorage } from "@/lib/storage/authmethod";
 
 // Define tab options
 type DebugTab = 'edit-authmethod' | 'execute-lit-action' | 'upgrade' | 'all-users' | 'all-wallets' | 'btc-demo';
@@ -29,8 +30,7 @@ export function Example({
     
     try {
       setLoading(true);
-      const provider = getProviderByAuthMethodType(authMethod.authMethodType);
-      const authMethodId = await provider.getAuthMethodId(authMethod);
+      const authMethodId = getAuthMethodIdFromStorage() || ''
       
       const response = await fetch(`/api/user/pkp?authMethodId=${authMethodId}`);
       
