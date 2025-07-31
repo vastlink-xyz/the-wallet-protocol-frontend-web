@@ -7,7 +7,7 @@ import { LogoLoading } from '@/components/LogoLoading';
 import { toast } from 'react-toastify';
 import { parseError } from '@/lib/error';
 import { AuthProviderType, generateUnifiedAuthMethodId, getVastbaseAuthMethodType } from '@/lib/lit/custom-auth';
-import { setAuthMethodToStorage } from '@/lib/storage/authmethod';
+import { useAuthContext } from '@/hooks/useAuthContext';
 import { IRelayPKP } from '@lit-protocol/types';
 import { User } from '@/app/api/user/storage';
 import { mintPersonalPKP } from '@/lib/lit';
@@ -27,6 +27,7 @@ export default function UnifiedAuthCallbackPage() {
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { updateAuthMethod } = useAuthContext();
 
   useEffect(() => {
     log('Unified auth callback page loaded');
@@ -342,18 +343,21 @@ export default function UnifiedAuthCallbackPage() {
   };
 
   /**
-   * Store authentication data to local storage
+   * Store authentication data using Context provider
    */
   const storeAuthenticationData = async (callbackParams: CallbackParams, pkp: IRelayPKP, user: any) => {
     try {
-      // Store auth method with complete auth token data structure
-      setAuthMethodToStorage({
+      // Create auth method object
+      const authMethod = {
         authMethodType: getVastbaseAuthMethodType(),
         authMethodId: generateUnifiedAuthMethodId(callbackParams.userEmail),
         providerType: callbackParams.providerType,
         primaryEmail: callbackParams.userEmail,
         accessToken: callbackParams.accessToken,
-      });
+      };
+
+      // Update auth method via Context (this will also update localStorage)
+      updateAuthMethod(authMethod);
 
       log('Authentication data stored successfully');
 

@@ -12,7 +12,7 @@ import { User } from '@/app/api/user/storage'
 import { PersonalWalletSettingsContext } from '@/providers/PersonalWalletSettingsProvider'
 import { useSecurityVerification } from '@/hooks/useSecurityVerification'
 import { SwapDialog } from '@/components/Transaction/SwapDialog'
-import { getAuthMethodFromStorage } from '@/lib/storage/authmethod'
+import { useAuthContext } from '@/hooks/useAuthContext'
 
 interface PersonalAssetsProps {
   userData: User
@@ -34,8 +34,7 @@ export default function PersonalAssets({ userData, authMethodId }: PersonalAsset
 
   const { showPersonalWalletSettings } = useContext(PersonalWalletSettingsContext);
 
-  // Get auth method data from localStorage
-  const authMethod = getAuthMethodFromStorage()
+  const { authMethod } = useAuthContext();
   
   // Create executeTransaction function for the security hook
   const executeTransactionWithSecurity = async (params: any) => {

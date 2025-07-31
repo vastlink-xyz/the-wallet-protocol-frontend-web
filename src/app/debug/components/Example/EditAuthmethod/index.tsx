@@ -3,7 +3,6 @@ import { litNodeClient } from "@/lib/lit/providers";
 import { log } from "@/lib/utils";
 import { LitActionResource, LitPKPResource } from "@lit-protocol/auth-helpers";
 import { AUTH_METHOD_SCOPE, AUTH_METHOD_TYPE, LIT_ABILITY, LIT_NETWORK } from "@lit-protocol/constants";
-import { getAuthIdByAuthMethod } from "@lit-protocol/lit-auth-client";
 import { IRelayPKP } from "@lit-protocol/types";
 import { VastbaseAuthMethod } from "@/lib/lit/custom-auth";
 import { useState, useEffect } from "react";
@@ -60,37 +59,21 @@ export function EditAuthmethod({
     setPkp(pkp);
   }
 
-  const getSessionSigs = async () => {
+
+
+  const handleAddAuthmethod = async () => {
     if (!pkp || !actionPkp) {
       throw new Error('No PKP available');
     }
 
-    if (!litNodeClient.ready) {
-      await litNodeClient.connect();
-    }
-
-    const sessionSigs = await litNodeClient.getPkpSessionSigs({
+    const sessionSigs = await getMultiProviderSessionSigs({
       pkpPublicKey: pkp.publicKey,
-      authMethods: [authMethod],
-      resourceAbilityRequests: [
-        {
-          resource: new LitPKPResource('*'),
-          ability: LIT_ABILITY.PKPSigning,
-        },
-        {
-          resource: new LitActionResource('*'),
-          ability: LIT_ABILITY.LitActionExecution,
-        }
-      ],
+      pkpTokenId: pkp.tokenId,
+      accessToken: authMethod.accessToken,
+      providerType: authMethod.providerType,
+      userEmail: authMethod.primaryEmail,
     });
-  
-    return sessionSigs;
-  }
-
-  const handleAddAuthmethod = async () => {
-    const sessionSigs = await getSessionSigs();
     log('sessionSigs', sessionSigs)
-    // const authMethodId = await getAuthIdByAuthMethod(authMethod)
     const ipfsIdHex = await getLitActionIpfsCid({
       input: editAuthmethodForDebugLitActionCode,
       outputFormat: 'hex',
@@ -129,10 +112,16 @@ export function EditAuthmethod({
       return;
     }
 
-    const sessionSigs = await getSessionSigs();
+    const sessionSigs = await getMultiProviderSessionSigs({
+      pkpPublicKey: pkp.publicKey,
+      pkpTokenId: pkp.tokenId,
+      accessToken: authMethod.accessToken,
+      providerType: authMethod.providerType,
+      userEmail: authMethod.primaryEmail,
+    });
     log('sessionSigs', sessionSigs)
     const authMethodType = authMethod.authMethodType
-    const authMethodId = await getAuthIdByAuthMethod(authMethod)
+    const authMethodId = authMethod.authMethodId
     const response = await litNodeClient.executeJs({
       code: editAuthmethodForDebugLitActionCode,
       sessionSigs,

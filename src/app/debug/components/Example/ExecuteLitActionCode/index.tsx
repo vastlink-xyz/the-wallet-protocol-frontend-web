@@ -2,8 +2,7 @@ import { Button } from "@/components/ui/button";
 import { litNodeClient } from "@/lib/lit/providers";
 import { useCustomAuthSessionSigs } from "@/hooks/useAuthContext";
 import { log } from "@/lib/utils";
-import { getAuthIdByAuthMethod } from "@lit-protocol/lit-auth-client";
-import { AuthMethod, IRelayPKP } from "@lit-protocol/types";
+import { IRelayPKP } from "@lit-protocol/types";
 import { calculateCIDFromString, getLitActionIpfsCid, hexCidToBase58, uploadViaPinata } from "@/lib/lit/get-lit-action-ipfs-cid";
 import { AUTH_METHOD_TYPE } from "@lit-protocol/constants";
 import { ethers } from "ethers";
@@ -20,6 +19,7 @@ import { litActionCodeForMultisigTransaction } from "@/lib/lit-action-code/multi
 import { litActionCodeForCreateMultisigWallet } from "@/lib/lit-action-code/create-multisig-wallet";
 import { litActionCodeForSecurityVerification } from "@/lib/lit-action-code/security-verification.lit";
 import { litActionCodeForMultiProviderAuth } from "@/lib/lit-action-code/multi-provider-auth.lit";
+import { VastbaseAuthMethod } from "@/lib/lit/custom-auth";
 
 
 const litActionCode = litActionCodeForMultiProviderAuth
@@ -29,7 +29,7 @@ const litActionCode = litActionCodeForMultiProviderAuth
 // const litActionCode = litActionCodeForPersonalTransaction
 
 interface ExecuteLitActionCodeProps {
-  authMethod: AuthMethod;
+  authMethod: VastbaseAuthMethod;
   actionPkp: IRelayPKP | null;
   loading: boolean;
 }
@@ -59,7 +59,7 @@ export function ExecuteLitActionCode({
     }
     log('sessionSigs', sessionSigs);
     
-    const authMethodId = await getAuthIdByAuthMethod(authMethod);
+    const authMethodId = authMethod.authMethodId;
     const authMethodType = authMethod.authMethodType
     try {
       const response = await litNodeClient.executeJs({
@@ -165,7 +165,7 @@ export function ExecuteLitActionCode({
     }
     log('sessionSigs', sessionSigs);
     
-    const authMethodId = await getAuthIdByAuthMethod(authMethod);
+    const authMethodId = authMethod.authMethodId;
     log('authMethodId', authMethodId);
     try {
       const response = await litNodeClient.executeJs({

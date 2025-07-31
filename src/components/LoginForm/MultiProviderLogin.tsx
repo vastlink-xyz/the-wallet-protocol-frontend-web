@@ -8,7 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { useRouter } from 'next/navigation';
 import { Mail } from 'lucide-react';
 import axios from 'axios';
-import { setAuthMethodToStorage } from '@/lib/storage/authmethod';
 import { toast } from 'react-toastify';
 import { parseError } from '@/lib/error';
 import { useTranslations } from 'next-intl';

@@ -7,7 +7,7 @@ import { Proposal } from "@/app/wallet/[walletId]/details/proposals/components/P
 import { IRelayPKP } from "@lit-protocol/types";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
-import { getAuthMethodFromStorage, getAuthMethodIdFromStorage } from "@/lib/storage/authmethod";
+import { useAuthContext } from '@/hooks/useAuthContext';
 import { LogoLoading } from "@/components/LogoLoading";
 import { cn } from "@/lib/utils";
 import { useAuthExpiration } from "@/hooks/useAuthExpiration";
@@ -21,6 +21,7 @@ export type ProposalStatus = "pending" | "completed" | "canceled";
 
 export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus }, ref) => {
   const t = useTranslations('ProposalList');
+  const { authMethod: authMethodFromStorage, authMethodId: authMethodIdValue } = useAuthContext();
 
   // Get URL search params for proposal targeting
   const searchParams = useSearchParams();
@@ -49,15 +50,12 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
   useEffect(() => {
     async function fetchUserData() {
       try {
-        const authMethodFromStorage = getAuthMethodFromStorage();
         if (!authMethodFromStorage) {
           setIsLoadingUser(false);
           return;
         }
 
         setAuthMethod(authMethodFromStorage);
-        const authMethodIdValue = getAuthMethodIdFromStorage() || ''
-        setAuthMethodId(authMethodIdValue);
 
         const userResponse = await fetch(`/api/user?authMethodId=${authMethodIdValue}`);
         if (userResponse.ok) {
@@ -74,7 +72,7 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
     }
 
     fetchUserData();
-  }, []);
+  }, [authMethodFromStorage, authMethodIdValue]);
 
   // Fetch user phone number separately
   useEffect(() => {

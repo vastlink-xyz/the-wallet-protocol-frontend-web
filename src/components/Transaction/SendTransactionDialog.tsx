@@ -15,7 +15,7 @@ import { fetchEthBalance, fetchERC20TokenBalance } from "@/lib/web3/eth";
 import { fetchBtcBalance } from "@/lib/web3/btc";
 import { MultisigWalletAddresses } from "@/app/api/multisig/storage";
 import { useTranslations } from "next-intl";
-import { getAuthMethodFromStorage } from "@/lib/storage/authmethod";
+import { useAuthContext } from '@/hooks/useAuthContext';
 
 export interface SendTransactionDialogState {
   to: string
@@ -59,7 +59,7 @@ export function SendTransactionDialog({
   disablePin = false,
 }: SendTransactionDialogProps) {
   // Get auth method from localStorage
-  const authMethod = getAuthMethodFromStorage()
+  const { authMethod } = useAuthContext()
 
   // Early return for no auth method case
   if (!authMethod) {

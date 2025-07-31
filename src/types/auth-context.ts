@@ -1,6 +1,5 @@
 import { SessionSigs } from '@lit-protocol/types';
 import { VastbaseAuthMethod } from '@/lib/lit/custom-auth';
-import { User } from '@/app/api/user/storage';
 
 /**
  * Value type provided by AuthMethod Context
@@ -9,11 +8,11 @@ export interface AuthContextValue {
   /** Current authentication method object */
   authMethod: VastbaseAuthMethod | null;
   
-  /** Current user data */
-  userData: User | null;
-  
   /** Method to get Custom Auth Session Signatures */
   getCustomAuthSessionSigs: () => Promise<SessionSigs | null>;
+  
+  /** Method to update authentication method */
+  updateAuthMethod: (newAuthMethod: VastbaseAuthMethod | null) => void;
   
   // Convenience properties
   /** Authentication method ID */
@@ -27,7 +26,4 @@ export interface AuthContextValue {
   
   /** Primary email */
   primaryEmail: string | null;
-  
-  /** Whether user has PKP */
-  hasPkp: boolean;
 }

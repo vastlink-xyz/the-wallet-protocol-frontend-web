@@ -12,7 +12,7 @@ import { WalletCardSkeleton } from '@/app/assets/components/WalletCard/WalletCar
 import { createAndApproveTransactionProposal, executeTeamTransactionProposal, inviteTeamUser, handleTeamMfaVerify } from '@/services/teamTransactionService'
 import { MultisigSettingsContext } from '@/providers/MultisigSettingsProvider'
 import { SwapDialog } from '@/components/Transaction/SwapDialog'
-import { getAuthMethodFromStorage } from '@/lib/storage/authmethod'
+import { useAuthContext } from '@/hooks/useAuthContext'
 
 interface TeamAssetsProps {
   userData: User
@@ -48,7 +48,7 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ userData, authM
   });
 
   // Get auth method data directly from localStorage
-  const authMethod = getAuthMethodFromStorage()
+  const { authMethod } = useAuthContext();
   
   // Handler to refresh team wallets data
   const handleRefreshWallets = useCallback(() => {

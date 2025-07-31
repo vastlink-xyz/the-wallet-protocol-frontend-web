@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext } from "react"
 import { WalletSettingsButton } from "@/app/assets/components/WalletCard/WalletSettingsButton"
-import { getAuthMethodFromStorage, getAuthMethodIdFromStorage } from "@/lib/storage/authmethod"
+import { useAuthContext } from '@/hooks/useAuthContext'
 import { IRelayPKP } from "@lit-protocol/types"
 import { useNotifications } from "@/hooks/useNotifications"
 import { MultisigWallet } from "@/app/api/multisig/storage"
@@ -15,7 +15,7 @@ export function TeamWalletSettingsActions({
   wallet,
   refreshProposals,
 }: TeamWalletSettingsActionsProps) {
-  const [authMethodId, setAuthMethodId] = useState<string>('')
+  const { authMethod, authMethodId } = useAuthContext()
   const [userPkp, setUserPkp] = useState<IRelayPKP | null>(null)
   
   const { showMultisigSettings } = useContext(MultisigSettingsContext);
@@ -28,11 +28,7 @@ export function TeamWalletSettingsActions({
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const storedAuthMethod = getAuthMethodFromStorage()
-        if (!storedAuthMethod) return
-        
-        const authMethodId = getAuthMethodIdFromStorage() || ''
-        setAuthMethodId(authMethodId)
+        if (!authMethod || !authMethodId) return
         
         // Fetch user's information from database API
         const userResponse = await fetch(`/api/user?authMethodId=${authMethodId}`)
@@ -53,7 +49,7 @@ export function TeamWalletSettingsActions({
     }
     
     fetchUserData()
-  }, [])
+  }, [authMethod, authMethodId])
 
   const handleSettingsSuccess = async () => {
     // Refresh data after settings change

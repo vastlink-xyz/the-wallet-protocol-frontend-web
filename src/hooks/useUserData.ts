@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { User } from '@/app/api/user/storage'
 import { useMemo } from 'react'
-import { getAuthMethodIdFromStorage } from '@/lib/storage/authmethod'
+import { useAuthContext } from '@/hooks/useAuthContext'
 
 interface UseUserDataReturn {
   userData: User | null
@@ -22,11 +22,9 @@ async function fetchUserData(authMethodId: string): Promise<User> {
 }
 
 // Combined fetch function for both authMethodId and user data
-async function fetchUserWithAuthId(): Promise<{ user: User; authMethodId: string }> {
-  const authMethodId = getAuthMethodIdFromStorage()
-  
+async function fetchUserWithAuthId(authMethodId: string): Promise<{ user: User; authMethodId: string }> {
   if (!authMethodId) {
-    throw new Error('No auth method ID found in storage')
+    throw new Error('No auth method ID provided')
   }
   
   const user = await fetchUserData(authMethodId)
@@ -34,6 +32,9 @@ async function fetchUserWithAuthId(): Promise<{ user: User; authMethodId: string
 }
 
 export function useUserData(): UseUserDataReturn {
+  // Get authMethodId from Context
+  const { authMethodId: contextAuthMethodId } = useAuthContext()
+  
   // Use React Query to fetch user data
   const {
     data,
@@ -41,15 +42,16 @@ export function useUserData(): UseUserDataReturn {
     error,
     refetch
   } = useQuery({
-    queryKey: ['userData'],
-    queryFn: fetchUserWithAuthId,
+    queryKey: ['userData', contextAuthMethodId],
+    queryFn: () => fetchUserWithAuthId(contextAuthMethodId!),
+    enabled: !!contextAuthMethodId, // Only run query if authMethodId exists
     staleTime: 5 * 60 * 1000, // Consider data stale after 5 minutes
     gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
   })
 
   // Memoize computed values
   const userData = useMemo(() => data?.user || null, [data?.user])
-  const authMethodId = useMemo(() => data?.authMethodId || null, [data?.authMethodId])
+  const authMethodId = useMemo(() => contextAuthMethodId || null, [contextAuthMethodId])
   
   const hasPkp = useMemo(() => {
     if (!userData) return false

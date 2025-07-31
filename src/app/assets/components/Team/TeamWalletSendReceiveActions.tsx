@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import { WalletSendReceiveButtons } from "@/app/assets/components/WalletCard/WalletSendReceiveButtons"
 import { SendTransactionDialog, SendTransactionDialogState } from "@/components/Transaction/SendTransactionDialog"
-import { getAuthMethodFromStorage, getAuthMethodIdFromStorage } from "@/lib/storage/authmethod"
+import { useAuthContext } from '@/hooks/useAuthContext'
 import { IRelayPKP } from "@lit-protocol/types"
 import { useNotifications } from "@/hooks/useNotifications"
 import { User } from "@/app/api/user/storage"
@@ -29,8 +29,7 @@ export function TeamWalletSendReceiveActions({
   const [currentProposal, setCurrentProposal] = useState<MessageProposal | null>(null)
   
   // Get auth method data directly from localStorage
-  const authMethod = getAuthMethodFromStorage()
-  const authMethodId = getAuthMethodIdFromStorage() || ''
+  const { authMethod, authMethodId } = useAuthContext()
   
   // Notifications hook for UI refresh
   const { refreshNotifications } = useNotifications({

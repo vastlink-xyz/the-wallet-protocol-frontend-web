@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
+import { useAuthContext } from '@/hooks/useAuthContext';
 import { MFAPhoneWhatsApp } from './MFAPhoneWhatsApp';
 import { MFATOTP } from './MFATotp';
 import { SecurityLayer } from '@/types/security';
@@ -25,7 +25,7 @@ export function MFASettingsContent({ isOpen, authMethodId, onPhoneUpdated, onMFA
   const [securityLayers, setSecurityLayers] = useState<SecurityLayer[]>([]);
 
   const prevIsOpen = useRef(isOpen);
-  const authMethod = getAuthMethodFromStorage();
+  const { authMethod } = useAuthContext();
   const sessionJwt = authMethod?.accessToken || null;
 
   // Fetch security layers

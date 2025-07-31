@@ -667,6 +667,7 @@ export function MultisigWalletFormContent({
       walletPkp,
       accessToken: authMethod.accessToken,
       authMethodId,
+      userEmail: currentUserEmail,
     })
 
     if (response.data.success) {

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Wallet, LogOut, MenuIcon, Server, BellIcon } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
+import { useAuthContext } from '@/hooks/useAuthContext';
 import { isProtectedRoute } from '@/constants/routes';
 import { cn } from '@/lib/utils';
 import { useNotifications } from '@/hooks/useNotifications';
@@ -41,24 +41,18 @@ export function MobileMenu() {
   const pathname = usePathname();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const { proposalNotifications, allNotifications } = useNotifications();
+  const { authMethod } = useAuthContext();
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  useEffect(() => {
-    const authMethod = getAuthMethodFromStorage();
-    setIsLoggedIn(!!authMethod);
-  }, [pathname]);
-
   if (!mounted) {
     return null;
   }
 
-  const authMethod = getAuthMethodFromStorage();
   const showMenu = authMethod && isProtectedRoute(pathname);
 
   if (!showMenu) {
@@ -131,7 +125,7 @@ export function MobileMenu() {
                   </div>
                 </MobileMenuItem>
 
-                {isLoggedIn && (
+                {authMethod && (
                   <>
                     <div className="mx-2 my-2 border-t border-gray-200"></div>
                     <button

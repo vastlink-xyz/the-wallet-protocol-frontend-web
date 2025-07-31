@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { MultisigWallet } from "@/app/api/multisig/storage";
 import { IRelayPKP } from "@lit-protocol/types";
 import { VastbaseAuthMethod } from "@/lib/lit/custom-auth";
-import { getAuthMethodFromStorage, getAuthMethodIdFromStorage } from "@/lib/storage/authmethod";
+import { useAuthContext } from '@/hooks/useAuthContext';
 
 interface WalletContextType {
   wallet: MultisigWallet | null;
@@ -37,6 +37,7 @@ export function WalletProvider({
   children: React.ReactNode,
   walletId: string 
 }) {
+  const { authMethod: storedAuthMethod, authMethodId: currentAuthMethodId } = useAuthContext();
   const [wallet, setWallet] = useState<MultisigWallet | null>(null);
   const [walletPkp, setWalletPkp] = useState<IRelayPKP | null>(null);
   const [userPkp, setUserPkp] = useState<IRelayPKP | null>(null);
@@ -50,8 +51,7 @@ export function WalletProvider({
       setIsLoading(true);
       
       try {
-        // Step 1: Get auth method from localStorage (this step must be executed first)
-        const storedAuthMethod = getAuthMethodFromStorage();
+        // Step 1: Get auth method from context (this step must be executed first)
         setAuthMethod(storedAuthMethod);
         
         if (!storedAuthMethod) {
@@ -59,8 +59,7 @@ export function WalletProvider({
           return;
         }
         
-        // Step 2: Get authMethodId (this step must be executed after getting authMethod)
-        const currentAuthMethodId = getAuthMethodIdFromStorage() || ''
+        // Step 2: Get authMethodId from context (this step must be executed after getting authMethod)
         setAuthMethodId(currentAuthMethodId);
         
         // Step 3: Use Promise.all to fetch remaining data in parallel
@@ -134,7 +133,7 @@ export function WalletProvider({
     }
     
     initializeData();
-  }, [walletId]);
+  }, [walletId, storedAuthMethod, currentAuthMethodId]);
 
   return (
     <WalletContext.Provider value={{ 

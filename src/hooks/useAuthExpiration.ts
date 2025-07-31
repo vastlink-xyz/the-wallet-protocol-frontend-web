@@ -2,7 +2,7 @@ import { useRouter } from 'next/navigation';
 import { useCallback } from 'react';
 import { toast } from 'react-toastify';
 import { isTokenValid } from '@/lib/jwt';
-import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
+import { useAuthContext } from '@/hooks/useAuthContext';
 
 /**
  * Hook for handling authentication expiration
@@ -11,6 +11,7 @@ import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
  */
 export function useAuthExpiration() {
   const router = useRouter();
+  const { authMethod } = useAuthContext();
   
   const handleExpiredAuth = useCallback((message?: string) => {
     const defaultMessage = 'Your access token has expired. Please log in again.';
@@ -27,7 +28,6 @@ export function useAuthExpiration() {
   }, [router]);
   
   const verifyAuthOrRedirect = useCallback(async () => {
-    const authMethod = getAuthMethodFromStorage();
     if (!authMethod) {
       handleExpiredAuth();
       return false;
@@ -40,7 +40,7 @@ export function useAuthExpiration() {
     }
     
     return true;
-  }, [handleExpiredAuth]);
+  }, [authMethod, handleExpiredAuth]);
 
   // Periodic checking is now handled globally by AuthGuard component
   

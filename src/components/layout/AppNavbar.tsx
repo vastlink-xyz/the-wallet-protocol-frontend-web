@@ -3,8 +3,6 @@
 import { useRouter, usePathname } from 'next/navigation'
 import { AlertTriangleIcon } from 'lucide-react'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
-import { getAuthMethodFromStorage } from '@/lib/storage/authmethod'
 import { shouldHideNavbar } from '@/constants/routes'
 import { cn } from '@/lib/utils'
 import { MobileMenu } from './MobileMenu'
@@ -15,21 +13,7 @@ import LocaleSwitcher from '../LocaleSwitcher'
 export default function AppNavbar() {
   const t = useTranslations('AppNavbar');
 
-  const router = useRouter()
   const pathname = usePathname()
-
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-
-  useEffect(() => {
-    // Check if user is logged in
-    const authMethod = getAuthMethodFromStorage()
-    setIsLoggedIn(!!authMethod)
-  }, [pathname]) // Re-check when pathname changes
-
-  const handleLogout = () => {
-    localStorage.clear()
-    router.push('/')
-  }
 
   // Don't show navbar on public routes
   if (shouldHideNavbar(pathname)) {

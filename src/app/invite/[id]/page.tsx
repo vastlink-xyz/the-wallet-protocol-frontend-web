@@ -11,12 +11,12 @@ import { log } from '@/lib/utils';
 import { useParams } from 'next/navigation';
 import MultiProviderLogin from '@/components/LoginForm/MultiProviderLogin';
 import { LogoLoading } from '@/components/LogoLoading';
-import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
+import { useAuthContext } from '@/hooks/useAuthContext';
 import { getEmailFromGoogleToken, getUserIdFromToken } from '@/lib/jwt';
 import { AUTH_METHOD_TYPE } from '@lit-protocol/constants';
-import { getPrimaryEmailFromStorage } from '@/lib/storage/authmethod';
 
 export default function InvitePage() {
+  const { authMethod, primaryEmail } = useAuthContext();
   const [invitation, setInvitation] = useState<PendingInvitation | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -62,7 +62,6 @@ export default function InvitePage() {
     const checkEmailMismatch = async (invitationEmail: string) => {
       try {
         // Check if user is already logged in
-        const authMethod = getAuthMethodFromStorage();
         if (!authMethod) {
           setCurrentUserEmail(null);
           setEmailMismatch(false);
@@ -71,8 +70,8 @@ export default function InvitePage() {
 
         let userEmail: string | null = null;
 
-        // First try to get email from localStorage (cached)
-        userEmail = getPrimaryEmailFromStorage();
+        // First try to get email from context (cached)
+        userEmail = primaryEmail;
 
         // If not cached, extract from auth method
         if (!userEmail && authMethod?.authMethodType === AUTH_METHOD_TYPE.GoogleJwt && authMethod?.accessToken) {

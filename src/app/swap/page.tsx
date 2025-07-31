@@ -10,7 +10,7 @@ import { CopyAddress } from '@/components/ui/CopyAddress'
 import Image from 'next/image'
 import { estimateSwap } from '@/lib/swap/estimateSwap'
 import { useRouter } from 'next/navigation'
-import { getAuthMethodFromStorage, getAuthMethodIdFromStorage } from '@/lib/storage/authmethod'
+import { useAuthContext } from '@/hooks/useAuthContext'
 import { VastbaseAuthMethod } from '@/lib/lit/custom-auth';
 import { IRelayPKP } from '@lit-protocol/types'
 import { fetchERC20TokenBalance, fetchEthBalance } from "@/lib/web3/eth"
@@ -110,12 +110,13 @@ export default function SwapPage() {
     const [pendingSwapData, setPendingSwapData] = useState<any>(null);
 
 
-    // Load auth method from storage
+    // Load auth method from context
+    const { authMethod: storedAuthMethod, authMethodId: contextAuthMethodId } = useAuthContext()
+
     useEffect(() => {
-        const storedAuthMethod = getAuthMethodFromStorage()
         console.log('Stored auth method:', storedAuthMethod)
         setAuthMethod(storedAuthMethod)
-    }, [])
+    }, [storedAuthMethod])
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -123,9 +124,8 @@ export default function SwapPage() {
             console.log('in fetchUserData with authMethod:', authMethod)
             try {
                 setIsLoading(true)
-                // Get user's authMethodId
-                const authMethodId = getAuthMethodIdFromStorage() || ''
-                setAuthMethodId(authMethodId)
+                // Get user's authMethodId from context
+                setAuthMethodId(contextAuthMethodId)
 
                 // Fetch user's information from database API
                 const userResponse = await fetch(`/api/user?authMethodId=${authMethodId}`)

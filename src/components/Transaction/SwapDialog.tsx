@@ -28,6 +28,7 @@ import { toast } from 'react-toastify';
 import { MFAOtpDialog } from './MFAOtpDialog';
 import { useSecurityVerification } from '@/hooks/useSecurityVerification';
 import { useAuthContext } from '@/hooks/useAuthContext';
+import { useUserData } from '@/hooks/useUserData';
 
 type translate = (key: string, params?: any) => string;
 
@@ -394,7 +395,8 @@ function SwapContent({ t, teamWalletId }: { t: translate, teamWalletId?: string 
   const [assessedValue, setAssessedValue] = useState<AssessedValue | null>(null);
 
   // Get authentication data from Context
-  const { authMethod, authMethodId, userData } = useAuthContext();
+  const { authMethod, authMethodId } = useAuthContext();
+  const { userData } = useUserData();
 
   const {
     data: wallets,

@@ -3,7 +3,7 @@ import { WalletSendReceiveButtons } from "./WalletSendReceiveButtons"
 import { SendTransactionDialog, SendTransactionDialogState } from "@/components/Transaction/SendTransactionDialog"
 import { IRelayPKP } from '@lit-protocol/types'
 import { VastbaseAuthMethod } from '@/lib/lit/custom-auth'
-import { getAuthMethodFromStorage, getAuthMethodIdFromStorage } from "@/lib/storage/authmethod"
+import { useAuthContext } from '@/hooks/useAuthContext'
 import { useAuthExpiration } from '@/hooks/useAuthExpiration'
 import { MultisigWalletAddresses } from "@/app/api/multisig/storage"
 import { executePersonalTransaction, inviteUser } from '@/services/personalTransactionService'
@@ -26,8 +26,8 @@ export function PersonalWalletSendReceiveActions({
   onTransactionSuccess,
 }: WalletSendReceiveActionsProps) {
   const { handleExpiredAuth } = useAuthExpiration()
-  const [authMethod, setAuthMethod] = useState<VastbaseAuthMethod | null>(null)
-  const [authMethodId, setAuthMethodId] = useState<string | null>(null)
+  const { authMethod, authMethodId } = useAuthContext()
+
   const [litActionPkp, setLitActionPkp] = useState<IRelayPKP | null>(null)
   const [showSendDialog, setShowSendDialog] = useState(false)
   const [showSwapDialog, setShowSwapDialog] = useState(false)
@@ -38,12 +38,7 @@ export function PersonalWalletSendReceiveActions({
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const storedAuthMethod = getAuthMethodFromStorage()
-        if (!storedAuthMethod) return
-        
-        setAuthMethod(storedAuthMethod)
-        const authMethodId = getAuthMethodIdFromStorage() || ''
-        setAuthMethodId(authMethodId)
+        if (!authMethod || !authMethodId) return
         
         // Fetch user's information from database API
         const userResponse = await fetch(`/api/user?authMethodId=${authMethodId}`)
@@ -66,7 +61,7 @@ export function PersonalWalletSendReceiveActions({
     }
 
     fetchUserData()
-  }, [])
+  }, [authMethod, authMethodId])
 
   // Create executeTransaction function for the hook
   const executeTransactionWithSecurity = async (params: any) => {

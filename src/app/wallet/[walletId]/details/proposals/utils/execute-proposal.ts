@@ -21,6 +21,7 @@ interface IExecuteWalletSettingsProposalParams {
   mfaType?: string;
   mfaCode?: string;
   mfaMethodId?: string | null;
+  userEmail?: string;
 }
 
 interface IExecuteTransactionProposalParams {
@@ -47,6 +48,7 @@ export const executeWalletSettingsProposal = async ({
   mfaType,
   mfaCode,
   mfaMethodId,
+  userEmail,
 }: IExecuteWalletSettingsProposalParams) => {
   // Check if proposal is still pending
   if (proposal.status !== 'pending') {
@@ -118,7 +120,7 @@ export const executeWalletSettingsProposal = async ({
     const settingsData = proposal.settingsData
     if (updatedWallet && settingsData?.signers) {
       // Send notifications to new signers
-      sendNotificationsToNewSigners(wallet, updatedWallet);
+      sendNotificationsToNewSigners(wallet, updatedWallet, userEmail);
     }
 
     // Send proposal executed notification to all approvers

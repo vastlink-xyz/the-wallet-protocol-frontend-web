@@ -7,7 +7,7 @@ import { useUserData } from './useUserData';
 import { PinService } from '@/services/pinService';
 import { SecurityLayerService } from '@/services/securityLayerService';
 import { toast } from 'react-toastify';
-import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
+import { useAuthContext } from './useAuthContext';
 
 interface UseSecurityVerificationParams {
   // Function to call the transaction (should call lit action), returns a Promise with the lit action response
@@ -31,7 +31,7 @@ export function useSecurityVerification({
 }: UseSecurityVerificationParams): UseSecurityVerificationResult {
   // Get user data and auth method
   const { userData } = useUserData();
-  const authMethod = getAuthMethodFromStorage();
+  const { authMethod } = useAuthContext();
   
   // State for PIN dialog
   const [showPinDialog, setShowPinDialog] = useState(false);

@@ -7,15 +7,15 @@ import { getMultiProviderSessionSigs } from "@/lib/lit";
 import { AllUsers } from "./AllUsers";
 import { AllMultisigWallets } from "./AllMultisigWallets";
 import { BtcDemo } from "./BtcDemo";
-import { useAuthMethod } from "@/hooks/useAuthMethod";
 import { useUserData } from "@/hooks/useUserData";
+import { useAuthContext } from "@/hooks/useAuthContext";
 
 // Define tab options
 type DebugTab = 'edit-authmethod' | 'execute-lit-action' | 'upgrade' | 'all-users' | 'all-wallets' | 'btc-demo';
 
 export function Example() {
   // Use hook for stable auth method reference
-  const authMethod = useAuthMethod();
+  const { authMethod } = useAuthContext();
   const { userData } = useUserData();
   
   const [loading, setLoading] = useState(false);

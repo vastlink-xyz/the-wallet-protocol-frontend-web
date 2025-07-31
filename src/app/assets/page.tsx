@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import PersonalAssets from "./components/Personal/PersonalAssets";
 import { VastbaseAuthMethod } from "@/lib/lit/custom-auth";
-import { getAuthMethodFromStorage } from "@/lib/storage";
+import { useAuthContext } from '@/hooks/useAuthContext';
 import { LogoLoading } from "@/components/LogoLoading";
 import { TeamAssetsRef, TeamAssets } from "./components/Team/TeamAssets";
 import { cn } from "@/lib/utils";
@@ -23,15 +23,17 @@ export default function PortfolioPage() {
 
   const [authMethod, setAuthMethod] = useState<VastbaseAuthMethod | null>(null)
 
-  // Load auth method from storage
+  // Get auth method from Context
+  const { authMethod: storedAuthMethod } = useAuthContext()
+
+  // Load auth method from Context
   useEffect(() => {
-    const storedAuthMethod = getAuthMethodFromStorage()
     if (!storedAuthMethod) {
       router.push('/')
       return
     }
     setAuthMethod(storedAuthMethod)
-  }, [router])
+  }, [router, storedAuthMethod])
 
   // Fetch user data using custom hook
   const { userData, authMethodId, isLoading, error, hasPkp } = useUserData()

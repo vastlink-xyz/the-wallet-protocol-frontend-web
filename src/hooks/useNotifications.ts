@@ -3,7 +3,7 @@ import { usePathname } from 'next/navigation';
 import { useMemo, useCallback } from 'react';
 import { notificationService, Notification, MFANotification, PendingProposalNotification, PinNotification, NotificationContext } from '@/services/NotificationService';
 import { shouldShowNotificationOnPath } from '@/constants/routes';
-import { getAuthMethodFromStorage, getAuthMethodIdFromStorage } from '@/lib/storage/authmethod';
+import { useAuthContext } from '@/hooks/useAuthContext';
 
 interface UseNotificationsOptions {
   enabled?: boolean;
@@ -13,6 +13,7 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
   const { enabled = true } = options;
   const pathname = usePathname();
   const queryClient = useQueryClient();
+  const { authMethod, authMethodId } = useAuthContext();
 
   const shouldShow = useMemo(() => {
     return shouldShowNotificationOnPath(pathname);
@@ -24,8 +25,6 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
     queryFn: async (): Promise<MFANotification[]> => {
       try {
         if (!shouldShow) return [];
-        const authMethod = getAuthMethodFromStorage();
-        const authMethodId = getAuthMethodIdFromStorage();
         if (!authMethod || !authMethodId) return [];
         return await notificationService.getMFANotifications(authMethod.accessToken, authMethodId);
       } catch (error) {
@@ -44,7 +43,6 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
     queryFn: async (): Promise<PinNotification[]> => {
       try {
         if (!shouldShow) return [];
-        const authMethodId = getAuthMethodIdFromStorage();
         if (!authMethodId) return [];
         return await notificationService.getPinNotifications(authMethodId);
       } catch (error) {
@@ -63,7 +61,6 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
     queryFn: async (): Promise<PendingProposalNotification[]> => {
       try {
         if (!shouldShow) return [];
-        const authMethodId = getAuthMethodIdFromStorage();
         if (!authMethodId) return [];
         return await notificationService.getPendingProposalNotifications(authMethodId);
       } catch (error) {

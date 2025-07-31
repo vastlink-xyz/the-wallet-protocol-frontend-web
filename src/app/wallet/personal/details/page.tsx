@@ -2,8 +2,8 @@
 
 import { useRouter } from 'next/navigation';
 import { TransactionHistory } from '@/components/Transaction/TransactionHistory';
-import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
-import { getAuthIdByAuthMethod } from '@lit-protocol/lit-auth-client';
+import { useAuthContext } from '@/hooks/useAuthContext';
+import { useUserData } from '@/hooks/useUserData';
 import { useEffect } from 'react';
 import { useState } from 'react';
 import { MultisigWalletAddresses } from '@/app/api/multisig/storage';
@@ -26,31 +26,20 @@ export default function PersonalWalletDetailsPage() {
   const [btcAddress, setBtcAddress] = useState('');
   const [ethAddress, setEthAddress] = useState('');
   const [email, setEmail] = useState<string | null>(null);
+  const { authMethod } = useAuthContext();
+  const { userData } = useUserData();
 
   // Fetch user data
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         setIsLoading(true);
-        // Get user's authMethodId
-        const storedAuthMethod = getAuthMethodFromStorage();
-        if (!storedAuthMethod) return;
-        const authMethodId = await getAuthIdByAuthMethod(storedAuthMethod);
+        if (!userData) return;
 
-        // Fetch user's information from database API
-        const userResponse = await fetch(
-          `/api/user?authMethodId=${authMethodId}`
-        );
-
-        if (!userResponse.ok) {
-          throw new Error('Failed to fetch user information from database');
-        }
-
-        const userData = await userResponse.json();
         setAddresses(userData.addresses);
         setBtcAddress(userData.addresses?.btc);
         setEthAddress(userData.addresses?.eth);
-        setEmail(userData.email);
+        setEmail(userData.primaryEmail);
       } catch (error) {
         console.error('Error fetching data from database:', error);
       } finally {

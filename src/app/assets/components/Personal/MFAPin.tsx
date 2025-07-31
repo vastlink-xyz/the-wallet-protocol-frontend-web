@@ -8,7 +8,7 @@ import { toast } from 'react-toastify';
 import { useTranslations } from 'next-intl';
 import { PinService, PinData } from '@/services/pinService';
 import { useUserData } from '@/hooks/useUserData';
-import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
+import { useAuthContext } from '@/hooks/useAuthContext';
 
 // Interface for PIN status
 interface PinStatus {
@@ -87,7 +87,7 @@ export function MFAPin({
   const t = useTranslations("MFASettings");
   // Get user data and auth method for Lit Protocol operations
   const { userData, isLoading: isLoadingUser, error: userError } = useUserData();
-  const authMethod = getAuthMethodFromStorage();
+  const { authMethod } = useAuthContext();
   const [uiState, setUiState] = useState<PinUiState>('initial');
   const [pin, setPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');

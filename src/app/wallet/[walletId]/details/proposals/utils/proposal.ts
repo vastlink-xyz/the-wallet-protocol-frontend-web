@@ -1,6 +1,6 @@
 import { MessageProposal, MultisigWallet } from "@/app/api/multisig/storage";
 import { sendTeamNotification } from "@/lib/notification/team-notificatioin";
-import { getPrimaryEmailFromStorage } from "@/lib/storage/authmethod";
+import { useAuthContext } from '@/hooks/useAuthContext';
 import { IRelayPKP } from "@lit-protocol/types";
 import axios from "axios";
 import { generateSettingsChangeDescriptions } from "./settingsDescriptionUtils";
@@ -69,7 +69,7 @@ export const fetchUpdatedWallet = async (walletId: string) => {
 };
     
   // Function to send notifications to new signers after wallet settings update
-export const sendNotificationsToNewSigners = async (originalWallet: MultisigWallet, updatedWallet: MultisigWallet) => {
+export const sendNotificationsToNewSigners = async (originalWallet: MultisigWallet, updatedWallet: MultisigWallet, currentUserEmail?: string) => {
   try {
     // Get original signers
     const originalSigners = originalWallet.signers || [];
@@ -83,8 +83,6 @@ export const sendNotificationsToNewSigners = async (originalWallet: MultisigWall
     
     // Send email notifications to new signers if any
     if (newSigners.length > 0) {
-      // Get current user's email
-      const currentUserEmail = getPrimaryEmailFromStorage() || ''
       
       // Build wallet link
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;

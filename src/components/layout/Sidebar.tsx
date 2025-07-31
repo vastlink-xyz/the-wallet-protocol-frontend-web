@@ -3,7 +3,7 @@
 import { useContext, useEffect, useState } from 'react';
 import { Wallet, Server, ChevronLeft, LogOut, SettingsIcon, BellIcon } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
-import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
+import { useAuthContext } from '@/hooks/useAuthContext';
 import { isProtectedRoute } from '@/constants/routes';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
@@ -81,6 +81,7 @@ export function SidebarDesktop() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const { proposalNotifications, allNotifications } = useNotifications();
+  const { authMethod } = useAuthContext();
 
   const { showPersonalWalletSettings } = useContext(PersonalWalletSettingsContext);
 
@@ -90,16 +91,14 @@ export function SidebarDesktop() {
 
   useEffect(() => {
     // Check if user is logged in
-    const authMethod = getAuthMethodFromStorage()
     setIsLoggedIn(!!authMethod)
-  }, [pathname]) // Re-check when pathname changes
+  }, [pathname, authMethod]) // Re-check when pathname changes
 
   // Prevent hydration mismatch by not rendering until mounted
   if (!mounted) {
     return null;
   }
 
-  const authMethod = getAuthMethodFromStorage();
   const showSidebar = authMethod && isProtectedRoute(pathname) && isDesktop;
 
   if (!showSidebar) {

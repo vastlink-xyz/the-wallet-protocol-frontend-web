@@ -8,17 +8,13 @@ import { useEffect, useState } from "react";
 import { AUTH_METHOD_SCOPE, AUTH_METHOD_TYPE, LIT_ABILITY, LIT_CHAINS, LIT_NETWORK } from "@lit-protocol/constants";
 import { Example } from "./components/Example";
 import { useAuthContext } from '@/hooks/useAuthContext';
+import { useUserData } from '@/hooks/useUserData';
 import { User } from '@/app/api/user/storage';
 import { fetchEthTransactionHistory } from "@/lib/web3/eth";
 import { getChainIdByChainName } from "@/lib/web3/token";
-import { getAuthIdByAuthMethod } from "@lit-protocol/lit-auth-client";
 import { personalSignLitActionCode } from "@/lib/lit-action-code/proposal-sign.lit";
 import { encryptString } from "@lit-protocol/encryption";
 import { decryptDebugLitActionCode } from "./decrypt-lit-action";
-import { getUpgradeIpfsId } from "@/lib/lit/ipfs-id-env";
-import { getPersonalSignIpfsId } from "@/lib/lit/ipfs-id-env";
-import { LitActionResource } from "@lit-protocol/auth-helpers";
-import { LitAccessControlConditionResource } from "@lit-protocol/auth-helpers";
 import { LitContracts } from "@lit-protocol/contracts-sdk";
 import { PKPEthersWallet } from "@lit-protocol/pkp-ethers";
 import { litActionCodeForCommonUpgradableProxy } from "@/lib/lit-action-code/common-upgradable-proxy.lit";
@@ -53,7 +49,8 @@ const accessControlConditions: AccessControlConditions = [
 ];
 
 export default function DebugPage() {
-  const { authMethod, userData } = useAuthContext();
+  const { authMethod } = useAuthContext();
+  const { userData } = useUserData();
   const [sessionSigs, setSessionSigs] = useState<SessionSigs | null>(null);
 
   const handleVerifyToken = async () => {
@@ -106,7 +103,7 @@ export default function DebugPage() {
       return
     }
 
-    const authMethodId = await getAuthIdByAuthMethod(authMethod)
+    const authMethodId = authMethod.authMethodId
 
     if (!litNodeClient.ready) {
       await litNodeClient.connect()

@@ -9,6 +9,7 @@ import { VastbaseAuthMethod } from "@/lib/lit/custom-auth";
 import { litNodeClient } from "@/lib/lit";
 import { getMultiProviderSessionSigs } from "@/lib/lit/pkpManager";
 import { useAuthContext } from "@/hooks/useAuthContext";
+import { useUserData } from "@/hooks/useUserData";
 
 // Create Lit Action code that will decrypt the data
 // This is the code that will run on the Lit nodes
@@ -41,8 +42,9 @@ export function Encryption({ authMethod }: { authMethod: VastbaseAuthMethod }) {
   
   const LIT_ACTION_IPFS_ID = 'QmX3zpPjXTc9VH1fVETtSXELQ2Soynft68sYWo5MjXnFJ5'; // Replace with your actual Lit Action IPFS ID
 
-  // Get current user data including litActionPkp from Context
-  const { userData, authMethodId } = useAuthContext();
+  // Get current user data including litActionPkp from separate hooks
+  const { authMethodId } = useAuthContext();
+  const { userData } = useUserData();
 
   // Encryption function
   const handleEncrypt = async () => {

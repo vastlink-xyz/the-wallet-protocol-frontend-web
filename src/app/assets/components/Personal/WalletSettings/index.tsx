@@ -12,8 +12,7 @@ import {
 import { MFASettingsContent } from './MFASettingsContent';
 import { MFAPin } from '../MFAPin';
 import { toast } from 'react-toastify';
-import { getAuthMethodFromStorage, getAuthMethodIdFromStorage } from '@/lib/storage/authmethod';
-import { getAuthIdByAuthMethod } from '@lit-protocol/lit-auth-client';
+import { useAuthContext } from '@/hooks/useAuthContext';
 import { log } from '@/lib/utils';
 import { SUPPORTED_TOKENS_INFO, TokenType, SUPPORTED_TOKEN_SYMBOLS } from '@/lib/web3/token';
 import { MFAOtpDialog } from '@/components/Transaction/MFAOtpDialog';
@@ -36,7 +35,6 @@ export function PersonalWalletSettings() {
   const [tokenLimits, setTokenLimits] = useState<Record<TokenType, string> | undefined>();
   const [isLimitValid, setIsLimitValid] = useState<boolean>(true);
   const [isSaving, setIsSaving] = useState<boolean>(false);
-  const [authMethodId, setAuthMethodId] = useState<string | null>(null);
   const [isMfaLoading, setIsMfaLoading] = useState<boolean>(false);
   const [pinStatus, setPinStatus] = useState<{ hasPin: boolean }>({ hasPin: false });
 
@@ -48,18 +46,8 @@ export function PersonalWalletSettings() {
   const [pendingSettings, setPendingSettings] = useState<any>(null);
 
   // Get auth method - use useState to make it reactive
-  const [authMethod, setAuthMethod] = useState(() => getAuthMethodFromStorage());
+  const { authMethod, authMethodId } = useAuthContext();
   const sessionJwt = authMethod?.accessToken;
-
-  // Refresh auth method when dialog opens
-  useEffect(() => {
-    if (isPersonalWalletSettingsOpen) {
-      const currentAuthMethod = getAuthMethodFromStorage();
-      if (currentAuthMethod) {
-        setAuthMethod(currentAuthMethod);
-      }
-    }
-  }, [isPersonalWalletSettingsOpen]);
 
   // sving wallet settings
   const saveWalletSettings = async () => {
@@ -108,9 +96,7 @@ export function PersonalWalletSettings() {
 
   // Handle PIN status updates
   const handlePinStatusUpdate = async () => {
-    const authMethod = getAuthMethodFromStorage();
-    if (!authMethod) return;
-    const authMethodId = await getAuthIdByAuthMethod(authMethod);
+    if (!authMethodId) return;
     const hasPin = await PinService.hasLocalPinData({
       authMethodId,
     });
@@ -122,9 +108,7 @@ export function PersonalWalletSettings() {
   // Initialize PIN status on client side
   useEffect(() => {
     const initPinStatus = async () => {
-      const authMethod = getAuthMethodFromStorage();
-      if (!authMethod) return;
-      const authMethodId = await getAuthIdByAuthMethod(authMethod);
+      if (!authMethodId) return;
       const hasPin = await PinService.hasLocalPinData({
         authMethodId,
       });
@@ -141,8 +125,7 @@ export function PersonalWalletSettings() {
       try {
         setIsMfaLoading(true);
         // Get auth method directly from storage
-        const id = getAuthMethodIdFromStorage();
-        setAuthMethodId(id);
+        const id = authMethodId;
 
         if (id) {
           await fetchCurrentSettings(id);
@@ -150,7 +133,6 @@ export function PersonalWalletSettings() {
         }
       } catch (error) {
         console.error('Error getting auth method ID:', error);
-        setAuthMethodId(null);
       } finally {
         setIsMfaLoading(false);
       }
