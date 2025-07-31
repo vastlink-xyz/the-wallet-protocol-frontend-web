@@ -444,7 +444,7 @@ export function MultisigWalletFormContent({
         [AUTH_METHOD_SCOPE.SignAnything],
         [AUTH_METHOD_SCOPE.SignAnything],
         [AUTH_METHOD_SCOPE.SignAnything],
-        [AUTH_METHOD_SCOPE.PersonalSign],
+        [AUTH_METHOD_SCOPE.NoPermissions],
         ...signerAuthMethodIds.filter(id => id !== authMethodId).map(() => [AUTH_METHOD_SCOPE.NoPermissions])
       ];
 

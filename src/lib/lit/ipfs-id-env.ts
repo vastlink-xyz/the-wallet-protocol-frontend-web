@@ -9,8 +9,8 @@ import { litActionCodeForCreateMultisigWallet } from "../lit-action-code/create-
 import { litActionCodeForSecurityVerification } from "../lit-action-code/security-verification.lit"
 import { litActionCodeForMultiProviderAuth } from "../lit-action-code/multi-provider-auth.lit"
 
-const updateWalletSettingsIpfsId = 'QmYEx6ee2PVp7JH4hR5Tpur5fxxVAn4QisMYczwWcJjbW7'
-const updateWalletSettingsIpfsIdHex = '0x1220931f0bbc8dda82f03b105c58bc683e7c319cbe02d7f02bd340d2825a40417220'
+const updateWalletSettingsIpfsId = 'QmdCHgm4uAaQWzPR9pTf8WCKQDKTTLeyjnLehp5DevkaKy'
+const updateWalletSettingsIpfsIdHex = '0x1220dcbae2eb8103743aa6686169d46f34cfde13a60a0e74805cbed812de26819f18'
 
 const createWalletIpfsId = 'QmWqra156GwV2cr9pDcQdv8GYAro4e3ch6gAHvZo3h7GA3'
 const createWalletIpfsIdHex = '0x12207e58bfd35ba3463a00393b11b75ed1b9f185376ea3bcec157eb1be8149162a58'

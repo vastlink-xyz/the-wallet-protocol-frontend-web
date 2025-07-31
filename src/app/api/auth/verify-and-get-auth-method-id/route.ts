@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
         success: false,
         error: result.error,
         userNotFound: (result as any).userNotFound,
-      }, { status: 401 });
+      });
     }
 
     console.log('✅ Found user authMethodId:', (result as any).authMethodId);

@@ -73,6 +73,7 @@ export const executeWalletSettingsProposal = async ({
         devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
       },
       publicKey: walletPkp.publicKey,
+      vastbaseAuthMethodType: getVastbaseAuthMethodType(),
       env: process.env.NEXT_PUBLIC_ENV,
       devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
       walletId: wallet.id,

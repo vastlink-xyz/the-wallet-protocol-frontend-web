@@ -5,6 +5,7 @@ declare const ethers: any
 declare const publicKey: string
 declare const env: string
 declare const devUrl: string
+declare const vastbaseAuthMethodType: number
 declare const pinCode: string | undefined
 declare const mfaType: string | undefined
 declare const mfaCode: string | undefined
@@ -411,7 +412,7 @@ const _litActionCode = async () => {
           authMethodMetadata: {
             addOrRemove: 'add',
             keyType: 2,
-            authMethodType: 10,
+            authMethodType: vastbaseAuthMethodType,
             authMethodId: signerToAdd.authMethodId,
             authMethodPubkey: '0x',
             permittedScopes: [0],
@@ -430,7 +431,7 @@ const _litActionCode = async () => {
           authMethodMetadata: {
             addOrRemove: 'remove',
             keyType: 2,
-            authMethodType: 10,
+            authMethodType: vastbaseAuthMethodType,
             authMethodId: signerToRemove.authMethodId,
             authMethodPubkey: '0x',
             permittedScopes: [0],

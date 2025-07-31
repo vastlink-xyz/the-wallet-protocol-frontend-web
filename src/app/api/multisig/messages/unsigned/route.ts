@@ -19,10 +19,14 @@ export async function GET(request: NextRequest) {
     // fetch user from authMethodId
     const user = await getUser(authMethodId)
     if (!user || !user.litActionPkp?.ethAddress) {
-      return Response.json(
-        { success: false, error: "User or PKP address not found" },
-        { status: 404 }
-      )
+      // Return empty proposals if user or PKP not found
+      return Response.json({ 
+        success: true, 
+        data: {
+          proposals: [],
+          count: 0
+        }
+      })
     }
 
     const userAddress = user.litActionPkp.ethAddress

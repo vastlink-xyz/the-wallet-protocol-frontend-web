@@ -66,7 +66,7 @@ export default function UnifiedAuthCallbackPage() {
       }
 
       // Step 7: Redirect to debug page for testing
-      router.push('/debug');
+      router.push('/assets');
 
     } catch (error) {
       console.error('Authentication process failed:', error);
@@ -138,17 +138,14 @@ export default function UnifiedAuthCallbackPage() {
         })
       });
 
-      if (!response.ok) {
-        console.error('API verification failed:', response.status);
-        if (response.status === 401) {
-          const errorData = await response.json();
-          return errorData.userNotFound;
-        }
-        return false;
-      }
-
       const result = await response.json();
       log('Authentication verification result:', result);
+      
+      // Check if authentication failed or user not found
+      if (!result.success) {
+        console.error('API verification failed:', result.error);
+        return result.userNotFound || false;
+      }
       
       return result.success;
     } catch (error) {

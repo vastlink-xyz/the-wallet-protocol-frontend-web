@@ -17,15 +17,8 @@ export async function GET(request: NextRequest) {
     
     const user = await getUser(authMethodId);
     
-    if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      );
-    }
-    
-    // Return all security layers sorted by priority
-    const securityLayers = user.walletSettings?.securityLayers || [];
+    // Return empty array if user not found or no security layers
+    const securityLayers = user?.walletSettings?.securityLayers || [];
     
     return NextResponse.json({ 
       securityLayers: SecurityLayerService.sortLayersByPriority(securityLayers)
