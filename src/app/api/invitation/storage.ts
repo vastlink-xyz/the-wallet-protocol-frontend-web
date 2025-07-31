@@ -1,6 +1,6 @@
+import crypto from 'crypto';
 import { connectToDatabase } from '../user/models';
 import { PendingInvitation, PendingInvitationModel, PendingWalletInvitation, PendingWalletInvitationModel } from './models';
-import crypto from 'crypto';
 
 // Helper function to extract invitation data safely from Mongoose document
 function extractInvitationData(doc: any): PendingInvitation | null {
@@ -149,6 +149,41 @@ export async function updatePendingInvitationStatus(
   } catch (error) {
     console.error('Failed to update pending invitation status:', error);
     return null;
+  }
+}
+
+
+/**
+ * Update a pending invitation status by email
+ */
+export async function updatePendingInvitationStatusByEmail(
+  email: string,
+  status: PendingInvitation['status']
+): Promise<PendingInvitation[]> {
+  try {
+    await connectToDatabase();
+
+    const updatedInvitations = await PendingInvitationModel
+      .find({ recipientEmail: email, status: 'pending' }).lean();
+
+    await PendingInvitationModel.updateMany({
+      id: { $in: updatedInvitations.map(v => v.id) },
+    }, {
+      $set: { status }
+    });
+
+    return updatedInvitations
+      .map(v => {
+        const result = extractInvitationData(v);
+        if (result) {
+          return { ...result, status };
+        }
+        return null;
+      })
+      .filter(v => v !== null);
+  } catch (error) {
+    console.error('Failed to update pending invitation status:', error);
+    return [];
   }
 }
 

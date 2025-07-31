@@ -62,7 +62,7 @@ export default function StytchCallbackPage() {
     }
   };
 
-  const updateInvitationStatus = async (invitationId: string, status: string) => {
+  const updateInvitationStatus = async (email: string, status: string) => {
     try {
       const response = await fetch('/api/invitation/status', {
         method: 'PUT',
@@ -70,7 +70,7 @@ export default function StytchCallbackPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          invitationId,
+          email,
           status
         })
       });
@@ -80,9 +80,9 @@ export default function StytchCallbackPage() {
         throw new Error(errorData.error || `Failed to update invitation status: ${response.status}`);
       }
 
-      const data = await response.json();
+      const { data } = await response.json();
       log('Invitation status updated:', data);
-      return data;
+      return data as any[];
     } catch (err) {
       console.error('Error updating invitation status:', err);
       throw err;
@@ -189,21 +189,22 @@ export default function StytchCallbackPage() {
       const invitation = await fetchInvitationDetails(invitationId);
 
       // Update the invitation status to 'registered'
-      await updateInvitationStatus(invitationId, 'registered');
-
-      // Check if this is a multisig wallet invitation (0 ETH transfer)
-      if (invitation.tokenType === 'ETH' && invitation.amount === '0') {
-        await handleMultisigWalletInvitationRegistration(userEmail, invitationId, authMethodId);
-      } else {
-        // Regular transfer invitation - send the original email
-        await sendRecipientRegisteredEmail({
-          to: invitation.senderEmail,
-          recipientEmail: userEmail,
-          tokenType: invitation.tokenType,
-          amount: invitation.amount,
-          completeUrl: `${process.env.NEXT_PUBLIC_APP_URL}/assets`
-        });
-      }
+      const updatedInvitations = await updateInvitationStatus(invitation.recipientEmail, 'registered');
+      updatedInvitations.forEach(async (invitation) => {
+        // Check if this is a multisig wallet invitation (0 ETH transfer)
+        if (invitation.tokenType === 'ETH' && invitation.amount === '0') {
+          await handleMultisigWalletInvitationRegistration(userEmail, invitation.id, authMethodId);
+        } else {
+          // Regular transfer invitation - send the original email
+          await sendRecipientRegisteredEmail({
+            to: invitation.senderEmail,
+            recipientEmail: userEmail,
+            tokenType: invitation.tokenType,
+            amount: invitation.amount,
+            completeUrl: `${process.env.NEXT_PUBLIC_APP_URL}/assets`
+          });
+        }
+      });
     } catch (error) {
       console.log('Failed to send recipient registered email:', error);
     }

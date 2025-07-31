@@ -24,6 +24,7 @@ interface StytchOTPProps {
   defaultEmail?: string;
   title?: string;
   invitationId?: string;
+  readonly?: boolean;
 }
 
 /**
@@ -33,6 +34,7 @@ const StytchOTP = ({
   defaultEmail,
   title,
   invitationId,
+  readonly,
 }: StytchOTPProps) => {
   const router = useRouter();
 
@@ -145,9 +147,10 @@ const StytchOTP = ({
                 <Input
                   id="email"
                   value={email}
-                  onChange={e => setEmail(e.target.value)}
+                  onChange={readonly ? undefined : e => setEmail(e.target.value)}
                   type="email"
                   placeholder={transStytchOTP('email_holder')}
+                  readOnly={readonly}
                 />
               </div>
 
