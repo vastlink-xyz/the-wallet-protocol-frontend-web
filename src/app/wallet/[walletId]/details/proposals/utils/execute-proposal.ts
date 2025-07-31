@@ -17,6 +17,7 @@ interface IExecuteWalletSettingsProposalParams {
   walletPkp: IRelayPKP;
   accessToken: string;
   authMethodId: string;
+  providerType: string;
   pinCode?: string;
   mfaType?: string;
   mfaCode?: string;
@@ -30,6 +31,7 @@ interface IExecuteTransactionProposalParams {
   wallet: MultisigWallet;
   walletPkp: IRelayPKP;
   accessToken: string;
+  providerType: string;
   authMethodId: string;
   pinCode?: string;
   mfaType?: string;
@@ -44,6 +46,7 @@ export const executeWalletSettingsProposal = async ({
   walletPkp,
   accessToken,
   authMethodId,
+  providerType,
   pinCode,
   mfaType,
   mfaCode,
@@ -63,6 +66,8 @@ export const executeWalletSettingsProposal = async ({
     jsParams: {
       authParams: {
         accessToken,
+        providerType: providerType,
+        pkpTokenId: walletPkp.tokenId,
         authMethodId: authMethodId,
         authMethodType: getVastbaseAuthMethodType(),
         devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
@@ -170,6 +175,7 @@ export const executeTransactionProposal = async ({
   walletPkp,
   wallet,
   accessToken,
+  providerType,
   authMethodId,
   sessionSigs,
   pinCode,
@@ -232,6 +238,8 @@ export const executeTransactionProposal = async ({
     authParams: {
       accessToken,
       authMethodId: authMethodId,
+      providerType: providerType,
+      pkpTokenId: walletPkp.tokenId,
       authMethodType: getVastbaseAuthMethodType(),
       devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
     },

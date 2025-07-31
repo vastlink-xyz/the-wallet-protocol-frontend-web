@@ -1,7 +1,7 @@
 'use client'
 
 import { Button } from "@/components/ui/button"
-import { getLitActionIpfsCid, getPKPs, litNodeClient, getMultiProviderSessionSigs } from "@/lib/lit"
+import { getLitActionIpfsCid, getPKPs, litNodeClient, getMultiProviderSessionSigs, mintPersonalPKP } from "@/lib/lit"
 import { log } from "@/lib/utils";
 import { AccessControlConditions, SessionSigs } from "@lit-protocol/types";
 import { useEffect, useState } from "react";
@@ -300,6 +300,30 @@ export default function DebugPage() {
     }
   }
 
+  const handleMintPersonalPKP = async () => {
+    if (!authMethod) {
+      toast.error('No auth method found');
+      return;
+    }
+
+    try {
+      toast.info('Minting Personal PKP...');
+      
+      const pkp = await mintPersonalPKP({
+        userEmail: authMethod.primaryEmail,
+        providerType: authMethod.providerType,
+      });
+
+      log('Personal PKP minted successfully:', pkp);
+      toast.success(`Personal PKP minted! Address: ${pkp.ethAddress}`);
+      
+    } catch (error: any) {
+      console.error('Error minting personal PKP:', error);
+      toast.error(`Error minting PKP: ${error.message || error}`);
+      log('Error:', error);
+    }
+  }
+
 
   return (
     <div className="space-y-8 p-4">
@@ -337,6 +361,7 @@ export default function DebugPage() {
       <Button onClick={handleUpgrade}>Upgrade</Button>
       <Button onClick={handleCheckPermittedLitActions}>Check Permitted Lit Actions</Button>
       <Button onClick={handleGetMultiProviderSessionSigs}>Get Multi-Provider Session Sigs</Button>
+      <Button onClick={handleMintPersonalPKP} className="bg-green-600 hover:bg-green-700">Mint Personal PKP</Button>
 
       {/* {authMethod && <Encryption authMethod={authMethod} />} */}
     </div>

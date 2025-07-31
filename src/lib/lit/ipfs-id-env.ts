@@ -9,20 +9,20 @@ import { litActionCodeForCreateMultisigWallet } from "../lit-action-code/create-
 import { litActionCodeForSecurityVerification } from "../lit-action-code/security-verification.lit"
 import { litActionCodeForMultiProviderAuth } from "../lit-action-code/multi-provider-auth.lit"
 
-const updateWalletSettingsIpfsId = 'QmTtpVJ8uv5J5zyLGXanATWAvPkynYdycMfkD6LfJMiUu8'
-const updateWalletSettingsIpfsIdHex = '0x1220528813ec1bf7e2a5e56a0fba21f03d599a46982c5da2b004fedac8c1d40861e3'
+const updateWalletSettingsIpfsId = 'QmYEx6ee2PVp7JH4hR5Tpur5fxxVAn4QisMYczwWcJjbW7'
+const updateWalletSettingsIpfsIdHex = '0x1220931f0bbc8dda82f03b105c58bc683e7c319cbe02d7f02bd340d2825a40417220'
 
-const createWalletIpfsId = 'QmY9nEaCUzpYJadmDapvpRhn72j2c8xjsu325DPxHq7WEQ'
-const createWalletIpfsIdHex = '0x122091cbfd3e3f34e2a0d3390e7eb4f020c3b9af5debb973322b5206d6be1e48f0cd'
+const createWalletIpfsId = 'QmWqra156GwV2cr9pDcQdv8GYAro4e3ch6gAHvZo3h7GA3'
+const createWalletIpfsIdHex = '0x12207e58bfd35ba3463a00393b11b75ed1b9f185376ea3bcec157eb1be8149162a58'
 
 const verifyAuthTokenIpfsId = 'QmdeSZo7yUsfT4fVosxK55dz4fPEWokeFBPfRR2NdV9HJm'
 const verifyAuthTokenIpfsHex = '0x1220e36e072b05d2d058cdbbbedfd7c924f89895b727066a73e4e29f6a1f88b75d86'
 
-const multisigTransactionIpfsId = 'QmQDEDacXPLQ13GC5WETSeq9whtRgqAwnf6rd8p1byRoSh'
-const multisigTransactionIpfsHex = '0x12201bd09d7cce19263467474d75fd0c63377d2706d93211e6c430e6c97aecb5594a'
+const multisigTransactionIpfsId = 'QmXitw6nRyuniNHFZRfzuHXgxL4kB5cZMCJckzxRNC7EGF'
+const multisigTransactionIpfsHex = '0x12208b6c0b15d200c6b4b278954758de3e04cbc804ebe9b74d240537b316119eb388'
 
-const personalSignIpfsId = 'QmbZqMoXFa2jZkc3MBoNuezBMvQ4pBmmqCf6ziMvSuwvkc'
-const personalSignIpfsIdHex = '0x1220c48885c1552dbf86675c26a605a216fdceaf80caf70d0a5b838a006c7767eee5'
+const personalSignIpfsId = 'QmVZfSsZS7uggyZkmuCN1BECCkRyCLASA1hkn6yTaDrHQX'
+const personalSignIpfsIdHex = '0x12206b57315602eb6bcf0d38eadb929fe06122bb8b4b1e4f6479074e94195b89b11c'
 
 const personalTransactionIpfsId = 'QmeFc4eZVmboS36FjWb5iuHQ8pqQGKrRHMTrQESqj1sMAE'
 const personalTransactionIpfsIdHex = '0x1220ec70185a1b8a335378dbcc0b9fbf15fbc32ef2edd8905e5fb601cd6b6761da77'

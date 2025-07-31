@@ -15,35 +15,21 @@ type DebugTab = 'edit-authmethod' | 'execute-lit-action' | 'upgrade' | 'all-user
 
 export function Example() {
   // Use hook for stable auth method reference
-  const { authMethod } = useAuthContext();
+  const { authMethod, getCustomAuthSessionSigs } = useAuthContext();
   const { userData } = useUserData();
-  
-  const [loading, setLoading] = useState(false);
   const [sessionSigs, setSessionSigs] = useState<SessionSigs | null>(null);
+
+  const [loading, setLoading] = useState(false);
   // Add state for active tab
   const [activeTab, setActiveTab] = useState<DebugTab>('btc-demo');
-
-  // Fetch session signatures using multi-provider system
+  
   useEffect(() => {
     const fetchSessionSigs = async () => {
-      if (!sessionSigs && userData?.litActionPkp && authMethod) {
-        try {
-          const sigs = await getMultiProviderSessionSigs({
-            pkpPublicKey: userData.litActionPkp.publicKey,
-            pkpTokenId: userData.litActionPkp.tokenId,
-            accessToken: authMethod.accessToken,
-            providerType: authMethod.providerType,
-            userEmail: authMethod.primaryEmail,
-          });
-          setSessionSigs(sigs);
-        } catch (error) {
-          console.error('Error getting multi-provider session sigs:', error);
-        }
-      }
+      const sigs = await getCustomAuthSessionSigs();
+      setSessionSigs(sigs);
     };
-
     fetchSessionSigs();
-  }, [userData?.litActionPkp, authMethod, sessionSigs]);
+  }, []);
 
   // Render tab buttons
   const renderTabButtons = () => {

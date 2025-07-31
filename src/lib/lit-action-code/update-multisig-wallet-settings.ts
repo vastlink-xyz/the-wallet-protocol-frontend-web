@@ -14,7 +14,7 @@ declare const Lit: any
 const _litActionCode = async () => {
   const currentActionIpfsId = Lit.Auth.actionIpfsIds[0]
   console.log('currentActionIpfsId', currentActionIpfsId)
-  const ipfsIdForVerifyAuthTokenLitAction = 'QmdeSZo7yUsfT4fVosxK55dz4fPEWokeFBPfRR2NdV9HJm'
+  const multiProviderAuthIpfsId = 'QmUALzmKCewVAHvjgqiu3UKCYXESEbZkjJiXVkjUV9iPUj' 
 
   async function editAuthmethod({
     pkpPublicKey,
@@ -173,20 +173,22 @@ const _litActionCode = async () => {
       throw new Error(`Error editing auth method: ${error}`)
     }
   }
-
-  // verify google auth
-  const authVerifyRes = await Lit.Actions.call({
-    ipfsId: ipfsIdForVerifyAuthTokenLitAction,
+  
+  const authResult = await Lit.Actions.call({
+    ipfsId: multiProviderAuthIpfsId,
     params: {
-      ...authParams,
-      publicKey,
+      providerType: authParams.providerType,
+      accessToken: authParams.accessToken,
+      pkpTokenId: authParams.pkpTokenId,
+      authMethodType: authParams.authMethodType,
       env,
+      devUrl,
     },
   })
-
-  const parsedAuthVerifyRes = JSON.parse(authVerifyRes)
-  if (!parsedAuthVerifyRes.isPermitted) {
-    Lit.Actions.setResponse({ response: JSON.stringify(parsedAuthVerifyRes) })
+  console.log('Multi-provider auth result:', authResult)
+  
+  if (authResult !== 'true') {
+    Lit.Actions.setResponse({response: JSON.stringify({isPermitted: false})})
     return
   }
 

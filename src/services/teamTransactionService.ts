@@ -179,6 +179,7 @@ export const executeTeamTransactionProposal = async ({
     wallet,
     walletPkp,
     accessToken,
+    providerType,
     authMethodId,
     pinCode: '',
     mfaType: '',

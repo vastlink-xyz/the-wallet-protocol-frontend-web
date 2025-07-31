@@ -45,15 +45,13 @@ export function EditAuthmethod({
     const ipfsId = await uploadViaPinata(editAuthmethodForDebugLitActionCode);
     log('ipfsId', ipfsId)
     const pkp = await mintPKP({
-      options: {
-        permittedAuthMethodTypes: [AUTH_METHOD_TYPE.LitAction],
-        permittedAuthMethodIds: [ipfsIdHex],
-        permittedAuthMethodPubkeys: ['0x'],
-        permittedAuthMethodScopes: [[AUTH_METHOD_SCOPE.SignAnything]],
-        addPkpEthAddressAsPermittedAddress: false,
-        sendPkpToItself: true,
-        keyType: 2 // Standard PKP type
-      },
+      permittedAuthMethodTypes: [AUTH_METHOD_TYPE.LitAction],
+      permittedAuthMethodIds: [ipfsIdHex],
+      permittedAuthMethodPubkeys: ['0x'],
+      permittedAuthMethodScopes: [[AUTH_METHOD_SCOPE.SignAnything]],
+      addPkpEthAddressAsPermittedAddress: true,
+      sendPkpToItself: true,
+      keyType: 2 // Standard PKP type
     });
     log('pkp', pkp)
     setPkp(pkp);

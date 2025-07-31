@@ -16,7 +16,7 @@ import {
 } from '@/lib/lit'
 import { encryptString } from '@lit-protocol/encryption'
 import { AUTH_METHOD_SCOPE, AUTH_METHOD_TYPE } from '@lit-protocol/constants'
-import { getCreateWalletIpfsId, getMultisigTransactionIpfsId, getUpdateWalletIpfsId } from '@/lib/lit/ipfs-id-env'
+import { getCreateWalletIpfsId, getMultiProviderAuthIpfsId, getMultisigTransactionIpfsId, getUpdateWalletIpfsId } from '@/lib/lit/ipfs-id-env'
 import { useAuthExpiration } from '@/hooks/useAuthExpiration'
 import { isTokenValid } from '@/lib/jwt'
 import { TokenType } from '@/lib/web3/token'
@@ -434,7 +434,6 @@ export function MultisigWalletFormContent({
         AUTH_METHOD_TYPE.LitAction,
         AUTH_METHOD_TYPE.LitAction,
         AUTH_METHOD_TYPE.LitAction,
-        // AUTH_METHOD_TYPE.LitAction,
         authMethodType,
         ...signerAuthMethodIds.filter(id => id !== authMethodId).map(() => authMethodType)
       ];
@@ -445,20 +444,18 @@ export function MultisigWalletFormContent({
         [AUTH_METHOD_SCOPE.SignAnything],
         [AUTH_METHOD_SCOPE.SignAnything],
         [AUTH_METHOD_SCOPE.SignAnything],
-        // [AUTH_METHOD_SCOPE.SignAnything],
         [AUTH_METHOD_SCOPE.PersonalSign],
         ...signerAuthMethodIds.filter(id => id !== authMethodId).map(() => [AUTH_METHOD_SCOPE.NoPermissions])
       ];
 
       const pkpForMultisig = await mintPKP({
-        options: {
-          permittedAuthMethodTypes: allAuthMethodTypes,
-          permittedAuthMethodIds: allAuthMethodIds,
-          permittedAuthMethodPubkeys: allAuthMethodPubkeys,
-          permittedAuthMethodScopes: allAuthMethodScopes,
-          addPkpEthAddressAsPermittedAddress: false,
-          sendPkpToItself: true,
-        },
+        keyType: 2,
+        permittedAuthMethodTypes: allAuthMethodTypes,
+        permittedAuthMethodIds: allAuthMethodIds,
+        permittedAuthMethodPubkeys: allAuthMethodPubkeys,
+        permittedAuthMethodScopes: allAuthMethodScopes,
+        addPkpEthAddressAsPermittedAddress: true,
+        sendPkpToItself: true,
       });
       
       log('multisig pkp', pkpForMultisig);
@@ -526,6 +523,8 @@ export function MultisigWalletFormContent({
         jsParams: {
           authParams: {
             accessToken: authMethod.accessToken,
+            providerType: authMethod.providerType,
+            pkpTokenId: pkpForMultisig.tokenId,
             authMethodId: authMethodId,
             authMethodType: getVastbaseAuthMethodType(),
             devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
@@ -665,6 +664,7 @@ export function MultisigWalletFormContent({
       sessionSigs,
       wallet,
       walletPkp,
+      providerType: authMethod.providerType,
       accessToken: authMethod.accessToken,
       authMethodId,
       userEmail: currentUserEmail,

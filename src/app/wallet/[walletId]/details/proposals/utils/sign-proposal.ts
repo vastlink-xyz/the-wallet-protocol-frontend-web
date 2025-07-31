@@ -61,6 +61,8 @@ export const signProposal = async ({
       devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
       authParams: {
         accessToken,
+        providerType,
+        pkpTokenId: userPkp.tokenId,
         authMethodId: authMethodId,
         authMethodType: getVastbaseAuthMethodType(),
         devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',

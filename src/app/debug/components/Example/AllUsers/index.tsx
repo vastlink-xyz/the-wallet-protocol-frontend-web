@@ -13,8 +13,8 @@ import { LIT_NETWORK } from '@lit-protocol/constants';
 import { getBtcAddressByPublicKey } from '@/lib/web3/btc';
 import { litActionCodeForCommonUpgradableProxy } from '@/lib/lit-action-code/common-upgradable-proxy.lit';
 
-const upgradeIpfsHexFn = getPersonalTransactionIpfsId
-const removeIpfsIdHex = '0x1220ffd04b80d774aa61424d3e65f417cba800467cc012f2b923ed86c479717bc1e4'
+const upgradeIpfsHexFn = getPersonalSignIpfsId
+const removeIpfsIdHex = '0x1220c48885c1552dbf86675c26a605a216fdceaf80caf70d0a5b838a006c7767eee5'
 
 interface UserProps {
   currentUserPkp: IRelayPKP | null;

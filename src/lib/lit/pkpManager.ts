@@ -22,12 +22,7 @@ export async function getPKPs(): Promise<IRelayPKP[]> {
   return [];
 }
 
-export async function mintPKP({
-  options,
-}: {
-  options: MintRequestBody,
-}
-): Promise<IRelayPKP> {
+export async function mintPKP(options: MintRequestBody): Promise<IRelayPKP> {
   // Call relay to mint PKP
   const mintResponse = await litRelay.mintPKP(JSON.stringify(options));
     
