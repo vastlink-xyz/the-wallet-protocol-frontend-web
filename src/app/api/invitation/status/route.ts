@@ -1,21 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { updatePendingInvitationStatus } from '../storage';
+import { PendingInvitation } from '../models';
+import { updatePendingInvitationStatus, updatePendingInvitationStatusByEmail } from '../storage';
 
 /**
  * Update pending invitation status
  */
 export async function PUT(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { invitationId, status } = body;
-    
-    if (!invitationId || !status) {
-      return NextResponse.json(
-        { success: false, error: 'Missing required fields: invitationId and status' },
-        { status: 400 }
-      );
-    }
-    
+    const invitationId = request.nextUrl.searchParams.get('id');
+
+    const { email, status } = await request.json();
+
     // Validate status
     const validStatuses = ['pending', 'registered', 'completed', 'expired', 'cancelled'];
     if (!validStatuses.includes(status)) {
@@ -24,21 +19,31 @@ export async function PUT(request: NextRequest) {
         { status: 400 }
       );
     }
-    
-    // Update the invitation status
-    const updatedInvitation = await updatePendingInvitationStatus(invitationId, status);
-    
-    if (!updatedInvitation) {
+
+    let result: PendingInvitation[] = [];
+
+    if (invitationId) {
+      // Update the invitation status
+      const updatedInvitation = await updatePendingInvitationStatus(invitationId, status);
+      if (updatedInvitation) {
+        result.push(updatedInvitation);
+      }
+    } else if (email) {
+      const updatedInvitations = await updatePendingInvitationStatusByEmail(email, status);
+      if (updatedInvitations.length > 0) {
+        result.push(...updatedInvitations);
+      }
+    } else {
       return NextResponse.json(
-        { success: false, error: 'Invitation not found or failed to update' },
-        { status: 404 }
+        { success: false, error: 'Missing required fields: invitationId or email' },
+        { status: 400 }
       );
     }
-    
+
     return NextResponse.json({
       success: true,
       message: 'Invitation status updated successfully',
-      data: updatedInvitation
+      data: result,
     });
   } catch (error) {
     console.error('Failed to update invitation status:', error);

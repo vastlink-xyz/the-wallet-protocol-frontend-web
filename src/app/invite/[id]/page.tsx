@@ -39,11 +39,15 @@ export default function InvitePage() {
           const errorData = await response.json();
           throw new Error(errorData.error || `Failed to load invitation: ${response.status}`);
         }
-        
+
         const data = await response.json();
         if (data?.success && data?.data) {
           setInvitation(data.data);
-          
+
+          if (data.data.status !== 'pending') {
+            throw new Error('Invalid invitation status');
+          }
+
           // Check if user is already logged in with different email
           if (data.data.recipientEmail) {
             await checkEmailMismatch(data.data.recipientEmail);
