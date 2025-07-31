@@ -4,6 +4,7 @@ import { SendTransactionDialog, SendTransactionDialogState } from "@/components/
 import { IRelayPKP } from '@lit-protocol/types'
 import { VastbaseAuthMethod } from '@/lib/lit/custom-auth'
 import { useAuthContext } from '@/hooks/useAuthContext'
+import { useUserData } from '@/hooks/useUserData'
 import { useAuthExpiration } from '@/hooks/useAuthExpiration'
 import { MultisigWalletAddresses } from "@/app/api/multisig/storage"
 import { executePersonalTransaction, inviteUser } from '@/services/personalTransactionService'
@@ -27,6 +28,7 @@ export function PersonalWalletSendReceiveActions({
 }: WalletSendReceiveActionsProps) {
   const { handleExpiredAuth } = useAuthExpiration()
   const { authMethod, authMethodId } = useAuthContext()
+  const { userData } = useUserData()
 
   const [litActionPkp, setLitActionPkp] = useState<IRelayPKP | null>(null)
   const [showSendDialog, setShowSendDialog] = useState(false)
@@ -34,34 +36,12 @@ export function PersonalWalletSendReceiveActions({
   const [isSending, setIsSending] = useState(false)
   const [resetAmount, setResetAmount] = useState(false)
 
-  // Fetch user data
+  // Set user PKP when user data is available
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        if (!authMethod || !authMethodId) return
-        
-        // Fetch user's information from database API
-        const userResponse = await fetch(`/api/user?authMethodId=${authMethodId}`)
-        
-        if (!userResponse.ok) {
-          throw new Error('Failed to fetch user information from database')
-        }
-        
-        const userData = await userResponse.json()
-        
-        // Use litActionPkp from user data
-        if (userData.litActionPkp) {
-          setLitActionPkp(userData.litActionPkp)
-        }
-
-        // PIN requirement will be checked dynamically in useSecurityVerification
-      } catch (error) {
-        console.error("Error fetching user data:", error)
-      }
+    if (userData?.litActionPkp) {
+      setLitActionPkp(userData.litActionPkp)
     }
-
-    fetchUserData()
-  }, [authMethod, authMethodId])
+  }, [userData])
 
   // Create executeTransaction function for the hook
   const executeTransactionWithSecurity = async (params: any) => {

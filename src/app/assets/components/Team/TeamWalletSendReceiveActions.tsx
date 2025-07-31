@@ -2,9 +2,9 @@ import { useState, useEffect } from "react"
 import { WalletSendReceiveButtons } from "@/app/assets/components/WalletCard/WalletSendReceiveButtons"
 import { SendTransactionDialog, SendTransactionDialogState } from "@/components/Transaction/SendTransactionDialog"
 import { useAuthContext } from '@/hooks/useAuthContext'
+import { useUserData } from '@/hooks/useUserData'
 import { IRelayPKP } from "@lit-protocol/types"
 import { useNotifications } from "@/hooks/useNotifications"
-import { User } from "@/app/api/user/storage"
 import { MessageProposal, MultisigWallet } from "@/app/api/multisig/storage"
 import { createAndApproveTransactionProposal, executeTeamTransactionProposal, inviteTeamUser, handleTeamMfaVerify } from "@/services/teamTransactionService"
 import { SwapDialog } from "@/components/Transaction/SwapDialog"
@@ -25,11 +25,11 @@ export function TeamWalletSendReceiveActions({
   const [showMfaDialog, setShowMfaDialog] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const [userPkp, setUserPkp] = useState<IRelayPKP | null>(null)
-  const [user, setUser] = useState<User | null>(null)
   const [currentProposal, setCurrentProposal] = useState<MessageProposal | null>(null)
   
-  // Get auth method data directly from localStorage
+  // Get auth method and user data from hooks
   const { authMethod, authMethodId } = useAuthContext()
+  const { userData: user } = useUserData()
   
   // Notifications hook for UI refresh
   const { refreshNotifications } = useNotifications({
@@ -37,31 +37,11 @@ export function TeamWalletSendReceiveActions({
   })
   
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {        
-        if (!authMethodId) return
-        
-        // Fetch user's information from database API
-        const userResponse = await fetch(`/api/user?authMethodId=${authMethodId}`)
-        
-        if (!userResponse.ok) {
-          throw new Error('Failed to fetch user information')
-        }
-        
-        const userData = await userResponse.json()
-        setUser(userData)
-        
-        // Use litActionPkp from user data
-        if (userData.litActionPkp) {
-          setUserPkp(userData.litActionPkp)
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error)
-      }
+    // Set user PKP when user data is available  
+    if (user?.litActionPkp) {
+      setUserPkp(user.litActionPkp)
     }
-    
-    fetchUserData()
-  }, [authMethodId])
+  }, [user])
   
   const handleCreateAndApproveTransactionProposal = async (state: SendTransactionDialogState) => {
     if (!wallet || !userPkp || !authMethod || !authMethodId || !user) {

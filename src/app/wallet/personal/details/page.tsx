@@ -29,26 +29,16 @@ export default function PersonalWalletDetailsPage() {
   const { authMethod } = useAuthContext();
   const { userData } = useUserData();
 
-  // Fetch user data
+  // Set user data when available
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        setIsLoading(true);
-        if (!userData) return;
-
-        setAddresses(userData.addresses);
-        setBtcAddress(userData.addresses?.btc);
-        setEthAddress(userData.addresses?.eth);
-        setEmail(userData.primaryEmail);
-      } catch (error) {
-        console.error('Error fetching data from database:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchUserData();
-  }, []);
+    if (userData) {
+      setAddresses(userData.addresses);
+      setBtcAddress(userData.addresses?.btc);
+      setEthAddress(userData.addresses?.eth);
+      setEmail(userData.primaryEmail);
+      setIsLoading(false);
+    }
+  }, [userData]);
 
   if (isLoading) {
     return null;

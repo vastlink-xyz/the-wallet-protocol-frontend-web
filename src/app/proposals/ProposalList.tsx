@@ -8,6 +8,7 @@ import { IRelayPKP } from "@lit-protocol/types";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import { useAuthContext } from '@/hooks/useAuthContext';
+import { useUserData } from '@/hooks/useUserData';
 import { LogoLoading } from "@/components/LogoLoading";
 import { cn } from "@/lib/utils";
 import { useAuthExpiration } from "@/hooks/useAuthExpiration";
@@ -21,7 +22,8 @@ export type ProposalStatus = "pending" | "completed" | "canceled";
 
 export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus }, ref) => {
   const t = useTranslations('ProposalList');
-  const { authMethod: authMethodFromStorage, authMethodId: authMethodIdValue } = useAuthContext();
+  const { authMethod: authMethodFromStorage, authMethodId } = useAuthContext();
+  const { userData, isLoading: isUserDataLoading } = useUserData();
 
   // Get URL search params for proposal targeting
   const searchParams = useSearchParams();
@@ -35,9 +37,7 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
 
   // User PKP state
   const [userPkp, setUserPkp] = useState<IRelayPKP | null>(null);
-  const [authMethodId, setAuthMethodId] = useState<string | null>(null);
   const [authMethod, setAuthMethod] = useState<any>(null);
-  const [isLoadingUser, setIsLoadingUser] = useState(true);
   const [userPhone, setUserPhone] = useState<string | null>(null);
 
   // Auth and notifications hooks
@@ -46,33 +46,16 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
     enabled: false // We'll call it manually
   });
 
-  // Fetch user PKP data
+  // Set user data when available
   useEffect(() => {
-    async function fetchUserData() {
-      try {
-        if (!authMethodFromStorage) {
-          setIsLoadingUser(false);
-          return;
-        }
-
-        setAuthMethod(authMethodFromStorage);
-
-        const userResponse = await fetch(`/api/user?authMethodId=${authMethodIdValue}`);
-        if (userResponse.ok) {
-          const userData = await userResponse.json();
-          if (userData.litActionPkp) {
-            setUserPkp(userData.litActionPkp);
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching user data:', error);
-      } finally {
-        setIsLoadingUser(false);
-      }
+    if (authMethodFromStorage) {
+      setAuthMethod(authMethodFromStorage);
     }
-
-    fetchUserData();
-  }, [authMethodFromStorage, authMethodIdValue]);
+    
+    if (userData?.litActionPkp) {
+      setUserPkp(userData.litActionPkp);
+    }
+  }, [authMethodFromStorage, userData]);
 
   // Fetch user phone number separately
   useEffect(() => {
@@ -102,12 +85,6 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
     fetchUserPhone();
   }, [authMethod]);
 
-  useImperativeHandle(ref, () => ({
-    refresh: async () => {
-      await refreshProposals();
-    },
-  }), []);
-
   // Use new proposals API with user address and status filtering
   const {
     data: proposals = [],
@@ -118,6 +95,12 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
     enabled: !!authMethodId,
     status,
   });
+
+  useImperativeHandle(ref, () => ({
+    refresh: async () => {
+      await refreshProposals();
+    },
+  }), [refreshProposals]);
 
   // Fetch wallets using user address
   const { data: wallets = [], isLoading: isLoadingWallets } = useQuery<MultisigWallet[]>({
@@ -213,7 +196,7 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
   }, [targetProposalId, proposals, isLoadingProposals]);
 
 
-  if (isLoadingProposals || isRefetchingProposals || isLoadingWallets || isLoadingUser) {
+  if (isLoadingProposals || isRefetchingProposals || isLoadingWallets || isUserDataLoading) {
     return <LogoLoading />;
   }
 

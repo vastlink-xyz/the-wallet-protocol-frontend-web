@@ -1,6 +1,7 @@
 import { useState, useEffect, useContext } from "react"
 import { WalletSettingsButton } from "@/app/assets/components/WalletCard/WalletSettingsButton"
 import { useAuthContext } from '@/hooks/useAuthContext'
+import { useUserData } from '@/hooks/useUserData'
 import { IRelayPKP } from "@lit-protocol/types"
 import { useNotifications } from "@/hooks/useNotifications"
 import { MultisigWallet } from "@/app/api/multisig/storage"
@@ -16,6 +17,7 @@ export function TeamWalletSettingsActions({
   refreshProposals,
 }: TeamWalletSettingsActionsProps) {
   const { authMethod, authMethodId } = useAuthContext()
+  const { userData } = useUserData()
   const [userPkp, setUserPkp] = useState<IRelayPKP | null>(null)
   
   const { showMultisigSettings } = useContext(MultisigSettingsContext);
@@ -26,30 +28,11 @@ export function TeamWalletSettingsActions({
   })
   
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        if (!authMethod || !authMethodId) return
-        
-        // Fetch user's information from database API
-        const userResponse = await fetch(`/api/user?authMethodId=${authMethodId}`)
-        
-        if (!userResponse.ok) {
-          throw new Error('Failed to fetch user information')
-        }
-        
-        const userData = await userResponse.json()
-        
-        // Use litActionPkp from user data
-        if (userData.litActionPkp) {
-          setUserPkp(userData.litActionPkp)
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error)
-      }
+    // Set user PKP when user data is available
+    if (userData?.litActionPkp) {
+      setUserPkp(userData.litActionPkp)
     }
-    
-    fetchUserData()
-  }, [authMethod, authMethodId])
+  }, [userData])
 
   const handleSettingsSuccess = async () => {
     // Refresh data after settings change

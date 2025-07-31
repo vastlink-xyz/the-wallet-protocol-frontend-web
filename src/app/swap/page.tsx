@@ -11,6 +11,7 @@ import Image from 'next/image'
 import { estimateSwap } from '@/lib/swap/estimateSwap'
 import { useRouter } from 'next/navigation'
 import { useAuthContext } from '@/hooks/useAuthContext'
+import { useUserData } from '@/hooks/useUserData'
 import { VastbaseAuthMethod } from '@/lib/lit/custom-auth';
 import { IRelayPKP } from '@lit-protocol/types'
 import { fetchERC20TokenBalance, fetchEthBalance } from "@/lib/web3/eth"
@@ -112,34 +113,27 @@ export default function SwapPage() {
 
     // Load auth method from context
     const { authMethod: storedAuthMethod, authMethodId: contextAuthMethodId } = useAuthContext()
+    const { userData } = useUserData()
 
     useEffect(() => {
-        console.log('Stored auth method:', storedAuthMethod)
-        setAuthMethod(storedAuthMethod)
+        if (storedAuthMethod) {
+            setAuthMethod(storedAuthMethod)
+        }
     }, [storedAuthMethod])
 
     useEffect(() => {
-        const fetchUserData = async () => {
-            if (!authMethod) return
-            console.log('in fetchUserData with authMethod:', authMethod)
+        const setUserData = async () => {
+            if (!userData) return
+            console.log('Setting user data:', userData)
             try {
                 setIsLoading(true)
                 // Get user's authMethodId from context
                 setAuthMethodId(contextAuthMethodId)
 
-                // Fetch user's information from database API
-                const userResponse = await fetch(`/api/user?authMethodId=${authMethodId}`)
-
-                if (!userResponse.ok) {
-                    throw new Error('Failed to fetch user information from database')
-                }
-
-                const userData = await userResponse.json()
-                console.log('Fetched user data:', userData)
-                setEmail(userData.email)                // Use litActionPkp from user data
+                setEmail(userData.primaryEmail)
+                // Use litActionPkp from user data
                 if (userData.litActionPkp) {
                     setLitActionPkp(userData.litActionPkp)
-
                     setBtcAddress(userData.addresses?.btc)
                     setEthAddress(userData.addresses?.eth)
                 }
@@ -147,13 +141,13 @@ export default function SwapPage() {
                 // Fetch MFA data
                 await fetchMfaData()
             } catch (error) {
-                console.error("Error fetching data from database:", error)
+                console.error("Error setting user data:", error)
             } finally {
                 setIsLoading(false)
             }
         }
-        fetchUserData();
-    }, [authMethod]);
+        setUserData();
+    }, [userData, contextAuthMethodId]);
 
     const updateEthWalletBalance = async (address: string) => {
         try {

@@ -7,6 +7,7 @@ import { IRelayPKP } from "@lit-protocol/types";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import { useAuthContext } from '@/hooks/useAuthContext';
+import { useUserData } from '@/hooks/useUserData';
 import { LogoLoading } from "@/components/LogoLoading";
 import { useAuthExpiration } from "@/hooks/useAuthExpiration";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -17,13 +18,12 @@ import { useTranslations } from "next-intl";
 
 export function ProposalsList({ proposals }: { proposals: PendingProposalNotification[] }) {  
   const t = useTranslations('ProposalList');
-  const { authMethod: authMethodFromStorage, authMethodId: authMethodIdValue } = useAuthContext();
+  const { authMethod: authMethodFromStorage, authMethodId } = useAuthContext();
+  const { userData, isLoading: isUserDataLoading } = useUserData();
 
   // User PKP state
   const [userPkp, setUserPkp] = useState<IRelayPKP | null>(null);
-  const [authMethodId, setAuthMethodId] = useState<string | null>(null);
   const [authMethod, setAuthMethod] = useState<any>(null);
-  const [isLoadingUser, setIsLoadingUser] = useState(true);
   const [userPhone, setUserPhone] = useState<string | null>(null);
 
   // Auth and notifications hooks
@@ -32,33 +32,16 @@ export function ProposalsList({ proposals }: { proposals: PendingProposalNotific
     enabled: false // We'll call it manually
   });
 
-  // Fetch user PKP data
+  // Set user data when available
   useEffect(() => {
-    async function fetchUserData() {
-      try {
-        if (!authMethodFromStorage) {
-          setIsLoadingUser(false);
-          return;
-        }
-
-        setAuthMethod(authMethodFromStorage);
-
-        const userResponse = await fetch(`/api/user?authMethodId=${authMethodIdValue}`);
-        if (userResponse.ok) {
-          const userData = await userResponse.json();
-          if (userData.litActionPkp) {
-            setUserPkp(userData.litActionPkp);
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching user data:', error);
-      } finally {
-        setIsLoadingUser(false);
-      }
+    if (authMethodFromStorage) {
+      setAuthMethod(authMethodFromStorage);
     }
-
-    fetchUserData();
-  }, [authMethodFromStorage, authMethodIdValue]);
+    
+    if (userData?.litActionPkp) {
+      setUserPkp(userData.litActionPkp);
+    }
+  }, [authMethodFromStorage, userData]);
 
   // Fetch user phone number separately
   useEffect(() => {
@@ -137,7 +120,7 @@ export function ProposalsList({ proposals }: { proposals: PendingProposalNotific
   });
 
 
-  if (isLoadingWallets || isLoadingUser) {
+  if (isLoadingWallets || isUserDataLoading) {
     return <LogoLoading />;
   }
 
