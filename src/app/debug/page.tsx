@@ -52,6 +52,11 @@ export default function DebugPage() {
   const { authMethod } = useAuthContext();
   const { userData } = useUserData();
   const [sessionSigs, setSessionSigs] = useState<SessionSigs | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const handleVerifyToken = async () => {
     const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/verify-token`, {
@@ -303,16 +308,16 @@ export default function DebugPage() {
       <div className="border rounded-lg p-4 bg-gray-50">
         <h3 className="font-bold mb-2">Debug Info:</h3>
         <div className="text-sm space-y-1">
-          <div>Auth Method: {authMethod ? '✅ Found' : '❌ Not found'}</div>
-          <div>User Data: {userData ? '✅ Found' : '❌ Not found'}</div>
-          <div>User PKP: {userData?.litActionPkp ? '✅ Found' : '❌ Not found'}</div>
+          <div>Auth Method: {!isMounted ? 'Loading...' : (authMethod ? '✅ Found' : '❌ Not found')}</div>
+          <div>User Data: {!isMounted ? 'Loading...' : (userData ? '✅ Found' : '❌ Not found')}</div>
+          <div>User PKP: {!isMounted ? 'Loading...' : (userData?.litActionPkp ? '✅ Found' : '❌ Not found')}</div>
           {userData?.litActionPkp && (
             <div className="ml-2">
               <div>PKP Address: {userData.litActionPkp.ethAddress}</div>
               <div>PKP Token ID: {userData.litActionPkp.tokenId}</div>
             </div>
           )}
-          <div>Session Sigs: {sessionSigs ? '✅ Generated' : '❌ Not generated'}</div>
+          <div>Session Sigs: {!isMounted ? 'Loading...' : (sessionSigs ? '✅ Generated' : '❌ Not generated')}</div>
         </div>
       </div>
 

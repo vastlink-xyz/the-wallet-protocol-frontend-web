@@ -2,7 +2,6 @@ declare const ethers: any
 
 declare const providerType: string
 declare const accessToken: string
-declare const userEmail: string
 declare const pkpTokenId: string
 declare const authMethodType: string
 declare const env: string
@@ -12,7 +11,7 @@ const _litActionCode = async () => {
   console.log("🔄 Starting multi-provider auth Lit Action...");
 
   // Validate required parameters
-  if (!providerType || !accessToken || !userEmail || !pkpTokenId || !authMethodType) {
+  if (!providerType || !accessToken || !pkpTokenId || !authMethodType) {
     console.log("❌ Missing required parameters");
     return Lit.Actions.setResponse({
       response: "false",
@@ -50,7 +49,6 @@ const _litActionCode = async () => {
           body: JSON.stringify({
             providerType,
             accessToken,
-            userEmail,
             timestamp: Date.now()
           })
         });
@@ -80,7 +78,6 @@ const _litActionCode = async () => {
 
     // Use authMethodId from API response
     console.log("✅ Using auth method ID from API:", parsedResult.authMethodId);
-    console.log("✅ For user email:", parsedResult.userEmail);
     
     const arrayifiedUserId = ethers.utils.arrayify(parsedResult.authMethodId);
     console.log("   - userId (after arrayify):", arrayifiedUserId);

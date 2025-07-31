@@ -125,7 +125,7 @@ export default function UnifiedAuthCallbackPage() {
   const verifyAuthentication = async (callbackParams: CallbackParams): Promise<boolean> => {
     try {
       // Call backend API directly to verify token
-      const response = await fetch('/api/auth/verify-provider', {
+      const response = await fetch('/api/auth/verify-and-get-auth-method-id', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -140,6 +140,10 @@ export default function UnifiedAuthCallbackPage() {
 
       if (!response.ok) {
         console.error('API verification failed:', response.status);
+        if (response.status === 401) {
+          const errorData = await response.json();
+          return errorData.userNotFound;
+        }
         return false;
       }
 
@@ -147,7 +151,6 @@ export default function UnifiedAuthCallbackPage() {
       log('Authentication verification result:', result);
       
       return result.success;
-
     } catch (error) {
       console.error('Error verifying authentication:', error);
       return false;
@@ -275,7 +278,7 @@ export default function UnifiedAuthCallbackPage() {
       }
 
       // User doesn't have valid PKP, need to create new one
-      log('Creating new PKP for user:', user.email);
+      log('Creating new PKP for user:', user.primaryEmail);
       
       // Save PKP to database
       const newPkp = await mintCustomAuthPKP(callbackParams, user);

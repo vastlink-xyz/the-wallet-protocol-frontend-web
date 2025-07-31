@@ -48,7 +48,6 @@ export function WalletCard({
   const transWalletCard = useTranslations("WalletCard");
 
   const [receiveModalOpen, setReceiveModalOpen] = useState(false);
-  console.log('unsignedProposalsCount', unsignedProposalsCount)
 
   const [showRampDialog, setShowRampDialog] = useState(false);
 
@@ -237,7 +236,7 @@ export function WalletCard({
       </div>
 
       {/* Notification badge for unsigned proposals */}
-      {(unsignedProposalsCount && unsignedProposalsCount > 0) ? (
+      {((unsignedProposalsCount || 0) > 0) ? (
         <span className="absolute top-2 left-2 w-3 h-3 bg-red-500 rounded-full"></span>
       ) : null}
 

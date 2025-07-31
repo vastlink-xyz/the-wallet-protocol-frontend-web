@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AuthProviderType } from '@/lib/lit/custom-auth';
-import { findUserByProviderEmail } from '../../user/storage';
 import { verifyProviderAuth } from '@/lib/auth/provider-verification';
 
 /**
@@ -13,14 +12,14 @@ import { verifyProviderAuth } from '@/lib/auth/provider-verification';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { providerType, accessToken, userEmail, timestamp } = body;
+    const { providerType, accessToken, timestamp } = body;
 
-    console.log('🔄 Verifying authentication and getting authMethodId for:', { providerType, userEmail });
+    console.log('🔄 Verifying authentication and getting authMethodId for:', { providerType });
 
-    if (!providerType || !accessToken || !userEmail) {
+    if (!providerType || !accessToken) {
       return NextResponse.json({
         success: false,
-        error: 'Missing required parameters: providerType, accessToken, userEmail'
+        error: 'Missing required parameters: providerType, accessToken'
       }, { status: 400 });
     }
 
@@ -33,36 +32,23 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    // Step 1: Verify authentication
-    const verificationResult = await verifyProviderAuth(providerType as AuthProviderType, accessToken, userEmail);
+    // Verify authentication and get user from database
+    const result = await verifyProviderAuth(providerType as AuthProviderType, accessToken);
 
-    if (!verificationResult.success) {
-      console.log('❌ Authentication failed for:', userEmail, verificationResult.error);
+    if (!result.success) {
+      console.log('❌ Authentication or user lookup failed:', result.error);
       return NextResponse.json({
         success: false,
-        error: verificationResult.error
+        error: result.error,
+        userNotFound: (result as any).userNotFound,
       }, { status: 401 });
     }
 
-    console.log('✅ Authentication verified for:', userEmail);
-
-    // Step 2: Look up user from database to get their authMethodId
-    const user = await findUserByProviderEmail(providerType as AuthProviderType, (verificationResult as any).userEmail);
-    
-    if (!user) {
-      console.log('❌ User not found in database for:', { providerType, userEmail });
-      return NextResponse.json({
-        success: false,
-        error: 'User not found in database'
-      }, { status: 404 });
-    }
-
-    console.log('✅ Found user authMethodId:', user.authMethodId);
+    console.log('✅ Found user authMethodId:', (result as any).authMethodId);
 
     return NextResponse.json({
       success: true,
-      authMethodId: user.authMethodId,
-      userEmail: (verificationResult as any).userEmail,
+      authMethodId: (result as any).authMethodId,
       providerType,
     });
 

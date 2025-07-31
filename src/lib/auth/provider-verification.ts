@@ -1,10 +1,11 @@
 import { stytchClient } from '@/app/api/stytch/client';
 import { AuthProviderType } from '@/lib/lit/custom-auth';
+import { findUserByProviderEmail } from '@/app/api/user/storage';
 
 /**
  * Verify Stytch email authentication
  */
-export async function verifyStytchAuth(sessionJwt: string, expectedEmail: string) {
+export async function verifyStytchAuth(sessionJwt: string) {
   try {
     // Verify the Stytch session JWT
     const response = await stytchClient.sessions.authenticate({
@@ -19,11 +20,6 @@ export async function verifyStytchAuth(sessionJwt: string, expectedEmail: string
     const userEmail = response.user.emails?.[0]?.email;
     if (!userEmail) {
       return { success: false, error: 'No email found in Stytch user' };
-    }
-
-    // Verify email matches expected
-    if (userEmail.toLowerCase() !== expectedEmail.toLowerCase()) {
-      return { success: false, error: 'Email mismatch' };
     }
 
     return {
@@ -43,7 +39,7 @@ export async function verifyStytchAuth(sessionJwt: string, expectedEmail: string
 /**
  * Verify Google OAuth authentication
  */
-export async function verifyGoogleAuth(googleCredential: string, expectedEmail: string) {
+export async function verifyGoogleAuth(googleCredential: string) {
   try {
     // Verify Google ID token
     const response = await fetch(
@@ -56,14 +52,13 @@ export async function verifyGoogleAuth(googleCredential: string, expectedEmail: 
 
     const tokenInfo = await response.json();
 
-    // Verify email matches expected
-    if (tokenInfo.email?.toLowerCase() !== expectedEmail.toLowerCase()) {
-      return { success: false, error: 'Email mismatch' };
-    }
-
     // Verify email is verified
     if (!tokenInfo.email_verified) {
       return { success: false, error: 'Google email not verified' };
+    }
+
+    if (!tokenInfo.email) {
+      return { success: false, error: 'No email found in Google token' };
     }
 
     return {
@@ -85,7 +80,7 @@ export async function verifyGoogleAuth(googleCredential: string, expectedEmail: 
  * Verify Passkey authentication
  * TODO: Implement passkey verification logic
  */
-export async function verifyPasskeyAuth(passkeyData: string, expectedEmail: string) {
+export async function verifyPasskeyAuth(passkeyData: string) {
   try {
     // TODO: Implement WebAuthn verification
     // For now, return not implemented
@@ -97,18 +92,23 @@ export async function verifyPasskeyAuth(passkeyData: string, expectedEmail: stri
 }
 
 /**
- * Verify authentication for any provider type
+ * Verify authentication for any provider type and get user from database
  */
-export async function verifyProviderAuth(providerType: AuthProviderType, accessToken: string, userEmail: string) {
+export async function verifyProviderAuth(providerType: AuthProviderType, accessToken: string) {
+  let verificationResult;
+  
   switch (providerType) {
     case AuthProviderType.EMAIL_OTP:
-      return await verifyStytchAuth(accessToken, userEmail);
+      verificationResult = await verifyStytchAuth(accessToken);
+      break;
     
     case AuthProviderType.GOOGLE:
-      return await verifyGoogleAuth(accessToken, userEmail);
+      verificationResult = await verifyGoogleAuth(accessToken);
+      break;
     
     case AuthProviderType.PASSKEY:
-      return await verifyPasskeyAuth(accessToken, userEmail);
+      verificationResult = await verifyPasskeyAuth(accessToken);
+      break;
     
     default:
       return {
@@ -116,4 +116,26 @@ export async function verifyProviderAuth(providerType: AuthProviderType, accessT
         error: `Unsupported provider type: ${providerType}`
       };
   }
+
+  if (!verificationResult.success) {
+    return verificationResult;
+  }
+
+  // Step 2: Look up user from database using the extracted email
+  const extractedEmail = (verificationResult as any).userEmail;
+  const user = await findUserByProviderEmail(providerType, extractedEmail);
+  
+  if (!user) {
+    return {
+      success: false,
+      error: 'User not found in database',
+      userNotFound: true,
+    };
+  }
+
+  return {
+    success: true,
+    authMethodId: user.authMethodId,
+    metadata: (verificationResult as any).metadata
+  };
 }

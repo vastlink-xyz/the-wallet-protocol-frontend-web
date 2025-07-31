@@ -111,9 +111,9 @@ export const executePersonalTransaction = async ({
         chainType: SUPPORTED_TOKENS_INFO[tokenType].chainType,
         authParams: {
           accessToken: accessToken,
-          authMethodId: authMethodId,
           authMethodType: authMethodType,
-          devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
+          pkpTokenId: litActionPkp.tokenId,
+          providerType: providerType,
         },
         otp: otpCode || '',
         mfaMethodId: newMfaMethodId || stateMfaMethodId,

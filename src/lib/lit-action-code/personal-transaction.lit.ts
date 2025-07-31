@@ -19,19 +19,24 @@ const go = async () => {
   const securityVerificationIpfsId = 'QmQ2uYBBDWvRuBG8M1ruF5vdpxUtKGQJ6XYk8FV9qwrFcf'
   const publicKeyForLit = publicKey.replace(/^0x/, '');
 
-  // verify auth token
-  const res = await Lit.Actions.call({
-    ipfsId: 'QmdeSZo7yUsfT4fVosxK55dz4fPEWokeFBPfRR2NdV9HJm',
+  // verify auth using multi-provider authentication
+  const multiProviderAuthIpfsId = 'QmUALzmKCewVAHvjgqiu3UKCYXESEbZkjJiXVkjUV9iPUj' 
+
+  const authResult = await Lit.Actions.call({
+    ipfsId: multiProviderAuthIpfsId,
     params: {
-      ...authParams,
-      publicKey,
+      providerType: authParams.providerType,
+      accessToken: authParams.accessToken,
+      pkpTokenId: authParams.pkpTokenId,
+      authMethodType: authParams.authMethodType,
       env,
+      devUrl,
     },
   })
-  console.log('res', res)
-  const parsedRes = JSON.parse(res)
-  if (!parsedRes.isPermitted) {
-    Lit.Actions.setResponse({response: JSON.stringify(parsedRes)})
+  console.log('Multi-provider auth result:', authResult)
+  
+  if (authResult !== 'true') {
+    Lit.Actions.setResponse({response: JSON.stringify({isPermitted: false})})
     return
   }
 

@@ -22,11 +22,11 @@ import { litActionCodeForMultiProviderAuth } from "@/lib/lit-action-code/multi-p
 import { VastbaseAuthMethod } from "@/lib/lit/custom-auth";
 
 
-const litActionCode = litActionCodeForMultiProviderAuth
+// const litActionCode = litActionCodeForMultiProviderAuth
 
 // const litActionCode = litActionCodeForUpdateMultisigWalletSettings
 // const litActionCode = litActionCodeForMultisigTransaction
-// const litActionCode = litActionCodeForPersonalTransaction
+const litActionCode = litActionCodeForPersonalTransaction
 
 interface ExecuteLitActionCodeProps {
   authMethod: VastbaseAuthMethod;
