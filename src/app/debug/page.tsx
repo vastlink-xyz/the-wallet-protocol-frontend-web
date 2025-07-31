@@ -1,13 +1,13 @@
 'use client'
 
 import { Button } from "@/components/ui/button"
-import { getLitActionIpfsCid, getPKPs, getSessionSigsByPkp, litNodeClient, getMultiProviderSessionSigs } from "@/lib/lit"
+import { getLitActionIpfsCid, getPKPs, litNodeClient, getMultiProviderSessionSigs } from "@/lib/lit"
 import { log } from "@/lib/utils";
 import { AccessControlConditions, SessionSigs } from "@lit-protocol/types";
 import { useEffect, useState } from "react";
 import { AUTH_METHOD_SCOPE, AUTH_METHOD_TYPE, LIT_ABILITY, LIT_CHAINS, LIT_NETWORK } from "@lit-protocol/constants";
 import { Example } from "./components/Example";
-import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
+import { useAuthContext } from '@/hooks/useAuthContext';
 import { User } from '@/app/api/user/storage';
 import { fetchEthTransactionHistory } from "@/lib/web3/eth";
 import { getChainIdByChainName } from "@/lib/web3/token";
@@ -53,35 +53,8 @@ const accessControlConditions: AccessControlConditions = [
 ];
 
 export default function DebugPage() {
-  const [authMethod, setAuthMethod] = useState<any | null>(null); // Use any for compatibility
+  const { authMethod, userData } = useAuthContext();
   const [sessionSigs, setSessionSigs] = useState<SessionSigs | null>(null);
-  const [userData, setUserData] = useState<User | null>(null);
-
-  // Initialize by reading authMethod from localStorage
-  useEffect(() => {
-    const storedAuthMethod = getAuthMethodFromStorage();
-    if (storedAuthMethod) {
-      setAuthMethod(storedAuthMethod);
-    }
-
-    // Also try to get user data
-    const storedUserData = localStorage.getItem('user');
-    if (storedUserData) {
-      try {
-        setUserData(JSON.parse(storedUserData));
-      } catch (error) {
-        console.error('Error parsing user data:', error);
-      }
-    }
-  }, []);
-
-  const handleGetAllPKPs = async () => {
-    if (!authMethod) {
-      return
-    }
-
-    await getPKPs({authMethod})
-  }
 
   const handleVerifyToken = async () => {
     const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/verify-token`, {
@@ -302,40 +275,19 @@ export default function DebugPage() {
     }
   }
 
-  const handleGetSessionSigs = async () => {
-    if (!authMethod) {
+  const handleGetMultiProviderSessionSigs = async () => {
+    if (!userData || !userData.litActionPkp || !authMethod) {
       return
     }
-    
-    const sessionSigs = await getSessionSigsByPkp({
-      authMethod, 
-      pkp,
-      refreshStytchAccessToken: true,
-    })
 
-    setSessionSigs(sessionSigs)
-  }
-
-  const handleGetMultiProviderSessionSigs = async () => {
-    if (!authMethod) {
-      log('No auth method found in storage');
-      return;
-    }
-
-    if (!userData?.litActionPkp) {
-      log('No user PKP found in storage. Please complete authentication first.');
-      return;
-    }
-    
     try {
-      log('Getting multi-provider session sigs with:', {
-        authMethodType: authMethod.authMethodType,
-        pkp: userData.litActionPkp.ethAddress,
-      });
 
       const sessionSigs = await getMultiProviderSessionSigs({
-        authMethod, 
-        pkp: userData.litActionPkp,
+        pkpPublicKey: userData.litActionPkp.publicKey,
+        pkpTokenId: userData.litActionPkp.tokenId,
+        accessToken: authMethod.accessToken,
+        providerType: authMethod.providerType,
+        userEmail: authMethod.primaryEmail,
       });
 
       setSessionSigs(sessionSigs);
@@ -346,103 +298,9 @@ export default function DebugPage() {
     }
   }
 
-  const handleFetchUserFromAPI = async () => {
-    if (!authMethod) {
-      log('No auth method found. Cannot fetch user data.');
-      return;
-    }
-
-    try {
-      log('Fetching user data from API...');
-      
-      // Parse the access token to get user email
-      const authTokenData = JSON.parse(authMethod.accessToken);
-      const userEmail = authTokenData.userEmail;
-      
-      log('Request data:', {
-        providerType: authTokenData.providerType,
-        userEmail: userEmail,
-        hasAccessToken: !!authTokenData.accessToken
-      });
-      
-      const response = await fetch('/api/user/by-provider', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          providerType: authTokenData.providerType,
-          accessToken: authTokenData.accessToken,
-          userEmail: userEmail,
-        }),
-      });
-
-      log('Response status:', response.status);
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        log('API error response:', errorText);
-        throw new Error(`API call failed: ${response.status} - ${errorText}`);
-      }
-
-      const apiUserData = await response.json();
-      log('User data fetched successfully:', apiUserData);
-      
-      // Store the fetched user data
-      setUserData(apiUserData);
-      
-    } catch (error) {
-      console.error('Error fetching user data:', error);
-      log('Error fetching user data:', error);
-    }
-  };
-
-  const handleFetchUserByAuthMethodId = async () => {
-    if (!authMethod) {
-      log('No auth method found. Cannot fetch user data.');
-      return;
-    }
-
-    try {
-      log('Fetching user data by authMethodId...');
-      
-      const response = await fetch(`/api/user?authMethodId=${authMethod.authMethodId}`);
-      
-      log('Response status:', response.status);
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        log('API error response:', errorText);
-        throw new Error(`API call failed: ${response.status} - ${errorText}`);
-      }
-
-      const apiUserData = await response.json();
-      log('User data fetched successfully by authMethodId:', apiUserData);
-      
-      // Store the fetched user data
-      setUserData(apiUserData);
-      
-    } catch (error) {
-      console.error('Error fetching user data by authMethodId:', error);
-      log('Error fetching user data by authMethodId:', error);
-    }
-  };
-
-  const handleShowToast = () => {
-    toast.success('Hello, world! This is a very long message that should wrap to the next line. This is a very long message that should wrap to the next line.', {
-      autoClose: false,
-    })
-  }
-
 
   return (
     <div className="space-y-8 p-4">
-      <div className="flex flex-wrap gap-2">
-        <Button onClick={handleGetAllPKPs}>All PKPs</Button>
-        <Button onClick={handleShowToast}>toast</Button>
-        <Button onClick={handleFetchUserFromAPI}>Fetch User by Provider</Button>
-        <Button onClick={handleFetchUserByAuthMethodId}>Fetch User by AuthMethodId</Button>
-      </div>
 
       {/* Debug info display */}
       <div className="border rounded-lg p-4 bg-gray-50">
@@ -463,7 +321,7 @@ export default function DebugPage() {
 
       <div className="border rounded-lg p-6 bg-white">
         {
-          authMethod && <Example authMethod={authMethod} />
+          <Example />
         }
       </div>
 
@@ -476,7 +334,6 @@ export default function DebugPage() {
       <Button onClick={handleDecrypt}>Decrypt</Button>
       <Button onClick={handleUpgrade}>Upgrade</Button>
       <Button onClick={handleCheckPermittedLitActions}>Check Permitted Lit Actions</Button>
-      <Button onClick={handleGetSessionSigs}>Get Session Sigs (Old)</Button>
       <Button onClick={handleGetMultiProviderSessionSigs}>Get Multi-Provider Session Sigs</Button>
 
       {/* {authMethod && <Encryption authMethod={authMethod} />} */}

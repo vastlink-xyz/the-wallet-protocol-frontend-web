@@ -1,74 +1,49 @@
-import { AuthMethod, IRelayPKP, SessionSigs } from "@lit-protocol/types";
+import { IRelayPKP, SessionSigs } from "@lit-protocol/types";
 import { EditAuthmethod } from "./EditAuthmethod";
 import { ExecuteLitActionCode } from "./ExecuteLitActionCode";
 import { Upgrade } from "./Upgrade";
-import { useState, useEffect, useCallback } from "react";
-import { getSessionSigs } from "@/lib/lit";
-import { log } from "@/lib/utils";
+import { useState, useEffect } from "react";
+import { getMultiProviderSessionSigs } from "@/lib/lit";
 import { AllUsers } from "./AllUsers";
 import { AllMultisigWallets } from "./AllMultisigWallets";
 import { BtcDemo } from "./BtcDemo";
-import { getAuthMethodIdFromStorage } from "@/lib/storage/authmethod";
+import { useAuthMethod } from "@/hooks/useAuthMethod";
+import { useUserData } from "@/hooks/useUserData";
 
 // Define tab options
 type DebugTab = 'edit-authmethod' | 'execute-lit-action' | 'upgrade' | 'all-users' | 'all-wallets' | 'btc-demo';
 
-export function Example({
-  authMethod,
-}: {
-  authMethod: AuthMethod;
-}) {
-  const [actionPkp, setActionPkp] = useState<IRelayPKP | null>(null);
+export function Example() {
+  // Use hook for stable auth method reference
+  const authMethod = useAuthMethod();
+  const { userData } = useUserData();
+  
   const [loading, setLoading] = useState(false);
   const [sessionSigs, setSessionSigs] = useState<SessionSigs | null>(null);
   // Add state for active tab
   const [activeTab, setActiveTab] = useState<DebugTab>('btc-demo');
 
-  // Fetch user PKPs from API
-  const fetchUserPkps = useCallback(async () => {
-    if (!authMethod) return;
-    
-    try {
-      setLoading(true);
-      const authMethodId = getAuthMethodIdFromStorage() || ''
-      
-      const response = await fetch(`/api/user/pkp?authMethodId=${authMethodId}`);
-      
-      if (response.ok) {
-        const data = await response.json();
-        if (data.litActionPkp) {
-          setActionPkp(data.litActionPkp);
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching user PKPs:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [authMethod]);
-
-  // Initial data fetch when authMethod is available
-  useEffect(() => {
-    if (authMethod) {
-      fetchUserPkps();
-    }
-  }, [authMethod, fetchUserPkps]);
-
-  // Fetch session signatures
+  // Fetch session signatures using multi-provider system
   useEffect(() => {
     const fetchSessionSigs = async () => {
-      if (!sessionSigs && actionPkp && authMethod) {
-        const sigs = await getSessionSigs({
-          pkpPublicKey: actionPkp.publicKey,
-          authMethod: authMethod,
-          refreshStytchAccessToken: true,
-        });
-        setSessionSigs(sigs);
+      if (!sessionSigs && userData?.litActionPkp && authMethod) {
+        try {
+          const sigs = await getMultiProviderSessionSigs({
+            pkpPublicKey: userData.litActionPkp.publicKey,
+            pkpTokenId: userData.litActionPkp.tokenId,
+            accessToken: authMethod.accessToken,
+            providerType: authMethod.providerType,
+            userEmail: authMethod.primaryEmail,
+          });
+          setSessionSigs(sigs);
+        } catch (error) {
+          console.error('Error getting multi-provider session sigs:', error);
+        }
       }
     };
 
     fetchSessionSigs();
-  }, [actionPkp, authMethod, sessionSigs]);
+  }, [userData?.litActionPkp, authMethod, sessionSigs]);
 
   // Render tab buttons
   const renderTabButtons = () => {
@@ -112,49 +87,54 @@ export function Example({
   const renderActiveComponent = () => {
     switch (activeTab) {
       case 'edit-authmethod':
-        return (
+        return authMethod ? (
           <EditAuthmethod 
             authMethod={authMethod} 
-            actionPkp={actionPkp}
+            actionPkp={userData?.litActionPkp || null}
             loading={loading}
           />
+        ) : (
+          <div>No auth method available</div>
         );
       case 'execute-lit-action':
-        return (
+        return authMethod ? (
           <ExecuteLitActionCode 
-            authMethod={authMethod} 
-            actionPkp={actionPkp}
+            authMethod={authMethod as any} 
+            actionPkp={userData?.litActionPkp || null}
             loading={loading}
           />
+        ) : (
+          <div>No auth method available</div>
         );
       case 'upgrade':
-        return (
+        return authMethod ? (
           <Upgrade 
-            authMethod={authMethod} 
-            actionPkp={actionPkp}
+            authMethod={authMethod as any} 
+            actionPkp={userData?.litActionPkp || null}
           />
+        ) : (
+          <div>No auth method available</div>
         );
       case 'all-users':
         return (
           <AllUsers 
-            currentUserPkp={actionPkp}
-            currentUserAuthMethod={authMethod}
+            currentUserPkp={userData?.litActionPkp || null}
+            currentUserAuthMethod={authMethod as any}
             sessionSigs={sessionSigs}
           />
         );
       case 'all-wallets':
         return (
           <AllMultisigWallets 
-            currentUserPkp={actionPkp}
-            currentUserAuthMethod={authMethod}
+            currentUserPkp={userData?.litActionPkp || null}
+            currentUserAuthMethod={authMethod as any}
             sessionSigs={sessionSigs}
           />
         );
       case 'btc-demo':
         return (
           <BtcDemo 
-            authMethod={authMethod}
-            litactionPkp={actionPkp}
+            litactionPkp={userData?.litActionPkp || null}
             sessionSigs={sessionSigs}
           />
         );

@@ -73,8 +73,10 @@ export default function ProposalsPage() {
   } = useProposalActions({
     walletMap,
     userPkp,
-    authMethod,
+    accessToken: authMethod?.accessToken || '',
     authMethodId,
+    providerType: authMethod?.providerType || 'EMAIL_OTP' as any,
+    userEmail: authMethod?.primaryEmail || '',
     userPhone,
     refreshProposals,
     refreshNotifications: (authMethodId: string, ethAddress: string) => {

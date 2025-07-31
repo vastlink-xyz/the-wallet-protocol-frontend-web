@@ -9,6 +9,7 @@ import AppNavbar from "@/components/layout/AppNavbar";
 import { NotificationContainer } from "@/components/layout/NotificationContainer";
 import AuthGuard from "@/components/layout/AuthGuard";
 import { QueryProvider } from "@/providers/QueryProvider";
+import { AuthMethodProvider } from "@/providers/AuthMethodProvider";
 import { SidebarDesktop } from "@/components/layout/Sidebar";
 import { PersonalWalletSettings } from "./assets/components/Personal/WalletSettings";
 import { PersonalWalletSettingsProvider } from "@/providers/PersonalWalletSettingsProvider";
@@ -51,44 +52,46 @@ export default async function RootLayout({
         <QueryProvider>
           <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}>
             <NextIntlClientProvider>
-              <PersonalWalletSettingsProvider>
-                <MultisigSettingsProvider>
-                  <AppNavbar />
+              <AuthMethodProvider>
+                <PersonalWalletSettingsProvider>
+                  <MultisigSettingsProvider>
+                    <AppNavbar />
 
-                  <AuthGuard />
+                    <AuthGuard />
 
-                  <div className="h-[calc(100vh-52px)] flex flex-col">
-                    {/* Unified notification system */}
-                    <NotificationContainer />
+                    <div className="h-[calc(100vh-52px)] flex flex-col">
+                      {/* Unified notification system */}
+                      <NotificationContainer />
 
-                    <div className="flex flex-1 min-h-0">
-                      <SidebarDesktop />
-                      <main className="flex-1 overflow-y-auto relative">
-                        {children}
-                      </main>
+                      <div className="flex flex-1 min-h-0">
+                        <SidebarDesktop />
+                        <main className="flex-1 overflow-y-auto relative">
+                          {children}
+                        </main>
+                      </div>
+
                     </div>
 
-                  </div>
+                    <PersonalWalletSettings />
+                    <MultisigSettings />
 
-                  <PersonalWalletSettings />
-                  <MultisigSettings />
-
-                  <ToastContainer
-                    position="top-center"
-                    autoClose={5000}
-                    hideProgressBar={false}
-                    newestOnTop={false}
-                    closeOnClick
-                    rtl={false}
-                    pauseOnFocusLoss
-                    draggable
-                    pauseOnHover
-                    theme="colored"
-                    style={{ width: 'fit-content' }}
-                    toastStyle={{ width: 'fit-content', maxWidth: '100%' }}
-                  />
-                </MultisigSettingsProvider>
-              </PersonalWalletSettingsProvider>
+                    <ToastContainer
+                      position="top-center"
+                      autoClose={5000}
+                      hideProgressBar={false}
+                      newestOnTop={false}
+                      closeOnClick
+                      rtl={false}
+                      pauseOnFocusLoss
+                      draggable
+                      pauseOnHover
+                      theme="colored"
+                      style={{ width: 'fit-content' }}
+                      toastStyle={{ width: 'fit-content', maxWidth: '100%' }}
+                    />
+                  </MultisigSettingsProvider>
+                </PersonalWalletSettingsProvider>
+              </AuthMethodProvider>
             </NextIntlClientProvider>
           </GoogleOAuthProvider>
         </QueryProvider>

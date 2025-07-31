@@ -1,4 +1,5 @@
-import { getLitActionIpfsCid, getSessionSigs, litNodeClient, mintPersonalPKP } from "@/lib/lit";
+import { getLitActionIpfsCid, litNodeClient, mintPersonalPKP } from "@/lib/lit";
+import { useCustomAuthSessionSigs } from "@/hooks/useAuthContext";
 import { log } from "@/lib/utils";
 import { AuthMethod, IRelayPKP } from "@lit-protocol/types";
 import { useCallback, useEffect, useState } from "react";
@@ -21,6 +22,7 @@ export function Upgrade({
 }) {
   const [isMinting, setIsMinting] = useState(false);
   const [isUpgrading, setIsUpgrading] = useState(false);
+  const getCustomAuthSessionSigs = useCustomAuthSessionSigs();
 
   // Handle mint button click
   const handleMint = async () => {
@@ -42,11 +44,12 @@ export function Upgrade({
     try {
       setIsUpgrading(true);
 
-      const sessionSigs = await getSessionSigs({
-        pkpPublicKey: actionPkp!.publicKey,
-        authMethod,
-        refreshStytchAccessToken: true,
-      });
+      const sessionSigs = await getCustomAuthSessionSigs();
+      
+      if (!sessionSigs) {
+        log('Failed to get session signatures');
+        return;
+      }
       log('sessionSigs', sessionSigs)
 
       const ipfsIdHex = await getUpdateWalletIpfsId('hex')
@@ -92,11 +95,12 @@ export function Upgrade({
         await litNodeClient.connect();
       }
 
-      const sessionSigs = await getSessionSigs({
-        pkpPublicKey: actionPkp!.publicKey,
-        authMethod,
-        refreshStytchAccessToken: true,
-      })
+      const sessionSigs = await getCustomAuthSessionSigs();
+      
+      if (!sessionSigs) {
+        log('Failed to get session signatures');
+        return;
+      }
       const pkpWallet = new PKPEthersWallet({
         controllerSessionSigs: sessionSigs,
         pkpPubKey: actionPkp!.publicKey,
@@ -129,11 +133,12 @@ export function Upgrade({
     }
     
     try {
-      const sessionSigs = await getSessionSigs({
-        pkpPublicKey: actionPkp!.publicKey,
-        authMethod,
-        refreshStytchAccessToken: true,
-      });
+      const sessionSigs = await getCustomAuthSessionSigs();
+      
+      if (!sessionSigs) {
+        log('Failed to get session signatures');
+        return;
+      }
       log('sessionSigs', sessionSigs)
       
       const response = await litNodeClient.executeJs({

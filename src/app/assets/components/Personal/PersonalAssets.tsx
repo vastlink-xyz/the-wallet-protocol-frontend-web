@@ -165,7 +165,6 @@ export default function PersonalAssets({ userData, authMethodId }: PersonalAsset
           <SwapDialog
             open={showSwapDialog}
             onOpenChange={setShowSwapDialog}
-            authMethod={authMethod}
           />
         )
       }

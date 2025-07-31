@@ -14,7 +14,6 @@ import {
   litNodeClient, 
   mintPKP
 } from '@/lib/lit'
-import { getMultiProviderSessionSigs } from '@/lib/lit/pkpManager'
 import { encryptString } from '@lit-protocol/encryption'
 import { AUTH_METHOD_SCOPE, AUTH_METHOD_TYPE } from '@lit-protocol/constants'
 import { getCreateWalletIpfsId, getMultisigTransactionIpfsId, getUpdateWalletIpfsId } from '@/lib/lit/ipfs-id-env'
@@ -24,7 +23,7 @@ import { TokenType } from '@/lib/web3/token'
 import { MFASettings, MultisigWallet, MultisigWalletMetadata } from '@/app/api/multisig/storage'
 import { LabeledContainer } from '../LabeledContainer'
 import { DailyWithdrawLimits, getDefaultDailyWithdrawLimits } from '../Transaction/DailyWithdrawLimits'
-import { getPrimaryEmailFromStorage, getAuthMethodFromStorage, getAuthMethodIdFromStorage } from '@/lib/storage/authmethod'
+import { useAuthContext } from '@/hooks/useAuthContext'
 import { sendTeamNotification } from '@/lib/notification/team-notificatioin'
 import { MessageProposal } from '@/app/api/multisig/storage'
 import { signProposal } from '@/app/wallet/[walletId]/details/proposals/utils/sign-proposal'
@@ -112,9 +111,11 @@ export function MultisigWalletFormContent({
   const [isLoading, setIsLoading] = useState(false)
   const [verifiedPhone, setVerifiedPhone] = useState<string | null>(null)
   
-  // Get auth method data directly from localStorage
-  const authMethod = getAuthMethodFromStorage()
-  const authMethodId = getAuthMethodIdFromStorage() || ''
+  // Get authentication data from Context
+  const { authMethod, authMethodId, primaryEmail, getCustomAuthSessionSigs } = useAuthContext();
+  
+  // Get current user's email from Context
+  const currentUserEmail = primaryEmail || '';
   
   // Form states - initial values depend on mode
   const [signers, setSigners] = useState<any[]>(
@@ -155,24 +156,6 @@ export function MultisigWalletFormContent({
   // Ref for scrolling to the new signer form
   const newSignerFormRef = useRef<HTMLDivElement>(null)
 
-  // Get current user's email from authMethod
-  let currentUserEmail = '';
-  if (authMethod?.accessToken) {
-    const email = getPrimaryEmailFromStorage()
-    if (email) {
-      currentUserEmail = email;
-    }
-  }
-
-  // Early return if no auth method is available
-  if (!authMethod) {
-    return (
-      <div className="p-4 text-center">
-        <p className="text-red-500">Authentication required. Please log in again.</p>
-      </div>
-    )
-  }
-
   // Fetch user's phone number for MFA verification
   const fetchUserPhone = useCallback(async () => {
     try {
@@ -208,7 +191,7 @@ export function MultisigWalletFormContent({
 
   // Initialize signers list with current user for create mode
   useEffect(() => {
-    if (mode === 'create' && signers.length === 0 && userPkp) {
+    if (mode === 'create' && signers.length === 0 && userPkp && authMethod && currentUserEmail) {
       setSigners([{
         email: currentUserEmail,
         ethAddress: userPkp.ethAddress,
@@ -216,7 +199,45 @@ export function MultisigWalletFormContent({
         authMethodId: authMethodId
       }]);
     }
-  }, [mode, signers.length, userPkp, currentUserEmail, authMethodId]);
+  }, [mode, signers.length, userPkp, currentUserEmail, authMethodId, authMethod]);
+
+  // Handle threshold change when signers array changes
+  useEffect(() => {
+    // Ensure threshold is not greater than the number of signers
+    if (threshold > signers.length) {
+      // Make sure threshold is at least 1 (never 0)
+      setThreshold(Math.max(1, signers.length));
+    }
+  }, [signers, threshold]);
+
+  // In create mode, when wallet has no name, set a default name based on existing wallets count
+  useEffect(() => {
+    if (mode === 'create' && !walletName) {
+      // Get user's existing wallets count
+      const fetchWalletCount = async () => {
+        if (!userPkp) return;
+        try {
+          const { data } = await axios.get(`/api/multisig?address=${userPkp.ethAddress}`);
+          if (data.success) {
+            const count = data.data.length + 1;
+            setWalletName(`Team Wallet ${count}`);
+          }
+        } catch (error) {
+          console.error('Failed to fetch wallet count:', error);
+          // If fetching fails, set a generic name
+          setWalletName('Team Wallet');
+        }
+      };
+      
+      fetchWalletCount();
+    }
+  }, [mode, userPkp, walletName]);
+
+  // Handle limits change from DailyWithdrawLimits component
+  const handleLimitsChange = useCallback((newLimits: Record<TokenType, string>, isValid: boolean) => {
+    setDailyLimits(newLimits);
+    setIsLimitValid(isValid);
+  }, []);
 
   const registeredSigners = useMemo(() => {
     return signers.filter(s => !!s.ethAddress)
@@ -235,7 +256,24 @@ export function MultisigWalletFormContent({
       return transWallet('update_wallet')
     }
     return transWallet('create_wallet')
-  }, [mode])
+  }, [mode, transWallet])
+
+  // Check if threshold options need to be adjusted
+  const thresholdOptions = useMemo(() => {
+    return Array.from(
+      { length: registeredSigners.length }, 
+      (_, i) => i + 1
+    );
+  }, [registeredSigners.length]);
+
+  // Early return if no auth method or auth method ID is available
+  if (!authMethod || !authMethodId) {
+    return (
+      <div className="p-4 text-center">
+        <p className="text-red-500">Authentication required. Please log in again.</p>
+      </div>
+    )
+  }
 
   // Handle adding a new signer
   const handleAddSigner = () => {
@@ -280,44 +318,6 @@ export function MultisigWalletFormContent({
   const handleRemoveSigner = (email: string) => {
     setSigners(signers.filter(signer => signer.email !== email));
   };
-
-  // Handle threshold change when signers array changes
-  useEffect(() => {
-    // Ensure threshold is not greater than the number of signers
-    if (threshold > signers.length) {
-      // Make sure threshold is at least 1 (never 0)
-      setThreshold(Math.max(1, signers.length));
-    }
-  }, [signers, threshold]);
-
-  // In create mode, when wallet has no name, set a default name based on existing wallets count
-  useEffect(() => {
-    if (mode === 'create' && !walletName) {
-      // Get user's existing wallets count
-      const fetchWalletCount = async () => {
-        if (!userPkp) return;
-        try {
-          const { data } = await axios.get(`/api/multisig?address=${userPkp.ethAddress}`);
-          if (data.success) {
-            const count = data.data.length + 1;
-            setWalletName(`Team Wallet ${count}`);
-          }
-        } catch (error) {
-          console.error('Failed to fetch wallet count:', error);
-          // If fetching fails, set a generic name
-          setWalletName('Team Wallet');
-        }
-      };
-      
-      fetchWalletCount();
-    }
-  }, [mode, userPkp]);
-
-  // Handle limits change from DailyWithdrawLimits component
-  const handleLimitsChange = useCallback((newLimits: Record<TokenType, string>, isValid: boolean) => {
-    setDailyLimits(newLimits);
-    setIsLimitValid(isValid);
-  }, []);
 
   // Handle wallet invitations for unregistered users
   const handleWalletInvitations = async (
@@ -511,14 +511,12 @@ export function MultisigWalletFormContent({
       );
       log('encrypt data');
 
-      // Get session signatures
-      const sessionSigs = await getMultiProviderSessionSigs({
-        pkpPublicKey: userPkp.publicKey,
-        pkpTokenId: userPkp.tokenId,
-        accessToken: authMethod.accessToken,
-        providerType: authMethod.providerType,
-        userEmail: authMethod.primaryEmail,
-      });
+      // Get session signatures from Context
+      const sessionSigs = await getCustomAuthSessionSigs();
+      
+      if (!sessionSigs) {
+        throw new Error('Failed to get session signatures');
+      }
       log('session sigs', sessionSigs);
 
       // Execute Lit Action to create wallet
@@ -655,13 +653,11 @@ export function MultisigWalletFormContent({
       return
     }
     
-    const sessionSigs = await getMultiProviderSessionSigs({
-      pkpPublicKey: userPkp.publicKey,
-      pkpTokenId: userPkp.tokenId,
-      accessToken: authMethod.accessToken,
-      providerType: authMethod.providerType,
-      userEmail: authMethod.primaryEmail,
-    });
+    const sessionSigs = await getCustomAuthSessionSigs();
+    
+    if (!sessionSigs) {
+      throw new Error('Failed to get session signatures');
+    }
     const walletPkp = wallet.pkp
 
     const response = await executeWalletSettingsProposal({
@@ -917,12 +913,6 @@ export function MultisigWalletFormContent({
       await handleUpdateWalletSettings();
     }
   };
-
-  // Check if threshold options need to be adjusted
-  const thresholdOptions = Array.from(
-    { length: registeredSigners.length }, 
-    (_, i) => i + 1
-  );
 
   return (
     <div className="space-y-8">

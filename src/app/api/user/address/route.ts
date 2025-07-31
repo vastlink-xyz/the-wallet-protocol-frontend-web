@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
 
     // Get user's email information
     const user = await getUser(userInfo.authMethodId);
-    const email = user?.email || null;
+    const email = user?.primaryEmail || null;
 
     // Return specific PKP and user information without exposing all user data
     return NextResponse.json({

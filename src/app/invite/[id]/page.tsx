@@ -9,7 +9,7 @@ import { SUPPORTED_TOKENS_INFO, TokenType } from '@/lib/web3/token';
 import { PendingInvitation } from '@/app/api/invitation/models';
 import { log } from '@/lib/utils';
 import { useParams } from 'next/navigation';
-import StytchOTP from '@/components/LoginForm/StytchOTP';
+import MultiProviderLogin from '@/components/LoginForm/MultiProviderLogin';
 import { LogoLoading } from '@/components/LogoLoading';
 import { getAuthMethodFromStorage } from '@/lib/storage/authmethod';
 import { getEmailFromGoogleToken, getUserIdFromToken } from '@/lib/jwt';
@@ -162,7 +162,7 @@ export default function InvitePage() {
             </Card>
           )}
           
-          <StytchOTP
+          <MultiProviderLogin
             defaultEmail={invitation.recipientEmail}
             title="Create a wallet"
             invitationId={invitation.id}

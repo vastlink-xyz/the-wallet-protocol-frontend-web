@@ -5,7 +5,6 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
-import { AuthMethod } from "@lit-protocol/types";
 import { SecurityLayerService } from "@/services/securityLayerService";
 import { toast } from "react-toastify";
 import { useTranslations } from "next-intl";
@@ -21,7 +20,7 @@ interface MFASelectionDialogProps {
   onClose: () => void;
   onMFAVerify: (mfaType: string, mfaCode: string, mfaMethodId?: string) => Promise<void>;
   availableMFAOptions: MFAOption[];
-  authMethod: AuthMethod;
+  accessToken: string;
   isSending: boolean;
 }
 
@@ -30,7 +29,7 @@ export function MFASelectionDialog({
   onClose,
   onMFAVerify,
   availableMFAOptions,
-  authMethod,
+  accessToken,
   isSending
 }: MFASelectionDialogProps) {
   const t = useTranslations('MFASelectionDialog');
@@ -62,7 +61,7 @@ export function MFASelectionDialog({
     try {
       setIsSendingOTP(true);
       const methodId = await SecurityLayerService.sendMFACode(
-        authMethod.accessToken, 
+        accessToken, 
         selectedMFAType as any, 
         selectedOption?.config
       );

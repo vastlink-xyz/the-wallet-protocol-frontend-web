@@ -125,8 +125,10 @@ export function ProposalsList({ proposals }: { proposals: PendingProposalNotific
   } = useProposalActions({
     walletMap,
     userPkp,
-    authMethod,
+    accessToken: authMethod?.accessToken || '',
     authMethodId,
+    providerType: authMethod?.providerType || 'EMAIL_OTP' as any,
+    userEmail: authMethod?.primaryEmail || '',
     userPhone,
     refreshProposals: invalidateProposalNotifications, // Use invalidateProposalNotifications as refreshProposals
     refreshNotifications: () => {}, // No refreshNotifications needed for notification page

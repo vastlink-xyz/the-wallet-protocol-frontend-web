@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     // Create pending invitation
     const invitation = await createPendingInvitation({
       senderAuthMethodId: authMethodId,
-      senderEmail: sender.email,
+      senderEmail: sender.primaryEmail,
       recipientEmail,
       tokenType,
       amount
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     try {
       await sendInviteEmail({
         recipientEmail,
-        senderEmail: sender.email,
+        senderEmail: sender.primaryEmail,
         tokenType: tokenSymbol,
         amount,
         inviteUrl

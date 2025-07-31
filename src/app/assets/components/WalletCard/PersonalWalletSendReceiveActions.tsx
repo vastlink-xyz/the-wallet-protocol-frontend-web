@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react"
 import { WalletSendReceiveButtons } from "./WalletSendReceiveButtons"
 import { SendTransactionDialog, SendTransactionDialogState } from "@/components/Transaction/SendTransactionDialog"
-import { AuthMethod, IRelayPKP } from '@lit-protocol/types'
+import { IRelayPKP } from '@lit-protocol/types'
+import { VastbaseAuthMethod } from '@/lib/lit/custom-auth'
 import { getAuthMethodFromStorage, getAuthMethodIdFromStorage } from "@/lib/storage/authmethod"
 import { useAuthExpiration } from '@/hooks/useAuthExpiration'
 import { MultisigWalletAddresses } from "@/app/api/multisig/storage"
@@ -25,12 +26,11 @@ export function PersonalWalletSendReceiveActions({
   onTransactionSuccess,
 }: WalletSendReceiveActionsProps) {
   const { handleExpiredAuth } = useAuthExpiration()
-  const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null)
+  const [authMethod, setAuthMethod] = useState<VastbaseAuthMethod | null>(null)
   const [authMethodId, setAuthMethodId] = useState<string | null>(null)
   const [litActionPkp, setLitActionPkp] = useState<IRelayPKP | null>(null)
   const [showSendDialog, setShowSendDialog] = useState(false)
   const [showSwapDialog, setShowSwapDialog] = useState(false)
-  const [showMfa, setShowMfa] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const [resetAmount, setResetAmount] = useState(false)
 
@@ -76,8 +76,11 @@ export function PersonalWalletSendReceiveActions({
 
     return await executePersonalTransaction({
       state: params.state,
-      authMethod,
+      accessToken: authMethod.accessToken,
+      authMethodType: authMethod.authMethodType,
       authMethodId,
+      providerType: authMethod.providerType,
+      userEmail: authMethod.primaryEmail,
       litActionPkp,
       btcAddress,
       handleExpiredAuth,
@@ -93,7 +96,6 @@ export function PersonalWalletSendReceiveActions({
 
   // Initialize security verification hook
   const securityVerification = useSecurityVerification({
-    authMethod,
     executeTransaction: executeTransactionWithSecurity,
   })
 
@@ -109,7 +111,7 @@ export function PersonalWalletSendReceiveActions({
 
     await inviteUser({
       state,
-      authMethod,
+      accessToken: authMethod.accessToken,
       authMethodId,
       setIsSending,
       setResetAmount,
@@ -133,7 +135,6 @@ export function PersonalWalletSendReceiveActions({
       {
         (authMethodId && showSendDialog && authMethod && litActionPkp) && (
           <SendTransactionDialog
-            authMethod={authMethod}
             userLitAction={litActionPkp}
             showSendDialog={showSendDialog}
             showMfa={false}
@@ -151,11 +152,10 @@ export function PersonalWalletSendReceiveActions({
 
       {/*Swap Dialog */}
       {
-        showSwapDialog && authMethod && (
+        showSwapDialog && (
           <SwapDialog
             open={showSwapDialog}
             onOpenChange={setShowSwapDialog}
-            authMethod={authMethod}
           />
         )
       }

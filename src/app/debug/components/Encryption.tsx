@@ -1,16 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { LitNodeClient } from "@lit-protocol/lit-node-client";
 import { encryptString } from "@lit-protocol/encryption";
-import { LIT_NETWORK, LIT_ABILITY } from "@lit-protocol/constants";
-import { createSiweMessage, generateAuthSig, LitAccessControlConditionResource, LitActionResource } from "@lit-protocol/auth-helpers";
-import * as ethers from "ethers";
+import { LitAccessControlConditionResource } from "@lit-protocol/auth-helpers";
 import { executeSecuredLitAction } from "@/lib/lit/executeLitAction";
 import { log } from "@/lib/utils";
-import { AuthMethod } from "@lit-protocol/types";
-import { getSessionSigsByPkp, litNodeClient } from "@/lib/lit";
-import { useUserData } from "@/hooks/useUserData";
+import { VastbaseAuthMethod } from "@/lib/lit/custom-auth";
+import { litNodeClient } from "@/lib/lit";
+import { getMultiProviderSessionSigs } from "@/lib/lit/pkpManager";
+import { useAuthContext } from "@/hooks/useAuthContext";
 
 // Create Lit Action code that will decrypt the data
 // This is the code that will run on the Lit nodes
@@ -34,7 +32,7 @@ const litActionCode = `
 
 log('lit code', litActionCode)
 
-export function Encryption({ authMethod }: { authMethod: AuthMethod }) {
+export function Encryption({ authMethod }: { authMethod: VastbaseAuthMethod }) {
   const [inputText, setInputText] = useState<string>("");
   const [encryptedData, setEncryptedData] = useState<{ ciphertext: string; dataToEncryptHash: string } | null>(null);
   const [decryptedText, setDecryptedText] = useState<string>("");
@@ -43,8 +41,8 @@ export function Encryption({ authMethod }: { authMethod: AuthMethod }) {
   
   const LIT_ACTION_IPFS_ID = 'QmX3zpPjXTc9VH1fVETtSXELQ2Soynft68sYWo5MjXnFJ5'; // Replace with your actual Lit Action IPFS ID
 
-  // Get current user data including litActionPkp
-  const { userData, authMethodId, isLoading: isLoadingUser, error: userError } = useUserData();
+  // Get current user data including litActionPkp from Context
+  const { userData, authMethodId } = useAuthContext();
 
   // Encryption function
   const handleEncrypt = async () => {
@@ -134,7 +132,14 @@ export function Encryption({ authMethod }: { authMethod: AuthMethod }) {
       )
 
       // Generate session signatures for authentication
-      const sessionSigs = await getSessionSigsByPkp({ authMethod, pkp: userData.litActionPkp, refreshStytchAccessToken: true })
+      // Get session signatures using new multi-provider method
+      const sessionSigs = await getMultiProviderSessionSigs({
+        pkpPublicKey: userData.litActionPkp.publicKey,
+        pkpTokenId: userData.litActionPkp.tokenId,
+        accessToken: authMethod.accessToken,
+        providerType: authMethod.providerType,
+        userEmail: authMethod.primaryEmail,
+      });
 
       // const sessionSigs = await litNodeClient.getPkpSessionSigs({
       //   chain: "ethereum",
@@ -157,7 +162,6 @@ export function Encryption({ authMethod }: { authMethod: AuthMethod }) {
       const response = await executeSecuredLitAction({
         pkpPublicKey: userData.litActionPkp.publicKey,
         litActionIpfsId: LIT_ACTION_IPFS_ID,
-        authMethod: authMethod,
         sessionSigs,
         jsParams: {
           accessControlConditions,
@@ -175,20 +179,11 @@ export function Encryption({ authMethod }: { authMethod: AuthMethod }) {
     }
   };
 
-  // Show loading state while fetching user data
-  if (isLoadingUser) {
+  // Show error if user data is not available
+  if (!userData) {
     return (
       <div className="p-4 max-w-lg mx-auto">
-        <div className="text-center">Loading user data...</div>
-      </div>
-    );
-  }
-
-  // Show error if user data failed to load
-  if (userError) {
-    return (
-      <div className="p-4 max-w-lg mx-auto">
-        <div className="text-red-500">Error loading user data: {userError}</div>
+        <div className="text-red-500">User data not available</div>
       </div>
     );
   }

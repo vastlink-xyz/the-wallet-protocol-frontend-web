@@ -407,6 +407,19 @@ export async function getUserSecurityLayers(authMethodId: string): Promise<Secur
   }
 } 
 
+export async function getUserBySub(sub: string): Promise<User | null> {
+  try {
+    await connectToDatabase();
+    const user = await UserModel.findOne({
+      'authProviders.sub': sub
+    }).lean();
+    return extractUserData(user);
+  } catch (error) {
+    console.error('Failed to get user by sub:', error);
+    return null;
+  }
+}
+
 /**
  * Helper function to find user by provider email
  * This searches for users where authProviders array contains a provider

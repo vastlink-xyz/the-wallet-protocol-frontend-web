@@ -4,16 +4,18 @@ import { log } from "@/lib/utils";
 import { LitActionResource, LitPKPResource } from "@lit-protocol/auth-helpers";
 import { AUTH_METHOD_SCOPE, AUTH_METHOD_TYPE, LIT_ABILITY, LIT_NETWORK } from "@lit-protocol/constants";
 import { getAuthIdByAuthMethod } from "@lit-protocol/lit-auth-client";
-import { AuthMethod, IRelayPKP } from "@lit-protocol/types";
+import { IRelayPKP } from "@lit-protocol/types";
+import { VastbaseAuthMethod } from "@/lib/lit/custom-auth";
 import { useState, useEffect } from "react";
-import { getLitActionIpfsCid, getSessionSigsByPkp, mintPKP, uploadViaPinata } from "@/lib/lit";
+import { getLitActionIpfsCid, mintPKP, uploadViaPinata } from "@/lib/lit";
+import { getMultiProviderSessionSigs } from "@/lib/lit/pkpManager";
 import { PKPEthersWallet } from "@lit-protocol/pkp-ethers";
 import { LitContracts } from "@lit-protocol/contracts-sdk";
 import { editAuthmethodForDebugLitActionCode } from "@/app/debug/components/Example/EditAuthmethod/edit-authmethod-for-debug";
 import { Loader2 } from "lucide-react";
 
 interface EditAuthmethodProps {
-  authMethod: AuthMethod;
+  authMethod: VastbaseAuthMethod;
   actionPkp: IRelayPKP | null;
   loading: boolean;
 }
@@ -162,27 +164,41 @@ export function EditAuthmethod({
     }
 
     try {
-      const sessionSigs = await getSessionSigsByPkp({authMethod, pkp: actionPkp})
-      const pkpWallet = new PKPEthersWallet({
-        controllerSessionSigs: sessionSigs,
-        pkpPubKey: actionPkp.publicKey,
-        litNodeClient: litNodeClient,
-      });
-      
-      await pkpWallet.init();
-      log('pkpWallet init')
+      // Check if it's the new VastbaseAuthMethod type
+      if ('providerType' in authMethod && 'primaryEmail' in authMethod) {
+        // Use new multi-provider session sigs
+        const sessionSigs = await getMultiProviderSessionSigs({
+          pkpPublicKey: actionPkp.publicKey,
+          pkpTokenId: actionPkp.tokenId,
+          accessToken: authMethod.accessToken,
+          providerType: authMethod.providerType,
+          userEmail: authMethod.primaryEmail,
+        });
+        
+        const pkpWallet = new PKPEthersWallet({
+          controllerSessionSigs: sessionSigs,
+          pkpPubKey: actionPkp.publicKey,
+          litNodeClient: litNodeClient,
+        });
+        
+        await pkpWallet.init();
+        log('pkpWallet init')
 
-      const litContracts = new LitContracts({
-        signer: pkpWallet,
-      });
-      await litContracts.connect();
-      log('litcontract conneected')
+        const litContracts = new LitContracts({
+          signer: pkpWallet,
+        });
+        await litContracts.connect();
+        log('litcontract conneected')
 
-      const permittedActions = await litContracts.pkpPermissionsContractUtils.read.getPermittedActions(actionPkp.tokenId)
-      log('permitted actions', permittedActions)
+        const permittedActions = await litContracts.pkpPermissionsContractUtils.read.getPermittedActions(actionPkp.tokenId)
+        log('permitted actions', permittedActions)
 
-      const permittedAuthMethods = await litContracts.pkpPermissionsContract.read.getPermittedAuthMethods(actionPkp.tokenId)
-      log('permitted authmethods', permittedAuthMethods)
+        const permittedAuthMethods = await litContracts.pkpPermissionsContract.read.getPermittedAuthMethods(actionPkp.tokenId)
+        log('permitted authmethods', permittedAuthMethods)
+      } else {
+        console.error('AuthMethod type not supported. Please use VastbaseAuthMethod.');
+        log('AuthMethod type not supported');
+      }
     } catch (err) {
       console.error(err);
     }

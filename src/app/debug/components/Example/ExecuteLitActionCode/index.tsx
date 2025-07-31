@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { litNodeClient } from "@/lib/lit/providers";
-import { getSessionSigs } from "@/lib/lit/sessionManager";
+import { useCustomAuthSessionSigs } from "@/hooks/useAuthContext";
 import { log } from "@/lib/utils";
 import { getAuthIdByAuthMethod } from "@lit-protocol/lit-auth-client";
 import { AuthMethod, IRelayPKP } from "@lit-protocol/types";
@@ -40,6 +40,7 @@ export function ExecuteLitActionCode({
   loading 
 }: ExecuteLitActionCodeProps) {
   const [isSaving, setIsSaving] = useState<boolean>(false);
+  const getCustomAuthSessionSigs = useCustomAuthSessionSigs();
 
   const handleExecuteLitAction = async () => {
     if (!actionPkp) {
@@ -50,10 +51,12 @@ export function ExecuteLitActionCode({
     log('authMethod', authMethod);
     const pkpPublicKey = actionPkp.publicKey;
     
-    const sessionSigs = await getSessionSigs({
-      pkpPublicKey,
-      authMethod,
-    });
+    const sessionSigs = await getCustomAuthSessionSigs();
+    
+    if (!sessionSigs) {
+      log('Failed to get session signatures');
+      return;
+    }
     log('sessionSigs', sessionSigs);
     
     const authMethodId = await getAuthIdByAuthMethod(authMethod);
@@ -154,10 +157,12 @@ export function ExecuteLitActionCode({
     log('authMethod', authMethod);
     const pkpPublicKey = actionPkp?.publicKey || '';
     
-    const sessionSigs = await getSessionSigs({
-      pkpPublicKey,
-      authMethod,
-    });
+    const sessionSigs = await getCustomAuthSessionSigs();
+    
+    if (!sessionSigs) {
+      log('Failed to get session signatures');
+      return;
+    }
     log('sessionSigs', sessionSigs);
     
     const authMethodId = await getAuthIdByAuthMethod(authMethod);

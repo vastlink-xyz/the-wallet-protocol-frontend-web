@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext } from "react"
 import { WalletSettingsButton } from "@/app/assets/components/WalletCard/WalletSettingsButton"
 import { getAuthMethodFromStorage, getAuthMethodIdFromStorage } from "@/lib/storage/authmethod"
-import { AuthMethod, IRelayPKP } from "@lit-protocol/types"
+import { IRelayPKP } from "@lit-protocol/types"
 import { useNotifications } from "@/hooks/useNotifications"
 import { MultisigWallet } from "@/app/api/multisig/storage"
 import { MultisigSettingsContext } from "@/providers/MultisigSettingsProvider"
@@ -15,7 +15,6 @@ export function TeamWalletSettingsActions({
   wallet,
   refreshProposals,
 }: TeamWalletSettingsActionsProps) {
-  const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null)
   const [authMethodId, setAuthMethodId] = useState<string>('')
   const [userPkp, setUserPkp] = useState<IRelayPKP | null>(null)
   
@@ -32,7 +31,6 @@ export function TeamWalletSettingsActions({
         const storedAuthMethod = getAuthMethodFromStorage()
         if (!storedAuthMethod) return
         
-        setAuthMethod(storedAuthMethod)
         const authMethodId = getAuthMethodIdFromStorage() || ''
         setAuthMethodId(authMethodId)
         
@@ -71,13 +69,11 @@ export function TeamWalletSettingsActions({
     // Settings Button
     <WalletSettingsButton
       onSettingsClick={() => {
-        if (userPkp && authMethod) {
+        if (userPkp) {
           showMultisigSettings({
             mode: "edit",
             walletId: wallet.id,
-            authMethod,
             userPkp,
-            authMethodId,
             onSuccess: handleSettingsSuccess,
           })
         }

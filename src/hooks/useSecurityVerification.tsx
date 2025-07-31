@@ -179,7 +179,7 @@ export function useSecurityVerification({
     <MFASelectionDialog
       isOpen={showMFADialog}
       availableMFAOptions={availableMFAOptions}
-      authMethod={authMethod}
+      accessToken={authMethod.accessToken}
       isSending={isVerifying}
       onMFAVerify={handleMFAVerify}
       onClose={handleMFACancel}

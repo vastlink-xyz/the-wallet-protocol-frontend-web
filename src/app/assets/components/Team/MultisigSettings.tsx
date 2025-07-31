@@ -1,6 +1,5 @@
 'use client'
 
-import { AuthMethod, IRelayPKP } from '@lit-protocol/types'
 import { MultisigWalletFormContent } from '@/components/MultisigWalletFormContent'
 import { MultisigWallet } from '@/app/api/multisig/storage'
 import { useContext, useState } from 'react'

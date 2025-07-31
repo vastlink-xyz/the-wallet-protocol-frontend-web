@@ -11,9 +11,10 @@ import Image from 'next/image'
 import { estimateSwap } from '@/lib/swap/estimateSwap'
 import { useRouter } from 'next/navigation'
 import { getAuthMethodFromStorage, getAuthMethodIdFromStorage } from '@/lib/storage/authmethod'
-import { AuthMethod, IRelayPKP } from '@lit-protocol/types'
+import { VastbaseAuthMethod } from '@/lib/lit/custom-auth';
+import { IRelayPKP } from '@lit-protocol/types'
 import { fetchERC20TokenBalance, fetchEthBalance } from "@/lib/web3/eth"
-import { getSessionSigsByPkp } from '@/lib/lit'
+import { getMultiProviderSessionSigs } from '@/lib/lit/pkpManager'
 import { ethers } from 'ethers'
 import { toast } from 'react-toastify'
 import { fetchBtcBalance } from '@/lib/web3/btc'
@@ -92,7 +93,7 @@ export default function SwapPage() {
     const [hasEstimated, setHasEstimated] = useState(false) // 是否已经进行过估算
 
     const router = useRouter()
-    const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null)
+    const [authMethod, setAuthMethod] = useState<VastbaseAuthMethod | null>(null)
     const [authMethodId, setAuthMethodId] = useState<string | null>(null)
     const [email, setEmail] = useState<string | null>(null)
     const [litActionPkp, setLitActionPkp] = useState<IRelayPKP | null>(null)
@@ -415,10 +416,12 @@ export default function SwapPage() {
             throw new Error('Missing authentication data')
         }
 
-        const sessionSigs = await getSessionSigsByPkp({
-            authMethod: authMethod!,
-            pkp: litActionPkp,
-            refreshStytchAccessToken: true,
+        const sessionSigs = await getMultiProviderSessionSigs({
+            pkpPublicKey: litActionPkp.publicKey,
+            pkpTokenId: litActionPkp.tokenId,
+            accessToken: authMethod.accessToken,
+            providerType: authMethod.providerType,
+            userEmail: authMethod.primaryEmail,
         })
 
         const ethTestNetwork = ethers.providers.getNetwork('sepolia')

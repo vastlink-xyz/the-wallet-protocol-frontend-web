@@ -1,7 +1,6 @@
 import { jwtDecode } from 'jwt-decode';
 import { log } from '../utils';
-import { VastbaseAuthMethod, getVastbaseAuthMethodType } from '../lit/custom-auth';
-import { AUTH_METHOD_TYPE } from '@lit-protocol/constants';
+import { VastbaseAuthMethod, getVastbaseAuthMethodType, AuthProviderType } from '../lit/custom-auth';
 
 /**
  * Extract email address from Google JWT token
@@ -81,25 +80,29 @@ async function isStytchTokenValid(token: string): Promise<boolean> {
 }
 
 /**
- * Unified function to verify if a token is valid based on its type
- * @param authMethod The VastbaseAuthMethod object containing token and type info
+ * Unified function to verify if a token is valid based on its provider type
+ * @param authMethod The VastbaseAuthMethod object containing token and provider type info
  * @returns Promise resolving to true if token is valid, false otherwise
  */
 export async function isTokenValid(authMethod: VastbaseAuthMethod): Promise<boolean> {
   if (!authMethod) return false;
 
-  const authMethodType = getVastbaseAuthMethodType();
-
-  if (authMethodType === AUTH_METHOD_TYPE.GoogleJwt) {
-    return isGoogleTokenValid(authMethod.accessToken);
+  // Use providerType from authMethod to determine validation method
+  switch (authMethod.providerType) {
+    case AuthProviderType.GOOGLE:
+      return isGoogleTokenValid(authMethod.accessToken);
+    
+    case AuthProviderType.EMAIL_OTP:
+      return isStytchTokenValid(authMethod.accessToken);
+    
+    case AuthProviderType.PASSKEY:
+      // kkktodo
+      return !!authMethod.accessToken;
+    
+    default:
+      console.error(`Unsupported provider type: ${authMethod.providerType}`);
+      return false;
   }
-
-  if (authMethodType === AUTH_METHOD_TYPE.StytchEmailFactorOtp) {
-    return isStytchTokenValid(authMethod.accessToken);
-  }
-
-  console.error(`Unsupported authmethod type: ${authMethodType}`);
-  return false;
 }
 
 export function getUserIdFromToken(token: string): string | null {

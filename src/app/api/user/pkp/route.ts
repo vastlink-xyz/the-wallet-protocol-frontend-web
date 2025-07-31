@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
 
     // Add or update the PKP with multi-provider architecture
     const updatedUser = await addPkpToUser(authMethodId, pkp, type, {
-      providerType: AuthProviderType.EMAIL, // Stytch email OTP
+      providerType: AuthProviderType.EMAIL_OTP, // Stytch email OTP
       sub: sub,
       email: userEmail,
       isPrimary: true,

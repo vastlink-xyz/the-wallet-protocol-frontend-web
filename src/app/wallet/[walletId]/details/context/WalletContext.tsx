@@ -2,13 +2,14 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { MultisigWallet } from "@/app/api/multisig/storage";
-import { IRelayPKP, AuthMethod } from "@lit-protocol/types";
+import { IRelayPKP } from "@lit-protocol/types";
+import { VastbaseAuthMethod } from "@/lib/lit/custom-auth";
 import { getAuthMethodFromStorage, getAuthMethodIdFromStorage } from "@/lib/storage/authmethod";
 
 interface WalletContextType {
   wallet: MultisigWallet | null;
   userPkp: IRelayPKP | null;
-  authMethod: AuthMethod | null;
+  authMethod: VastbaseAuthMethod | null;
   authMethodId: string | null;
   walletPkp: IRelayPKP | null;
   isLoading: boolean;
@@ -39,7 +40,7 @@ export function WalletProvider({
   const [wallet, setWallet] = useState<MultisigWallet | null>(null);
   const [walletPkp, setWalletPkp] = useState<IRelayPKP | null>(null);
   const [userPkp, setUserPkp] = useState<IRelayPKP | null>(null);
-  const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null);
+  const [authMethod, setAuthMethod] = useState<VastbaseAuthMethod | null>(null);
   const [authMethodId, setAuthMethodId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [userPhone, setUserPhone] = useState<string | null>(null);

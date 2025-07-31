@@ -1,5 +1,4 @@
 import {
-  AuthMethod,
   SessionSigs,
 } from '@lit-protocol/types';
 import { litNodeClient } from './providers';
@@ -11,13 +10,11 @@ import { litNodeClient } from './providers';
 export async function executeSecuredLitAction({
   pkpPublicKey,
   litActionIpfsId,
-  authMethod,
   sessionSigs,
   jsParams
 }: {
   pkpPublicKey: string;
   litActionIpfsId: string;
-  authMethod: AuthMethod;
   sessionSigs: SessionSigs;
   jsParams: any;
 }): Promise<any> {
@@ -27,14 +24,13 @@ export async function executeSecuredLitAction({
   }
   
   console.log(`Executing secured Lit Action: ${litActionIpfsId}`);
-  console.log(pkpPublicKey, authMethod)
+  console.log(pkpPublicKey)
   
   // Execute Lit Action using only its IPFS ID
   // Note: No code string option provided, only using IPFS ID
   const response = await litNodeClient.executeJs({
     ipfsId: litActionIpfsId, // Use IPFS ID to ensure immutability
     sessionSigs,
-    // authMethods: [authMethod],
     jsParams,
   });
   

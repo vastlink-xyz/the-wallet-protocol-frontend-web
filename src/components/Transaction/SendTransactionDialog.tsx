@@ -8,7 +8,6 @@ import { Input } from "../ui/input";
 import { Loader2 } from "lucide-react";
 import { SelectToken } from "../SelectToken";
 import { IRelayPKP } from "@lit-protocol/types";
-import { getAuthIdByAuthMethod } from "@lit-protocol/lit-auth-client";
 import { MFAOtpDialog } from "./MFAOtpDialog";
 import { isValidEmail, log } from "@/lib/utils";
 import { estimateGasFee } from "@/lib/web3/transaction";
@@ -16,7 +15,6 @@ import { fetchEthBalance, fetchERC20TokenBalance } from "@/lib/web3/eth";
 import { fetchBtcBalance } from "@/lib/web3/btc";
 import { MultisigWalletAddresses } from "@/app/api/multisig/storage";
 import { useTranslations } from "next-intl";
-import { toast } from "react-toastify";
 import { getAuthMethodFromStorage } from "@/lib/storage/authmethod";
 
 export interface SendTransactionDialogState {
@@ -62,10 +60,59 @@ export function SendTransactionDialog({
 }: SendTransactionDialogProps) {
   // Get auth method from localStorage
   const authMethod = getAuthMethodFromStorage()
-  
+
+  // Early return for no auth method case
   if (!authMethod) {
-    return null // or some error state
+    return (
+      <Dialog open={showSendDialog} onOpenChange={onDialogOpenChange}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Authentication Required</DialogTitle>
+          </DialogHeader>
+          <div className="p-4 text-center">
+            <p className="text-red-500">Please log in again to continue.</p>
+          </div>
+        </DialogContent>
+      </Dialog>
+    )
   }
+
+  return <SendTransactionDialogContent 
+    {...{
+      showSendDialog,
+      showMfa,
+      onSendTransaction,
+      onInviteUser,
+      isSending,
+      onMFACancel,
+      onMFAVerify,
+      onDialogOpenChange,
+      addresses,
+      walletName,
+      resetAmount,
+      userLitAction,
+      disablePin,
+      authMethod
+    }}
+  />
+}
+
+function SendTransactionDialogContent({
+  showSendDialog,
+  showMfa,
+  onSendTransaction,
+  onInviteUser,
+  isSending,
+  onMFACancel,
+  onMFAVerify,
+  onDialogOpenChange,
+  addresses,
+  walletName,
+  resetAmount,
+  userLitAction,
+  disablePin = false,
+  authMethod
+}: SendTransactionDialogProps & { authMethod: any }) {
   const t = useTranslations('SendTransactionDialog')
 
   // transaction state
@@ -98,7 +145,6 @@ export function SendTransactionDialog({
   const [isLoadingFee, setIsLoadingFee] = useState(false);
 
   const [isInviteUser, setIsInviteUser] = useState(false);
-
 
   // Load balance when token type changes
   useEffect(() => {

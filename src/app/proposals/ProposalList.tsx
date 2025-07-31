@@ -156,8 +156,10 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
   } = useProposalActions({
     walletMap,
     userPkp,
-    authMethod,
+    accessToken: authMethod?.accessToken || '',
     authMethodId,
+    providerType: authMethod?.providerType || 'EMAIL_OTP' as any,
+    userEmail: authMethod?.primaryEmail || '',
     userPhone,
     refreshProposals,
     refreshNotifications: (authMethodId: string, ethAddress: string) => {

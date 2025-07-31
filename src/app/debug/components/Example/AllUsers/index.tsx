@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { AUTH_METHOD_SCOPE } from '@lit-protocol/constants';
 import { AUTH_METHOD_TYPE } from '@lit-protocol/constants';
-import { getSessionSigs } from '@/lib/lit';
 import { litNodeClient } from '@/lib/lit';
 import { LitContracts } from '@lit-protocol/contracts-sdk';
 import { PKPEthersWallet } from '@lit-protocol/pkp-ethers';
@@ -193,7 +192,7 @@ export function AllUsers({
             {users.map((user) => (
               <li key={user.id} className="border rounded-lg p-4">
                 <div className="flex items-center justify-between">
-                  <span className="font-medium">{user.email}</span>
+                  <span className="font-medium">{user.primaryEmail}</span>
                   <div className="flex space-x-2">
                     <Button 
                       size="sm" 

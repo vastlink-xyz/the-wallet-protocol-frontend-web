@@ -16,7 +16,6 @@ import { Button } from '../ui/button';
 import { ArrowDownUpIcon, ChevronDownIcon, ChevronUpIcon, Loader2Icon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { estimateSwap } from '@/lib/swap/estimateSwap';
-import { useUserData } from '@/hooks/useUserData';
 import { useTeamWallets } from '@/hooks/useTeamWallets';
 import { SUPPORTED_TOKENS_INFO, TokenType } from '@/lib/web3/token';
 import { fetchBtcBalance } from '@/lib/web3/btc';
@@ -28,7 +27,7 @@ import { createWallet, executeSwap, SupportedToken } from '@/lib/swap/executeSwa
 import { toast } from 'react-toastify';
 import { MFAOtpDialog } from './MFAOtpDialog';
 import { useSecurityVerification } from '@/hooks/useSecurityVerification';
-import { getAuthMethodFromStorage, getAuthMethodIdFromStorage } from '@/lib/storage/authmethod';
+import { useAuthContext } from '@/hooks/useAuthContext';
 
 type translate = (key: string, params?: any) => string;
 
@@ -394,12 +393,8 @@ function SwapContent({ t, teamWalletId }: { t: translate, teamWalletId?: string 
   const [toToken, setToToken] = useState(SUPPORTED_TOKENS[1]);
   const [assessedValue, setAssessedValue] = useState<AssessedValue | null>(null);
 
-  // Get auth method data directly from localStorage
-  const authMethod = getAuthMethodFromStorage()
-  const authMethodId = getAuthMethodIdFromStorage() || ''
-
-  // Fetch user data using custom hook
-  const { userData } = useUserData()
+  // Get authentication data from Context
+  const { authMethod, authMethodId, userData } = useAuthContext();
 
   const {
     data: wallets,
@@ -498,8 +493,10 @@ function SwapContent({ t, teamWalletId }: { t: translate, teamWalletId?: string 
     try {
       const wallet = await createWallet(
         userData.litActionPkp,
-        authMethod,
+        authMethod.accessToken,
         authMethodId,
+        authMethod.providerType,
+        authMethod.primaryEmail,
         addresses.eth,
         addresses.btc,
         otp,
@@ -598,8 +595,8 @@ function SwapMFADialog({
   onClose?: (otp: string) => Promise<void>,
   onCancel?: () => void,
 }) {
-  // Get auth method data directly from localStorage
-  const authMethod = getAuthMethodFromStorage()
+  // Get authentication data from Context
+  const { authMethod } = useAuthContext();
   
   // MFA state
   const [mfaMethodId, setMfaMethodId] = useState<string | null>(null);

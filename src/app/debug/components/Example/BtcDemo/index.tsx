@@ -1,4 +1,4 @@
-import { AuthMethod, IRelayPKP, SessionSigs } from "@lit-protocol/types";
+import { IRelayPKP, SessionSigs } from "@lit-protocol/types";
 import { useEffect, useState } from "react";
 import * as bitcoinjs from "bitcoinjs-lib";
 import { log } from "@/lib/utils";
@@ -18,12 +18,11 @@ const EC = elliptic.ec;
 bitcoinjs.initEccLib(ecc);
 
 interface BtcDemoProps {
-  authMethod: AuthMethod;
   litactionPkp: IRelayPKP | null;
   sessionSigs: SessionSigs | null;
 }
 
-export function BtcDemo({ authMethod, litactionPkp, sessionSigs }: BtcDemoProps) {
+export function BtcDemo({ litactionPkp, sessionSigs }: BtcDemoProps) {
   const [btcAddress, setBtcAddress] = useState<string | null>(null);
   const [balance, setBalance] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);

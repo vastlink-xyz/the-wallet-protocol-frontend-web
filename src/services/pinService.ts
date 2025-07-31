@@ -87,7 +87,6 @@ export class PinService {
       const response = await executeSecuredLitAction({
         pkpPublicKey: userData.litActionPkp.publicKey,
         litActionIpfsId: LIT_ACTION_IPFS_ID,
-        authMethod: userData.authMethod,
         sessionSigs,
         jsParams: {
           accessControlConditions: storedPinData.accessControlConditions,

@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     await connectToDatabase();
     
     // Find user by email
-    const user = await UserModel.findOne({ email }).collation({ locale: 'en', strength: 2 }).lean() as User | null;
+    const user = await UserModel.findOne({ primaryEmail: email }).collation({ locale: 'en', strength: 2 }).lean() as User | null;
 
     if (!user) {
       return NextResponse.json(
@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
       success: true,
       data: {
         authMethodId: user.authMethodId,
-        email: user.email,
+        email: user.primaryEmail,
         pkp: pkpData,
         addresses: user.addresses
       }
