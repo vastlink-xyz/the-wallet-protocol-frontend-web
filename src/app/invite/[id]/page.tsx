@@ -44,9 +44,9 @@ export default function InvitePage() {
         if (data?.success && data?.data) {
           setInvitation(data.data);
 
-          if (data.data.status !== 'pending') {
-            throw new Error('Invalid invitation status');
-          }
+          // if (data.data.status !== 'pending') {
+          //   throw new Error('Invalid invitation status');
+          // }
 
           // Check if user is already logged in with different email
           if (data.data.recipientEmail) {
@@ -165,11 +165,12 @@ export default function InvitePage() {
               </CardContent>
             </Card>
           )}
-          
+
           <StytchOTP
             defaultEmail={invitation.recipientEmail}
             title="Create a wallet"
             invitationId={invitation.id}
+            readonly={true}
           />
         </>
       )}
