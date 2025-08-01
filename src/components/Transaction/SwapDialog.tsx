@@ -395,7 +395,7 @@ function SwapContent({ t, teamWalletId }: { t: translate, teamWalletId?: string 
   const [assessedValue, setAssessedValue] = useState<AssessedValue | null>(null);
 
   // Get authentication data from Context
-  const { authMethod, authMethodId } = useAuthContext();
+  const { authMethod, authMethodId, getCurrentAccessToken } = useAuthContext();
   const { userData } = useUserData();
 
   const {
@@ -493,9 +493,15 @@ function SwapContent({ t, teamWalletId }: { t: translate, teamWalletId?: string 
     setIsSwapping(true);
 
     try {
+      const accessToken = await getCurrentAccessToken();
+      if (!accessToken) {
+        toast.error(t('authentication_failed'));
+        return;
+      }
+
       const wallet = await createWallet(
         userData.litActionPkp,
-        authMethod.accessToken,
+        accessToken,
         authMethodId,
         authMethod.providerType,
         authMethod.primaryEmail,
@@ -598,7 +604,7 @@ function SwapMFADialog({
   onCancel?: () => void,
 }) {
   // Get authentication data from Context
-  const { authMethod } = useAuthContext();
+  const { authMethod, getCurrentAccessToken } = useAuthContext();
   
   // MFA state
   const [mfaMethodId, setMfaMethodId] = useState<string | null>(null);
@@ -611,9 +617,14 @@ function SwapMFADialog({
       }
 
       try {
+        const accessToken = await getCurrentAccessToken();
+        if (!accessToken) {
+          throw new Error('No access token available');
+        }
+
         const response = await fetch('/api/mfa/get-user-phone', {
           headers: {
-            'Authorization': `Bearer ${authMethod.accessToken}`
+            'Authorization': `Bearer ${accessToken}`
           }
         });
 
@@ -649,11 +660,17 @@ function SwapMFADialog({
       return;
     }
 
+    const accessToken = await getCurrentAccessToken();
+    if (!accessToken) {
+      toast.error(t('authentication_failed'));
+      return;
+    }
+
     const response = await fetch('/api/mfa/whatsapp/send-code', {
       method: 'POST',
       headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authMethod?.accessToken}`,
+          'Authorization': `Bearer ${accessToken}`,
       },
       body: JSON.stringify({ phone_number: mfaPhoneNumber }),
     });

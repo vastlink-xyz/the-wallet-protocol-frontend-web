@@ -7,6 +7,7 @@ import { log } from '@/lib/utils';
 import { toast } from 'react-toastify';
 import { MFAOtpDialog } from '@/components/Transaction/MFAOtpDialog';
 import { useTranslations } from 'next-intl';
+import { useAuthContext } from '@/hooks/useAuthContext';
 
 // Define StytchPhoneNumber type based on expected API response
 interface StytchPhoneNumber {
@@ -21,9 +22,6 @@ type PhoneUiState = 'initial' | 'setup';
 interface MFAPhoneWhatsAppProps {
   // Current phone number information (if exists)
   verifiedPhone: StytchPhoneNumber | null;
-  
-  // Session JWT for API calls
-  sessionJwt: string | null;
   
   // Auth method ID for API calls
   authMethodId: string | null;
@@ -93,12 +91,22 @@ const ActionButtons: React.FC<{
 
 export function MFAPhoneWhatsApp({ 
   verifiedPhone, 
-  sessionJwt,
   authMethodId,
   onSuccess,
   onPhoneUpdated
 }: MFAPhoneWhatsAppProps) {
   const t = useTranslations("MFASettings");
+  const { getCurrentAccessToken } = useAuthContext();
+  
+  // Helper function to get session JWT
+  const getSessionJwt = async () => {
+    const sessionJwt = await getCurrentAccessToken();
+    if (!sessionJwt) {
+      toast.error('No access token available');
+      return null;
+    }
+    return sessionJwt;
+  };
 
   const [uiState, setUiState] = useState<PhoneUiState>('initial');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -162,6 +170,7 @@ export function MFAPhoneWhatsApp({
     resetMessages();
     if (!window.confirm(t("remove_phone_confirmation"))) return;
 
+    const sessionJwt = await getSessionJwt();
     if (!sessionJwt) {
       setError(t('user_not_found'));
       return;
@@ -216,6 +225,7 @@ export function MFAPhoneWhatsApp({
 
   // Send OTP handler for MfaOtpDialog
   const handleSendOtp = async () => {
+    const sessionJwt = await getSessionJwt();
     if (!sessionJwt) {
       throw new Error(t('user_not_found'));
     }
@@ -277,6 +287,7 @@ export function MFAPhoneWhatsApp({
 
   // Verify OTP handler for MfaOtpDialog
   const handleVerifyOtp = async (otp: string) => {
+    const sessionJwt = await getSessionJwt();
     if (!sessionJwt || !currentMethod?.methodId) {
       throw new Error(t('missing_details'));
     }
@@ -347,7 +358,8 @@ export function MFAPhoneWhatsApp({
     // Set success message and reset state
     if (currentMethod?.action === 'add') {
       // WhatsApp setup is complete! Now save to our security layers (similar to TOTP)
-      if (authMethodId && sessionJwt && verificationData) {
+      const currentSessionJwt = await getSessionJwt();
+      if (authMethodId && currentSessionJwt && verificationData) {
         try {
           // Extract the verified phone number from Stytch response
           const verifiedPhoneFromStytch = verificationData.user?.phone_numbers?.find((p: any) => p.verified);
@@ -364,7 +376,7 @@ export function MFAPhoneWhatsApp({
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${sessionJwt}`,
+              'Authorization': `Bearer ${currentSessionJwt}`,
             },
             body: JSON.stringify({
               authMethodId,
@@ -401,13 +413,14 @@ export function MFAPhoneWhatsApp({
       }
     } else if (currentMethod?.action === 'remove') {
       // WhatsApp removal is complete! Now update security layers
-      if (authMethodId && sessionJwt) {
+      const currentSessionJwt = await getSessionJwt();
+      if (authMethodId && currentSessionJwt) {
         try {
           await fetch('/api/security/layers/remove', {
             method: 'DELETE',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${sessionJwt}`,
+              'Authorization': `Bearer ${currentSessionJwt}`,
             },
             body: JSON.stringify({
               authMethodId,
@@ -432,8 +445,9 @@ export function MFAPhoneWhatsApp({
   };
 
   // Function to handle adding a phone number
-  const handleAddPhone = (e: React.FormEvent) => {
+  const handleAddPhone = async (e: React.FormEvent) => {
     e.preventDefault();
+    const sessionJwt = await getSessionJwt();
     if (!sessionJwt) {
       setError(t('user_not_found'));
       return;

@@ -22,7 +22,6 @@ export interface AuthProvider {
 export interface VastbaseAuthMethod {
   authMethodType: number;
   authMethodId: string;
-  accessToken: string;
   providerType: AuthProviderType;
   primaryEmail: string;
 }

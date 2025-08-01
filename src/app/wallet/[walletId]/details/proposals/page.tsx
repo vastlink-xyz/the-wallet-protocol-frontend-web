@@ -13,6 +13,7 @@ import { Loader2Icon, RefreshCcwIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useProposalActions } from "@/hooks/useProposalActions";
 import { useAuthExpiration } from "@/hooks/useAuthExpiration";
+import { useAuthContext } from "@/hooks/useAuthContext";
 
 export default function ProposalsPage() {
   const t = useTranslations('ProposalList');
@@ -33,6 +34,9 @@ export default function ProposalsPage() {
 
   // Get wallet data from context
   const { wallet, isLoading: isWalletLoading, authMethod, authMethodId, userPkp, userPhone } = useWallet();
+  
+  // Get getCurrentAccessToken from auth context
+  const { getCurrentAccessToken } = useAuthContext();
 
   // Use React Query for proposals
   const {
@@ -73,7 +77,7 @@ export default function ProposalsPage() {
   } = useProposalActions({
     walletMap,
     userPkp,
-    accessToken: authMethod?.accessToken || '',
+    getCurrentAccessToken,
     authMethodId,
     providerType: authMethod?.providerType || 'EMAIL_OTP' as any,
     userEmail: authMethod?.primaryEmail || '',

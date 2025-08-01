@@ -48,7 +48,7 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ userData, authM
   });
 
   // Get auth method data directly from localStorage
-  const { authMethod } = useAuthContext();
+  const { authMethod, getCurrentAccessToken } = useAuthContext();
   
   // Handler to refresh team wallets data
   const handleRefreshWallets = useCallback(() => {
@@ -126,11 +126,16 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ userData, authM
       return
     }
     
+    const accessToken = await getCurrentAccessToken();
+    if (!accessToken) {
+      throw new Error('No access token available');
+    }
+    
     await createAndApproveTransactionProposal({
       state,
       wallet: selectedWallet,
       userPkp,
-      accessToken: authMethod.accessToken,
+      accessToken,
       authMethodId,
       providerType: authMethod.providerType,
       userEmail: authMethod.primaryEmail,
@@ -157,11 +162,16 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ userData, authM
       return
     }
 
+    const accessToken = await getCurrentAccessToken();
+    if (!accessToken) {
+      throw new Error('No access token available');
+    }
+
     await executeTeamTransactionProposal({
       proposal,
       wallet,
       userPkp,
-      accessToken: authMethod.accessToken,
+      accessToken,
       authMethodId,
       providerType: authMethod.providerType,
       userEmail: authMethod.primaryEmail,
@@ -179,9 +189,14 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ userData, authM
       return
     }
 
+    const accessToken = await getCurrentAccessToken();
+    if (!accessToken) {
+      throw new Error('No access token available');
+    }
+
     await inviteTeamUser({
       state,
-      accessToken: authMethod.accessToken,
+      accessToken,
       authMethodId,
       setIsSending,
       setShowSendDialog,
@@ -199,9 +214,14 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ userData, authM
       throw new Error('Missing required information for OTP verification')
     }
 
+    const accessToken = await getCurrentAccessToken();
+    if (!accessToken) {
+      throw new Error('No access token available');
+    }
+
     await handleTeamMfaVerify({
       state,
-      accessToken: authMethod.accessToken,
+      accessToken,
       userPkp,
       currentProposal,
       wallet: selectedWallet,

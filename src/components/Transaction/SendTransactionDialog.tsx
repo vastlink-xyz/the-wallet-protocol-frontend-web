@@ -59,7 +59,7 @@ export function SendTransactionDialog({
   disablePin = false,
 }: SendTransactionDialogProps) {
   // Get auth method from localStorage
-  const { authMethod } = useAuthContext()
+  const { authMethod, getCurrentAccessToken } = useAuthContext()
 
   // Early return for no auth method case
   if (!authMethod) {
@@ -92,7 +92,8 @@ export function SendTransactionDialog({
       resetAmount,
       userLitAction,
       disablePin,
-      authMethod
+      authMethod,
+      getCurrentAccessToken
     }}
   />
 }
@@ -111,8 +112,9 @@ function SendTransactionDialogContent({
   resetAmount,
   userLitAction,
   disablePin = false,
-  authMethod
-}: SendTransactionDialogProps & { authMethod: any }) {
+  authMethod,
+  getCurrentAccessToken
+}: SendTransactionDialogProps & { authMethod: any; getCurrentAccessToken: () => Promise<string | null> }) {
   const t = useTranslations('SendTransactionDialog')
 
   // transaction state
@@ -237,9 +239,14 @@ function SendTransactionDialogContent({
   useEffect(() => {
     const fetchMfaData = async () => {
       try {
+        const accessToken = await getCurrentAccessToken();
+        if (!accessToken) {
+          throw new Error('No access token available');
+        }
+
         const response = await fetch('/api/mfa/get-user-phone', {
           headers: {
-            'Authorization': `Bearer ${authMethod.accessToken}`
+            'Authorization': `Bearer ${accessToken}`
           }
         });
         
@@ -340,11 +347,16 @@ function SendTransactionDialogContent({
 
   // Function to send OTP
   const handleSendOtp = async () => {
+    const accessToken = await getCurrentAccessToken();
+    if (!accessToken) {
+      throw new Error('No access token available');
+    }
+
     const response = await fetch('/api/mfa/whatsapp/send-code', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authMethod.accessToken}`,
+        'Authorization': `Bearer ${accessToken}`,
       },
       body: JSON.stringify({ phone_number: mfaPhoneNumber }),
     });

@@ -20,6 +20,7 @@ import { litActionCodeForCreateMultisigWallet } from "@/lib/lit-action-code/crea
 import { litActionCodeForSecurityVerification } from "@/lib/lit-action-code/security-verification.lit";
 import { litActionCodeForMultiProviderAuth } from "@/lib/lit-action-code/multi-provider-auth.lit";
 import { VastbaseAuthMethod } from "@/lib/lit/custom-auth";
+import { useAuthContext } from "@/hooks/useAuthContext";
 
 
 // const litActionCode = litActionCodeForMultiProviderAuth
@@ -42,6 +43,7 @@ export function ExecuteLitActionCode({
 }: ExecuteLitActionCodeProps) {
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const getCustomAuthSessionSigs = useCustomAuthSessionSigs();
+  const { getCurrentAccessToken } = useAuthContext();
 
   const handleExecuteLitAction = async () => {
     if (!actionPkp) {
@@ -68,7 +70,7 @@ export function ExecuteLitActionCode({
         sessionSigs,
         jsParams: {
           authParams: {
-            accessToken: authMethod.accessToken,
+            accessToken: await getCurrentAccessToken(),
             authMethodId: authMethodId,
             authMethodType,
             devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
@@ -168,12 +170,18 @@ export function ExecuteLitActionCode({
     
     const authMethodId = authMethod.authMethodId;
     log('authMethodId', authMethodId);
+    const accessToken = await getCurrentAccessToken();
+    if (!accessToken) {
+      log('No access token available');
+      return;
+    }
+
     try {
       const response = await litNodeClient.executeJs({
         code: litActionCode,
         sessionSigs,
         jsParams: {
-          accessToken: authMethod.accessToken,
+          accessToken,
           authMethodId,
           authMethodType: authMethod.authMethodType,
           publicKey: actionPkp?.publicKey,

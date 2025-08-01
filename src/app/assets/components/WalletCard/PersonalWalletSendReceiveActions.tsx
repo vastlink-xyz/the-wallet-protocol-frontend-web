@@ -27,7 +27,7 @@ export function PersonalWalletSendReceiveActions({
   onTransactionSuccess,
 }: WalletSendReceiveActionsProps) {
   const { handleExpiredAuth } = useAuthExpiration()
-  const { authMethod, authMethodId } = useAuthContext()
+  const { authMethod, authMethodId, getCurrentAccessToken } = useAuthContext()
   const { userData } = useUserData()
 
   const [litActionPkp, setLitActionPkp] = useState<IRelayPKP | null>(null)
@@ -49,9 +49,14 @@ export function PersonalWalletSendReceiveActions({
       throw new Error('Missing required data')
     }
 
+    const accessToken = await getCurrentAccessToken();
+    if (!accessToken) {
+      throw new Error('No access token available');
+    }
+
     return await executePersonalTransaction({
       state: params.state,
-      accessToken: authMethod.accessToken,
+      accessToken,
       authMethodType: authMethod.authMethodType,
       authMethodId,
       providerType: authMethod.providerType,
@@ -84,9 +89,14 @@ export function PersonalWalletSendReceiveActions({
       throw new Error('Missing auth data')
     }
 
+    const accessToken = await getCurrentAccessToken();
+    if (!accessToken) {
+      throw new Error('No access token available');
+    }
+
     await inviteUser({
       state,
-      accessToken: authMethod.accessToken,
+      accessToken,
       authMethodId,
       setIsSending,
       setResetAmount,

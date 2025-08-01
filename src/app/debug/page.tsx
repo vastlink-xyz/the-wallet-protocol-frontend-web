@@ -49,7 +49,7 @@ const accessControlConditions: AccessControlConditions = [
 ];
 
 export default function DebugPage() {
-  const { authMethod } = useAuthContext();
+  const { authMethod, getCurrentAccessToken } = useAuthContext();
   const { userData } = useUserData();
   const [sessionSigs, setSessionSigs] = useState<SessionSigs | null>(null);
   const [isMounted, setIsMounted] = useState(false);
@@ -59,11 +59,17 @@ export default function DebugPage() {
   }, []);
 
   const handleVerifyToken = async () => {
+    const accessToken = await getCurrentAccessToken();
+    if (!accessToken) {
+      log('No access token available');
+      return;
+    }
+
     const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/verify-token`, {
       method: 'POST',
       body: JSON.stringify({
         authMethodType: authMethod?.authMethodType,
-        accessToken: authMethod!.accessToken,
+        accessToken,
       }),
     })
 
@@ -108,6 +114,12 @@ export default function DebugPage() {
       return
     }
 
+    const accessToken = await getCurrentAccessToken();
+    if (!accessToken) {
+      log('No access token available');
+      return;
+    }
+
     const authMethodId = authMethod.authMethodId
 
     if (!litNodeClient.ready) {
@@ -119,7 +131,7 @@ export default function DebugPage() {
       sessionSigs,
       jsParams: {
         authParams: {
-          accessToken: authMethod.accessToken,
+          accessToken,
           authMethodId,
           authMethodType: authMethod.authMethodType,
           devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
@@ -283,11 +295,16 @@ export default function DebugPage() {
     }
 
     try {
+      const accessToken = await getCurrentAccessToken();
+      if (!accessToken) {
+        log('No access token available');
+        return;
+      }
 
       const sessionSigs = await getMultiProviderSessionSigs({
         pkpPublicKey: userData.litActionPkp.publicKey,
         pkpTokenId: userData.litActionPkp.tokenId,
-        accessToken: authMethod.accessToken,
+        accessToken,
         providerType: authMethod.providerType,
         userEmail: authMethod.primaryEmail,
       });

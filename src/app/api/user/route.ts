@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUser, createUser } from './storage';
-import { authenticateStytchSession } from '../stytch/sessionAuth';
+import { authenticateMultiProviderSession } from '@/lib/auth/multi-provider-auth';
 import { AuthProviderType } from '@/lib/lit/custom-auth';
+import { detectTokenType } from '@/lib/auth/multi-provider-auth';
+import { verifyStytchAuth } from '@/lib/auth/provider-verification';
 
 // GET /api/user?authMethodId=xxx
 export async function GET(request: NextRequest) {
@@ -34,12 +36,36 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/user - Create a new user with multi-provider support
+// POST /api/user - Create a new user (EMAIL_OTP only)
 export async function POST(request: NextRequest) {
   try {
-    // Authenticate session and get sub from it
-    const session = await authenticateStytchSession(request);
-    const sub = session.user_id; // This is the Stytch user_id (sub)
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { error: 'Missing or invalid Authorization header' },
+        { status: 401 }
+      );
+    }
+
+    const token = authHeader.substring(7);
+    const tokenType = detectTokenType(token);
+    
+    // Only allow EMAIL_OTP (Stytch) users to register new accounts
+    if (tokenType !== 'stytch') {
+      return NextResponse.json(
+        { error: 'Only Email OTP users can register new accounts. Please use existing account for other providers.' },
+        { status: 403 }
+      );
+    }
+    
+    // Verify Stytch token directly
+    const verificationResult = await verifyStytchAuth(token);
+    if (!verificationResult.success) {
+      return NextResponse.json(
+        { error: verificationResult.error || 'Token verification failed' },
+        { status: 401 }
+      );
+    }
     
     const body = await request.json();
     const { authMethodId, email } = body;
@@ -64,13 +90,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(existingUser);
     }
 
-    // Create new user with multi-provider architecture
+    // Create new user with Stytch user ID as sub
     const newUser = await createUser({
       authMethodId,
       primaryEmail: email,
       authProvider: {
         providerType: AuthProviderType.EMAIL_OTP,
-        sub: sub,
+        sub: verificationResult.metadata?.stytchUserId || '',
         email: email,
       }
     });

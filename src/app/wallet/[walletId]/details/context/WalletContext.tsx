@@ -37,7 +37,7 @@ export function WalletProvider({
   children: React.ReactNode,
   walletId: string 
 }) {
-  const { authMethod: storedAuthMethod, authMethodId: currentAuthMethodId } = useAuthContext();
+  const { authMethod: storedAuthMethod, authMethodId: currentAuthMethodId, getCurrentAccessToken } = useAuthContext();
   const [wallet, setWallet] = useState<MultisigWallet | null>(null);
   const [walletPkp, setWalletPkp] = useState<IRelayPKP | null>(null);
   const [userPkp, setUserPkp] = useState<IRelayPKP | null>(null);
@@ -86,9 +86,12 @@ export function WalletProvider({
           // Fetch user phone number
           (async () => {
             try {
+              const accessToken = await getCurrentAccessToken();
+              if (!accessToken) return;
+              
               const phoneResponse = await fetch('/api/mfa/get-user-phone', {
                 headers: {
-                  'Authorization': `Bearer ${storedAuthMethod.accessToken}`
+                  'Authorization': `Bearer ${accessToken}`
                 }
               });
               

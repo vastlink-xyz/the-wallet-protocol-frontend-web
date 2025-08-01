@@ -112,7 +112,7 @@ export default function SwapPage() {
 
 
     // Load auth method from context
-    const { authMethod: storedAuthMethod, authMethodId: contextAuthMethodId } = useAuthContext()
+    const { authMethod: storedAuthMethod, authMethodId: contextAuthMethodId, getCurrentAccessToken } = useAuthContext()
     const { userData } = useUserData()
 
     useEffect(() => {
@@ -359,9 +359,14 @@ export default function SwapPage() {
     const fetchMfaData = async () => {
         console.log('in fetchMfAData');
         try {
+            const accessToken = await getCurrentAccessToken();
+            if (!accessToken) {
+                throw new Error('No access token available');
+            }
+
             const response = await fetch('/api/mfa/get-user-phone', {
                 headers: {
-                    'Authorization': `Bearer ${authMethod?.accessToken}`
+                    'Authorization': `Bearer ${accessToken}`
                 }
             });
 
@@ -389,11 +394,16 @@ export default function SwapPage() {
 
     // Function to send OTP
     const handleSendOtp = async () => {
+        const accessToken = await getCurrentAccessToken();
+        if (!accessToken) {
+            throw new Error('No access token available');
+        }
+
         const response = await fetch('/api/mfa/whatsapp/send-code', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authMethod?.accessToken}`,
+                'Authorization': `Bearer ${accessToken}`,
             },
             body: JSON.stringify({ phone_number: mfaPhoneNumber }),
         });
@@ -410,10 +420,15 @@ export default function SwapPage() {
             throw new Error('Missing authentication data')
         }
 
+        const accessToken = await getCurrentAccessToken();
+        if (!accessToken) {
+            throw new Error('No access token available');
+        }
+
         const sessionSigs = await getMultiProviderSessionSigs({
             pkpPublicKey: litActionPkp.publicKey,
             pkpTokenId: litActionPkp.tokenId,
-            accessToken: authMethod.accessToken,
+            accessToken,
             providerType: authMethod.providerType,
             userEmail: authMethod.primaryEmail,
         })
@@ -442,7 +457,7 @@ export default function SwapPage() {
                 },
                 sessionSigs: sessionSigs,
                 publicKey: litActionPkp.publicKey, authParams: {
-                    accessToken: authMethod.accessToken,
+                    accessToken,
                     authMethodId: authMethodId,
                     authMethodType: authMethod.authMethodType,
                 },
@@ -463,7 +478,7 @@ export default function SwapPage() {
                 ],
                 sessionSigs: sessionSigs,
                 publicKey: litActionPkp.publicKey, authParams: {
-                    accessToken: authMethod.accessToken,
+                    accessToken,
                     authMethodId: authMethodId,
                     authMethodType: authMethod.authMethodType,
                 },

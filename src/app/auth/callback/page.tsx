@@ -10,6 +10,7 @@ import { AuthProviderType, generateUnifiedAuthMethodId, getVastbaseAuthMethodTyp
 import { useAuthContext } from '@/hooks/useAuthContext';
 import { IRelayPKP } from '@lit-protocol/types';
 import { User } from '@/app/api/user/storage';
+import { setTokenToStorage } from '@/lib/storage/authmethod';
 import { mintPersonalPKP } from '@/lib/lit';
 
 interface CallbackParams {
@@ -347,14 +348,16 @@ export default function UnifiedAuthCallbackPage() {
    */
   const storeAuthenticationData = async (callbackParams: CallbackParams, pkp: IRelayPKP, user: any) => {
     try {
-      // Create auth method object
+      // Create auth method object (without accessToken)
       const authMethod = {
         authMethodType: getVastbaseAuthMethodType(),
         authMethodId: generateUnifiedAuthMethodId(callbackParams.userEmail),
         providerType: callbackParams.providerType,
         primaryEmail: callbackParams.userEmail,
-        accessToken: callbackParams.accessToken,
       };
+
+      // Store access token separately by provider type
+      setTokenToStorage(callbackParams.providerType, callbackParams.accessToken);
 
       // Update auth method via Context (this will also update localStorage)
       updateAuthMethod(authMethod);

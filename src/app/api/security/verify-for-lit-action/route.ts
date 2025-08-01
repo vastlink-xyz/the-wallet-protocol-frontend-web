@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserBySub } from '../../user/storage';
+import { getUser, User } from '../../user/storage';
 import { SecurityLayer } from '@/types/security';
-import { authenticateStytchSession, getJwtTokenFromRequest } from '../../stytch/sessionAuth';
 import { stytchClient } from '../../stytch/client';
 import { log } from '@/lib/utils';
 import { SecurityLayerService } from '@/services/securityLayerService';
+import { verifyProviderAuth } from '@/lib/auth/provider-verification';
+import { AuthProviderType, generateUnifiedAuthMethodId } from '@/lib/lit/custom-auth';
+import { authenticateMultiProviderSession } from '@/lib/auth/multi-provider-auth';
 
 interface VerifyForLitActionRequest {
   transactionAmount: string;
@@ -22,8 +24,8 @@ interface VerifyForLitActionRequest {
 interface PriorityHandler {
   priority: number;
   category: string;
-  checkRequired: (layers: SecurityLayer[], requestData: VerifyForLitActionRequest, user: any, sessionJwt: string) => Promise<{ isRequired: boolean; requirementData?: any }>;
-  verify: (layers: SecurityLayer[], requestData: VerifyForLitActionRequest, session: any) => Promise<{ success: boolean; error?: string; data?: any }>;
+  checkRequired: (layers: SecurityLayer[], requestData: VerifyForLitActionRequest, user: User, sessionJwt: string) => Promise<{ isRequired: boolean; requirementData?: any }>;
+  verify: (layers: SecurityLayer[], requestData: VerifyForLitActionRequest, user: User) => Promise<{ success: boolean; error?: string; data?: any }>;
   formatResponse: (layers: SecurityLayer[], requirementData?: any) => any;
 }
 
@@ -31,7 +33,7 @@ interface PriorityHandler {
 const pinHandler: PriorityHandler = {
   priority: 10,
   category: 'pin',
-  checkRequired: async (layers: SecurityLayer[], requestData: VerifyForLitActionRequest, _user: any, _sessionJwt: string) => {
+  checkRequired: async (layers: SecurityLayer[], requestData: VerifyForLitActionRequest, _user: User, _sessionJwt: string) => {
     const pinLayer = layers.find(layer => layer.category === 'pin' && layer.isEnabled);
     const isRequired = !!pinLayer && !requestData.pinCode;
     return {
@@ -39,7 +41,7 @@ const pinHandler: PriorityHandler = {
       requirementData: isRequired && pinLayer?.type === 'PIN' ? pinLayer.config.pinData : undefined
     };
   },
-  verify: async (layers: SecurityLayer[], _requestData: VerifyForLitActionRequest) => {
+  verify: async (layers: SecurityLayer[], _requestData: VerifyForLitActionRequest, _user: User) => {
     const pinLayer = layers.find(layer => layer.category === 'pin' && layer.isEnabled);
     if (!pinLayer || pinLayer.type !== 'PIN' || !pinLayer.config.pinData) {
       return { success: false, error: 'PIN data not found in security layer' };
@@ -60,7 +62,7 @@ const pinHandler: PriorityHandler = {
 const mfaHandler: PriorityHandler = {
   priority: 20,
   category: 'otp',
-  checkRequired: async (layers: SecurityLayer[], requestData: VerifyForLitActionRequest, user: any, sessionJwt: string) => {
+  checkRequired: async (layers: SecurityLayer[], requestData: VerifyForLitActionRequest, user: User, sessionJwt: string) => {
     // Check MFA policy first
     const policyResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/mfa/check-policy`, {
       method: 'POST',
@@ -93,12 +95,27 @@ const mfaHandler: PriorityHandler = {
     
     return { isRequired: false };
   },
-  verify: async (_layers: SecurityLayer[], requestData: VerifyForLitActionRequest, session: any) => {
+  verify: async (_layers: SecurityLayer[], requestData: VerifyForLitActionRequest, user: User) => {
     const { mfaType, mfaCode, mfaMethodId } = requestData;
     
     if (!mfaCode || !mfaType) {
       return { success: true }; // MFA not required or not provided
     }
+
+    // Get Stytch user_id from EMAIL_OTP provider
+    let stytchUserId = null;
+    if (user?.authProviders) {
+      const emailOtpProvider = user.authProviders.find(
+        provider => provider.providerType === AuthProviderType.EMAIL_OTP && provider.isPrimary
+      );
+      stytchUserId = emailOtpProvider?.sub;
+    }
+
+    if (!stytchUserId) {
+      return { success: false, error: 'No EMAIL_OTP provider found for MFA verification' };
+    }
+
+    console.log('🔍 Using Stytch user_id for MFA:', stytchUserId);
 
     try {
       let verificationResult = false;
@@ -109,12 +126,12 @@ const mfaHandler: PriorityHandler = {
             method_id: mfaMethodId!,
             code: mfaCode,
           });
-          verificationResult = !!whatsappResponse.user_id && whatsappResponse.user_id === session.user_id;
+          verificationResult = !!whatsappResponse.user_id && whatsappResponse.user_id === stytchUserId;
           break;
 
         case 'TOTP':
           const totpResponse = await stytchClient.totps.authenticate({
-            user_id: session.user_id,
+            user_id: stytchUserId,
             totp_code: mfaCode,
           });
           verificationResult = !!totpResponse.user_id;
@@ -125,7 +142,7 @@ const mfaHandler: PriorityHandler = {
             method_id: mfaMethodId!,
             code: mfaCode,
           });
-          verificationResult = !!emailResponse.user_id && emailResponse.user_id === session.user_id;
+          verificationResult = !!emailResponse.user_id && emailResponse.user_id === stytchUserId;
           break;
 
         default:
@@ -176,14 +193,13 @@ const PRIORITY_HANDLERS: PriorityHandler[] = [
 // POST /api/security/verify-for-lit-action - Priority-based security verification
 export async function POST(request: NextRequest) {
   try {
-    const session = await authenticateStytchSession(request);
-    const sessionJwt = getJwtTokenFromRequest(request);
+    const authResult = await authenticateMultiProviderSession(request);
+    const { user, token } = authResult;
     const body: VerifyForLitActionRequest = await request.json();
     
     log('Priority-based verification request:', body);
 
     // 1. Get user and security layers
-    const user = await getUserBySub(session.user_id);
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'User not found' },
@@ -217,7 +233,7 @@ export async function POST(request: NextRequest) {
       
       // Check if this priority level requires verification
       try {
-        const requirementCheck = await handler.checkRequired(layersForPriority, body, user, sessionJwt);
+        const requirementCheck = await handler.checkRequired(layersForPriority, body, user, token);
         
         if (requirementCheck.isRequired) {
           // Return requirement response with accumulated data
@@ -229,7 +245,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Verify if credentials provided for this priority level
-        const verificationResult = await handler.verify(layersForPriority, body, session);
+        const verificationResult = await handler.verify(layersForPriority, body, user);
         
         if (!verificationResult.success) {
           return NextResponse.json({

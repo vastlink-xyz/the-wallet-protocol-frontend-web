@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { updateUserWalletSettings } from '../storage';
-import { AuthenticatedSession, authenticateStytchSession, getJwtTokenFromRequest } from '@/app/api/stytch/sessionAuth';
+import { authenticateMultiProviderSession } from '@/lib/auth/multi-provider-auth';
 import { log } from '@/lib/utils';
 import { policyEnforcer } from '@/services/policies/PolicyEnforcer';
 import { stytchClient } from '@/app/api/stytch/client';
@@ -10,11 +10,10 @@ import { StytchError } from 'stytch';
 // PATCH /api/user/settings - Update user wallet settings
 export async function PATCH(request: NextRequest) {
   try {
-    // Authenticate the user session first
-    const session: AuthenticatedSession = await authenticateStytchSession(request);
-    log('Authenticated session in user settings:', session);
-
-    const sessionJwt = getJwtTokenFromRequest(request);
+    // Authenticate the user session using multi-provider authentication
+    const authResult = await authenticateMultiProviderSession(request);
+    const { user, token } = authResult;
+    log('Authenticated session in user settings:', { user: user?.authMethodId, providerType: authResult.providerType });
 
     const body = await request.json();
     const { authMethodId, walletSettings, otp, phoneId } = body;
@@ -67,7 +66,7 @@ export async function PATCH(request: NextRequest) {
       // Check if MFA is required for this operation
       const shouldTriggerMFA = await policyEnforcer.checkPolicies({
         updateSettings: walletSettings,
-        sessionJwt,
+        sessionJwt: token,
       }, 'personalWalletSettingsUpdate');
 
       if (shouldTriggerMFA) {
@@ -99,9 +98,8 @@ export async function PATCH(request: NextRequest) {
         { status: 500 }
       );
     }
-    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
     return NextResponse.json(
-      { error: errorMessage },
+      { error: 'An error occurred while updating user settings' },
       { status: 500 }
     );
   }

@@ -20,7 +20,7 @@ interface MFASelectionDialogProps {
   onClose: () => void;
   onMFAVerify: (mfaType: string, mfaCode: string, mfaMethodId?: string) => Promise<void>;
   availableMFAOptions: MFAOption[];
-  accessToken: string;
+  getCurrentAccessToken: () => Promise<string | null>;
   isSending: boolean;
 }
 
@@ -29,7 +29,7 @@ export function MFASelectionDialog({
   onClose,
   onMFAVerify,
   availableMFAOptions,
-  accessToken,
+  getCurrentAccessToken,
   isSending
 }: MFASelectionDialogProps) {
   const t = useTranslations('MFASelectionDialog');
@@ -60,6 +60,12 @@ export function MFASelectionDialog({
 
     try {
       setIsSendingOTP(true);
+      
+      const accessToken = await getCurrentAccessToken();
+      if (!accessToken) {
+        throw new Error('No access token available');
+      }
+      
       const methodId = await SecurityLayerService.sendMFACode(
         accessToken, 
         selectedMFAType as any, 

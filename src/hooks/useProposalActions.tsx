@@ -15,7 +15,7 @@ import { AuthProviderType } from "@/lib/lit/custom-auth";
 export interface UseProposalActionsParams {
   walletMap: Map<string, MultisigWallet>;
   userPkp: any;
-  accessToken: string;
+  getCurrentAccessToken: () => Promise<string | null>;
   authMethodId: string | null;
   providerType: AuthProviderType;
   userEmail: string;
@@ -47,7 +47,7 @@ export interface UseProposalActionsReturn {
 export function useProposalActions({
   walletMap,
   userPkp,
-  accessToken,
+  getCurrentAccessToken,
   authMethodId,
   providerType,
   userEmail,
@@ -68,6 +68,10 @@ export function useProposalActions({
   const transactionSecurityVerification = useSecurityVerification({
     executeTransaction: async (params: any) => {
       const { proposal, sessionSigs, wallet, walletPkp, ...verificationParams } = params;
+      const accessToken = await getCurrentAccessToken();
+      if (!accessToken) {
+        throw new Error('Access token not available');
+      }
       return await executeTransactionProposalWithSecurity({
         proposal,
         sessionSigs,
@@ -87,6 +91,10 @@ export function useProposalActions({
   const settingsSecurityVerification = useSecurityVerification({
     executeTransaction: async (params: any) => {
       const { proposal, sessionSigs, wallet, walletPkp, settingsData, ...verificationParams } = params;
+      const accessToken = await getCurrentAccessToken();
+      if (!accessToken) {
+        throw new Error('Access token not available');
+      }
       return await executeWalletSettingsProposalWithSecurity({
         proposal,
         sessionSigs,
@@ -249,7 +257,7 @@ export function useProposalActions({
   const executeMultisigLitAction = async (proposal: MessageProposal) => {
     const wallet = walletMap.get(proposal.walletId);
     const walletPkp = wallet?.pkp;
-    if (!walletPkp || !wallet || !userPkp || !accessToken || !authMethodId) return;
+    if (!walletPkp || !wallet || !userPkp || !getCurrentAccessToken || !authMethodId) return;
     
     try {
       setExecutingStates(prev => ({ ...prev, [proposal.id]: true }));
@@ -257,6 +265,10 @@ export function useProposalActions({
       
       if (!litNodeClient.ready) {
         await litNodeClient.connect();
+      }
+      const accessToken = await getCurrentAccessToken();
+      if (!accessToken) {
+        throw new Error('Access token not available');
       }
       const sessionSigs = await getMultiProviderSessionSigs({
         pkpPublicKey: userPkp.publicKey,
@@ -306,12 +318,16 @@ export function useProposalActions({
   const handleSignProposal = async (proposal: MessageProposal) => {
     const wallet = walletMap.get(proposal.walletId);
     const walletPkp = wallet?.pkp;
-    if (!walletPkp || !wallet || !userPkp || !authMethodId || !accessToken) return;
+    if (!walletPkp || !wallet || !userPkp || !authMethodId || !getCurrentAccessToken) return;
     const isAuthValid = await verifyAuthOrRedirect();
     if (!isAuthValid) return;
     
     try {
       setSigningStates(prev => ({ ...prev, [proposal.id]: true }));
+      const accessToken = await getCurrentAccessToken();
+      if (!accessToken) {
+        throw new Error('Access token not available');
+      }
       const response = await signProposal({
         proposal,
         wallet,
@@ -343,12 +359,16 @@ export function useProposalActions({
   const handleSignProposalAndExecute = async (proposal: MessageProposal) => {
     const wallet = walletMap.get(proposal.walletId);
     const walletPkp = wallet?.pkp;
-    if (!walletPkp || !wallet || !userPkp || !authMethodId || !accessToken) return;
+    if (!walletPkp || !wallet || !userPkp || !authMethodId || !getCurrentAccessToken) return;
     const isAuthValid = await verifyAuthOrRedirect();
     if (!isAuthValid) return;
     
     try {
       setSigningStates(prev => ({ ...prev, [proposal.id]: true }));
+      const accessToken = await getCurrentAccessToken();
+      if (!accessToken) {
+        throw new Error('Access token not available');
+      }
       const response = await signProposal({
         proposal,
         wallet,

@@ -11,7 +11,7 @@ import { useAuthContext } from '@/hooks/useAuthContext';
  */
 export function useAuthExpiration() {
   const router = useRouter();
-  const { authMethod } = useAuthContext();
+  const { authMethod, getCurrentAccessToken } = useAuthContext();
   
   const handleExpiredAuth = useCallback((message?: string) => {
     const defaultMessage = 'Your access token has expired. Please log in again.';
@@ -33,14 +33,26 @@ export function useAuthExpiration() {
       return false;
     }
     
-    const isValid = await isTokenValid(authMethod);
-    if (!isValid) {
+    try {
+      const accessToken = await getCurrentAccessToken();
+      if (!accessToken) {
+        handleExpiredAuth();
+        return false;
+      }
+      
+      const isValid = await isTokenValid(authMethod.providerType, accessToken);
+      if (!isValid) {
+        handleExpiredAuth();
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error verifying auth:', error);
       handleExpiredAuth();
       return false;
     }
-    
-    return true;
-  }, [authMethod, handleExpiredAuth]);
+  }, [authMethod, handleExpiredAuth, getCurrentAccessToken]);
 
   // Periodic checking is now handled globally by AuthGuard component
   

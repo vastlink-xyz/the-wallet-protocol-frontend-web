@@ -93,29 +93,45 @@ async function isStytchTokenValid(token: string): Promise<boolean> {
 }
 
 /**
- * Unified function to verify if a token is valid based on its provider type
- * @param authMethod The VastbaseAuthMethod object containing token and provider type info
+ * Unified function to verify if a token is valid based on provider type
+ * @param providerType The authentication provider type
+ * @param token The access token to validate
  * @returns Promise resolving to true if token is valid, false otherwise
  */
-export async function isTokenValid(authMethod: VastbaseAuthMethod): Promise<boolean> {
-  if (!authMethod) return false;
+export async function isTokenValid(providerType: AuthProviderType, token: string): Promise<boolean> {
+  if (!token) return false;
 
-  // Use providerType from authMethod to determine validation method
-  switch (authMethod.providerType) {
+  // Use providerType to determine validation method
+  switch (providerType) {
     case AuthProviderType.GOOGLE:
-      return isGoogleTokenValid(authMethod.accessToken);
+      return isGoogleTokenValid(token);
     
     case AuthProviderType.EMAIL_OTP:
-      return isStytchTokenValid(authMethod.accessToken);
+      return isStytchTokenValid(token);
     
     case AuthProviderType.PASSKEY:
       // kkktodo
-      return !!authMethod.accessToken;
+      return !!token;
     
     default:
-      console.error(`Unsupported provider type: ${authMethod.providerType}`);
+      console.error(`Unsupported provider type: ${providerType}`);
       return false;
   }
+}
+
+/**
+ * Legacy function for backward compatibility
+ * @deprecated Use isTokenValid(providerType, token) instead
+ */
+export async function isTokenValidLegacy(authMethod: VastbaseAuthMethod): Promise<boolean> {
+  if (!authMethod) return false;
+
+  // This function is deprecated, but kept for compatibility during migration
+  // It will need the accessToken from the authMethod which should be removed
+  console.warn('isTokenValidLegacy is deprecated, use isTokenValid(providerType, token) instead');
+  
+  // For now, return false as authMethod.accessToken should no longer exist
+  return false;
 }
 
 export function getUserIdFromToken(token: string): string | null {

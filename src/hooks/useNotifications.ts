@@ -13,7 +13,7 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
   const { enabled = true } = options;
   const pathname = usePathname();
   const queryClient = useQueryClient();
-  const { authMethod, authMethodId } = useAuthContext();
+  const { authMethod, authMethodId, getCurrentAccessToken } = useAuthContext();
 
   const shouldShow = useMemo(() => {
     return shouldShowNotificationOnPath(pathname);
@@ -26,7 +26,11 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
       try {
         if (!shouldShow) return [];
         if (!authMethod || !authMethodId) return [];
-        return await notificationService.getMFANotifications(authMethod.accessToken, authMethodId);
+        
+        const accessToken = await getCurrentAccessToken();
+        if (!accessToken) return [];
+        
+        return await notificationService.getMFANotifications(accessToken, authMethodId);
       } catch (error) {
         console.error('Error fetching MFA notifications:', error);
         return [];

@@ -16,7 +16,7 @@ import { getEmailFromGoogleToken, getUserIdFromToken } from '@/lib/jwt';
 import { AUTH_METHOD_TYPE } from '@lit-protocol/constants';
 
 export default function InvitePage() {
-  const { authMethod, primaryEmail } = useAuthContext();
+  const { authMethod, primaryEmail, getCurrentAccessToken } = useAuthContext();
   const [invitation, setInvitation] = useState<PendingInvitation | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -74,9 +74,12 @@ export default function InvitePage() {
         userEmail = primaryEmail;
 
         // If not cached, extract from auth method
-        if (!userEmail && authMethod?.authMethodType === AUTH_METHOD_TYPE.GoogleJwt && authMethod?.accessToken) {
+        if (!userEmail && authMethod?.authMethodType === AUTH_METHOD_TYPE.GoogleJwt) {
           try {
-            userEmail = getEmailFromGoogleToken(authMethod.accessToken);
+            const accessToken = await getCurrentAccessToken();
+            if (accessToken) {
+              userEmail = getEmailFromGoogleToken(accessToken);
+            }
           } catch (error) {
             console.error('Error extracting email from Google token:', error);
           }
@@ -95,7 +98,7 @@ export default function InvitePage() {
     };
     
     loadInvitation();
-  }, [params.id]);
+  }, [params.id, authMethod, primaryEmail, getCurrentAccessToken]);
 
   if (isLoading) {
     return (

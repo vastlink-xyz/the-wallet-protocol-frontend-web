@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { AuthenticatedSession } from '../../stytch/sessionAuth';
-import { authenticateStytchSession } from '../../stytch/sessionAuth';
 import { log } from '@/lib/utils';
 import { policyEnforcer } from '@/services/policies/PolicyEnforcer';
+import { authenticateMultiProviderSession } from '@/lib/auth/multi-provider-auth';
 
 export async function POST(request: NextRequest) {
   try {
-    const session: AuthenticatedSession = await authenticateStytchSession(request);
+    const authResult = await authenticateMultiProviderSession(request);
+    const { user } = authResult;
 
     const body = await request.json();
     const { contextType, ...contextParams } = body;

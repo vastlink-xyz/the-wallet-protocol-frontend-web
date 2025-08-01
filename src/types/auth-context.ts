@@ -1,5 +1,5 @@
 import { SessionSigs } from '@lit-protocol/types';
-import { VastbaseAuthMethod } from '@/lib/lit/custom-auth';
+import { VastbaseAuthMethod, AuthProviderType } from '@/lib/lit/custom-auth';
 
 /**
  * Value type provided by AuthMethod Context
@@ -14,15 +14,15 @@ export interface AuthContextValue {
   /** Method to update authentication method */
   updateAuthMethod: (newAuthMethod: VastbaseAuthMethod | null) => void;
   
+  /** Method to get current access token dynamically */
+  getCurrentAccessToken: () => Promise<string | null>;
+  
   // Convenience properties
   /** Authentication method ID */
   authMethodId: string | null;
   
-  /** Access token */
-  accessToken: string | null;
-  
   /** Provider type */
-  providerType: string | null;
+  providerType: AuthProviderType | null;
   
   /** Primary email */
   primaryEmail: string | null;

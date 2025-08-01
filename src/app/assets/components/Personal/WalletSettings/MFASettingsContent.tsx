@@ -25,11 +25,11 @@ export function MFASettingsContent({ isOpen, authMethodId, onPhoneUpdated, onMFA
   const [securityLayers, setSecurityLayers] = useState<SecurityLayer[]>([]);
 
   const prevIsOpen = useRef(isOpen);
-  const { authMethod } = useAuthContext();
-  const sessionJwt = authMethod?.accessToken || null;
+  const { authMethod, getCurrentAccessToken } = useAuthContext();
 
   // Fetch security layers
   const fetchSecurityLayers = useCallback(async (authId: string) => {
+    const sessionJwt = await getCurrentAccessToken();
     if (!sessionJwt || !authId) return;
 
     try {
@@ -44,7 +44,7 @@ export function MFASettingsContent({ isOpen, authMethodId, onPhoneUpdated, onMFA
     } catch (err: any) {
       console.error('Error fetching security layers:', err);
     }
-  }, [sessionJwt]);
+  }, [getCurrentAccessToken]);
 
   // Helper to trigger a refresh of MFA methods and notify parent of changes
   const refreshMFAStatus = useCallback(async () => {
@@ -81,7 +81,6 @@ export function MFASettingsContent({ isOpen, authMethodId, onPhoneUpdated, onMFA
       {/* Phone WhatsApp MFA */}
       <MFAPhoneWhatsApp 
         verifiedPhone={verifiedPhone}
-        sessionJwt={sessionJwt}
         authMethodId={authMethodId}
         onSuccess={refreshMFAStatus}
         onPhoneUpdated={onPhoneUpdated}
@@ -90,7 +89,6 @@ export function MFASettingsContent({ isOpen, authMethodId, onPhoneUpdated, onMFA
       {/* TOTP MFA */}
       <MFATOTP 
         hasTotp={hasTotp}
-        sessionJwt={sessionJwt}
         authMethodId={authMethodId}
         onSuccess={refreshMFAStatus}
       />

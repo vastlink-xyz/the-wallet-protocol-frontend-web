@@ -22,7 +22,7 @@ export type ProposalStatus = "pending" | "completed" | "canceled";
 
 export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus }, ref) => {
   const t = useTranslations('ProposalList');
-  const { authMethod: authMethodFromStorage, authMethodId } = useAuthContext();
+  const { authMethod: authMethodFromStorage, authMethodId, getCurrentAccessToken } = useAuthContext();
   const { userData, isLoading: isUserDataLoading } = useUserData();
 
   // Get URL search params for proposal targeting
@@ -63,9 +63,12 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
       try {
         if (!authMethod) return;
 
+        const accessToken = await getCurrentAccessToken();
+        if (!accessToken) return;
+
         const phoneResponse = await fetch('/api/mfa/get-user-phone', {
           headers: {
-            'Authorization': `Bearer ${authMethod.accessToken}`
+            'Authorization': `Bearer ${accessToken}`
           }
         });
 
@@ -83,7 +86,7 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
     }
 
     fetchUserPhone();
-  }, [authMethod]);
+  }, [authMethod, getCurrentAccessToken]);
 
   // Use new proposals API with user address and status filtering
   const {
@@ -137,7 +140,7 @@ export const ProposalsList = forwardRef(({ status }: { status: ProposalStatus },
   } = useProposalActions({
     walletMap,
     userPkp,
-    accessToken: authMethod?.accessToken || '',
+    getCurrentAccessToken,
     authMethodId,
     providerType: authMethod?.providerType || 'EMAIL_OTP' as any,
     userEmail: authMethod?.primaryEmail || '',

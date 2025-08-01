@@ -18,7 +18,7 @@ interface LoginMethodsSettingsProps {
 
 export function LoginMethodsSettings({ user, onUserUpdate }: LoginMethodsSettingsProps) {
   const t = useTranslations("LoginMethodsSettings");
-  const { authMethod } = useAuthContext();
+  const { authMethod, getCurrentAccessToken } = useAuthContext();
   const [isConnecting, setIsConnecting] = useState(false);
 
   // Check if user has each provider type
@@ -36,7 +36,7 @@ export function LoginMethodsSettings({ user, onUserUpdate }: LoginMethodsSetting
 
   // Handle Google login connection using Firebase
   const handleGoogleConnect = async () => {
-    if (!user?.authMethodId || !authMethod?.accessToken) {
+    if (!user?.authMethodId) {
       toast.error(t('auth_required'));
       return;
     }
@@ -51,12 +51,17 @@ export function LoginMethodsSettings({ user, onUserUpdate }: LoginMethodsSetting
 
       console.log('🔑 Firebase Google login successful:', firebaseUser.email);
 
+      const accessToken = await getCurrentAccessToken();
+      if (!accessToken) {
+        throw new Error('No access token available');
+      }
+
       // Call our API to add the Google provider using Firebase ID Token
       const apiResponse = await fetch('/api/user/auth-providers', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authMethod.accessToken}`
+          'Authorization': `Bearer ${accessToken}`
         },
         body: JSON.stringify({
           authMethodId: user.authMethodId,

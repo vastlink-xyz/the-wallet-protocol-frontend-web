@@ -34,7 +34,7 @@ export default function PersonalAssets({ userData, authMethodId }: PersonalAsset
 
   const { showPersonalWalletSettings } = useContext(PersonalWalletSettingsContext);
 
-  const { authMethod } = useAuthContext();
+  const { authMethod, getCurrentAccessToken } = useAuthContext();
   
   // Create executeTransaction function for the security hook
   const executeTransactionWithSecurity = async (params: any) => {
@@ -42,9 +42,14 @@ export default function PersonalAssets({ userData, authMethodId }: PersonalAsset
       throw new Error('Missing required data')
     }
 
+    const accessToken = await getCurrentAccessToken();
+    if (!accessToken) {
+      throw new Error('No access token available');
+    }
+
     return await executePersonalTransaction({
       state: params.state,
-      accessToken: authMethod.accessToken,
+      accessToken,
       authMethodType: authMethod.authMethodType,
       authMethodId,
       providerType: authMethod.providerType,
@@ -103,9 +108,14 @@ export default function PersonalAssets({ userData, authMethodId }: PersonalAsset
       throw new Error('Missing auth data')
     }
 
+    const accessToken = await getCurrentAccessToken();
+    if (!accessToken) {
+      throw new Error('No access token available');
+    }
+
     await inviteUser({
       state,
-      accessToken: authMethod.accessToken,
+      accessToken,
       authMethodId,
       setIsSending: () => {}, // No-op since we use securityVerification.isVerifying for transaction state
       setResetAmount,

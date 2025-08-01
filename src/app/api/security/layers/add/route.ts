@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUser, updateUserWalletSettings } from '../../../user/storage';
 import { SecurityLayer, SecurityLayerType } from '@/types/security';
-import { authenticateStytchSession } from '../../../stytch/sessionAuth';
+import { authenticateMultiProviderSession } from '@/lib/auth/multi-provider-auth';
 import { verifyStytchDataExists } from '../stytchValidation';
 import { SecurityLayerService } from '@/services/securityLayerService';
 
 // POST /api/security/layers/add - Add a new security layer
 export async function POST(request: NextRequest) {
   try {
-    const session = await authenticateStytchSession(request);
+    const authResult = await authenticateMultiProviderSession(request);
+    const { user: authenticatedUser } = authResult;
     
     const body = await request.json();
     const { authMethodId, layerType, config } = body;
@@ -54,7 +55,7 @@ export async function POST(request: NextRequest) {
       if (!existingLayer.isEnabled && (layerType === 'TOTP' || layerType === 'WHATSAPP_OTP' || layerType === 'PIN')) {
         // For Stytch-based layers, verify the data still exists in Stytch
         if (layerType !== 'PIN') {
-          const stytchDataExists = await verifyStytchDataExists(session.user_id, layerType);
+          const stytchDataExists = await verifyStytchDataExists(authMethodId, layerType);
           if (!stytchDataExists) {
             return NextResponse.json(
               { error: `${layerType} data not found in Stytch. Please set up ${layerType} first.` },
@@ -103,7 +104,7 @@ export async function POST(request: NextRequest) {
 
     // For TOTP and WHATSAPP_OTP, verify they exist in Stytch first
     if (layerType === 'TOTP' || layerType === 'WHATSAPP_OTP') {
-      const stytchDataExists = await verifyStytchDataExists(session.user_id, layerType);
+      const stytchDataExists = await verifyStytchDataExists(authMethodId, layerType);
       if (!stytchDataExists) {
         return NextResponse.json(
           { error: `${layerType} data not found in Stytch. Please set up ${layerType} first.` },

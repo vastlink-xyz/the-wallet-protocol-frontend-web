@@ -18,7 +18,7 @@ import { useTranslations } from "next-intl";
 
 export function ProposalsList({ proposals }: { proposals: PendingProposalNotification[] }) {  
   const t = useTranslations('ProposalList');
-  const { authMethod: authMethodFromStorage, authMethodId } = useAuthContext();
+  const { authMethod: authMethodFromStorage, authMethodId, getCurrentAccessToken } = useAuthContext();
   const { userData, isLoading: isUserDataLoading } = useUserData();
 
   // User PKP state
@@ -49,9 +49,12 @@ export function ProposalsList({ proposals }: { proposals: PendingProposalNotific
       try {
         if (!authMethod) return;
 
+        const accessToken = await getCurrentAccessToken();
+        if (!accessToken) return;
+
         const phoneResponse = await fetch('/api/mfa/get-user-phone', {
           headers: {
-            'Authorization': `Bearer ${authMethod.accessToken}`
+            'Authorization': `Bearer ${accessToken}`
           }
         });
 
@@ -69,7 +72,7 @@ export function ProposalsList({ proposals }: { proposals: PendingProposalNotific
     }
 
     fetchUserPhone();
-  }, [authMethod]);
+  }, [authMethod, getCurrentAccessToken]);
 
   // Fetch wallets using user address
   const { data: wallets = [], isLoading: isLoadingWallets } = useQuery<MultisigWallet[]>({
@@ -106,7 +109,7 @@ export function ProposalsList({ proposals }: { proposals: PendingProposalNotific
   } = useProposalActions({
     walletMap,
     userPkp,
-    accessToken: authMethod?.accessToken || '',
+    getCurrentAccessToken,
     authMethodId,
     providerType: authMethod?.providerType || 'EMAIL_OTP' as any,
     userEmail: authMethod?.primaryEmail || '',

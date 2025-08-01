@@ -31,7 +31,7 @@ export function useSecurityVerification({
 }: UseSecurityVerificationParams): UseSecurityVerificationResult {
   // Get user data and auth method
   const { userData } = useUserData();
-  const { authMethod } = useAuthContext();
+  const { authMethod, getCurrentAccessToken } = useAuthContext();
   
   // State for PIN dialog
   const [showPinDialog, setShowPinDialog] = useState(false);
@@ -65,8 +65,14 @@ export function useSecurityVerification({
             authMethod: authMethod
           };
           
+          // Get access token for PIN verification
+          const accessToken = await getCurrentAccessToken();
+          if (!accessToken) {
+            throw new Error('No access token available');
+          }
+          
           // Verify PIN using Lit Action
-          const isValidPin = await PinService.verifyPin(pin, storedPinData, userDataForPin);
+          const isValidPin = await PinService.verifyPin(pin, storedPinData, userDataForPin, accessToken);
           if (!isValidPin) {
             toast.error('Invalid PIN. Please try again.');
             return; // Don't close dialog, allow retry
@@ -122,7 +128,11 @@ export function useSecurityVerification({
     // Step 1: Dynamically check if PIN verification is required
     let isPinRequired = false;
     try {
-      isPinRequired = await SecurityLayerService.requiresPINVerification(authMethod.accessToken, userData.authMethodId);
+      const accessToken = await getCurrentAccessToken();
+      if (!accessToken) {
+        throw new Error('No access token available');
+      }
+      isPinRequired = await SecurityLayerService.requiresPINVerification(accessToken, userData.authMethodId);
     } catch (error) {
       console.error('Error checking PIN requirement:', error);
       // If we can't check, assume PIN is not required to avoid blocking the transaction
@@ -179,7 +189,7 @@ export function useSecurityVerification({
     <MFASelectionDialog
       isOpen={showMFADialog}
       availableMFAOptions={availableMFAOptions}
-      accessToken={authMethod.accessToken}
+      getCurrentAccessToken={getCurrentAccessToken}
       isSending={isVerifying}
       onMFAVerify={handleMFAVerify}
       onClose={handleMFACancel}

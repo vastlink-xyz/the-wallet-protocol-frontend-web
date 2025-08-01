@@ -6,6 +6,7 @@ import { AUTH_METHOD_SCOPE, AUTH_METHOD_TYPE, LIT_ABILITY, LIT_NETWORK } from "@
 import { IRelayPKP } from "@lit-protocol/types";
 import { VastbaseAuthMethod } from "@/lib/lit/custom-auth";
 import { useState, useEffect } from "react";
+import { useAuthContext } from "@/hooks/useAuthContext";
 import { getLitActionIpfsCid, mintPKP, uploadViaPinata } from "@/lib/lit";
 import { getMultiProviderSessionSigs } from "@/lib/lit/pkpManager";
 import { PKPEthersWallet } from "@lit-protocol/pkp-ethers";
@@ -25,6 +26,7 @@ export function EditAuthmethod({
   loading
 }: EditAuthmethodProps) {
   const [pkp, setPkp] = useState<IRelayPKP | null>(actionPkp);
+  const { getCurrentAccessToken } = useAuthContext();
 
   // Update pkp when actionPkp changes
   useEffect(() => {
@@ -64,10 +66,15 @@ export function EditAuthmethod({
       throw new Error('No PKP available');
     }
 
+    const accessToken = await getCurrentAccessToken();
+    if (!accessToken) {
+      throw new Error('No access token available');
+    }
+
     const sessionSigs = await getMultiProviderSessionSigs({
       pkpPublicKey: pkp.publicKey,
       pkpTokenId: pkp.tokenId,
-      accessToken: authMethod.accessToken,
+      accessToken,
       providerType: authMethod.providerType,
       userEmail: authMethod.primaryEmail,
     });
@@ -110,10 +117,16 @@ export function EditAuthmethod({
       return;
     }
 
+    const accessToken = await getCurrentAccessToken();
+    if (!accessToken) {
+      log('No access token available');
+      return;
+    }
+
     const sessionSigs = await getMultiProviderSessionSigs({
       pkpPublicKey: pkp.publicKey,
       pkpTokenId: pkp.tokenId,
-      accessToken: authMethod.accessToken,
+      accessToken,
       providerType: authMethod.providerType,
       userEmail: authMethod.primaryEmail,
     });
@@ -154,10 +167,16 @@ export function EditAuthmethod({
       // Check if it's the new VastbaseAuthMethod type
       if ('providerType' in authMethod && 'primaryEmail' in authMethod) {
         // Use new multi-provider session sigs
+        const accessToken = await getCurrentAccessToken();
+        if (!accessToken) {
+          log('No access token available');
+          return;
+        }
+
         const sessionSigs = await getMultiProviderSessionSigs({
           pkpPublicKey: actionPkp.publicKey,
           pkpTokenId: actionPkp.tokenId,
-          accessToken: authMethod.accessToken,
+          accessToken,
           providerType: authMethod.providerType,
           userEmail: authMethod.primaryEmail,
         });

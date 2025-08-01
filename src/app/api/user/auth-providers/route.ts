@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { authenticateStytchSession } from '../../stytch/sessionAuth';
+import { authenticateMultiProviderSession } from '@/lib/auth/multi-provider-auth';
 import { AuthProviderType } from '@/lib/lit/custom-auth';
 import { addAuthProviderToUser, getUser } from '../storage';
 import { verifyGoogleAuth } from '@/lib/auth/provider-verification';
@@ -7,8 +7,10 @@ import { verifyGoogleAuth } from '@/lib/auth/provider-verification';
 // POST /api/user/auth-providers - Add a new auth provider to user
 export async function POST(request: NextRequest) {
   try {
-    // Authenticate session and get user info
-    const session = await authenticateStytchSession(request);
+    // Authenticate session using multi-provider authentication
+    const authResult = await authenticateMultiProviderSession(request);
+    const { user: authenticatedUser } = authResult;
+    
     const body = await request.json();
     const { authMethodId, providerType, accessToken } = body;
 

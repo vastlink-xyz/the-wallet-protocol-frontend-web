@@ -6,6 +6,7 @@ import { Loader2, Shield, Copy, CheckCircle } from 'lucide-react';
 import { log } from '@/lib/utils';
 import { toast } from 'react-toastify';
 import { useTranslations } from 'next-intl';
+import { useAuthContext } from '@/hooks/useAuthContext';
 
 // TOTP setup data interface from Stytch
 interface TOTPSetupData {
@@ -21,9 +22,6 @@ type TOTPUiState = 'initial' | 'setup' | 'verify';
 interface MFATOTPProps {
   // Current TOTP status
   hasTotp: boolean;
-  
-  // Session JWT for API calls
-  sessionJwt: string | null;
   
   // Auth method ID for API calls
   authMethodId: string | null;
@@ -90,12 +88,12 @@ const ActionButtons: React.FC<{
 
 export function MFATOTP({ 
   hasTotp, 
-  sessionJwt,
   authMethodId,
   onSuccess
 }: MFATOTPProps) {
   const t = useTranslations("TOTPSettings");
   const tCommon = useTranslations("MFASettings");
+  const { getCurrentAccessToken } = useAuthContext();
 
   const [uiState, setUiState] = useState<TOTPUiState>('initial');
   const [totpCode, setTotpCode] = useState('');
@@ -110,9 +108,19 @@ export function MFATOTP({
     setSuccessMessage(null);
   };
 
+  const getSessionJwt = async () => {
+    const sessionJwt = await getCurrentAccessToken();
+    if (!sessionJwt) {
+      toast.error('No access token available');
+      return null;
+    }
+    return sessionJwt;
+  };
+
   // Handle Add TOTP button click
   const handleAddClick = async () => {
     resetMessages();
+    const sessionJwt = await getSessionJwt();
     if (!sessionJwt) {
       setError(tCommon('user_not_found'));
       return;
@@ -166,6 +174,7 @@ export function MFATOTP({
     resetMessages();
     if (!window.confirm(t("confirm_remove"))) return;
 
+    const sessionJwt = await getSessionJwt();
     if (!sessionJwt || !authMethodId) {
       setError(tCommon('user_not_found'));
       return;
@@ -232,6 +241,7 @@ export function MFATOTP({
   // Handle TOTP code verification
   const handleVerifyTotp = async (e: React.FormEvent) => {
     e.preventDefault();
+    const sessionJwt = await getSessionJwt();
     if (!sessionJwt || !setupData) {
       setError(tCommon('missing_details'));
       return;

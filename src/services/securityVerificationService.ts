@@ -82,12 +82,12 @@ export class SecurityVerificationService {
    */
   static createProtectedAction({
     contextType,
-    sessionJwt,
+    getSessionJwt,
     businessLogic,
     options
   }: {
     contextType: string;
-    sessionJwt: string;
+    getSessionJwt: () => Promise<string | null>;
     businessLogic: () => Promise<any>;
     options?: {
       [key: string]: any;
@@ -95,6 +95,15 @@ export class SecurityVerificationService {
   }) {
     return async (params: any) => {
       const { pinCode, mfaType, mfaCode, mfaMethodId } = params;
+
+      // Get the session JWT dynamically
+      const sessionJwt = await getSessionJwt();
+      if (!sessionJwt) {
+        return {
+          success: false,
+          error: 'Authentication token not available'
+        };
+      }
 
       // Step 1: Verify security requirements
       const verificationResult = await SecurityVerificationService.verifyForAction({

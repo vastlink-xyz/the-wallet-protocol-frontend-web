@@ -87,7 +87,7 @@ export function MFAPin({
   const t = useTranslations("MFASettings");
   // Get user data and auth method for Lit Protocol operations
   const { userData, isLoading: isLoadingUser, error: userError } = useUserData();
-  const { authMethod } = useAuthContext();
+  const { authMethod, getCurrentAccessToken } = useAuthContext();
   const [uiState, setUiState] = useState<PinUiState>('initial');
   const [pin, setPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
@@ -140,10 +140,16 @@ export function MFAPin({
         litActionPkp: userData.litActionPkp,
         authMethod: authMethod
       });
+      
+      const accessToken = await getCurrentAccessToken();
+      if (!accessToken) {
+        throw new Error('No access token available');
+      }
+      
       await PinService.setLocalPinData({
         pinData,
         authMethodId: userData.authMethodId,
-        accessToken: authMethod.accessToken
+        accessToken
       });
       toast.success(t('pin_created'));
       setPin('');
@@ -191,13 +197,19 @@ export function MFAPin({
         toast.error('No PIN is set.');
         return;
       }
+      const accessToken = await getCurrentAccessToken();
+      if (!accessToken) {
+        throw new Error('No access token available');
+      }
+      
       const isCurrentPinValid = await PinService.verifyPin(
         currentPin,
         storedPinData,
         {
           litActionPkp: userData.litActionPkp,
           authMethod: authMethod
-        }
+        },
+        accessToken
       );
       if (!isCurrentPinValid) {
         toast.error(t('current_pin_incorrect'));
@@ -207,10 +219,11 @@ export function MFAPin({
         litActionPkp: userData.litActionPkp,
         authMethod: authMethod
       });
+      
       await PinService.updateLocalPinData({
         pinData: newPinData,
         authMethodId: userData.authMethodId,
-        accessToken: authMethod.accessToken
+        accessToken
       });
       toast.success(t('pin_changed'));
       setPin('');
@@ -237,9 +250,14 @@ export function MFAPin({
     
     setIsLoading(true);
     try {
+      const accessToken = await getCurrentAccessToken();
+      if (!accessToken) {
+        throw new Error('No access token available');
+      }
+      
       await PinService.removeLocalPinData({
         authMethodId: userData!.authMethodId,
-        accessToken: authMethod.accessToken
+        accessToken
       });
       toast.success(t('pin_removed'));
       setUiState('initial');

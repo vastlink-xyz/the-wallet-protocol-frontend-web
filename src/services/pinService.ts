@@ -68,7 +68,8 @@ export class PinService {
   static async verifyPin(
     pin: string, 
     storedPinData: PinData, 
-    userData: UserData
+    userData: UserData,
+    accessToken: string
   ): Promise<boolean> {
     if (!pin || !/^\d{6}$/.test(pin)) {
       throw new Error('PIN must be exactly 6 digits');
@@ -80,7 +81,7 @@ export class PinService {
       const sessionSigs = await getMultiProviderSessionSigs({
         pkpPublicKey: userData.litActionPkp.publicKey,
         pkpTokenId: userData.litActionPkp.tokenId,
-        accessToken: userData.authMethod.accessToken,
+        accessToken,
         providerType: userData.authMethod.providerType,
         userEmail: userData.authMethod.primaryEmail,
       });

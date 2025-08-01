@@ -24,12 +24,75 @@ export function getAuthMethodFromStorage(): VastbaseAuthMethod | null {
 }
 
 /**
- * Get access token from stored auth method
+ * Token storage keys for different providers
+ */
+const TOKEN_STORAGE_KEYS = {
+  [AuthProviderType.GOOGLE]: 'vastbase-google-token',
+  [AuthProviderType.EMAIL_OTP]: 'vastbase-stytch-token', 
+  [AuthProviderType.PASSKEY]: 'vastbase-passkey-token'
+};
+
+/**
+ * Set access token to localStorage for specific provider
+ * @param providerType Provider type
+ * @param token Access token to store
+ */
+export function setTokenToStorage(providerType: AuthProviderType, token: string): void {
+  if (typeof window === 'undefined') return;
+  
+  try {
+    const key = TOKEN_STORAGE_KEYS[providerType];
+    if (key) {
+      localStorage.setItem(key, token);
+    }
+  } catch (error) {
+    console.error('Failed to store token:', error);
+  }
+}
+
+/**
+ * Get access token from localStorage for specific provider
+ * @param providerType Provider type
  * @returns Access token string or null if not found
  */
+export function getTokenFromStorage(providerType: AuthProviderType): string | null {
+  if (typeof window === 'undefined') return null;
+  
+  try {
+    const key = TOKEN_STORAGE_KEYS[providerType];
+    return key ? localStorage.getItem(key) : null;
+  } catch (error) {
+    console.error('Failed to get token from storage:', error);
+    return null;
+  }
+}
+
+/**
+ * Clear access token from localStorage for specific provider
+ * @param providerType Provider type
+ */
+export function clearTokenFromStorage(providerType: AuthProviderType): void {
+  if (typeof window === 'undefined') return;
+  
+  try {
+    const key = TOKEN_STORAGE_KEYS[providerType];
+    if (key) {
+      localStorage.removeItem(key);
+    }
+  } catch (error) {
+    console.error('Failed to clear token from storage:', error);
+  }
+}
+
+/**
+ * Get access token from stored auth method
+ * @returns Access token string or null if not found
+ * @deprecated This function is deprecated. Access tokens should not be stored in authMethod.
+ * Use getCurrentAccessToken from AuthContext instead for dynamic token retrieval.
+ */
 export function getAccessTokenFromStorage(): string | null {
-  const authMethod = getAuthMethodFromStorage();
-  return authMethod?.accessToken || null;
+  console.warn('getAccessTokenFromStorage is deprecated. Use getCurrentAccessToken from AuthContext instead.');
+  return null; // Always return null since accessToken is no longer stored
 }
 
 export function getAuthMethodTypeFromStorage() {

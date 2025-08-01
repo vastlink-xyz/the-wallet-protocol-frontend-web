@@ -52,11 +52,22 @@ export function PersonalWalletSettings() {
   const [pendingSettings, setPendingSettings] = useState<any>(null);
 
   // Get auth method - use useState to make it reactive
-  const { authMethod, authMethodId } = useAuthContext();
-  const sessionJwt = authMethod?.accessToken;
-
-  // sving wallet settings
+  const { authMethod, authMethodId, getCurrentAccessToken } = useAuthContext();
+  
+  // Helper function to get session JWT
+  const getSessionJwt = async () => {
+    const sessionJwt = await getCurrentAccessToken();
+    if (!sessionJwt) {
+      toast.error('No access token available');
+      return null;
+    }
+    return sessionJwt;
+  };
+  
+  // saving wallet settings
   const saveWalletSettings = async () => {
+    const sessionJwt = await getSessionJwt();
+    if (!sessionJwt) return;
     if (!authMethodId || !tokenLimits) {
       throw new Error('Missing required data');
     }
@@ -95,7 +106,7 @@ export function PersonalWalletSettings() {
   const securityVerification = useSecurityVerification({
     executeTransaction: SecurityVerificationService.createProtectedAction({
       contextType: 'forceMFA',
-      sessionJwt: sessionJwt || '',
+      getSessionJwt: getSessionJwt,
       businessLogic: saveWalletSettings
     })
   });
@@ -148,7 +159,10 @@ export function PersonalWalletSettings() {
   // Initialize MFA data when dialog opens
   useEffect(() => {
     const initializeMfaData = async () => {
-      if (!isPersonalWalletSettingsOpen || !sessionJwt) return;
+      if (!isPersonalWalletSettingsOpen) return;
+      
+      const sessionJwt = await getSessionJwt();
+      if (!sessionJwt) return;
       
       try {
         setIsMfaLoading(true);
@@ -182,10 +196,11 @@ export function PersonalWalletSettings() {
       setShowMfaDialog(false);
       setIsMfaLoading(false);
     }
-  }, [isPersonalWalletSettingsOpen, sessionJwt]);
+  }, [isPersonalWalletSettingsOpen]);
 
   // Fetch user's phone number for MFA
   const fetchUserPhone = useCallback(async () => {
+    const sessionJwt = await getSessionJwt();
     if (!sessionJwt) return;
 
     try {
@@ -210,7 +225,7 @@ export function PersonalWalletSettings() {
     } catch (error) {
       console.error('Error fetching user phone:', error);
     }
-  }, [sessionJwt]);
+  }, []);
 
   // Handle limits change from DailyWithdrawLimits component
   const handleLimitsChange = (newLimits: Record<TokenType, string>, isValid: boolean) => {
@@ -249,6 +264,7 @@ export function PersonalWalletSettings() {
 
   // Real send OTP function
   const handleSendOtp = async () => {
+    const sessionJwt = await getSessionJwt();
     if (!sessionJwt || !verifiedPhone) {
       throw new Error('Session or phone number not found');
     }
@@ -276,6 +292,7 @@ export function PersonalWalletSettings() {
 
   // Real verify OTP function
   const handleVerifyOtp = async (otp: string) => {
+    const sessionJwt = await getSessionJwt();
     if (!sessionJwt || !methodId || !authMethodId || !pendingSettings) {
       throw new Error('Required data for verification is missing');
     }

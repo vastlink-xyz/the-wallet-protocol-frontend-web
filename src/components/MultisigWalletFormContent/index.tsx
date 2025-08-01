@@ -112,7 +112,7 @@ export function MultisigWalletFormContent({
   const [verifiedPhone, setVerifiedPhone] = useState<string | null>(null)
   
   // Get authentication data from Context
-  const { authMethod, authMethodId, primaryEmail, getCustomAuthSessionSigs } = useAuthContext();
+  const { authMethod, authMethodId, primaryEmail, getCustomAuthSessionSigs, getCurrentAccessToken } = useAuthContext();
   
   // Get current user's email from Context
   const currentUserEmail = primaryEmail || '';
@@ -326,12 +326,17 @@ export function MultisigWalletFormContent({
     targetThreshold: number,
   ) => {
     try {
+      const accessToken = await getCurrentAccessToken();
+      if (!accessToken) {
+        throw new Error('No access token available');
+      }
+
       // Call API to create wallet invitations
       const response = await fetch('/api/invitation/create-wallet-invitations', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authMethod?.accessToken}`
+          'Authorization': `Bearer ${accessToken}`
         },
         body: JSON.stringify({
           walletId,
@@ -379,8 +384,14 @@ export function MultisigWalletFormContent({
       return;
     }
 
-    // Verify Google token before proceeding
-    if (!authMethod || !authMethod.accessToken) {
+    // Verify token before proceeding
+    if (!authMethod) {
+      toast.error(transWallet('authentication_failed'));
+      return;
+    }
+
+    const accessToken = await getCurrentAccessToken();
+    if (!accessToken) {
       toast.error(transWallet('authentication_failed'));
       return;
     }
@@ -396,7 +407,7 @@ export function MultisigWalletFormContent({
     try {
       setIsLoading(true);
 
-      const isValid = await isTokenValid(authMethod);
+      const isValid = await isTokenValid(authMethod.providerType, accessToken);
       if (!isValid) {
         handleExpiredAuth();
         setIsLoading(false)
@@ -522,7 +533,7 @@ export function MultisigWalletFormContent({
         sessionSigs,
         jsParams: {
           authParams: {
-            accessToken: authMethod.accessToken,
+            accessToken,
             providerType: authMethod.providerType,
             pkpTokenId: pkpForMultisig.tokenId,
             authMethodId: authMethodId,
@@ -619,11 +630,16 @@ export function MultisigWalletFormContent({
       return
     }
 
+    const accessToken = await getCurrentAccessToken();
+    if (!accessToken) {
+      throw new Error('No access token available');
+    }
+
     const response = await signProposal({
       proposal,
       wallet,
       userPkp,
-      accessToken: authMethod.accessToken,
+      accessToken,
       authMethodId,
       providerType: authMethod.providerType,
       userEmail: authMethod.primaryEmail,
@@ -657,6 +673,12 @@ export function MultisigWalletFormContent({
     if (!sessionSigs) {
       throw new Error('Failed to get session signatures');
     }
+
+    const accessToken = await getCurrentAccessToken();
+    if (!accessToken) {
+      throw new Error('No access token available');
+    }
+
     const walletPkp = wallet.pkp
 
     const response = await executeWalletSettingsProposal({
@@ -665,7 +687,7 @@ export function MultisigWalletFormContent({
       wallet,
       walletPkp,
       providerType: authMethod.providerType,
-      accessToken: authMethod.accessToken,
+      accessToken,
       authMethodId,
       userEmail: currentUserEmail,
     })
@@ -731,12 +753,17 @@ export function MultisigWalletFormContent({
     signersToRemove?: any[]
   ) => {
     try {
+      const accessToken = await getCurrentAccessToken();
+      if (!accessToken) {
+        throw new Error('No access token available');
+      }
+
       // Call API to create wallet invitations with enhanced settings
       const response = await fetch('/api/invitation/create-wallet-invitations', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authMethod.accessToken}`
+          'Authorization': `Bearer ${accessToken}`
         },
         body: JSON.stringify({
           walletId,
@@ -858,13 +885,20 @@ export function MultisigWalletFormContent({
       setIsLoading(true);
 
       // Verify access token before proceeding
-      if (!authMethod || !authMethod.accessToken) {
+      if (!authMethod) {
         toast.error(transWallet('authentication_failed'));
         setIsLoading(false);
         return;
       }
 
-      const isValid = await isTokenValid(authMethod);
+      const accessToken = await getCurrentAccessToken();
+      if (!accessToken) {
+        toast.error(transWallet('authentication_failed'));
+        setIsLoading(false);
+        return;
+      }
+
+      const isValid = await isTokenValid(authMethod.providerType, accessToken);
       if (!isValid) {
         handleExpiredAuth();
         setIsLoading(false);

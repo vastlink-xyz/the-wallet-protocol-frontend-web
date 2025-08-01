@@ -28,7 +28,7 @@ export function TeamWalletSendReceiveActions({
   const [currentProposal, setCurrentProposal] = useState<MessageProposal | null>(null)
   
   // Get auth method and user data from hooks
-  const { authMethod, authMethodId } = useAuthContext()
+  const { authMethod, authMethodId, getCurrentAccessToken } = useAuthContext()
   const { userData: user } = useUserData()
   
   // Notifications hook for UI refresh
@@ -48,11 +48,16 @@ export function TeamWalletSendReceiveActions({
       return
     }
     
+    const accessToken = await getCurrentAccessToken();
+    if (!accessToken) {
+      throw new Error('No access token available');
+    }
+    
     await createAndApproveTransactionProposal({
       state,
       wallet,
       userPkp,
-      accessToken: authMethod.accessToken,
+      accessToken,
       authMethodId,
       providerType: authMethod.providerType,
       userEmail: authMethod.primaryEmail,
@@ -81,11 +86,16 @@ export function TeamWalletSendReceiveActions({
       return
     }
 
+    const accessToken = await getCurrentAccessToken();
+    if (!accessToken) {
+      throw new Error('No access token available');
+    }
+
     await executeTeamTransactionProposal({
       proposal,
       wallet: walletParam,
       userPkp,
-      accessToken: authMethod.accessToken,
+      accessToken,
       authMethodId,
       providerType: authMethod.providerType,
       userEmail: authMethod.primaryEmail,
@@ -105,9 +115,14 @@ export function TeamWalletSendReceiveActions({
       return
     }
 
+    const accessToken = await getCurrentAccessToken();
+    if (!accessToken) {
+      throw new Error('No access token available');
+    }
+
     await inviteTeamUser({
       state,
-      accessToken: authMethod.accessToken,
+      accessToken,
       authMethodId,
       setIsSending,
       setShowSendDialog,
@@ -125,9 +140,14 @@ export function TeamWalletSendReceiveActions({
       throw new Error('Missing required information for OTP verification')
     }
 
+    const accessToken = await getCurrentAccessToken();
+    if (!accessToken) {
+      throw new Error('No access token available');
+    }
+
     await handleTeamMfaVerify({
       state,
-      accessToken: authMethod.accessToken,
+      accessToken,
       userPkp,
       currentProposal,
       wallet,

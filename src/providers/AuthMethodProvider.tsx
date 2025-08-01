@@ -4,7 +4,7 @@ import React, { createContext, useCallback, ReactNode, useState, useEffect } fro
 import { SessionSigs } from '@lit-protocol/types';
 import { onAuthStateChanged } from 'firebase/auth';
 import { getMultiProviderSessionSigs } from '@/lib/lit';
-import { getAuthMethodFromStorage, setAuthMethodToStorage } from '@/lib/storage/authmethod';
+import { getAuthMethodFromStorage, setAuthMethodToStorage, setTokenToStorage, getTokenFromStorage } from '@/lib/storage/authmethod';
 import { VastbaseAuthMethod, AuthProviderType, getVastbaseAuthMethodType } from '@/lib/lit/custom-auth';
 import { AuthContextValue } from '@/types/auth-context';
 import { auth } from '@/lib/firebase';
@@ -56,6 +56,9 @@ export function AuthMethodProvider({ children }: AuthMethodProviderProps) {
         try {
           const token = await user.getIdToken();
           
+          // Store Google token separately 
+          setTokenToStorage(AuthProviderType.GOOGLE, token);
+          
           // Use by-provider API to find user by Google email
           const userLookupResponse = await fetch('/api/user/by-provider', {
             method: 'POST',
@@ -78,12 +81,9 @@ export function AuthMethodProvider({ children }: AuthMethodProviderProps) {
                   prevAuthMethod.providerType === AuthProviderType.GOOGLE && 
                   prevAuthMethod.authMethodId === userData.authMethodId) {
                 
-                // 🔑 Update token in-place to maintain object reference
-                prevAuthMethod.accessToken = token;
-                
-                // 🔑 Update localStorage with new token
-                setAuthMethodToStorage(prevAuthMethod);
-                console.log('🔄 Google token updated in-place, no re-render');
+                // Update token storage but don't change auth method object
+                setTokenToStorage(AuthProviderType.GOOGLE, token);
+                console.log('🔄 Google token updated in storage');
                 
                 // Return same object reference
                 return prevAuthMethod;
@@ -94,7 +94,6 @@ export function AuthMethodProvider({ children }: AuthMethodProviderProps) {
                   authMethodId: userData.authMethodId, // Use existing authMethodId from database
                   providerType: AuthProviderType.GOOGLE,
                   primaryEmail: userData.primaryEmail, // From database
-                  accessToken: token,
                 };
                 
                 setAuthMethodToStorage(googleAuthMethod);
@@ -130,6 +129,46 @@ export function AuthMethodProvider({ children }: AuthMethodProviderProps) {
   }, []);
 
   /**
+   * Get current access token dynamically based on provider type
+   * For Google: Always get latest token from Firebase
+   * For Stytch/Passkey: Get from localStorage
+   */
+  const getCurrentAccessToken = useCallback(async (): Promise<string | null> => {
+    if (!authMethod) {
+      console.warn('getCurrentAccessToken: No authMethod available');
+      return null;
+    }
+
+    try {
+      switch (authMethod.providerType) {
+        case AuthProviderType.GOOGLE:
+          // Always get latest token from Firebase to avoid expiration
+          const currentUser = auth.currentUser;
+          if (currentUser) {
+            const latestToken = await currentUser.getIdToken();
+            console.log('🔄 Got fresh Google token from Firebase');
+            return latestToken;
+          } else {
+            console.warn('getCurrentAccessToken: No Firebase user signed in');
+            return null;
+          }
+        
+        case AuthProviderType.EMAIL_OTP:
+        case AuthProviderType.PASSKEY:
+          // Get from localStorage for non-expiring tokens
+          return getTokenFromStorage(authMethod.providerType);
+        
+        default:
+          console.error(`getCurrentAccessToken: Unsupported provider type: ${authMethod.providerType}`);
+          return null;
+      }
+    } catch (error) {
+      console.error('getCurrentAccessToken: Error getting token:', error);
+      return null;
+    }
+  }, [authMethod]);
+
+  /**
    * Update authentication method
    * This function allows components to update the auth method state directly
    */
@@ -148,7 +187,7 @@ export function AuthMethodProvider({ children }: AuthMethodProviderProps) {
   /**
    * Get Custom Auth Session Signatures
    * Re-fetch on each call, following Lit Protocol best practices
-   * For Google login, gets latest token directly from Firebase
+   * Uses getCurrentAccessToken to get latest token dynamically
    */
   const getCustomAuthSessionSigs = useCallback(async (): Promise<SessionSigs | null> => {
     // Check required authentication information
@@ -171,21 +210,17 @@ export function AuthMethodProvider({ children }: AuthMethodProviderProps) {
         return null;
       }
 
-      // For Google login, get latest token directly from Firebase
-      let currentToken = authMethod.accessToken;
-      if (authMethod.providerType === AuthProviderType.GOOGLE) {
-        const currentUser = auth.currentUser;
-        if (currentUser) {
-          const latestToken = await currentUser.getIdToken(); // Firebase handles caching and refresh
-          currentToken = latestToken;
-          console.log('🔄 Using latest Google token for session signatures');
-        }
+      // Get current token dynamically
+      const currentToken = await getCurrentAccessToken();
+      if (!currentToken) {
+        console.warn('getCustomAuthSessionSigs: Failed to get current access token');
+        return null;
       }
 
       const sessionSigs = await getMultiProviderSessionSigs({
         pkpPublicKey: userData.litActionPkp.publicKey,
         pkpTokenId: userData.litActionPkp.tokenId,
-        accessToken: currentToken, // Use latest token for Google
+        accessToken: currentToken,
         providerType: authMethod.providerType,
         userEmail: authMethod.primaryEmail,
       });
@@ -195,17 +230,17 @@ export function AuthMethodProvider({ children }: AuthMethodProviderProps) {
       console.error('Error getting custom auth session signatures:', error);
       return null;
     }
-  }, [authMethod]);
+  }, [authMethod, getCurrentAccessToken]);
 
   // Build Context value
   const contextValue: AuthContextValue = {
     authMethod,
     getCustomAuthSessionSigs,
     updateAuthMethod,
+    getCurrentAccessToken,
     
     // Convenience properties
     authMethodId: authMethod?.authMethodId || null,
-    accessToken: authMethod?.accessToken || null,
     providerType: authMethod?.providerType || null,
     primaryEmail: authMethod?.primaryEmail || null,
   };
