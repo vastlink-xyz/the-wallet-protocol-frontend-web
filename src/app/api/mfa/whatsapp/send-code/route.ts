@@ -1,12 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stytchClient } from '@/app/api/stytch/client';
-import { AuthenticatedSession, authenticateStytchSession } from '@/app/api/stytch/sessionAuth';
+import { getStytchUserIdFromRequest } from '@/lib/auth/multi-provider-auth';
 import { log } from '@/lib/utils';
 
 export async function POST(req: NextRequest) {
   try {
-    const session: AuthenticatedSession = await authenticateStytchSession(req);
-    log('Authenticated session in send-code:', session);
+    const { stytchUserId } = await getStytchUserIdFromRequest(req);
+    
+    if (!stytchUserId) {
+      return NextResponse.json(
+        { error: 'Stytch user ID not found' },
+        { status: 400 }
+      );
+    }
+
+    log('Authenticated user for WhatsApp send-code:', stytchUserId);
 
     const body = await req.json();
     const { phone_number } = body; // Expecting E.164 format, e.g., "+12345678900"
@@ -19,7 +27,7 @@ export async function POST(req: NextRequest) {
     // we typically send an OTP to it. Stytch's otps.whatsapp.send with user_id
     // can be used. It will associate this OTP attempt with the user.
     const otpResponse = await stytchClient.otps.whatsapp.send({
-      user_id: session.user_id,
+      user_id: stytchUserId,
       phone_number: phone_number,
       // expiration_minutes: 5, // Optional: defaults to 10 minutes
     });

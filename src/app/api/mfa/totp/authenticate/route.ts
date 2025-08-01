@@ -1,13 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stytchClient } from '../../../stytch/client';
-import { authenticateStytchSession } from '../../../stytch/sessionAuth';
+import { getStytchUserIdFromRequest } from '@/lib/auth/multi-provider-auth';
 import { log } from '@/lib/utils';
 
 // POST /api/mfa/totp/authenticate - Authenticate TOTP code
 export async function POST(request: NextRequest) {
   try {
-    const session = await authenticateStytchSession(request);
-    const user_id = session.user_id;
+    const { stytchUserId } = await getStytchUserIdFromRequest(request);
+    
+    if (!stytchUserId) {
+      return NextResponse.json(
+        { error: 'Stytch user ID not found' },
+        { status: 400 }
+      );
+    }
     
     const body = await request.json();
     const { totp_code, session_duration_minutes = 30 } = body;
@@ -26,11 +32,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    log('Authenticating TOTP code for user:', user_id);
+    log('Authenticating TOTP code for user:', stytchUserId);
 
     // Authenticate TOTP using Stytch API
     const response = await stytchClient.totps.authenticate({
-      user_id,
+      user_id: stytchUserId,
       totp_code,
       // session_duration_minutes
     });

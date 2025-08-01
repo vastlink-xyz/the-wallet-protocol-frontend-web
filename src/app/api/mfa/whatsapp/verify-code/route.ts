@@ -1,11 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stytchClient } from '@/app/api/stytch/client';
-import { AuthenticatedSession, authenticateStytchSession } from '@/app/api/stytch/sessionAuth';
-import { log } from '@/lib/utils'; // Assuming log is a utility you want to keep
+import { getStytchUserIdFromRequest } from '@/lib/auth/multi-provider-auth';
+import { log } from '@/lib/utils';
 
 export async function POST(req: NextRequest) {
   try {
-    const session: AuthenticatedSession = await authenticateStytchSession(req);
+    const { stytchUserId } = await getStytchUserIdFromRequest(req);
+    
+    if (!stytchUserId) {
+      return NextResponse.json(
+        { error: 'Stytch user ID not found' },
+        { status: 400 }
+      );
+    }
 
     const body = await req.json();
     const { method_id, code } = body; // method_id is the phone_id from the send-code step
@@ -27,8 +34,8 @@ export async function POST(req: NextRequest) {
     // After successful OTP authentication, the phone number (identified by method_id/phone_id)
     // should be marked as verified for the user in Stytch.
     // Fetch the updated user to confirm and return their latest state, including verified phone numbers.
-    log('Fetching updated user data for user_id:', session.user_id);
-    const userResponse = await stytchClient.users.get({ user_id: session.user_id });
+    log('Fetching updated user data for user_id:', stytchUserId);
+    const userResponse = await stytchClient.users.get({ user_id: stytchUserId });
     log('Updated user data:', userResponse);
 
     return NextResponse.json({ success: true, user: userResponse });

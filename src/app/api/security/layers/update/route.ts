@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUser, updateUserWalletSettings } from '../../../user/storage';
 import { SecurityLayer } from '@/types/security';
-import { authenticateStytchSession } from '../../../stytch/sessionAuth';
+import { authenticateUser } from '@/lib/auth/multi-provider-auth';
 import { verifyStytchDataExists } from '../stytchValidation';
 import { SecurityLayerService } from '@/services/securityLayerService';
 
 // PUT /api/security/layers/update - Update security layer fields (isEnabled, config, etc.)
 export async function PUT(request: NextRequest) {
   try {
-    const session = await authenticateStytchSession(request);
+    const { authMethodId: userAuthMethodId } = await authenticateUser(request);
     
     const body = await request.json();
     const { authMethodId, layerId, ...updates } = body;

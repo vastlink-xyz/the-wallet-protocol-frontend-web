@@ -1,14 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stytchClient } from '@/app/api/stytch/client';
-import { AuthenticatedSession, authenticateStytchSession, getJwtTokenFromRequest } from '@/app/api/stytch/sessionAuth';
-import { log } from '@/lib/utils'; // Assuming log is a utility you want to keep
+import { getStytchUserIdFromRequest } from '@/lib/auth/multi-provider-auth';
+import { getJwtTokenFromRequest } from '@/app/api/stytch/sessionAuth';
+import { log } from '@/lib/utils';
 import { policyEnforcer } from '@/services/policies/PolicyEnforcer';
 
 export async function POST(req: NextRequest) {
   try {
     // Authenticate the user session first to ensure only the logged-in user can attempt removal.
-    const session: AuthenticatedSession = await authenticateStytchSession(req);
-    log('Authenticated session in remove-phone:', session); 
+    const { stytchUserId } = await getStytchUserIdFromRequest(req);
+    
+    if (!stytchUserId) {
+      return NextResponse.json(
+        { error: 'Stytch user ID not found' },
+        { status: 400 }
+      );
+    }
+
+    log('Authenticated user for WhatsApp removal:', stytchUserId); 
 
     const sessionJwt = getJwtTokenFromRequest(req);
 
@@ -19,7 +28,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'phone_id is required' }, { status: 400 });
     }
 
-    log('Attempting to delete phone number with phone_id:', phone_id, 'for user_id:', session.user_id);
+    log('Attempting to delete phone number with phone_id:', phone_id, 'for user_id:', stytchUserId);
 
     if (otp) {
       policyContext.contextType = 'personalWalletMFAUpdate';

@@ -1,22 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stytchClient } from '../../../stytch/client';
-import { authenticateStytchSession } from '../../../stytch/sessionAuth';
+import { getStytchUserIdFromRequest } from '@/lib/auth/multi-provider-auth';
 import { log } from '@/lib/utils';
 
 // POST /api/mfa/totp/create - Create TOTP for user
 export async function POST(request: NextRequest) {
   try {
-    const session = await authenticateStytchSession(request);
-    const user_id = session.user_id;
+    const { authMethodId, stytchUserId, providerType } = await getStytchUserIdFromRequest(request);
+    
+    if (!stytchUserId) {
+      return NextResponse.json(
+        { 
+          error: 'No Stytch user found. Please ensure you have email authentication set up.',
+          details: 'TOTP requires a Stytch user account. Users must have email authentication configured.'
+        },
+        { status: 400 }
+      );
+    }
     
     const body = await request.json();
     const { expiration_minutes = 1440 } = body;
 
-    log('Creating TOTP for user:', user_id);
+    log('Creating TOTP for user:', stytchUserId, 'authMethodId:', authMethodId, 'provider:', providerType);
 
     // Create TOTP using Stytch API
     const response = await stytchClient.totps.create({
-      user_id,
+      user_id: stytchUserId,
       expiration_minutes
     });
 

@@ -1,34 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stytchClient } from '@/app/api/stytch/client';
-import { AuthenticatedSession, authenticateStytchSession } from '@/app/api/stytch/sessionAuth';
-import { log } from '@/lib/utils';
+import { getStytchUserIdFromRequest } from '@/lib/auth/multi-provider-auth';
 
 export async function GET(req: NextRequest) {
   try {
-    const session: AuthenticatedSession = await authenticateStytchSession(req);
-    const userResponse = await stytchClient.users.get({ user_id: session.user_id });
+    const { stytchUserId } = await getStytchUserIdFromRequest(req);
     
-    return NextResponse.json(userResponse);
-
-  } catch (error: any) {
-    console.error('Error in GET /api/mfa/status:', error);
-
-    let errorMessage = 'Failed to fetch MFA status';
-    let statusCode = 500;
-
-    const authErrorMessages = [
-      'Authorization header is missing',
-      'Invalid Authorization header format. Expected "Bearer <token>"',
-      'Session token is missing',
-      'Invalid session or user_id missing from session',
-      'Session authentication failed'
-    ];
-
-    if (authErrorMessages.some(msg => error.message?.includes(msg))) {
-      errorMessage = 'Authentication failed';
-      statusCode = 401;
+    if (!stytchUserId) {
+      return NextResponse.json(
+        { error: 'Stytch user ID not found' },
+        { status: 400 }
+      );
     }
 
-    return NextResponse.json({ error: errorMessage }, { status: statusCode });
+    // Get MFA status from Stytch
+    const userResponse = await stytchClient.users.get({ user_id: stytchUserId });
+    return NextResponse.json(userResponse);
+  } catch (error: any) {
+    console.error('Error in GET /api/mfa/status:', error);
+    return NextResponse.json({ error: 'Failed to fetch MFA status' }, { status: 500 });
   }
 }

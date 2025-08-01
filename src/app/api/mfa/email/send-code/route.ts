@@ -1,13 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { authenticateStytchSession } from '../../../stytch/sessionAuth';
+import { getStytchUserIdFromRequest } from '@/lib/auth/multi-provider-auth';
 import { stytchClient } from '../../../stytch/client';
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await authenticateStytchSession(req);
+    const { authMethodId, stytchUserId, providerType } = await getStytchUserIdFromRequest(req);
     
+    if (!stytchUserId) {
+      return NextResponse.json(
+        { error: 'No Stytch user found. Please ensure you have email authentication set up.' },
+        { status: 400 }
+      );
+    }
+
     // Get user's email from Stytch
-    const userResponse = await stytchClient.users.get({ user_id: session.user_id });
+    const userResponse = await stytchClient.users.get({ user_id: stytchUserId });
     const userEmail = userResponse.emails.find(email => email.verified);
     
     if (!userEmail) {

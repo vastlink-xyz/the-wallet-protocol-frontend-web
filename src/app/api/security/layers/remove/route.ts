@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUser, updateUserWalletSettings } from '../../../user/storage';
 import { SecurityLayer, SecurityLayerType } from '@/types/security';
-import { authenticateStytchSession } from '../../../stytch/sessionAuth';
+import { authenticateUser } from '@/lib/auth/multi-provider-auth';
 import { SecurityLayerService } from '@/services/securityLayerService';
 
 // DELETE /api/security/layers/remove - Remove or disable a security layer (database only)
 export async function DELETE(request: NextRequest) {
   try {
-    await authenticateStytchSession(request);
+    await authenticateUser(request);
     
     const body = await request.json();
     const { authMethodId, layerType } = body;

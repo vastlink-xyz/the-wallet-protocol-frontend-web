@@ -41,6 +41,13 @@ export function detectTokenType(token: string): 'stytch' | 'firebase' | 'unknown
   }
 }
 
+export interface AuthenticatedUser {
+  authMethodId: string;
+  providerType: AuthProviderType;
+  userEmail?: string;
+  metadata?: any;
+}
+
 /**
  * Universal authentication function that auto-detects token type
  * Can be reused across different API routes
@@ -94,4 +101,83 @@ export async function authenticateMultiProviderSession(request: NextRequest) {
     console.error('Multi-provider authentication failed:', error);
     throw new Error('Session authentication failed');
   }
+}
+
+/**
+ * Simplified authentication function that returns user info directly
+ * Easier to use in API endpoints
+ */
+export async function authenticateUser(request: NextRequest): Promise<AuthenticatedUser> {
+  const authHeader = request.headers.get('Authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    throw new Error('Missing or invalid Authorization header');
+  }
+
+  const token = authHeader.substring(7);
+  const tokenType = detectTokenType(token);
+  
+  let providerType: AuthProviderType;
+  
+  if (tokenType === 'stytch') {
+    providerType = AuthProviderType.EMAIL_OTP;
+  } else if (tokenType === 'firebase') {
+    providerType = AuthProviderType.GOOGLE;
+  } else {
+    throw new Error(`Unsupported token type: ${tokenType}`);
+  }
+  
+  const verificationResult = await verifyProviderAuth(providerType, token);
+  
+  if (!verificationResult.success) {
+    throw new Error(verificationResult.error || 'Authentication failed');
+  }
+  
+  return {
+    authMethodId: (verificationResult as any).authMethodId,
+    providerType,
+    userEmail: (verificationResult as any).userEmail,
+    metadata: (verificationResult as any).metadata
+  };
+}
+
+/**
+ * Get Stytch user_id from user's auth providers
+ * Used for MFA operations that require Stytch user_id
+ */
+export async function getStytchUserId(authMethodId: string): Promise<string | null> {
+  try {
+    const user = await getUser(authMethodId);
+    if (!user || !user.authProviders) {
+      return null;
+    }
+
+    // Find EMAIL_OTP provider which contains Stytch user_id in sub field
+    const emailOtpProvider = user.authProviders.find(
+      provider => provider.providerType === AuthProviderType.EMAIL_OTP
+    );
+
+    return emailOtpProvider?.sub || null;
+  } catch (error) {
+    console.error('Error getting Stytch user_id:', error);
+    return null;
+  }
+}
+
+/**
+ * Get Stytch user_id from authenticated user request
+ * Convenience function that combines authentication and Stytch user_id lookup
+ */
+export async function getStytchUserIdFromRequest(request: NextRequest): Promise<{
+  authMethodId: string;
+  stytchUserId: string | null;
+  providerType: AuthProviderType;
+}> {
+  const authenticatedUser = await authenticateUser(request);
+  const stytchUserId = await getStytchUserId(authenticatedUser.authMethodId);
+  
+  return {
+    authMethodId: authenticatedUser.authMethodId,
+    stytchUserId,
+    providerType: authenticatedUser.providerType
+  };
 } 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { addPkpToUser, getUserPkps, PKPType, getUser } from '../storage';
-import { authenticateStytchSession } from '../../stytch/sessionAuth';
+import { authenticateUser } from '@/lib/auth/multi-provider-auth';
 import { AuthProviderType } from '@/lib/lit/custom-auth';
 
 // GET /api/user/pkp?authMethodId=xxx
@@ -30,14 +30,14 @@ export async function GET(request: NextRequest) {
 // POST /api/user/pkp - Add or update a PKP for a user
 export async function POST(request: NextRequest) {
   try {
-    // Authenticate session and get sub from it
-    const session = await authenticateStytchSession(request);
-    const sub = session.user_id; // This is the Stytch user_id (sub)
+    // Authenticate session using multi-provider authentication
+    const authenticatedUser = await authenticateUser(request);
+    const { authMethodId: userAuthMethodId, providerType, userEmail } = authenticatedUser;
     
     const body = await request.json();
     const { authMethodId, pkp, pkpType } = body;
 
-    console.log(`POST /api/user/pkp - Request for ${authMethodId}, type: ${pkpType}`);
+    console.log(`POST /api/user/pkp - Request for ${authMethodId}, type: ${pkpType}, provider: ${providerType}`);
 
     if (!authMethodId || !pkp) {
       return NextResponse.json(
@@ -74,14 +74,14 @@ export async function POST(request: NextRequest) {
     const action = hasExistingPkp ? 'Updating' : 'Adding';
     console.log(`${action} ${type} PKP for user ${authMethodId}`);
 
-    // Get user's email from their auth providers
-    const userEmail = existingUser?.primaryEmail || existingUser?.authProviders?.[0]?.email;
+    // Use email from authenticated user or fallback to existing user data
+    const finalUserEmail = userEmail || existingUser?.primaryEmail || existingUser?.authProviders?.[0]?.email;
 
     // Add or update the PKP with multi-provider architecture
     const updatedUser = await addPkpToUser(authMethodId, pkp, type, {
-      providerType: AuthProviderType.EMAIL_OTP, // Stytch email OTP
-      sub: sub,
-      email: userEmail,
+      providerType: providerType,
+      sub: userAuthMethodId, // Use authMethodId as sub for unified system
+      email: finalUserEmail,
       isPrimary: true,
       isEnabled: true,
     });
