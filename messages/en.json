@@ -143,10 +143,32 @@
     "save": "Save Settings",
     "mfa_pin_settings": "PIN Settings",
     "mfa_settings": "MFA Settings",
+    "login_methods": "Login Methods",
     "update_success": "Your wallet settings have been updated successfully.",
     "update_failed": "Failed to save wallet settings. Please try again.",
     "opt_dialog_title": "Verify Settings Change",
     "opt_dialog_description": "A verification code will be sent to your phone via WhatsApp"
+  },
+  "LoginPage": {
+    "continue_with_google": "Continue with Google",
+    "or_continue_with": "Or continue with",
+    "connecting": "Connecting...",
+    "google_login_failed": "Google login failed",
+    "google_auth_failed": "Google authentication failed"
+  },
+  "LoginMethodsSettings": {
+    "email_login": "Email",
+    "google_account": "Google Account",
+    "primary_method": "Primary",
+    "connected": "Connected",
+    "not_connected": "Not connected",
+    "not_configured": "Not configured",
+    "connect_google": "Connect Google",
+    "connecting": "Connecting...",
+    "google_connected": "Google account connected successfully",
+    "connect_failed": "Failed to connect account",
+    "google_auth_failed": "Google authentication failed",
+    "auth_required": "Authentication required"
   },
   "TeamWalletSettings": {
     "title": "Team Wallet Settings",

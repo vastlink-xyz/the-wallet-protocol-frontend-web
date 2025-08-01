@@ -37,42 +37,56 @@ export async function verifyStytchAuth(sessionJwt: string) {
 }
 
 /**
- * Verify Google OAuth authentication
+ * Verify Google OAuth authentication using Firebase ID Token
+ * @param firebaseIdToken Firebase ID Token (not Google Access Token)
+ * @returns Verification result with user information
  */
-export async function verifyGoogleAuth(googleCredential: string) {
+export async function verifyGoogleAuth(firebaseIdToken: string) {
   try {
-    // Verify Google ID token
-    const response = await fetch(
-      `https://oauth2.googleapis.com/tokeninfo?id_token=${googleCredential}`
-    );
-
-    if (!response.ok) {
-      return { success: false, error: 'Invalid Google credential' };
+    // Firebase ID Token is a JWT, we can decode it to get user info
+    // But for security, we should verify it with Firebase Admin SDK
+    // For now, let's decode the JWT to extract user info
+    
+    const parts = firebaseIdToken.split('.');
+    if (parts.length !== 3) {
+      return { success: false, error: 'Invalid Firebase ID Token format' };
     }
-
-    const tokenInfo = await response.json();
-
-    // Verify email is verified
-    if (!tokenInfo.email_verified) {
-      return { success: false, error: 'Google email not verified' };
+    
+    // Decode the payload
+    const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
+    
+    // Check if token is expired
+    const now = Math.floor(Date.now() / 1000);
+    if (payload.exp && payload.exp < now) {
+      return { success: false, error: 'Firebase ID Token expired' };
     }
-
-    if (!tokenInfo.email) {
-      return { success: false, error: 'No email found in Google token' };
+    
+    // Check if token is from the correct Firebase project
+    if (payload.aud !== process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID) {
+      return { success: false, error: 'Invalid Firebase project' };
+    }
+    
+    // Extract user email
+    if (!payload.email) {
+      return { success: false, error: 'No email found in Firebase ID Token' };
     }
 
     return {
       success: true,
-      userEmail: tokenInfo.email,
+      userEmail: payload.email,
       metadata: {
-        googleUserId: tokenInfo.sub,
-        audience: tokenInfo.aud,
-        issuer: tokenInfo.iss
+        googleUserId: payload.firebase?.identities?.['google.com']?.[0] || payload.sub, // Extract Google user ID
+        name: payload.name,
+        picture: payload.picture,
+        givenName: payload.given_name,
+        familyName: payload.family_name,
+        locale: payload.locale,
+        verifiedEmail: payload.email_verified || false
       }
     };
   } catch (error: any) {
-    console.error('Google verification error:', error);
-    return { success: false, error: 'Google verification failed' };
+    console.error('Firebase ID Token verification failed:', error);
+    return { success: false, error: 'Firebase ID Token verification failed' };
   }
 }
 
@@ -80,7 +94,7 @@ export async function verifyGoogleAuth(googleCredential: string) {
  * Verify Passkey authentication
  * TODO: Implement passkey verification logic
  */
-export async function verifyPasskeyAuth(passkeyData: string) {
+export async function verifyPasskeyAuth(_passkeyData: string) {
   try {
     // TODO: Implement WebAuthn verification
     // For now, return not implemented

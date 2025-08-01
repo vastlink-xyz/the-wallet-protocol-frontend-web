@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { MFASettingsContent } from './MFASettingsContent';
 import { MFAPin } from '../MFAPin';
+import { LoginMethodsSettings } from './LoginMethodsSettings';
 import { toast } from 'react-toastify';
 import { useAuthContext } from '@/hooks/useAuthContext';
 import { log } from '@/lib/utils';
@@ -25,6 +26,8 @@ import { useTranslations } from 'next-intl';
 import { PinService } from '@/services/pinService';
 import { useSecurityVerification } from '@/hooks/useSecurityVerification';
 import { SecurityVerificationService } from '@/services/securityVerificationService';
+import { User } from '@/app/api/user/storage';
+import { useUserData } from '@/hooks/useUserData';
 
 export function PersonalWalletSettings() {
   const t = useTranslations("PersonalWalletSettings");
@@ -37,6 +40,9 @@ export function PersonalWalletSettings() {
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [isMfaLoading, setIsMfaLoading] = useState<boolean>(false);
   const [pinStatus, setPinStatus] = useState<{ hasPin: boolean }>({ hasPin: false });
+
+  // Use the useUserData hook instead of manual state management
+  const { userData, refetch: refetchUserData } = useUserData();
 
   // State for real MFA Dialog
   const [showMfaDialog, setShowMfaDialog] = useState(false);
@@ -118,66 +124,65 @@ export function PersonalWalletSettings() {
     if (isPersonalWalletSettingsOpen) {
       initPinStatus();
     }
-  }, [isPersonalWalletSettingsOpen]);
+  }, [isPersonalWalletSettingsOpen, authMethodId]);
 
+  // Initialize token limits from userData
   useEffect(() => {
-    const fetchAuthMethodId = async () => {
+    if (!userData?.walletSettings) return;
+
+    const newLimits = {} as Record<TokenType, string>;
+    
+    // Update limits for each token if they exist in the user settings
+    SUPPORTED_TOKEN_SYMBOLS.forEach(symbol => {
+      if (userData.walletSettings?.dailyWithdrawLimits?.[SUPPORTED_TOKENS_INFO[symbol].symbol]) {
+        newLimits[symbol] = userData.walletSettings.dailyWithdrawLimits[SUPPORTED_TOKENS_INFO[symbol].symbol];
+      } else {
+        // Use default value if not set
+        newLimits[symbol] = SUPPORTED_TOKENS_INFO[symbol].defaultWithdrawLimit;
+      }
+    });
+
+    setTokenLimits(newLimits);
+  }, [userData]);
+
+  // Initialize MFA data when dialog opens
+  useEffect(() => {
+    const initializeMfaData = async () => {
+      if (!isPersonalWalletSettingsOpen || !sessionJwt) return;
+      
       try {
         setIsMfaLoading(true);
-        // Get auth method directly from storage
-        const id = authMethodId;
+        // Fetch user phone for MFA
+        const response = await fetch('/api/mfa/get-user-phone', {
+          headers: {
+            'Authorization': `Bearer ${sessionJwt}`
+          }
+        });
 
-        if (id) {
-          await fetchCurrentSettings(id);
-          await fetchUserPhone();
+        if (response.ok) {
+          const data = await response.json();
+          const phones = data.phones || [];
+
+          if (phones.length > 0) {
+            setVerifiedPhone(phones[0].phone_number);
+            setPhoneId(phones[0].phone_id);
+          }
         }
       } catch (error) {
-        console.error('Error getting auth method ID:', error);
+        console.error('Error fetching user phone:', error);
       } finally {
         setIsMfaLoading(false);
       }
     };
 
     if (isPersonalWalletSettingsOpen) {
-      fetchAuthMethodId();
+      initializeMfaData();
     } else {
-      // Reset other states if needed when main dialog closes
+      // Reset states when dialog closes
       setShowMfaDialog(false);
       setIsMfaLoading(false);
     }
-  }, [isPersonalWalletSettingsOpen]);
-
-  // Fetch current user settings
-  const fetchCurrentSettings = async (id: string) => {
-    try {
-      const response = await fetch(`/api/user?authMethodId=${id}`);
-      if (!response.ok) {
-        console.error('Failed to fetch user settings');
-        return;
-      }
-
-      const userData = await response.json();
-      const newLimits = {} as Record<TokenType, string>;
-
-      log('userData', userData.walletSettings.dailyWithdrawLimits);
-
-      // Update limits for each token if they exist in the user settings
-      SUPPORTED_TOKEN_SYMBOLS.forEach(symbol => {
-        if (userData.walletSettings?.dailyWithdrawLimits?.[SUPPORTED_TOKENS_INFO[symbol].symbol]) {
-          newLimits[symbol] = userData.walletSettings.dailyWithdrawLimits[SUPPORTED_TOKENS_INFO[symbol].symbol];
-        } else {
-          // Use default value if not set
-          newLimits[symbol] = SUPPORTED_TOKENS_INFO[symbol].defaultWithdrawLimit;
-        }
-      });
-
-      log('newLimits', newLimits);
-
-      setTokenLimits(newLimits);
-    } catch (error) {
-      console.error('Error fetching current settings:', error);
-    }
-  };
+  }, [isPersonalWalletSettingsOpen, sessionJwt]);
 
   // Fetch user's phone number for MFA
   const fetchUserPhone = useCallback(async () => {
@@ -212,6 +217,12 @@ export function PersonalWalletSettings() {
     setTokenLimits(newLimits);
     setIsLimitValid(isValid);
   };
+
+  // Refresh user data after login methods update
+  const handleUserUpdate = useCallback(async () => {
+    // Use the refetch function from useUserData hook
+    refetchUserData();
+  }, [refetchUserData]);
 
   const saveSettings = async () => {
     if (!isLimitValid || !authMethodId || !tokenLimits) return;
@@ -344,12 +355,19 @@ export function PersonalWalletSettings() {
                 />
               </LabeledContainer>
 
-              <LabeledContainer label={t("mfa_settings")}>
+              <LabeledContainer label={t("mfa_settings")} className="mb-8">
                 <MFASettingsContent
                   isOpen={isPersonalWalletSettingsOpen}
                   authMethodId={authMethodId}
                   onPhoneUpdated={fetchUserPhone}
                   onMFAStatusChanged={invalidateMFANotifications}
+                />
+              </LabeledContainer>
+
+              <LabeledContainer label={t("login_methods")}>
+                <LoginMethodsSettings
+                  user={userData}
+                  onUserUpdate={handleUserUpdate}
                 />
               </LabeledContainer>
 

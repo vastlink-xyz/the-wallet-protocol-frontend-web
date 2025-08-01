@@ -143,10 +143,32 @@
     "save": "保存设置",
     "mfa_pin_settings": "PIN 码设置",
     "mfa_settings": "多因素认证设置",
+    "login_methods": "登录方式",
     "update_success": "您的钱包设置已成功更新",
     "update_failed": "保存钱包设置失败，请重试",
     "opt_dialog_title": "验证设置更改",
     "opt_dialog_description": "一个验证码将通过 WhatsApp 发送至您的手机"
+  },
+  "LoginPage": {
+    "continue_with_google": "使用 Google 继续",
+    "or_continue_with": "或使用其他方式继续",
+    "connecting": "连接中...",
+    "google_login_failed": "Google 登录失败",
+    "google_auth_failed": "Google 认证失败"
+  },
+  "LoginMethodsSettings": {
+    "email_login": "邮箱",
+    "google_account": "Google 账户",
+    "primary_method": "主要方式",
+    "connected": "已连接",
+    "not_connected": "未连接",
+    "not_configured": "未配置",
+    "connect_google": "连接 Google",
+    "connecting": "连接中...",
+    "google_connected": "Google 账户连接成功",
+    "connect_failed": "连接账户失败",
+    "google_auth_failed": "Google 认证失败",
+    "auth_required": "需要身份验证"
   },
   "TeamWalletSettings": {
     "title": "团队钱包设置",

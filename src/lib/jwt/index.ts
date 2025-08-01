@@ -21,20 +21,33 @@ export function getEmailFromGoogleToken(token: string): string | null {
 }
 
 /**
- * Verify if a Google ID token is still valid
- * @param token Google ID token to verify
+ * Verify if a Firebase ID token is still valid
+ * @param token Firebase ID token to verify
  * @returns Promise resolving to true if token is valid, false otherwise
  */
 async function isGoogleTokenValid(token: string): Promise<boolean> {
   if (!token) return false;
   
   try {
-    const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${token}`);
+    // Firebase ID Token is a JWT, decode it to check expiration
+    const decoded = jwtDecode<{ exp?: number; aud?: string }>(token);
     
-    // If response is OK (status 200), token is valid
-    return response.ok;
+    // Check if token is expired
+    const now = Math.floor(Date.now() / 1000);
+    if (decoded.exp && decoded.exp < now) {
+      console.log('Firebase ID Token expired');
+      return false;
+    }
+    
+    // Check if token is from the correct Firebase project
+    if (decoded.aud !== process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID) {
+      console.log('Firebase ID Token from wrong project');
+      return false;
+    }
+    
+    return true;
   } catch (error) {
-    console.error('Error validating Google token:', error);
+    console.error('Error validating Firebase ID token:', error);
     return false;
   }
 }

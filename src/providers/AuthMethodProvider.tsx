@@ -2,10 +2,13 @@
 
 import React, { createContext, useCallback, ReactNode, useState, useEffect } from 'react';
 import { SessionSigs } from '@lit-protocol/types';
+import { onAuthStateChanged } from 'firebase/auth';
 import { getMultiProviderSessionSigs } from '@/lib/lit';
 import { getAuthMethodFromStorage, setAuthMethodToStorage } from '@/lib/storage/authmethod';
-import { VastbaseAuthMethod } from '@/lib/lit/custom-auth';
+import { VastbaseAuthMethod, AuthProviderType, getVastbaseAuthMethodType } from '@/lib/lit/custom-auth';
 import { AuthContextValue } from '@/types/auth-context';
+import { auth } from '@/lib/firebase';
+import { toast } from 'react-toastify';
 
 /**
  * AuthMethod Context
@@ -40,9 +43,90 @@ export function AuthMethodProvider({ children }: AuthMethodProviderProps) {
   });
 
   useEffect(() => {
-    // Update auth method when component mounts
+    // Initialize with current value from storage for Stytch compatibility
     const currentAuthMethod = getAuthMethodFromStorage();
     setAuthMethod(currentAuthMethod);
+
+    // Firebase auth state change listener for Google login
+    const unsubscribeFirebase = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        console.log('🔥 Firebase user state change - user signed in');
+        
+        // For Google login, we need to find user by Google email
+        try {
+          const token = await user.getIdToken();
+          
+          // Use by-provider API to find user by Google email
+          const userLookupResponse = await fetch('/api/user/by-provider', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              providerType: AuthProviderType.GOOGLE,
+              userEmail: user.email!,
+              accessToken: token,
+            })
+          });
+          
+          if (userLookupResponse.ok) {
+            const userData = await userLookupResponse.json();
+            
+            // Check if we already have a Google auth method with same authMethodId
+            setAuthMethod(prevAuthMethod => {
+              if (prevAuthMethod && 
+                  prevAuthMethod.providerType === AuthProviderType.GOOGLE && 
+                  prevAuthMethod.authMethodId === userData.authMethodId) {
+                
+                // 🔑 Update token in-place to maintain object reference
+                prevAuthMethod.accessToken = token;
+                
+                // 🔑 Update localStorage with new token
+                setAuthMethodToStorage(prevAuthMethod);
+                console.log('🔄 Google token updated in-place, no re-render');
+                
+                // Return same object reference
+                return prevAuthMethod;
+              } else {
+                // Create new Google auth method using data from database
+                const googleAuthMethod: VastbaseAuthMethod = {
+                  authMethodType: getVastbaseAuthMethodType(),
+                  authMethodId: userData.authMethodId, // Use existing authMethodId from database
+                  providerType: AuthProviderType.GOOGLE,
+                  primaryEmail: userData.primaryEmail, // From database
+                  accessToken: token,
+                };
+                
+                setAuthMethodToStorage(googleAuthMethod);
+                console.log('✅ Google auth method created with primaryEmail:', userData.primaryEmail);
+                console.log('✅ Using existing authMethodId:', userData.authMethodId);
+                return googleAuthMethod;
+              }
+            });
+          } else {
+            console.warn('❌ User not found in database for Google login');
+            toast.error('Account not found. Please register with email first, then add Google login in settings.');
+            
+            // Sign out from Firebase to clear the authentication state
+            await auth.signOut();
+          }
+        } catch (error) {
+          console.error('❌ Google login user verification failed:', error);
+        }
+      } else {
+        // Firebase user signed out, only clear if current session is Google
+        const currentAuth = getAuthMethodFromStorage();
+        if (currentAuth?.providerType === AuthProviderType.GOOGLE) {
+          setAuthMethod(null);
+          localStorage.removeItem('vastbase-auth');
+          console.log('🔥 Google session cleared');
+        }
+      }
+    });
+
+    return () => {
+      unsubscribeFirebase();
+    };
   }, []);
 
   /**
@@ -64,7 +148,7 @@ export function AuthMethodProvider({ children }: AuthMethodProviderProps) {
   /**
    * Get Custom Auth Session Signatures
    * Re-fetch on each call, following Lit Protocol best practices
-   * Note: This function requires userData to be passed from the caller
+   * For Google login, gets latest token directly from Firebase
    */
   const getCustomAuthSessionSigs = useCallback(async (): Promise<SessionSigs | null> => {
     // Check required authentication information
@@ -73,8 +157,7 @@ export function AuthMethodProvider({ children }: AuthMethodProviderProps) {
       return null;
     }
 
-    // Get user data from useUserData (to avoid circular dependency)
-    // Note: Components should use useUserData hook separately to get userData
+    // Get user data from API
     try {
       const userResponse = await fetch(`/api/user?authMethodId=${authMethod.authMethodId}`);
       if (!userResponse.ok) {
@@ -88,10 +171,21 @@ export function AuthMethodProvider({ children }: AuthMethodProviderProps) {
         return null;
       }
 
+      // For Google login, get latest token directly from Firebase
+      let currentToken = authMethod.accessToken;
+      if (authMethod.providerType === AuthProviderType.GOOGLE) {
+        const currentUser = auth.currentUser;
+        if (currentUser) {
+          const latestToken = await currentUser.getIdToken(); // Firebase handles caching and refresh
+          currentToken = latestToken;
+          console.log('🔄 Using latest Google token for session signatures');
+        }
+      }
+
       const sessionSigs = await getMultiProviderSessionSigs({
         pkpPublicKey: userData.litActionPkp.publicKey,
         pkpTokenId: userData.litActionPkp.tokenId,
-        accessToken: authMethod.accessToken,
+        accessToken: currentToken, // Use latest token for Google
         providerType: authMethod.providerType,
         userEmail: authMethod.primaryEmail,
       });
