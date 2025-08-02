@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     console.log('Stytch WebAuthn authenticate start response:', response);
 
     return NextResponse.json({
-      options: response.options || response
+      options: response
     });
 
   } catch (error: any) {
