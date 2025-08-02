@@ -9,7 +9,7 @@ import { SUPPORTED_TOKENS_INFO, TokenType } from '@/lib/web3/token';
 import { PendingInvitation } from '@/app/api/invitation/models';
 import { log } from '@/lib/utils';
 import { useParams } from 'next/navigation';
-import MultiProviderLogin from '@/components/LoginForm/MultiProviderLogin';
+import EmailOTPLogin from '@/components/LoginForm/EmailOTPLogin';
 import { LogoLoading } from '@/components/LogoLoading';
 import { useAuthContext } from '@/hooks/useAuthContext';
 import { getEmailFromGoogleToken, getUserIdFromToken } from '@/lib/jwt';
@@ -164,7 +164,7 @@ export default function InvitePage() {
             </Card>
           )}
           
-          <MultiProviderLogin
+          <EmailOTPLogin
             defaultEmail={invitation.recipientEmail}
             title="Create a wallet"
             invitationId={invitation.id}
