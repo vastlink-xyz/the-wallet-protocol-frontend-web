@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
 
     // First verify the access token
     console.log('🔐 Verifying access token before user lookup...');
-    const verifyResponse = await fetch(`${req.nextUrl.origin}/api/auth/verify-and-get-auth-method-id`, {
+    const verifyResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/auth/verify-and-get-auth-method-id`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
