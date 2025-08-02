@@ -9,10 +9,11 @@ import { useNotifications } from '@/hooks/useNotifications'
 import { useTeamWallets } from '@/hooks/useTeamWallets'
 import { WalletCard } from '@/app/assets/components/WalletCard'
 import { WalletCardSkeleton } from '@/app/assets/components/WalletCard/WalletCardSkeleton'
-import { createAndApproveTransactionProposal, executeTeamTransactionProposal, inviteTeamUser, handleTeamMfaVerify } from '@/services/teamTransactionService'
+import { createAndApproveTransactionProposal, executeTeamTransactionProposal, inviteTeamUser } from '@/services/teamTransactionService'
 import { MultisigSettingsContext } from '@/providers/MultisigSettingsProvider'
 import { SwapDialog } from '@/components/Transaction/SwapDialog'
 import { useAuthContext } from '@/hooks/useAuthContext'
+import { useSecurityVerification } from '@/hooks/useSecurityVerification'
 
 interface TeamAssetsProps {
   userData: User
@@ -36,9 +37,6 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ userData, authM
   const [isSending, setIsSending] = useState(false)
 
   const [showSwapDialog, setShowSwapDialog] = useState(false)
-
-  const [showMfaDialog, setShowMfaDialog] = useState(false);
-  const [currentProposal, setCurrentProposal] = useState<MessageProposal | null>(null)
 
   const { showMultisigSettings } = useContext(MultisigSettingsContext);
   
@@ -121,9 +119,10 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ userData, authM
     createTeamWallet: handleCreateTeamWallet
   }))
 
-  const handleCreateAndApproveTransactionProposal = async (state: SendTransactionDialogState) => {
+  // Create executeTransaction function for the security verification hook
+  const executeTransactionWithSecurity = async (params: any) => {
     if (!selectedWallet || !userPkp || !authMethod || !authMethodId || !user) {
-      return
+      throw new Error('Missing required data')
     }
     
     const accessToken = await getCurrentAccessToken();
@@ -131,8 +130,8 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ userData, authM
       throw new Error('No access token available');
     }
     
-    await createAndApproveTransactionProposal({
-      state,
+    return await createAndApproveTransactionProposal({
+      state: params.state,
       wallet: selectedWallet,
       userPkp,
       accessToken,
@@ -143,19 +142,39 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ userData, authM
       setIsSending,
       refreshNotifications,
       setShowSendDialog,
-      executeTransactionHandler: handleExecuteTransactionProposal,
+      executeTransactionHandler: (executionParams) => handleExecuteTransactionProposal({
+        ...executionParams,
+        pinCode: params.pinCode,
+        mfaType: params.mfaType,
+        mfaCode: params.mfaCode,
+        mfaMethodId: params.mfaMethodId,
+      }),
     })
+  }
+
+  // Initialize security verification hook
+  const securityVerification = useSecurityVerification({
+    executeTransaction: executeTransactionWithSecurity,
+  })
+
+  const handleCreateAndApproveTransactionProposal = async (state: SendTransactionDialogState) => {
+    // Use the security verification hook to handle PIN and MFA verification
+    await securityVerification.verify({ state })
   }
 
   const handleExecuteTransactionProposal = async ({
     proposal,
     wallet,
-    otpCode = '',
+    pinCode = '',
+    mfaType = '',
+    mfaCode = '',
     mfaMethodId = null,
   }: {
     proposal: MessageProposal
     wallet: MultisigWallet
-    otpCode?: string
+    pinCode?: string
+    mfaType?: string
+    mfaCode?: string
     mfaMethodId?: string | null
   }) => {
     if (!userPkp || !authMethod || !authMethodId) {
@@ -167,7 +186,7 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ userData, authM
       throw new Error('No access token available');
     }
 
-    await executeTeamTransactionProposal({
+    return await executeTeamTransactionProposal({
       proposal,
       wallet,
       userPkp,
@@ -177,10 +196,10 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ userData, authM
       userEmail: authMethod.primaryEmail,
       refreshNotifications,
       setShowSendDialog,
-      setShowMfaDialog,
-      otpCode,
+      pinCode,
+      mfaType,
+      mfaCode,
       mfaMethodId,
-      setCurrentProposal,
     })
   }
 
@@ -203,31 +222,6 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ userData, authM
     })
   }
 
-  // MFA cancellation callback
-  const handleMfaCancel = () => {
-    setShowMfaDialog(false)
-  }
-
-  // MFA verification successful callback
-  const handleMfaVerify = async (state: SendTransactionDialogState) => {
-    if (!authMethod || !userPkp || !currentProposal || !selectedWallet) {
-      throw new Error('Missing required information for OTP verification')
-    }
-
-    const accessToken = await getCurrentAccessToken();
-    if (!accessToken) {
-      throw new Error('No access token available');
-    }
-
-    await handleTeamMfaVerify({
-      state,
-      accessToken,
-      userPkp,
-      currentProposal,
-      wallet: selectedWallet,
-      executeTransactionHandler: handleExecuteTransactionProposal,
-    })
-  }
 
   if (!authMethod) {
     return <div>Authentication required</div>
@@ -275,15 +269,12 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ userData, authM
       {
         (authMethodId && showSendDialog) && (
           <SendTransactionDialog
-            disablePin={true}
             showSendDialog={showSendDialog}
-            showMfa={showMfaDialog}
+            showMfa={false}
             onInviteUser={handleInviteUser}
             onSendTransaction={handleCreateAndApproveTransactionProposal}
-            isSending={isSending}
+            isSending={securityVerification.isVerifying}
             onDialogOpenChange={setShowSendDialog}
-            onMFACancel={handleMfaCancel}
-            onMFAVerify={handleMfaVerify}
             addresses={selectedWallet?.addresses || null}
             walletName={selectedWallet?.name}
           />
@@ -299,6 +290,10 @@ const TeamAssets = forwardRef<TeamAssetsRef, TeamAssetsProps>(({ userData, authM
           />
         )
       }
+
+      {/* Security Verification Dialogs */}
+      {securityVerification.PinDialog}
+      {securityVerification.MFADialog}
     </>
   )
 })

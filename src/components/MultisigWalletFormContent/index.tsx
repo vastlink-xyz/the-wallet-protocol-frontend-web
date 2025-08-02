@@ -32,6 +32,7 @@ import { executeWalletSettingsProposal } from '@/app/wallet/[walletId]/details/p
 import { generateSettingsChangeDescriptions } from '@/app/wallet/[walletId]/details/proposals/utils/settingsDescriptionUtils'
 import { useTranslations } from 'next-intl'
 import { getVastbaseAuthMethodType } from '@/lib/lit/custom-auth'
+import { useSecurityVerification } from '@/hooks/useSecurityVerification'
 
 interface MultisigWalletFormContentProps {
   mode: 'create' | 'edit'
@@ -116,6 +117,61 @@ export function MultisigWalletFormContent({
   
   // Get current user's email from Context
   const currentUserEmail = primaryEmail || '';
+  
+  // Create executeWalletSettingsProposalWithSecurity function for security verification
+  const executeWalletSettingsProposalWithSecurity = async ({
+    proposal,
+    sessionSigs,
+    wallet,
+    walletPkp,
+    settingsData,
+    accessToken,
+    authMethodId,
+    pinCode,
+    mfaType,
+    mfaCode,
+    mfaMethodId,
+  }: any) => {
+    const response = await executeWalletSettingsProposal({
+      proposal,
+      sessionSigs,
+      wallet,
+      walletPkp,
+      providerType: authMethod!.providerType,
+      accessToken,
+      authMethodId,
+      userEmail: currentUserEmail,
+      pinCode: pinCode || '',
+      mfaType: mfaType || '',
+      mfaCode: mfaCode || '',
+      mfaMethodId: mfaMethodId || null,
+    });
+    return response;
+  };
+  
+  // Setup security verification for wallet settings
+  const settingsSecurityVerification = useSecurityVerification({
+    executeTransaction: async (params: any) => {
+      const { proposal, sessionSigs, wallet, walletPkp, settingsData, ...verificationParams } = params;
+      const accessToken = await getCurrentAccessToken();
+      if (!accessToken) {
+        throw new Error('Access token not available');
+      }
+      return await executeWalletSettingsProposalWithSecurity({
+        proposal,
+        sessionSigs,
+        wallet,
+        walletPkp,
+        settingsData,
+        accessToken,
+        authMethodId: authMethodId!,
+        pinCode: verificationParams.pinCode || '',
+        mfaType: verificationParams.mfaType || '',
+        mfaCode: verificationParams.mfaCode || '',
+        mfaMethodId: verificationParams.mfaMethodId || null,
+      });
+    },
+  });
   
   // Form states - initial values depend on mode
   const [signers, setSigners] = useState<any[]>(
@@ -674,29 +730,23 @@ export function MultisigWalletFormContent({
       throw new Error('Failed to get session signatures');
     }
 
-    const accessToken = await getCurrentAccessToken();
-    if (!accessToken) {
-      throw new Error('No access token available');
-    }
-
     const walletPkp = wallet.pkp
 
-    const response = await executeWalletSettingsProposal({
+    // Create settings data from the proposal
+    const settingsData = JSON.parse(proposal.message);
+
+    // Use settings security verification (PIN only) like the proposal component
+    await settingsSecurityVerification.verify({
       proposal,
       sessionSigs,
       wallet,
       walletPkp,
-      providerType: authMethod.providerType,
-      accessToken,
-      authMethodId,
-      userEmail: currentUserEmail,
-    })
+      settingsData,
+    });
 
-    if (response.data.success) {
-      if (onSuccess) {
-        toast.success(transWallet('updated_wallet_success'))
-        onSuccess();
-      }
+    if (onSuccess) {
+      toast.success(transWallet('updated_wallet_success'))
+      onSuccess();
     }
   };
 
@@ -1138,6 +1188,10 @@ export function MultisigWalletFormContent({
           {buttonText}
         </Button>
       </div>
+      
+      {/* Security Verification Dialogs */}
+      {settingsSecurityVerification.PinDialog}
+      {settingsSecurityVerification.MFADialog}
     </div>
   );
 } 

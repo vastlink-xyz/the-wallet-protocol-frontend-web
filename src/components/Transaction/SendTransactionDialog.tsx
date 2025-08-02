@@ -40,7 +40,6 @@ interface SendTransactionDialogProps {
   walletName?: string
   resetAmount?: boolean
   userLitAction?: IRelayPKP
-  disablePin?: boolean
 }
 
 export function SendTransactionDialog({
@@ -56,7 +55,6 @@ export function SendTransactionDialog({
   walletName,
   resetAmount,
   userLitAction,
-  disablePin = false,
 }: SendTransactionDialogProps) {
   // Get auth method from localStorage
   const { authMethod, getCurrentAccessToken } = useAuthContext()
@@ -91,7 +89,6 @@ export function SendTransactionDialog({
       walletName,
       resetAmount,
       userLitAction,
-      disablePin,
       authMethod,
       getCurrentAccessToken
     }}
@@ -111,7 +108,6 @@ function SendTransactionDialogContent({
   walletName,
   resetAmount,
   userLitAction,
-  disablePin = false,
   authMethod,
   getCurrentAccessToken
 }: SendTransactionDialogProps & { authMethod: any; getCurrentAccessToken: () => Promise<string | null> }) {

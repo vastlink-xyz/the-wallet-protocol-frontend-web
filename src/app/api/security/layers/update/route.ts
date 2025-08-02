@@ -56,7 +56,7 @@ export async function PUT(request: NextRequest) {
 
     // When enabling TOTP or WHATSAPP_OTP layers, verify Stytch data exists
     if (updates.isEnabled === true && (targetLayer.type === 'TOTP' || targetLayer.type === 'WHATSAPP_OTP')) {
-      const stytchDataExists = await verifyStytchDataExists(session.user_id, targetLayer.type);
+      const stytchDataExists = await verifyStytchDataExists(authMethodId, targetLayer.type);
       if (!stytchDataExists) {
         return NextResponse.json(
           { error: `${targetLayer.type} data not found in Stytch. Cannot enable layer.` },

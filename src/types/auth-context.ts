@@ -15,7 +15,7 @@ export interface AuthContextValue {
   updateAuthMethod: (newAuthMethod: VastbaseAuthMethod | null) => void;
   
   /** Method to get current access token dynamically */
-  getCurrentAccessToken: () => Promise<string | null>;
+  getCurrentAccessToken: (forceRefresh?: boolean) => Promise<string | null>;
   
   // Convenience properties
   /** Authentication method ID */

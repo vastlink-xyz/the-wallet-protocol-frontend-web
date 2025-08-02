@@ -100,6 +100,10 @@ const UserSchema = new mongoose.Schema({
   },
 });
 
+// Add indexes for better query performance
+UserSchema.index({ primaryEmail: 1 });
+UserSchema.index({ authMethodId: 1 });
+
 // Export models
 export const UserModel = mongoose.models.User || 
   mongoose.model('User', UserSchema); 

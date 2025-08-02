@@ -50,11 +50,20 @@ export function AuthMethodProvider({ children }: AuthMethodProviderProps) {
     // Firebase auth state change listener for Google login
     const unsubscribeFirebase = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        console.log('🔥 Firebase user state change - user signed in');
+        console.log('🔥 Firebase user state change - user signed in:', user.email);
+        console.log('🔥 Firebase user metadata:', {
+          creationTime: user.metadata.creationTime,
+          lastSignInTime: user.metadata.lastSignInTime,
+          isAnonymous: user.isAnonymous,
+          emailVerified: user.emailVerified
+        });
         
         // For Google login, we need to find user by Google email
         try {
           const token = await user.getIdToken();
+          const tokenPayload = JSON.parse(atob(token.split('.')[1]));
+          const tokenExpiresAt = new Date(tokenPayload.exp * 1000);
+          console.log('🔥 Initial Google token expires at:', tokenExpiresAt.toISOString());
           
           // Store Google token separately 
           setTokenToStorage(AuthProviderType.GOOGLE, token);
@@ -114,11 +123,18 @@ export function AuthMethodProvider({ children }: AuthMethodProviderProps) {
         }
       } else {
         // Firebase user signed out, only clear if current session is Google
+        console.log('🔥 Firebase user state change - user signed out');
+        
         const currentAuth = getAuthMethodFromStorage();
+        console.log('🔥 Current auth method:', currentAuth?.providerType);
+        
         if (currentAuth?.providerType === AuthProviderType.GOOGLE) {
+          console.log('🔥 Clearing Google session due to Firebase signout');
           setAuthMethod(null);
           localStorage.removeItem('vastbase-auth');
           console.log('🔥 Google session cleared');
+        } else {
+          console.log('🔥 Not clearing session - current provider is not Google');
         }
       }
     });
@@ -133,7 +149,7 @@ export function AuthMethodProvider({ children }: AuthMethodProviderProps) {
    * For Google: Always get latest token from Firebase
    * For Stytch/Passkey: Get from localStorage
    */
-  const getCurrentAccessToken = useCallback(async (): Promise<string | null> => {
+  const getCurrentAccessToken = useCallback(async (forceRefresh: boolean = false): Promise<string | null> => {
     if (!authMethod) {
       console.warn('getCurrentAccessToken: No authMethod available');
       return null;
@@ -145,9 +161,24 @@ export function AuthMethodProvider({ children }: AuthMethodProviderProps) {
           // Always get latest token from Firebase to avoid expiration
           const currentUser = auth.currentUser;
           if (currentUser) {
-            const latestToken = await currentUser.getIdToken();
-            console.log('🔄 Got fresh Google token from Firebase');
-            return latestToken;
+            try {
+              const latestToken = await currentUser.getIdToken(forceRefresh);
+              const tokenPayload = JSON.parse(atob(latestToken.split('.')[1]));
+              const expiresAt = new Date(tokenPayload.exp * 1000);
+              const now = new Date();
+              const minutesUntilExpiry = Math.floor((expiresAt.getTime() - now.getTime()) / 60000);
+              
+              console.log('🔄 Got fresh Google token from Firebase, expires in:', minutesUntilExpiry, 'minutes');
+              console.log('🔄 Token expires at:', expiresAt.toISOString());
+              
+              // Store refreshed token
+              setTokenToStorage(AuthProviderType.GOOGLE, latestToken);
+              
+              return latestToken;
+            } catch (tokenError) {
+              console.error('🚨 Failed to refresh Google token:', tokenError);
+              return null;
+            }
           } else {
             console.warn('getCurrentAccessToken: No Firebase user signed in');
             return null;

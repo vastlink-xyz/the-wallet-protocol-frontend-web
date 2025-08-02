@@ -130,7 +130,6 @@ export function PersonalWalletSendReceiveActions({
             addresses={addresses || null}
             walletName={walletName}
             resetAmount={resetAmount}
-            disablePin={true}
           />
         )
       }

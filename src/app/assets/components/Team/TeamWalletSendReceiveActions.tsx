@@ -8,6 +8,7 @@ import { useNotifications } from "@/hooks/useNotifications"
 import { MessageProposal, MultisigWallet } from "@/app/api/multisig/storage"
 import { createAndApproveTransactionProposal, executeTeamTransactionProposal, inviteTeamUser, handleTeamMfaVerify } from "@/services/teamTransactionService"
 import { SwapDialog } from "@/components/Transaction/SwapDialog"
+import { useSecurityVerification } from "@/hooks/useSecurityVerification"
 
 interface TeamWalletSendReceiveActionsProps {
   wallet: MultisigWallet
@@ -22,10 +23,8 @@ export function TeamWalletSendReceiveActions({
 }: TeamWalletSendReceiveActionsProps) {
   const [showSendDialog, setShowSendDialog] = useState(false)
   const [showSwapDialog, setShowSwapDialog] = useState(false)
-  const [showMfaDialog, setShowMfaDialog] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const [userPkp, setUserPkp] = useState<IRelayPKP | null>(null)
-  const [currentProposal, setCurrentProposal] = useState<MessageProposal | null>(null)
   
   // Get auth method and user data from hooks
   const { authMethod, authMethodId, getCurrentAccessToken } = useAuthContext()
@@ -42,10 +41,11 @@ export function TeamWalletSendReceiveActions({
       setUserPkp(user.litActionPkp)
     }
   }, [user])
-  
-  const handleCreateAndApproveTransactionProposal = async (state: SendTransactionDialogState) => {
+
+  // Create executeTransaction function for the security verification hook
+  const executeTransactionWithSecurity = async (params: any) => {
     if (!wallet || !userPkp || !authMethod || !authMethodId || !user) {
-      return
+      throw new Error('Missing required data')
     }
     
     const accessToken = await getCurrentAccessToken();
@@ -53,8 +53,8 @@ export function TeamWalletSendReceiveActions({
       throw new Error('No access token available');
     }
     
-    await createAndApproveTransactionProposal({
-      state,
+    return await createAndApproveTransactionProposal({
+      state: params.state,
       wallet,
       userPkp,
       accessToken,
@@ -67,19 +67,39 @@ export function TeamWalletSendReceiveActions({
       refreshProposals,
       onProposalChange,
       setShowSendDialog,
-      executeTransactionHandler: handleExecuteTransactionProposal,
+      executeTransactionHandler: (executionParams) => handleExecuteTransactionProposal({
+        ...executionParams,
+        pinCode: params.pinCode,
+        mfaType: params.mfaType,
+        mfaCode: params.mfaCode,
+        mfaMethodId: params.mfaMethodId,
+      }),
     })
+  }
+
+  // Initialize security verification hook
+  const securityVerification = useSecurityVerification({
+    executeTransaction: executeTransactionWithSecurity,
+  })
+  
+  const handleCreateAndApproveTransactionProposal = async (state: SendTransactionDialogState) => {
+    // Use the security verification hook to handle PIN and MFA verification
+    await securityVerification.verify({ state })
   }
 
   const handleExecuteTransactionProposal = async ({
     proposal,
     wallet: walletParam,
-    otpCode = '',
+    pinCode = '',
+    mfaType = '',
+    mfaCode = '',
     mfaMethodId = null,
   }: {
     proposal: MessageProposal
     wallet: any
-    otpCode?: string
+    pinCode?: string
+    mfaType?: string
+    mfaCode?: string
     mfaMethodId?: string | null
   }) => {
     if (!userPkp || !authMethod || !authMethodId) {
@@ -91,7 +111,7 @@ export function TeamWalletSendReceiveActions({
       throw new Error('No access token available');
     }
 
-    await executeTeamTransactionProposal({
+    return await executeTeamTransactionProposal({
       proposal,
       wallet: walletParam,
       userPkp,
@@ -103,10 +123,10 @@ export function TeamWalletSendReceiveActions({
       refreshProposals,
       onProposalChange,
       setShowSendDialog,
-      setShowMfaDialog,
-      otpCode,
+      pinCode,
+      mfaType,
+      mfaCode,
       mfaMethodId,
-      setCurrentProposal,
     })
   }
 
@@ -129,31 +149,6 @@ export function TeamWalletSendReceiveActions({
     })
   }
 
-  // MFA cancellation callback
-  const handleMfaCancel = () => {
-    setShowMfaDialog(false)
-  }
-
-  // MFA verification successful callback
-  const handleMfaVerify = async (state: SendTransactionDialogState) => {
-    if (!authMethod || !userPkp || !currentProposal || !wallet) {
-      throw new Error('Missing required information for OTP verification')
-    }
-
-    const accessToken = await getCurrentAccessToken();
-    if (!accessToken) {
-      throw new Error('No access token available');
-    }
-
-    await handleTeamMfaVerify({
-      state,
-      accessToken,
-      userPkp,
-      currentProposal,
-      wallet,
-      executeTransactionHandler: handleExecuteTransactionProposal,
-    })
-  }
   
   return (
     <>
@@ -171,15 +166,12 @@ export function TeamWalletSendReceiveActions({
       {
         showSendDialog && authMethod && (
           <SendTransactionDialog
-            disablePin={true}
             showSendDialog={showSendDialog}
-            showMfa={showMfaDialog}
+            showMfa={false}
             onInviteUser={handleInviteUser}
             onSendTransaction={handleCreateAndApproveTransactionProposal}
-            isSending={isSending}
+            isSending={securityVerification.isVerifying}
             onDialogOpenChange={setShowSendDialog}
-            onMFACancel={handleMfaCancel}
-            onMFAVerify={handleMfaVerify}
             addresses={wallet.addresses || null}
             walletName={wallet.name}
           />
@@ -196,6 +188,10 @@ export function TeamWalletSendReceiveActions({
           />
         )
       }
+
+      {/* Security Verification Dialogs */}
+      {securityVerification.PinDialog}
+      {securityVerification.MFADialog}
     </>
   )
 }

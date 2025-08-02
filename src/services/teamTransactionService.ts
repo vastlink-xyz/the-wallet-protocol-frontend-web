@@ -33,7 +33,10 @@ interface CreateAndApproveTransactionProposalParams {
     wallet: MultisigWallet
     otpCode?: string
     mfaMethodId?: string | null
-  }) => Promise<void>
+    pinCode?: string
+    mfaType?: string
+    mfaCode?: string
+  }) => Promise<any>
 }
 
 export const createAndApproveTransactionProposal = async ({
@@ -108,13 +111,17 @@ export const createAndApproveTransactionProposal = async ({
         // Check if signatures have reached the threshold
         if (updatedProposal && updatedProposal.signatures.length >= wallet.threshold) {
           // Automatically execute the multisig action once threshold is reached
-          await executeTransactionHandler({
+          const executionResult = await executeTransactionHandler({
             proposal: updatedProposal,
             wallet: wallet,
           })
+          
+          // Return execution result for security verification hook
+          return executionResult
         } else {
           toast.info('You have approved the proposal. Waiting for other signers to approve.')
           setShowSendDialog(false)
+          return { success: true } // Proposal created successfully, no MFA needed yet
         }
       }
     }
@@ -137,10 +144,10 @@ interface ExecuteTransactionProposalParams {
   refreshProposals?: () => Promise<any>
   onProposalChange?: () => void
   setShowSendDialog: (show: boolean) => void
-  setShowMfaDialog: (show: boolean) => void
-  otpCode?: string
+  pinCode?: string
+  mfaType?: string
+  mfaCode?: string
   mfaMethodId?: string | null
-  setCurrentProposal?: (proposal: MessageProposal | null) => void
 }
 
 export const executeTeamTransactionProposal = async ({
@@ -155,10 +162,10 @@ export const executeTeamTransactionProposal = async ({
   refreshProposals,
   onProposalChange,
   setShowSendDialog,
-  setShowMfaDialog,
-  otpCode = '',
+  pinCode = '',
+  mfaType = '',
+  mfaCode = '',
   mfaMethodId = null,
-  setCurrentProposal,
 }: ExecuteTransactionProposalParams) => {
   const sessionSigs = await getMultiProviderSessionSigs({
     pkpPublicKey: userPkp.publicKey,
@@ -181,9 +188,9 @@ export const executeTeamTransactionProposal = async ({
     accessToken,
     providerType,
     authMethodId,
-    pinCode: '',
-    mfaType: '',
-    mfaCode: otpCode,
+    pinCode,
+    mfaType,
+    mfaCode,
     mfaMethodId,
   })
 
@@ -194,16 +201,16 @@ export const executeTeamTransactionProposal = async ({
   log('Parsed response object:', result)
 
   if (result.isValid) {
-    if (result.requireMFA) {
-      if (setCurrentProposal) {
-        setCurrentProposal(proposal)
+    if (result.requireMFA || result.requiresMFA) {
+      // Return MFA requirement for security verification hook
+      return {
+        success: false,
+        requiresMFA: true,
+        availableMFAOptions: result.availableMFAOptions,
+        error: result.error || 'MFA verification required'
       }
-      setShowMfaDialog(true)
-      toast.warning('Daily limit exceeded')
-      return
     } else if (result.error) {
-      toast.error(result.error)
-      return
+      return { success: false, error: result.error }
     }
     
     let txHash = null
@@ -258,7 +265,6 @@ export const executeTeamTransactionProposal = async ({
 
     // Close dialogs
     setShowSendDialog(false)
-    setShowMfaDialog(false)
 
     // Send proposal executed notification to all approvers
     if (wallet) {
@@ -273,7 +279,13 @@ export const executeTeamTransactionProposal = async ({
         console.error('Error sending proposal executed notifications:', error)
       }
     }
+    
+    // Return success for security verification hook
+    return { success: true, txHash }
   }
+  
+  // If we reach here, the transaction was not valid
+  return { success: false, error: 'Transaction execution failed' }
 }
 
 interface InviteTeamUserParams {

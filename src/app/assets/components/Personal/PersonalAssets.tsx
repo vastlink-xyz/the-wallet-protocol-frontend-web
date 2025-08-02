@@ -164,7 +164,6 @@ export default function PersonalAssets({ userData, authMethodId }: PersonalAsset
             walletName={email || ''}
             resetAmount={resetAmount}
             userLitAction={litActionPkp}
-            disablePin={true}
           />
         )
       }

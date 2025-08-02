@@ -3,6 +3,7 @@ import { useCallback } from 'react';
 import { toast } from 'react-toastify';
 import { isTokenValid } from '@/lib/jwt';
 import { useAuthContext } from '@/hooks/useAuthContext';
+import { log } from '@/lib/utils';
 
 /**
  * Hook for handling authentication expiration
@@ -23,7 +24,9 @@ export function useAuthExpiration() {
     
     // Redirect to home page after a short delay to allow toast to be visible
     setTimeout(() => {
-      router.push('/');
+      // kkktodo
+      log('expired auth, redirecting to home page')
+      // router.push('/');
     }, 1500);
   }, [router]);
   
@@ -34,11 +37,13 @@ export function useAuthExpiration() {
     }
     
     try {
-      const accessToken = await getCurrentAccessToken();
+      const accessToken = await getCurrentAccessToken(true);
       if (!accessToken) {
         handleExpiredAuth();
         return false;
       }
+
+      log('useAuthExpiration verifyAuthOrRedirect accessToken', accessToken)
       
       const isValid = await isTokenValid(authMethod.providerType, accessToken);
       if (!isValid) {
