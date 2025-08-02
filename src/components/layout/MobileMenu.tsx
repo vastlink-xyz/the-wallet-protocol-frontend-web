@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthContext } from '@/hooks/useAuthContext';
 import { isProtectedRoute } from '@/constants/routes';
+import { auth } from '@/lib/firebase';
 import { cn } from '@/lib/utils';
 import { useNotifications } from '@/hooks/useNotifications';
 
@@ -67,10 +68,24 @@ export function MobileMenu() {
     setIsOpen(false);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      // Sign out from Firebase if user was logged in with Google
+      await auth.signOut();
+      console.log('✅ Firebase signed out successfully');
+    } catch (error) {
+      console.error('❌ Error signing out from Firebase:', error);
+      // Continue with logout even if Firebase signOut fails
+    }
+    
+    // Clear all local storage
     localStorage.clear();
-    router.push('/');
+    
+    // Close mobile menu
     setIsOpen(false);
+    
+    // Redirect to login page
+    router.push('/');
   };
 
   return (

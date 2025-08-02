@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { useRouter } from 'next/navigation';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider } from '@/lib/firebase';
@@ -83,25 +82,21 @@ export default function GoogleLogin({ invitationId }: GoogleLoginProps) {
   };
 
   return (
-    <Card className="w-full">
-      <CardContent className="pt-6">
-        <Button
-          onClick={handleGoogleLogin}
-          disabled={loading}
-          className="w-full flex items-center justify-center gap-2"
-          variant="outline"
-        >
-          <Image 
-            src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg" 
-            alt="Google logo" 
-            width={16}
-            height={16}
-          />
-          <span>
-            {loading ? transLogin('connecting') : transLogin('continue_with_google')}
-          </span>
-        </Button>
-      </CardContent>
-    </Card>
+    <Button
+      onClick={handleGoogleLogin}
+      disabled={loading}
+      className="w-full h-12 flex items-center justify-center gap-3"
+      variant="outline"
+    >
+      <Image 
+        src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg" 
+        alt="Google logo" 
+        width={16}
+        height={16}
+      />
+      <span>
+        {loading ? transLogin('connecting') : transLogin('continue_with_google')}
+      </span>
+    </Button>
   );
 }

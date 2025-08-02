@@ -36,7 +36,8 @@ export default function LocaleSwitcher({ className, size }: LocaleSwitcherProps)
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <div className={cn("flex flex-row p-2 gap-2 items-center cursor-pointer text-white", className)}>
-          {size === "lg" ? t(locale) : (<GlobeIcon className="w-5 h-5" />)}
+          {/* {size === "lg" ? t(locale) : (<GlobeIcon className="w-5 h-5" />)} */}
+          <GlobeIcon className="w-5 h-5" />
         </div>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="start">

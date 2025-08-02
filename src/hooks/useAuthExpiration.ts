@@ -24,9 +24,8 @@ export function useAuthExpiration() {
     
     // Redirect to home page after a short delay to allow toast to be visible
     setTimeout(() => {
-      // kkktodo
       log('expired auth, redirecting to home page')
-      // router.push('/');
+      router.push('/');
     }, 1500);
   }, [router]);
   
@@ -43,7 +42,7 @@ export function useAuthExpiration() {
         return false;
       }
 
-      log('useAuthExpiration verifyAuthOrRedirect accessToken', accessToken)
+      log('useAuthExpiration verifyAuthOrRedirect accessToken', accessToken, new Date().toISOString())
       
       const isValid = await isTokenValid(authMethod.providerType, accessToken);
       if (!isValid) {

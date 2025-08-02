@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { authenticateMultiProviderSession } from '@/lib/auth/multi-provider-auth';
 import { AuthProviderType } from '@/lib/lit/custom-auth';
 import { addAuthProviderToUser, getUser } from '../storage';
-import { verifyGoogleAuth } from '@/lib/auth/provider-verification';
+import { verifyGoogleAuth, verifyPasskeyAuth } from '@/lib/auth/provider-verification';
 
 // POST /api/user/auth-providers - Add a new auth provider to user
 export async function POST(request: NextRequest) {
@@ -55,6 +55,25 @@ export async function POST(request: NextRequest) {
         providerInfo = {
           providerType: AuthProviderType.GOOGLE,
           sub: verificationResult.metadata.googleUserId,
+          email: verificationResult.userEmail,
+          metadata: verificationResult.metadata
+        };
+        break;
+
+      case AuthProviderType.PASSKEY:
+        verificationResult = await verifyPasskeyAuth(accessToken);
+        if (!verificationResult.success) {
+          return NextResponse.json(
+            { error: `Passkey verification failed: ${verificationResult.error}` },
+            { status: 400 }
+          );
+        }
+
+        // For Passkey, we use the Stytch user_id as the sub
+        // and get the webauthn_registration_id from metadata
+        providerInfo = {
+          providerType: AuthProviderType.PASSKEY,
+          sub: verificationResult.metadata?.stytchUserId || 'passkey-user',
           email: verificationResult.userEmail,
           metadata: verificationResult.metadata
         };

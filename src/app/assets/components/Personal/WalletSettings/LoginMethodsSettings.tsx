@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider as firebaseGoogleProvider } from '@/lib/firebase';
@@ -10,6 +10,8 @@ import { AuthProviderType } from '@/lib/lit/custom-auth';
 import { User } from '@/app/api/user/storage';
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
+import { startRegistration, browserSupportsWebAuthn } from '@simplewebauthn/browser';
+import { Fingerprint } from 'lucide-react';
 
 interface LoginMethodsSettingsProps {
   user: User | null;
@@ -20,6 +22,7 @@ export function LoginMethodsSettings({ user, onUserUpdate }: LoginMethodsSetting
   const t = useTranslations("LoginMethodsSettings");
   const { authMethod, getCurrentAccessToken } = useAuthContext();
   const [isConnecting, setIsConnecting] = useState(false);
+  const [isConnectingPasskey, setIsConnectingPasskey] = useState(false);
 
   // Check if user has each provider type
   const hasEmailProvider = user?.authProviders?.some(
@@ -30,9 +33,18 @@ export function LoginMethodsSettings({ user, onUserUpdate }: LoginMethodsSetting
     p => p.providerType === AuthProviderType.GOOGLE && p.isEnabled
   ) || false;
 
+  const hasPasskeyProvider = user?.authProviders?.some(
+    p => p.providerType === AuthProviderType.PASSKEY && p.isEnabled
+  ) || false;
+
   const googleProvider = user?.authProviders?.find(
     p => p.providerType === AuthProviderType.GOOGLE && p.isEnabled
   );
+
+  const passkeyProvider = user?.authProviders?.find(
+    p => p.providerType === AuthProviderType.PASSKEY && p.isEnabled
+  );
+
 
   // Handle Google login connection using Firebase
   const handleGoogleConnect = async () => {
@@ -105,6 +117,115 @@ export function LoginMethodsSettings({ user, onUserUpdate }: LoginMethodsSetting
     }
   };
 
+  // Handle Passkey connection using WebAuthn
+  const handlePasskeyConnect = async () => {
+    if (!user?.authMethodId) {
+      toast.error(t('auth_required'));
+      return;
+    }
+
+    if (!browserSupportsWebAuthn()) {
+      toast.error(t('passkey_not_supported'));
+      return;
+    }
+
+    setIsConnectingPasskey(true);
+
+    try {
+      const accessToken = await getCurrentAccessToken();
+      if (!accessToken) {
+        throw new Error('No access token available');
+      }
+
+      // Step 1: Start WebAuthn registration
+      const startResponse = await fetch('/api/auth/passkey/register/start', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          domain: window.location.hostname,
+          authMethodId: user.authMethodId
+        })
+      });
+
+      if (!startResponse.ok) {
+        throw new Error('Failed to start passkey registration');
+      }
+
+      const { options } = await startResponse.json();
+      console.log('Received registration options from Stytch:', options);
+
+      // Step 2: Parse Stytch WebAuthn options
+      // Stytch returns public_key_credential_creation_options as JSON string
+      const webauthnOptions = JSON.parse(options.public_key_credential_creation_options);
+      console.log('Parsed WebAuthn registration options:', webauthnOptions);
+      
+      const credential = await startRegistration(webauthnOptions);
+      console.log('Generated credential from browser:', credential);
+
+      // Step 3: Complete registration
+      const completeResponse = await fetch('/api/auth/passkey/register/complete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          credential,
+          authMethodId: user.authMethodId
+        })
+      });
+
+      if (!completeResponse.ok) {
+        throw new Error('Failed to complete passkey registration');
+      }
+
+      const { session_jwt } = await completeResponse.json();
+      console.log('Received session_jwt:', session_jwt ? `${session_jwt.substring(0, 20)}...` : 'undefined');
+
+      // Step 4: Add the Passkey provider to user account
+      const requestBody = {
+        authMethodId: user.authMethodId,
+        providerType: AuthProviderType.PASSKEY,
+        accessToken: session_jwt
+      };
+      console.log('Sending to /api/user/auth-providers:', {
+        authMethodId: requestBody.authMethodId ? `${requestBody.authMethodId.substring(0, 10)}...` : 'undefined',
+        providerType: requestBody.providerType,
+        accessToken: requestBody.accessToken ? `${requestBody.accessToken.substring(0, 20)}...` : 'undefined'
+      });
+
+      const apiResponse = await fetch('/api/user/auth-providers', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`
+        },
+        body: JSON.stringify(requestBody)
+      });
+
+      const data = await apiResponse.json();
+
+      if (!apiResponse.ok) {
+        throw new Error(data.error || t('connect_failed'));
+      }
+
+      toast.success(t('passkey_connected'));
+      onUserUpdate(); // Refresh user data
+
+    } catch (error: any) {
+      console.error('Error connecting Passkey:', error);
+      
+      if (error.name === 'NotAllowedError') {
+        console.log('User cancelled Passkey registration');
+      } else {
+        toast.error(error.message || t('connect_failed'));
+      }
+    } finally {
+      setIsConnectingPasskey(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* Email Provider */}
@@ -153,6 +274,38 @@ export function LoginMethodsSettings({ user, onUserUpdate }: LoginMethodsSetting
               height={16}
             />
             <span>{isConnecting ? t('connecting') : t('connect_google')}</span>
+          </Button>
+        ) : (
+          <div className="text-sm text-green-600 font-medium">
+            {t('connected')}  
+          </div>
+        )}
+      </div>
+
+      {/* Passkey Provider */}
+      <div className="flex items-center justify-between p-3 border rounded-lg">
+        <div className="flex items-center space-x-3">
+          <div className={`w-2 h-2 rounded-full ${hasPasskeyProvider ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+          <div>
+            <div className="font-medium">{t('passkey_login')}</div>
+            <div className="text-sm text-gray-500">
+              {hasPasskeyProvider ? t('passkey_configured') : t('not_connected')}
+            </div>
+          </div>
+        </div>
+        
+        {!hasPasskeyProvider ? (
+          <Button
+            onClick={handlePasskeyConnect}
+            disabled={isConnectingPasskey || !browserSupportsWebAuthn()}
+            size="sm"
+            variant="outline"
+            className="flex items-center space-x-2"
+          >
+            <Fingerprint className="w-4 h-4" />
+            <span>
+              {isConnectingPasskey ? t('connecting') : t('connect_passkey')}
+            </span>
           </Button>
         ) : (
           <div className="text-sm text-green-600 font-medium">

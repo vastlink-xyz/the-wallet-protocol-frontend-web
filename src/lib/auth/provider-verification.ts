@@ -91,14 +91,34 @@ export async function verifyGoogleAuth(firebaseIdToken: string) {
 }
 
 /**
- * Verify Passkey authentication
- * TODO: Implement passkey verification logic
+ * Verify Passkey authentication using Stytch WebAuthn
  */
-export async function verifyPasskeyAuth(_passkeyData: string) {
+export async function verifyPasskeyAuth(sessionJwt: string) {
   try {
-    // TODO: Implement WebAuthn verification
-    // For now, return not implemented
-    return { success: false, error: 'Passkey verification not yet implemented' };
+    // Verify the Stytch session JWT from WebAuthn authentication
+    const response = await stytchClient.sessions.authenticate({
+      session_jwt: sessionJwt
+    });
+
+    if (!response.user) {
+      return { success: false, error: 'Invalid Stytch WebAuthn session' };
+    }
+
+    // Get user email from Stytch user object
+    const userEmail = response.user.emails?.[0]?.email;
+    if (!userEmail) {
+      return { success: false, error: 'No email found in Stytch WebAuthn user' };
+    }
+
+    return {
+      success: true,
+      userEmail,
+      metadata: {
+        stytchUserId: response.user.user_id,
+        sessionId: response.session.session_id,
+        webauthnRegistrationId: response.user.webauthn_registrations?.[0]?.webauthn_registration_id
+      }
+    };
   } catch (error: any) {
     console.error('Passkey verification error:', error);
     return { success: false, error: 'Passkey verification failed' };

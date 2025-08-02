@@ -110,28 +110,13 @@ export async function isTokenValid(providerType: AuthProviderType, token: string
       return isStytchTokenValid(token);
     
     case AuthProviderType.PASSKEY:
-      // kkktodo
-      return !!token;
+      // Passkey uses Stytch session JWT, same validation as EMAIL_OTP
+      return isStytchTokenValid(token);
     
     default:
       console.error(`Unsupported provider type: ${providerType}`);
       return false;
   }
-}
-
-/**
- * Legacy function for backward compatibility
- * @deprecated Use isTokenValid(providerType, token) instead
- */
-export async function isTokenValidLegacy(authMethod: VastbaseAuthMethod): Promise<boolean> {
-  if (!authMethod) return false;
-
-  // This function is deprecated, but kept for compatibility during migration
-  // It will need the accessToken from the authMethod which should be removed
-  console.warn('isTokenValidLegacy is deprecated, use isTokenValid(providerType, token) instead');
-  
-  // For now, return false as authMethod.accessToken should no longer exist
-  return false;
 }
 
 export function getUserIdFromToken(token: string): string | null {

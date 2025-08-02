@@ -1,9 +1,12 @@
 'use client'
 
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
+import { Button } from '@/components/ui/button';
 import NewGoogleLogin from './NewGoogleLogin';
 import EmailOTPLogin from './EmailOTPLogin';
+import PasskeyLogin from './PasskeyLogin';
 
 interface MultiProviderLoginProps {
   defaultEmail?: string;
@@ -21,6 +24,7 @@ export default function MultiProviderLogin({
   invitationId,
 }: MultiProviderLoginProps) {
   const transLogin = useTranslations('LoginPage');
+  const [showOtherMethods, setShowOtherMethods] = useState(false);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[400px] mb-6">
@@ -34,28 +38,48 @@ export default function MultiProviderLogin({
         />
       </div>
 
-      <div className="w-full max-w-md grid grid-cols-1 gap-8">
-        {/* Google Login Section */}
-        <NewGoogleLogin invitationId={invitationId} />
-
-        {/* Divider */}
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300"></div>
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-background text-muted-foreground">
-              {transLogin('or_continue_with')}
-            </span>
-          </div>
-        </div>
-
-        {/* Email Login Section */}
+      <div className="w-full max-w-md grid grid-cols-1 gap-6">
+        {/* Email Login Section - Always visible */}
         <EmailOTPLogin 
           defaultEmail={defaultEmail}
           title={title}
           invitationId={invitationId}
         />
+
+        {/* Toggle button for other methods */}
+        <div className="flex justify-center">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowOtherMethods(!showOtherMethods)}
+            className="text-sm text-gray-600 hover:text-gray-900"
+          >
+            {showOtherMethods ? transLogin('hide_other_methods') : transLogin('other_login_methods')}
+          </Button>
+        </div>
+
+        {/* Other login methods - conditionally visible */}
+        {showOtherMethods && (
+          <>
+            {/* Divider */}
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-background text-muted-foreground">
+                  {transLogin('or_continue_with')}
+                </span>
+              </div>
+            </div>
+
+            {/* Google Login Section */}
+            <NewGoogleLogin invitationId={invitationId} />
+
+            {/* Passkey Login Section */}
+            <PasskeyLogin invitationId={invitationId} />
+          </>
+        )}
       </div>
     </div>
   );
