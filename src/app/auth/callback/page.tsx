@@ -421,9 +421,7 @@ export default function UnifiedAuthCallbackPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
-        <LogoLoading />
-      </div>
+      <LogoLoading className='mt-[30vh]' />
     );
   }
   

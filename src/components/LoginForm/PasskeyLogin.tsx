@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Fingerprint } from 'lucide-react';
+import { toast } from 'react-toastify';
 import { 
   startAuthentication, 
   browserSupportsWebAuthn
@@ -24,7 +25,6 @@ export default function PasskeyLogin({ invitationId }: PasskeyLoginProps) {
   const t = useTranslations('LoginPage');
   const [isLoading, setIsLoading] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setIsSupported(browserSupportsWebAuthn());
@@ -32,7 +32,6 @@ export default function PasskeyLogin({ invitationId }: PasskeyLoginProps) {
 
   const handlePasskeyAuthentication = async () => {
     setIsLoading(true);
-    setError(null);
 
     try {
       // Step 1: Start WebAuthn authentication with Stytch
@@ -90,11 +89,11 @@ export default function PasskeyLogin({ invitationId }: PasskeyLoginProps) {
       
       if (error.name === 'NotAllowedError') {
         console.log('User cancelled Passkey authentication');
-        setError(t('passkey_cancelled'));
+        toast.error(t('passkey_cancelled'));
       } else if (error.message?.includes('User not found')) {
-        setError(t('passkey_not_registered'));
+        toast.error(t('passkey_not_registered'));
       } else {
-        setError(error.message || t('passkey_auth_failed'));
+        toast.error(error.message || t('passkey_auth_failed'));
       }
     } finally {
       setIsLoading(false);
@@ -111,25 +110,15 @@ export default function PasskeyLogin({ invitationId }: PasskeyLoginProps) {
   }
 
   return (
-    <div className="space-y-4">
-      {/* Authentication Button */}
-      <Button
-        type="button"
-        variant="outline"
-        onClick={handlePasskeyAuthentication}
-        disabled={isLoading}
-        className="w-full h-12 flex items-center justify-center gap-3"
-      >
-        <Fingerprint className="h-5 w-5" />
-        {isLoading ? t('signing_in') : t('continue_with_passkey')}
-      </Button>
-
-      {/* Error Display */}
-      {error && (
-        <div className="text-red-500 text-sm text-center bg-red-50 p-3 rounded-md">
-          {error}
-        </div>
-      )}
-    </div>
+    <Button
+      type="button"
+      variant="outline"
+      onClick={handlePasskeyAuthentication}
+      disabled={isLoading}
+      className="w-full h-12 flex items-center justify-center gap-3"
+    >
+      <Fingerprint className="h-5 w-5" />
+      {isLoading ? t('signing_in') : t('continue_with_passkey')}
+    </Button>
   );
 }

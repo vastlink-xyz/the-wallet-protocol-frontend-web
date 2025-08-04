@@ -45,8 +45,10 @@ export default function GoogleLogin({ invitationId }: GoogleLoginProps) {
       
       if (!userCheckResponse.ok) {
         // User doesn't exist, need to register first
-        await auth.signOut(); // Clear Firebase session
-        throw new Error('User not found. Please register with email first.');
+        // Don't throw error here - let Firebase onAuthStateChanged handle it
+        // Just sign out to trigger the auth state change
+        await auth.signOut();
+        return; // Exit early, don't continue with navigation
       }
 
       const userData = await userCheckResponse.json();
@@ -66,9 +68,7 @@ export default function GoogleLogin({ invitationId }: GoogleLoginProps) {
     } catch (error: any) {
       console.error('Google login failed:', error);
       
-      if (error.message.includes('User not found')) {
-        toast.error('Account not found. Please register with email first, then add Google login in settings.');
-      } else if (error.code === 'auth/popup-closed-by-user') {
+      if (error.code === 'auth/popup-closed-by-user') {
         // User closed popup, no need to show error
         console.log('User cancelled Google login');
       } else if (error.code === 'auth/popup-blocked') {

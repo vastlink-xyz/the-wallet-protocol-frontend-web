@@ -22,7 +22,10 @@
     "email": "Email",
     "email_holder": "Your email",
     "sending": "Sending...",
-    "send_code": "Send verification code",
+    "login_button": "Login",
+    "register_button": "Create Account",
+    "switch_to_register": "Don't have an account? Create one",
+    "switch_to_login": "Already have an account? Sign in",
     "code_title": "Check your email",
     "code_description": "Enter the 6-digit verification code sent to {email}",
     "code": "Code",
@@ -31,7 +34,9 @@
     "verify": "Verify",
     "try_again": "Try again",
     "send_code_failed": "Failed to send verification code",
-    "verify_code_failed": "Failed to verify code"
+    "verify_code_failed": "Failed to verify code",
+    "user_already_exists": "An account with this email already exists. Please try logging in instead.",
+    "user_not_found": "No account found with this email. Please try creating an account instead."
   },
   "AppNavbar": {
     "testnets": "All assets here are on testnets only",
@@ -150,9 +155,9 @@
     "opt_dialog_description": "A verification code will be sent to your phone via WhatsApp"
   },
   "LoginPage": {
-    "continue_with_google": "Continue with Google",
-    "continue_with_passkey": "Continue with Passkey",
-    "or_continue_with": "Or continue with",
+    "continue_with_google": "Login with Google",
+    "continue_with_passkey": "Login with Passkey",
+    "or_continue_with": "More options",
     "other_login_methods": "Other login methods",
     "hide_other_methods": "Hide other methods",
     "connecting": "Connecting...",

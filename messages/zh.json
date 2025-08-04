@@ -22,7 +22,10 @@
     "email": "邮箱",
     "email_holder": "您的邮箱",
     "sending": "发送中...",
-    "send_code": "发送验证码",
+    "login_button": "登录",
+    "register_button": "创建账户",
+    "switch_to_register": "没有账户？创建一个",
+    "switch_to_login": "已有账户？登录",
     "code_title": "检查您的邮箱",
     "code_description": "请输入发送至 {email} 的6位验证码",
     "code": "验证码",
@@ -31,7 +34,9 @@
     "verify": "验证",
     "try_again": "重试",
     "send_code_failed": "发送验证码失败",
-    "verify_code_failed": "验证码验证失败"
+    "verify_code_failed": "验证码验证失败",
+    "user_already_exists": "此邮箱已注册账户，请尝试登录。",
+    "user_not_found": "未找到此邮箱的账户，请尝试创建账户。"
   },
   "AppNavbar": {
     "testnets": "此处所有资产仅在测试网上",
@@ -150,9 +155,9 @@
     "opt_dialog_description": "一个验证码将通过 WhatsApp 发送至您的手机"
   },
   "LoginPage": {
-    "continue_with_google": "使用 Google 继续",
-    "continue_with_passkey": "使用通行密钥继续",
-    "or_continue_with": "或使用其他方式继续",
+    "continue_with_google": "使用 Google 登录",
+    "continue_with_passkey": "使用通行密钥登录",
+    "or_continue_with": "更多选项",
     "other_login_methods": "其他登录方式",
     "hide_other_methods": "隐藏其他登录方式",
     "connecting": "连接中...",

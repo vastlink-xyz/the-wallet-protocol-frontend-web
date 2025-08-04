@@ -35,11 +35,30 @@ export default function EmailOTPLogin({
   const [methodId, setMethodId] = useState<string>('');
   const [code, setCode] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
+  const [isRegisterMode, setIsRegisterMode] = useState<boolean>(false);
 
   async function sendPasscode(event: any) {
     event.preventDefault();
     setLoading(true);
     try {
+      // First check if user exists
+      const { data: checkData } = await axios.post('/api/user/check-exists', { 
+        email 
+      });
+      
+      const userExists = checkData?.exists;
+      
+      // Validate based on current mode
+      if (isRegisterMode && userExists) {
+        toast.error(transStytchOTP('user_already_exists'));
+        return;
+      }
+      
+      if (!isRegisterMode && !userExists) {
+        toast.error(transStytchOTP('user_not_found'));
+        return;
+      }
+      
       // Call backend API to send OTP
       const { data } = await axios.post('/api/stytch/send-otp', { 
         email 
@@ -105,7 +124,9 @@ export default function EmailOTPLogin({
 
   return (
     <Card className="w-full">
-      <h2 className="text-lg font-medium mb-4 text-center">{title || transCommon('login')}</h2>
+      <h2 className="text-lg font-medium mb-4 text-center">
+        {title || (isRegisterMode ? transStytchOTP('register_button') : transCommon('login'))}
+      </h2>
       {step === 'submit' && (
         <div className="space-y-4">
           <CardHeader>
@@ -138,10 +159,17 @@ export default function EmailOTPLogin({
                 {loading ? transStytchOTP('sending'): (
                   <>
                     <Mail className="h-4 w-4" />
-                    {transStytchOTP('send_code')}
+                    {isRegisterMode ? transStytchOTP('register_button') : transStytchOTP('login_button')}
                   </>
                 )}
               </Button>
+              
+              <p 
+                className="text-sm text-black cursor-pointer text-left"
+                onClick={() => setIsRegisterMode(!isRegisterMode)}
+              >
+                {isRegisterMode ? transStytchOTP('switch_to_login') : transStytchOTP('switch_to_register')}
+              </p>
             </form>
           </CardContent>
         </div>
