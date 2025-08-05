@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useAuthContext } from '@/hooks/useAuthContext';
+import React, { useCallback } from 'react';
 import { MFAPhoneWhatsApp } from './MFAPhoneWhatsApp';
 import { MFATOTP } from './MFATotp';
-import { SecurityLayer } from '@/types/security';
 import { SecurityLayerService } from '@/services/securityLayerService';
+import { useSecurityLayers } from '@/hooks/useSecurityLayers';
 
 // Define StytchPhoneNumber type based on expected API response (used by MFAPhoneWhatsApp component)
 interface StytchPhoneNumber {
@@ -21,48 +20,26 @@ interface MFASettingsContentProps {
 
 export function MFASettingsContent({ isOpen, authMethodId, onPhoneUpdated, onMFAStatusChanged }: MFASettingsContentProps) {
 
-  // Main component state
-  const [securityLayers, setSecurityLayers] = useState<SecurityLayer[]>([]);
-
-  const prevIsOpen = useRef(isOpen);
-  const { authMethod, getCurrentAccessToken } = useAuthContext();
-
-  // Fetch security layers
-  const fetchSecurityLayers = useCallback(async (authId: string) => {
-    const sessionJwt = await getCurrentAccessToken();
-    if (!sessionJwt || !authId) return;
-
-    try {
-      const response = await fetch(`/api/security/layers?authMethodId=${authId}`);
-
-      if (!response.ok) {
-        return;
-      }
-
-      const data = await response.json();
-      setSecurityLayers(data.securityLayers || []);
-    } catch (err: any) {
-      console.error('Error fetching security layers:', err);
-    }
-  }, [getCurrentAccessToken]);
+  
+  // Use React Query hook for security layers - automatically handles caching, deduplication, and loading states
+  const { 
+    securityLayers, 
+    invalidateAndRefetch 
+  } = useSecurityLayers({
+    enabled: isOpen && !!authMethodId // Only fetch when dialog is open and authMethodId exists
+  });
 
   // Helper to trigger a refresh of MFA methods and notify parent of changes
   const refreshMFAStatus = useCallback(async () => {
-    if (authMethodId) {
-      await fetchSecurityLayers(authMethodId);
-    }
+    // Invalidate and refetch security layers data
+    await invalidateAndRefetch();
+    
     if (onMFAStatusChanged) {
       onMFAStatusChanged();
     }
-  }, [fetchSecurityLayers, authMethodId, onMFAStatusChanged]);
+  }, [invalidateAndRefetch, onMFAStatusChanged]);
 
-  // Effect to handle dialog open/close
-  useEffect(() => {
-    if (isOpen && authMethodId) {
-      fetchSecurityLayers(authMethodId);
-    }
-    prevIsOpen.current = isOpen;
-  }, [isOpen, fetchSecurityLayers, authMethodId]);
+  // React Query hook automatically handles fetching when enabled condition changes
 
   // Get MFA layers from unified security layers
   const whatsappLayer = SecurityLayerService.findLayerByType(securityLayers, 'WHATSAPP_OTP');

@@ -58,6 +58,18 @@ export function AuthMethodProvider({ children }: AuthMethodProviderProps) {
           emailVerified: user.emailVerified
         });
         
+        // Check if user is already authenticated with a different provider
+        // If so, this is likely a binding operation, not a login attempt
+        const currentAuthMethod = getAuthMethodFromStorage();
+        if (currentAuthMethod && currentAuthMethod.providerType !== AuthProviderType.GOOGLE) {
+          console.log('🔄 User already authenticated with', currentAuthMethod.providerType, '- skipping Google user lookup (likely a binding operation)');
+          
+          // Store Google token for potential use but don't change auth method
+          const token = await user.getIdToken();
+          setTokenToStorage(AuthProviderType.GOOGLE, token);
+          return; // Early return - let the binding operation handle the rest
+        }
+        
         // For Google login, we need to find user by Google email
         try {
           const token = await user.getIdToken();
