@@ -1,7 +1,9 @@
 'use client';
 
 import { useContext, useEffect, useState } from 'react';
-import { Wallet, Server, ChevronLeft, LogOut, SettingsIcon, BellIcon } from 'lucide-react';
+import { Wallet, Server, ChevronLeft, LogOut, SettingsIcon, BellIcon, Link2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { WalletConnectButton } from '@/components/WalletConnect/WalletConnectButton';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuthContext } from '@/hooks/useAuthContext';
 import { isProtectedRoute } from '@/constants/routes';
@@ -195,6 +197,12 @@ export function SidebarDesktop() {
           </SidebarItem>
 
           <div className="w-auto mx-6 border-b border border-[#eeeeee]"></div>
+
+          {/* WalletConnect Button */}
+          <WalletConnectButton 
+            mode="sidebar"
+            isCollapsed={isCollapsed}
+          />
 
           <SidebarItem 
             href="#" 

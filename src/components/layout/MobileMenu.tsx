@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Wallet, LogOut, MenuIcon, Server, BellIcon } from 'lucide-react';
+import { Wallet, LogOut, MenuIcon, Server, BellIcon, Link2 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthContext } from '@/hooks/useAuthContext';
@@ -9,6 +9,7 @@ import { isProtectedRoute } from '@/constants/routes';
 import { auth } from '@/lib/firebase';
 import { cn } from '@/lib/utils';
 import { useNotifications } from '@/hooks/useNotifications';
+import { WalletConnectButton } from '@/components/WalletConnect/WalletConnectButton';
 
 interface MobileMenuItemProps {
   href: string;
@@ -139,6 +140,11 @@ export function MobileMenu() {
                     )}
                   </div>
                 </MobileMenuItem>
+
+                {/* WalletConnect Button */}
+                <WalletConnectButton 
+                  mode="mobile"
+                />
 
                 {authMethod && (
                   <>

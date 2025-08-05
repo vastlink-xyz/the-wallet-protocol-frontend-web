@@ -14,6 +14,7 @@ import { PersonalWalletSettings } from "./assets/components/Personal/WalletSetti
 import { PersonalWalletSettingsProvider } from "@/providers/PersonalWalletSettingsProvider";
 import { MultisigSettings } from "./assets/components/Team/MultisigSettings";
 import { MultisigSettingsProvider } from "@/providers/MultisigSettingsProvider";
+import { WalletConnectProvider } from "@/providers/WalletConnectProvider";
 import {NextIntlClientProvider} from 'next-intl';
 import {getLocale} from 'next-intl/server';
 
@@ -51,6 +52,7 @@ export default async function RootLayout({
         <QueryProvider>
           <NextIntlClientProvider>
             <AuthMethodProvider>
+              <WalletConnectProvider>
                 <PersonalWalletSettingsProvider>
                   <MultisigSettingsProvider>
                     <AppNavbar />
@@ -89,6 +91,7 @@ export default async function RootLayout({
                     />
                   </MultisigSettingsProvider>
                 </PersonalWalletSettingsProvider>
+              </WalletConnectProvider>
               </AuthMethodProvider>
             </NextIntlClientProvider>
         </QueryProvider>
