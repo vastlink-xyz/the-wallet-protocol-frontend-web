@@ -40,8 +40,7 @@
   },
   "AppNavbar": {
     "testnets": "此处所有资产仅在测试网上",
-    "mfa_setup": "为了让您的钱包更安全，我们强烈建议您在<link>设置中配置每日提现限额和多因素认证（MFA）</link>",
-    "pin_setup": "为了让您的钱包更安全，我们强烈建议您<link>在设置中配置 PIN 码保护重要操作</link>"
+    "security_setup": "为了进一步保护您的资产，我们强烈建议您设置额外的安全措施，前往<link>通知中心</link>"
   },
   "Sidebar": {
     "wallets": "钱包",

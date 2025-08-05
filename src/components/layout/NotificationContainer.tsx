@@ -1,21 +1,17 @@
 'use client'
 
-import { useContext, useState } from 'react';
 import { useNotifications } from '@/hooks/useNotifications';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { shouldShowNotificationOnPath } from '@/constants/routes';
-import { PersonalWalletSettings } from '@/app/assets/components/Personal/WalletSettings';
-import { PersonalWalletSettingsContext } from '@/providers/PersonalWalletSettingsProvider';
 import { useTranslations } from 'next-intl';
 
 export function NotificationContainer() {
   const pathname = usePathname();
+  const router = useRouter();
 
   const t = useTranslations("AppNavbar");
 
   const { securityNotifications, isLoading } = useNotifications();
-
-  const { showPersonalWalletSettings } = useContext(PersonalWalletSettingsContext);
 
   // Only show notifications on protected routes (not on login/invite pages)
   if (!shouldShowNotificationOnPath(pathname)) {
@@ -27,19 +23,21 @@ export function NotificationContainer() {
   }
 
   const handleNotificationClick = () => {
-    showPersonalWalletSettings();
+    router.push('/notification');
   };
+
+  // Show single consolidated message if any security notifications exist
+  const hasSecurityNotifications = securityNotifications.length > 0;
 
   return (
     <div className="w-full">
-      {securityNotifications.map((notification) => (
+      {hasSecurityNotifications && (
         <div 
-          key={notification.id}
           className="w-full py-[9px] bg-[#ffb117] rounded-sm border border-[#ffe58f] justify-center items-center gap-1.5 inline-flex px-[10vw]"
         >
           <div className="text-black/90 text-sm font-normal leading-snug flex items-center">
             {t.rich(
-              notification.type,
+              'security_setup',
               {
                 link: (children) => (
                   <span 
@@ -53,7 +51,7 @@ export function NotificationContainer() {
             )}
           </div>
         </div>
-      ))}
+      )}
     </div>
   );
 }
