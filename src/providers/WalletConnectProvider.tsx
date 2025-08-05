@@ -10,6 +10,7 @@ import { toast } from 'react-toastify'
 import { SessionProposalModal } from '@/components/WalletConnect/SessionProposalModal'
 import { TransactionRequestModal } from '@/components/WalletConnect/TransactionRequestModal'
 import { handleWalletConnectRequest } from '@/lib/walletconnect/transactionHandler'
+import { useTranslations } from 'next-intl'
 
 // WalletConnect Context Type
 export interface WalletConnectContextType {
@@ -59,6 +60,7 @@ export function WalletConnectProvider({ children }: WalletConnectProviderProps) 
   // Hooks
   const { authMethod, getCurrentAccessToken } = useAuthContext()
   const { userData } = useUserData()
+  const t = useTranslations('WalletConnect')
 
   // Computed state
   const isConnected = activeSessions.length > 0
@@ -121,10 +123,10 @@ export function WalletConnectProvider({ children }: WalletConnectProviderProps) 
 
     try {
       await walletConnectSessionManager.pair(uri)
-      toast.success('Pairing initiated successfully')
+      toast.success(t('pair_success'))
     } catch (error) {
       console.error('Failed to pair:', error)
-      toast.error('Failed to pair with DApp')
+      toast.error(t('pair_failed'))
       throw error
     }
   }, [isInitialized])
@@ -204,7 +206,7 @@ export function WalletConnectProvider({ children }: WalletConnectProviderProps) 
       // sendTransaction already shows detailed toast in executePersonalTransaction
       const method = pendingRequest.params.request.method
       if (method === 'personal_sign' || method === 'eth_signTypedData_v4') {
-        toast.success('Request completed successfully')
+        toast.success(t('request_completed'))
       }
     } catch (error) {
       console.error('Failed to approve request:', error)
@@ -264,7 +266,7 @@ export function WalletConnectProvider({ children }: WalletConnectProviderProps) 
       // sendTransaction already shows detailed toast in executePersonalTransaction
       const method = pendingRequest.params.request.method
       if (method === 'personal_sign' || method === 'eth_signTypedData_v4') {
-        toast.success('Request completed successfully')
+        toast.success(t('request_completed'))
       }
       return { success: true }
     } catch (error) {

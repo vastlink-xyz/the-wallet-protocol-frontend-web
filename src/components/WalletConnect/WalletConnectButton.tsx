@@ -7,6 +7,7 @@ import { useWalletConnect } from '@/hooks/useWalletConnect'
 import { PairingModal } from './PairingModal'
 import { SessionManagementModal } from './SessionManagementModal'
 import { cn } from '@/lib/utils'
+import { useTranslations } from 'next-intl'
 
 interface WalletConnectButtonProps {
   variant?: 'default' | 'outline' | 'secondary' | 'ghost'
@@ -27,6 +28,7 @@ export function WalletConnectButton({
 }: WalletConnectButtonProps) {
   const [showPairingModal, setShowPairingModal] = useState(false)
   const [showSessionModal, setShowSessionModal] = useState(false)
+  const t = useTranslations('WalletConnect')
   
   const { 
     isConnected, 
@@ -44,17 +46,17 @@ export function WalletConnectButton({
   }
 
   const getButtonText = () => {
-    if (isInitializing) return 'Initializing...'
-    if (!isInitialized) return 'WalletConnect Unavailable'
-    if (isConnected) return `Connected (${activeSessions.length})`
-    return 'Connect DApps'
+    if (isInitializing) return t('initializing')
+    if (!isInitialized) return t('unavailable')
+    if (isConnected) return t('connected', { count: activeSessions.length })
+    return t('connect_dapps')
   }
 
   const getSidebarText = () => {
-    if (isInitializing) return 'Initializing...'
-    if (!isInitialized) return 'WalletConnect Unavailable'
-    if (isConnected) return `Connected (${activeSessions.length})`
-    return 'Connect DApps'
+    if (isInitializing) return t('initializing')
+    if (!isInitialized) return t('unavailable')
+    if (isConnected) return t('connected', { count: activeSessions.length })
+    return t('connect_dapps')
   }
 
   // Render different styles based on mode

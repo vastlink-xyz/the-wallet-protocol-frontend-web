@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useWalletConnect } from '@/hooks/useWalletConnect'
 import { Separator } from '@/components/ui/separator'
+import { useTranslations } from 'next-intl'
 
 interface SessionManagementModalProps {
   open: boolean
@@ -20,6 +21,7 @@ interface SessionManagementModalProps {
 
 export function SessionManagementModal({ open, onOpenChange }: SessionManagementModalProps) {
   const { activeSessions, disconnect } = useWalletConnect()
+  const t = useTranslations('WalletConnect')
 
   const handleDisconnect = async (topic: string) => {
     try {
@@ -45,16 +47,16 @@ export function SessionManagementModal({ open, onOpenChange }: SessionManagement
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Connected DApps</DialogTitle>
+          <DialogTitle>{t('session_modal_title')}</DialogTitle>
           <DialogDescription>
-            Manage your active WalletConnect sessions
+            {t('session_modal_description')}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           {activeSessions.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              No active connections
+              {t('no_sessions')}
             </div>
           ) : (
             activeSessions.map((session, index) => (
@@ -96,7 +98,7 @@ export function SessionManagementModal({ open, onOpenChange }: SessionManagement
                     size="sm"
                     onClick={() => handleDisconnect(session.topic)}
                   >
-                    Disconnect
+                    {t('disconnect')}
                   </Button>
                 </div>
                 

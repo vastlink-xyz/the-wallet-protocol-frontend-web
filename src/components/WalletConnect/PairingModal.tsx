@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useWalletConnect } from '@/hooks/useWalletConnect'
 import { toast } from 'react-toastify'
+import { useTranslations } from 'next-intl'
 
 interface PairingModalProps {
   open: boolean
@@ -23,6 +24,8 @@ interface PairingModalProps {
 export function PairingModal({ open, onOpenChange }: PairingModalProps) {
   const [uri, setUri] = useState('')
   const [isConnecting, setIsConnecting] = useState(false)
+  const t = useTranslations('WalletConnect')
+  const tCommon = useTranslations('Common')
   
   const { pair } = useWalletConnect()
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
@@ -61,7 +64,7 @@ export function PairingModal({ open, onOpenChange }: PairingModalProps) {
   // Handle connect
   const handleConnect = async () => {
     if (!uri.trim()) {
-      toast.error('Please enter a WalletConnect URI')
+      toast.error(t('enter_uri_error'))
       return
     }
 
@@ -106,27 +109,27 @@ export function PairingModal({ open, onOpenChange }: PairingModalProps) {
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Connect Account</DialogTitle>
+          <DialogTitle>{t('pairing_modal_title')}</DialogTitle>
           <DialogDescription>
-            To pair your wallet with the DApp using WalletConnect, please follow these steps:
+            {t('pairing_modal_description')}
           </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-4">
           {/* Steps */}
           <ol className="list-decimal list-inside text-sm space-y-1 text-gray-600">
-            <li>Visit the Dapp website</li>
-            <li>Look for a "Connect Wallet" or similar option</li>
-            <li>Choose "WalletConnect" as the connection method</li>
-            <li>Copy the provided WalletConnect URI</li>
-            <li>Return to this page and the URI will be automatically detected, or paste it manually below</li>
+            <li>{t('pairing_steps.step1')}</li>
+            <li>{t('pairing_steps.step2')}</li>
+            <li>{t('pairing_steps.step3')}</li>
+            <li>{t('pairing_steps.step4')}</li>
+            <li>{t('pairing_steps.step5')}</li>
           </ol>
 
           <div className="space-y-2">
-            <Label htmlFor="uri">WalletConnect URI</Label>
+            <Label htmlFor="uri">{t('uri_label')}</Label>
             <Input
               id="uri"
-              placeholder="Enter URI"
+              placeholder={t('uri_placeholder')}
               value={uri}
               onChange={(e) => setUri(e.target.value)}
               disabled={isConnecting}
@@ -141,13 +144,13 @@ export function PairingModal({ open, onOpenChange }: PairingModalProps) {
             onClick={handleClose}
             disabled={isConnecting}
           >
-            Cancel
+            {tCommon('cancel')}
           </Button>
           <Button
             onClick={handleConnect}
             disabled={isConnecting || !uri.trim()}
           >
-            {isConnecting ? 'Connecting...' : 'Pair'}
+            {isConnecting ? t('pairing') : t('pair_button')}
           </Button>
         </DialogFooter>
       </DialogContent>

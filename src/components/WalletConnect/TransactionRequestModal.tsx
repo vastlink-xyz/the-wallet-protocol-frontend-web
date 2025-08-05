@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge'
 import { useWalletConnect } from '@/hooks/useWalletConnect'
 import { useSecurityVerification } from '@/hooks/useSecurityVerification'
 import { formatEther } from 'ethers/lib/utils'
+import { useTranslations } from 'next-intl'
 
 export function TransactionRequestModal() {
   const { 
@@ -22,6 +23,7 @@ export function TransactionRequestModal() {
     rejectRequest, 
     clearPendingRequest 
   } = useWalletConnect()
+  const t = useTranslations('WalletConnect')
 
   // Security verification hook for WalletConnect requests
   const securityVerification = useSecurityVerification({
@@ -53,27 +55,18 @@ export function TransactionRequestModal() {
   const getRequestTitle = () => {
     switch (pendingRequest.params.request.method) {
       case 'eth_sendTransaction':
-        return 'Transaction Request'
+        return t('transaction_request_title')
       case 'personal_sign':
-        return 'Sign Message'
+        return t('transaction_request_title')
       case 'eth_signTypedData_v4':
-        return 'Sign Typed Data'
+        return t('transaction_request_title')
       default:
-        return 'Request'
+        return t('transaction_request_title')
     }
   }
 
   const getRequestDescription = () => {
-    switch (pendingRequest.params.request.method) {
-      case 'eth_sendTransaction':
-        return 'The DApp wants to send a transaction'
-      case 'personal_sign':
-        return 'The DApp wants you to sign a message'
-      case 'eth_signTypedData_v4':
-        return 'The DApp wants you to sign structured data'
-      default:
-        return 'The DApp is requesting an action'
-    }
+    return t('transaction_request_description')
   }
 
   const renderTransactionDetails = () => {
@@ -93,13 +86,13 @@ export function TransactionRequestModal() {
       <div className="space-y-3">
         <div className="p-3 border rounded-lg space-y-2">
           <div className="flex justify-between">
-            <span className="text-sm text-muted-foreground">To:</span>
+            <span className="text-sm text-muted-foreground">{t('to')}:</span>
             <span className="text-sm font-mono">{txParams.to}</span>
           </div>
           
           {txParams.value && (
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Value:</span>
+              <span className="text-sm text-muted-foreground">{t('value')}:</span>
               <span className="text-sm">
                 {formatEther(txParams.value)} ETH
               </span>
@@ -148,7 +141,7 @@ export function TransactionRequestModal() {
         <div className="space-y-4">
           {/* Request Info */}
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Method:</span>
+            <span className="text-sm text-muted-foreground">{t('method')}:</span>
             <Badge variant="secondary">
               {pendingRequest.params.request.method}
             </Badge>
@@ -163,7 +156,7 @@ export function TransactionRequestModal() {
 
           {/* Request Details */}
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Details</h4>
+            <h4 className="text-sm font-medium">{t('request_details')}</h4>
             {renderTransactionDetails()}
           </div>
 
@@ -180,13 +173,13 @@ export function TransactionRequestModal() {
             variant="outline"
             onClick={handleReject}
           >
-            Reject
+            {t('reject')}
           </Button>
           <Button
             onClick={handleApprove}
             disabled={securityVerification.isVerifying}
           >
-            {securityVerification.isVerifying ? 'Processing...' : 'Approve'}
+            {securityVerification.isVerifying ? t('processing') : t('approve')}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useWalletConnect } from '@/hooks/useWalletConnect'
 import { getSupportedChains } from '@/lib/walletconnect/config'
+import { useTranslations } from 'next-intl'
 
 export function SessionProposalModal() {
   const { 
@@ -21,6 +22,7 @@ export function SessionProposalModal() {
     rejectSession, 
     clearSessionProposal 
   } = useWalletConnect()
+  const t = useTranslations('WalletConnect')
 
   if (!sessionProposal) return null
 
@@ -63,9 +65,9 @@ export function SessionProposalModal() {
     <Dialog open={true} onOpenChange={() => clearSessionProposal()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Connection Request</DialogTitle>
+          <DialogTitle>{t('session_proposal_title')}</DialogTitle>
           <DialogDescription>
-            A DApp wants to connect to your wallet
+            {t('session_proposal_description')}
           </DialogDescription>
         </DialogHeader>
 
@@ -95,7 +97,7 @@ export function SessionProposalModal() {
 
           {/* Requested Chains */}
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Requested Networks</h4>
+            <h4 className="text-sm font-medium">{t('dapp_info')}</h4>
             <div className="flex flex-wrap gap-1">
               {proposalChains.map((chain: string) => (
                 <Badge 
@@ -112,7 +114,7 @@ export function SessionProposalModal() {
 
           {/* Requested Methods */}
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Requested Permissions</h4>
+            <h4 className="text-sm font-medium">{t('requested_permissions')}</h4>
             <div className="flex flex-wrap gap-1">
               {proposalMethods.map((method: string) => (
                 <Badge key={method} variant="secondary" className="text-xs">
@@ -137,12 +139,12 @@ export function SessionProposalModal() {
             variant="outline"
             onClick={handleReject}
           >
-            Reject
+            {t('reject')}
           </Button>
           <Button
             onClick={handleApprove}
           >
-            Approve
+            {t('approve')}
           </Button>
         </DialogFooter>
       </DialogContent>
