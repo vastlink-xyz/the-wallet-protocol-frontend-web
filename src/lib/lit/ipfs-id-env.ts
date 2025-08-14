@@ -8,6 +8,7 @@ import { litActionCodeForUpdateMultisigWalletSettings } from "../lit-action-code
 import { litActionCodeForCreateMultisigWallet } from "../lit-action-code/create-multisig-wallet"
 import { litActionCodeForSecurityVerification } from "../lit-action-code/security-verification.lit"
 import { litActionCodeForMultiProviderAuth } from "../lit-action-code/multi-provider-auth.lit"
+import { litActionCodeForAPIKeyManagement } from "../lit-action-code/api-key-management.lit"
 
 const updateWalletSettingsIpfsId = 'QmdCHgm4uAaQWzPR9pTf8WCKQDKTTLeyjnLehp5DevkaKy'
 const updateWalletSettingsIpfsIdHex = '0x1220dcbae2eb8103743aa6686169d46f34cfde13a60a0e74805cbed812de26819f18'
@@ -35,6 +36,9 @@ const securityVerificationIpfsIdHex = '0x1220192bafae343aaa8f0b3daf1fbae32df693a
 
 const multiProviderAuthIpfsId = 'QmUALzmKCewVAHvjgqiu3UKCYXESEbZkjJiXVkjUV9iPUj'
 const multiProviderAuthIpfsIdHex = '0x122056824919f62c758f1077655070e5ef9b0f422e7dad3888efb1e2c110216a9288'
+
+const apiKeyManagementIpfsId = 'QmQr2u15Syon4bsJn2QhxYYgTr1uXQkaCopHQ52xnwe2PV'
+const apiKeyManagementIpfsIdHex = '0x1220253e4e21b33ccd1debf280f9fed4461f19a7a75c0ad120c67766f27164499cc4'
 
 export const getUpdateWalletIpfsId = async (outputFormat: "base58" | "hex") => {
   if (process.env.NEXT_PUBLIC_ENV === 'dev') {
@@ -167,6 +171,21 @@ export const getMultiProviderAuthIpfsId = async (outputFormat: "base58" | "hex")
       return multiProviderAuthIpfsId
     } else {
       return multiProviderAuthIpfsIdHex
+    }
+  }
+}
+
+export const getAPIKeyManagementIpfsId = async (outputFormat: "base58" | "hex") => {
+  if (process.env.NEXT_PUBLIC_ENV === 'dev') {
+    return await getLitActionIpfsCid({
+      input: litActionCodeForAPIKeyManagement,
+      outputFormat: outputFormat
+    })
+  } else {
+    if (outputFormat === "base58") {
+      return apiKeyManagementIpfsId
+    } else {
+      return apiKeyManagementIpfsIdHex
     }
   }
 }

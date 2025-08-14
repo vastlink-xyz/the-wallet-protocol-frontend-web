@@ -16,7 +16,7 @@ import {
 } from '@/lib/lit'
 import { encryptString } from '@lit-protocol/encryption'
 import { AUTH_METHOD_SCOPE, AUTH_METHOD_TYPE } from '@lit-protocol/constants'
-import { getCreateWalletIpfsId, getMultiProviderAuthIpfsId, getMultisigTransactionIpfsId, getUpdateWalletIpfsId } from '@/lib/lit/ipfs-id-env'
+import { getCreateWalletIpfsId, getMultiProviderAuthIpfsId, getMultisigTransactionIpfsId, getUpdateWalletIpfsId, getAPIKeyManagementIpfsId } from '@/lib/lit/ipfs-id-env'
 import { useAuthExpiration } from '@/hooks/useAuthExpiration'
 import { isTokenValid } from '@/lib/jwt'
 import { TokenType } from '@/lib/web3/token'
@@ -474,6 +474,7 @@ export function MultisigWalletFormContent({
       const createWalletIpfsIdHex = await getCreateWalletIpfsId("hex");
       const updateWalletIpfsIdHex = await getUpdateWalletIpfsId("hex");
       const multisigTransactionIpfsIdHex = await getMultisigTransactionIpfsId('hex')
+      const apiKeyManagementIpfsIdHex = await getAPIKeyManagementIpfsId('hex')
       // const upgradeIpfsIdHex = await getUpgradeIpfsId('hex')
       const createWalletIpfsId = await getCreateWalletIpfsId("base58");
 
@@ -491,6 +492,7 @@ export function MultisigWalletFormContent({
         createWalletIpfsIdHex,
         updateWalletIpfsIdHex,
         multisigTransactionIpfsIdHex,
+        apiKeyManagementIpfsIdHex,
         // upgradeIpfsIdHex,
         authMethodId,
         ...signerAuthMethodIds.filter(id => id !== authMethodId) // Avoid duplicates
@@ -501,6 +503,7 @@ export function MultisigWalletFormContent({
         AUTH_METHOD_TYPE.LitAction,
         AUTH_METHOD_TYPE.LitAction,
         AUTH_METHOD_TYPE.LitAction,
+        AUTH_METHOD_TYPE.LitAction,
         authMethodType,
         ...signerAuthMethodIds.filter(id => id !== authMethodId).map(() => authMethodType)
       ];
@@ -508,6 +511,7 @@ export function MultisigWalletFormContent({
       const allAuthMethodPubkeys = allAuthMethodIds.map(() => '0x');
 
       const allAuthMethodScopes = [
+        [AUTH_METHOD_SCOPE.SignAnything],
         [AUTH_METHOD_SCOPE.SignAnything],
         [AUTH_METHOD_SCOPE.SignAnything],
         [AUTH_METHOD_SCOPE.SignAnything],

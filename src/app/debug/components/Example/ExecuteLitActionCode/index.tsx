@@ -21,14 +21,15 @@ import { litActionCodeForSecurityVerification } from "@/lib/lit-action-code/secu
 import { litActionCodeForMultiProviderAuth } from "@/lib/lit-action-code/multi-provider-auth.lit";
 import { VastbaseAuthMethod } from "@/lib/lit/custom-auth";
 import { useAuthContext } from "@/hooks/useAuthContext";
+import { litActionCodeForAPIKeyManagement } from "@/lib/lit-action-code/api-key-management.lit";
 
 
 // const litActionCode = litActionCodeForMultiProviderAuth
 // const litActionCode = litActionCodeForCreateMultisigWallet
-const litActionCode = litActionCodeForUpdateMultisigWalletSettings
+// const litActionCode = litActionCodeForUpdateMultisigWalletSettings
 // const litActionCode = litActionCodeForMultisigTransaction
 // const litActionCode = litActionCodeForPersonalTransaction
-// const litActionCode = personalSignLitActionCode
+const litActionCode = litActionCodeForAPIKeyManagement
 
 interface ExecuteLitActionCodeProps {
   authMethod: VastbaseAuthMethod;
