@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAPIKeysProposalById } from '../../storage';
+import { log } from '@/lib/utils';
 
 // GET: Retrieve signatures for an API Keys proposal
 export async function GET(
   request: NextRequest,
-  { params }: { params: { proposalId: string } }
+  context: { params: Promise<{ proposalId: string }> }
 ) {
   try {
+    const params = await context.params;
     const { proposalId } = params;
     
     if (!proposalId) {
@@ -27,6 +29,7 @@ export async function GET(
 
     // Extract signatures from the proposal
     const signatures = proposal.signatures?.map((sig: any) => sig.signature) || [];
+
 
     return NextResponse.json({
       success: true,
