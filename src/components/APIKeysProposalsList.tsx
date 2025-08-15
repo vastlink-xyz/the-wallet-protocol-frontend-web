@@ -11,6 +11,7 @@ import { useUserData } from '@/hooks/useUserData';
 import { APIKeysProposal } from '@/components/APIKeysProposal';
 import { useAPIKeysProposalActions } from '@/hooks/useAPIKeysProposalActions';
 import { useAuthExpiration } from '@/hooks/useAuthExpiration';
+import { AuthProviderType } from '@/lib/lit/custom-auth';
 
 // Import the types from our new API system
 import { APIKeysProposal as APIKeysProposalType } from '@/app/api/api-keys-proposals/models';
@@ -18,6 +19,7 @@ import { APIKeysProposal as APIKeysProposalType } from '@/app/api/api-keys-propo
 interface APIKeysProposalsListProps {
   walletId: string;
   walletName?: string;
+  walletAddress?: string;
   threshold?: number;
   signers?: Array<{
     ethAddress: string;
@@ -29,7 +31,8 @@ interface APIKeysProposalsListProps {
 
 export function APIKeysProposalsList({ 
   walletId, 
-  walletName, 
+  walletName,
+  walletAddress,
   threshold = 1, 
   signers = [] 
 }: APIKeysProposalsListProps) {
@@ -50,7 +53,7 @@ export function APIKeysProposalsList({
       threshold: threshold,
       signers: signers,
       addresses: {
-        eth: signers[0]?.ethAddress || ''
+        eth: walletAddress || signers[0]?.ethAddress || ''
       }
     });
   }
@@ -93,7 +96,7 @@ export function APIKeysProposalsList({
     userPkp: userData?.litActionPkp,
     getCurrentAccessToken,
     authMethodId,
-    providerType: 'EMAIL_OTP' as any,
+    providerType: AuthProviderType.EMAIL_OTP,
     userEmail: userData?.primaryEmail || '',
     refreshProposals: fetchProposals,
     t: (key: string) => key, // Simple translation fallback
@@ -177,7 +180,7 @@ export function APIKeysProposalsList({
                 threshold: threshold,
                 signers: signers,
                 pkp: userData.litActionPkp,
-                addresses: { eth: signers[0]?.ethAddress || '' }
+                addresses: { eth: walletAddress || signers[0]?.ethAddress || '' }
               };
 
               return (

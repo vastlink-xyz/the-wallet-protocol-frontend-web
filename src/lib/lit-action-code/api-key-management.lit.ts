@@ -102,19 +102,25 @@ const go = async () => {
       }
       
       case 'execute_proposal': {
-        console.log(`Executing API Keys proposal: ${proposalId} for wallet: ${multisigWalletId}`);
+        console.log(`🔄 Executing API Keys proposal: ${proposalId} for wallet: ${multisigWalletId}`);
+        console.log('📋 Proposal data:', JSON.stringify(proposalData, null, 2));
         
         if (!proposalData) {
           throw new Error('Proposal data is required for execution');
         }
         
+        console.log('📊 Proposal data type:', proposalData.type);
+        console.log('📊 Proposal data keys:', Object.keys(proposalData));
+        
         // Verify multisig signatures before executing proposal
         if (message) {
-          console.log('Verifying multisig signatures...');
+          console.log('🔐 Verifying multisig signatures...');
+          console.log('📝 Message to verify:', message);
           
           // First, get the wallet's real threshold and signers from the database
-          console.log(`Fetching wallet information for wallet: ${multisigWalletId}`);
+          console.log(`🔍 Fetching wallet information for wallet: ${multisigWalletId}`);
           const walletApiUrl = `${apiBaseUrl}/api/multisig?id=${multisigWalletId}`;
+          console.log('🌐 Wallet API URL:', walletApiUrl);
           const walletResponse = await fetch(walletApiUrl);
           
           if (!walletResponse.ok) {
@@ -220,6 +226,10 @@ const go = async () => {
         }
         
         const { type, newApiKeys, newIpfsIds } = proposalData;
+        console.log('🔧 Starting proposal execution...');
+        console.log('📈 Extracted proposal type:', type);
+        console.log('🔑 New API keys:', newApiKeys ? 'Present' : 'Not provided');
+        console.log('🆔 New IPFS IDs:', newIpfsIds ? JSON.stringify(newIpfsIds) : 'Not provided');
         
         // Generate new access control conditions based on new IPFS IDs
         const generateAccessControlConditions = (ipfsIds: string[]) => {
@@ -261,24 +271,42 @@ const go = async () => {
         };
         
         if (type === 'UPDATE_API_KEYS' && newApiKeys) {
+          console.log('🔄 Processing UPDATE_API_KEYS...');
+          console.log('🔑 API Keys to update:', JSON.stringify(newApiKeys, null, 2));
+          
           // Get current configuration to use existing access control conditions
           const currentConfigUrl = `${apiBaseUrl}/api/api-keys-config?walletId=${multisigWalletId}`;
+          console.log('🌐 Fetching current config from:', currentConfigUrl);
           const currentConfigResponse = await fetch(currentConfigUrl);
           const currentConfig = await currentConfigResponse.json();
+          
+          console.log('📄 Current config response:', currentConfig.success ? 'Success' : 'Failed');
           
           if (!currentConfig.success || !currentConfig.config) {
             throw new Error('Current configuration not found');
           }
           
+          console.log('🔐 Current access control conditions type:', typeof currentConfig.config.accessControlConditions);
+          
           // Encrypt new API keys with current access control conditions
+          console.log('🔒 Starting encryption of new API keys...');
           const apiKeysString = JSON.stringify(newApiKeys);
+          const apiKeysUint8Array = new TextEncoder().encode(apiKeysString);
+          console.log('📊 API keys string length:', apiKeysString.length);
+          console.log('📊 API keys Uint8Array length:', apiKeysUint8Array.length);
           const encryptedApiKeys = await Lit.Actions.encrypt({
             // @ts-ignore
             accessControlConditions: currentConfig.config.accessControlConditions,
-            to_encrypt: apiKeysString,
+            // @ts-ignore
+            to_encrypt: apiKeysUint8Array,
           });
           
+          console.log('✅ Encryption completed successfully');
+          console.log('🔒 Ciphertext length:', encryptedApiKeys.ciphertext.length);
+          console.log('🔗 DataToEncryptHash:', encryptedApiKeys.dataToEncryptHash);
+          
           // Update configuration with new encrypted API keys
+          console.log('💾 Preparing to save updated configuration...');
           const updateData = {
             _id: currentConfig.config._id,
             multisigWalletId,
@@ -290,15 +318,33 @@ const go = async () => {
             lastModifiedBy: 'proposal_execution'
           };
           
+          console.log('📝 Update data prepared:', {
+            _id: updateData._id,
+            multisigWalletId: updateData.multisigWalletId,
+            hasApiKeysCiphertext: !!updateData.apiKeysCiphertext,
+            hasIpfsIdsCiphertext: !!updateData.ipfsIdsCiphertext,
+            lastModifiedBy: updateData.lastModifiedBy
+          });
+          
+          console.log('🌐 Sending update request to API...');
+          
           const saveResponse = await fetch(`${apiBaseUrl}/api/api-keys-config`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(updateData)
           });
           
+          console.log('📡 Save response status:', saveResponse.status);
+          console.log('📡 Save response ok:', saveResponse.ok);
+          
           if (!saveResponse.ok) {
-            throw new Error('Failed to save updated API keys configuration');
+            const errorText = await saveResponse.text();
+            console.log('❌ Save failed with response:', errorText);
+            throw new Error(`Failed to save updated API keys configuration: ${errorText}`);
           }
+          
+          const saveResult = await saveResponse.json();
+          console.log('💾 Save result:', saveResult);
           
           result = {
             message: 'API Keys updated successfully',
@@ -306,15 +352,19 @@ const go = async () => {
             timestamp: new Date().toISOString()
           };
           
+          console.log('✅ UPDATE_API_KEYS completed successfully');
+          
         } else if (type === 'UPDATE_IPFS_IDS' && newIpfsIds) {
           // Encrypt new IPFS IDs and update access control conditions
           const ipfsIdsString = JSON.stringify(newIpfsIds);
+          const ipfsIdsUint8Array = new TextEncoder().encode(ipfsIdsString);
           const newAccessControlConditions = generateAccessControlConditions(newIpfsIds);
           
           const encryptedIpfsIds = await Lit.Actions.encrypt({
             // @ts-ignore
             accessControlConditions: newAccessControlConditions,
-            to_encrypt: ipfsIdsString,
+            // @ts-ignore
+            to_encrypt: ipfsIdsUint8Array,
           });
           
           // Get current configuration to preserve API Keys
@@ -339,7 +389,8 @@ const go = async () => {
           const reEncryptedApiKeys = await Lit.Actions.encrypt({
             // @ts-ignore
             accessControlConditions: newAccessControlConditions,
-            to_encrypt: decryptedApiKeys,
+            // @ts-ignore
+            to_encrypt: new TextEncoder().encode(decryptedApiKeys),
           });
           
           // Update configuration with new encrypted data and access control conditions

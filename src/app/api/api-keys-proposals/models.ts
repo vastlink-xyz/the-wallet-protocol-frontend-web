@@ -36,6 +36,12 @@ export interface APIKeysProposal {
 }
 
 const APIKeysProposalSchema = new mongoose.Schema({
+  id: {
+    type: String,
+    required: true,
+    unique: true,
+    index: true
+  },
   multisigWalletId: {
     type: String,
     required: true,

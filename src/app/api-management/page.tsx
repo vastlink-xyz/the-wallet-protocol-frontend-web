@@ -16,6 +16,7 @@ import { useAuthContext } from '@/hooks/useAuthContext';
 import { useUserData } from '@/hooks/useUserData';
 import { log } from '@/lib/utils';
 import { APIKeysProposalsList } from '@/components/APIKeysProposalsList';
+import { APIKeysDebugButton } from '@/components/APIKeysDebugButton';
 
 // Wallet interface for selection
 interface MultisigWallet {
@@ -1036,11 +1037,21 @@ export default function APIManagementPage() {
           </CardContent>
         </Card>
 
+        {/* API Keys Debug Button */}
+        {walletId && configData && (
+          <APIKeysDebugButton
+            walletId={walletId}
+            configData={configData}
+            isConfigDecrypted={configData.isDecrypted || false}
+          />
+        )}
+
         {/* API Keys Proposals List */}
         {walletId && (
           <APIKeysProposalsList
             walletId={walletId}
             walletName={userWallets.find(w => w._id === walletId)?.name}
+            walletAddress={userWallets.find(w => w._id === walletId)?.ethAddress}
             threshold={userWallets.find(w => w._id === walletId)?.threshold}
             signers={userWallets.find(w => w._id === walletId)?.signers}
           />

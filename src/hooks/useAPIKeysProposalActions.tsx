@@ -7,6 +7,7 @@ import { AuthProviderType, getVastbaseAuthMethodType } from "@/lib/lit/custom-au
 
 // Import new API Keys proposal types
 import { APIKeysProposal } from "@/app/api/api-keys-proposals/models";
+import { log } from "@/lib/utils";
 
 export interface APIKeysProposalActionsParams {
   walletMap: Map<string, any>;
@@ -49,8 +50,7 @@ export function useAPIKeysProposalActions({
   // Execute API Keys Lit Action for proposal execution
   const executeAPIKeysLitAction = async (proposal: any) => {
     const wallet = walletMap.get(proposal.multisigWalletId || proposal.walletId);
-    const walletPkp = wallet?.pkp;
-    if (!walletPkp || !wallet || !userPkp || !getCurrentAccessToken || !authMethodId) return;
+    if (!wallet || !userPkp || !getCurrentAccessToken || !authMethodId) return;
     
     try {
       setExecutingStates(prev => ({ ...prev, [proposal.id]: true }));
@@ -202,6 +202,7 @@ const signAPIKeysProposal = async ({
   // Import personal sign Lit Action IPFS ID
   const { getPersonalSignIpfsId } = await import('@/lib/lit/ipfs-id-env');
   const personalSignIpfsId = await getPersonalSignIpfsId('base58');
+  log('prposal', proposal)
 
   if (!litNodeClient.ready) {
     await litNodeClient.connect();
