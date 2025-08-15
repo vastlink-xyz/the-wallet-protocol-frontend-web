@@ -23,6 +23,9 @@ import { VastbaseAuthMethod } from "@/lib/lit/custom-auth";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import { litActionCodeForAPIKeyManagement } from "@/lib/lit-action-code/api-key-management.lit";
 import { litActionCodeForDebugAPIKeys } from "@/lib/lit-action-code/debug-api-keys.lit";
+import { litActionCodeForDebugSessionSigs } from "@/lib/lit-action-code/debug-session-sigs.lit";
+import { litActionCodeForDebugStytchLogin } from "@/lib/lit-action-code/debug-login.lit";
+import { litActionCodeForDebugStytchVerifyLogin } from "@/lib/lit-action-code/debug-verify-login.lit";
 
 
 // const litActionCode = litActionCodeForMultiProviderAuth
@@ -32,7 +35,11 @@ import { litActionCodeForDebugAPIKeys } from "@/lib/lit-action-code/debug-api-ke
 // const litActionCode = litActionCodeForPersonalTransaction
 
 // const litActionCode = litActionCodeForAPIKeyManagement
-const litActionCode = litActionCodeForDebugAPIKeys
+// const litActionCode = litActionCodeForDebugAPIKeys
+
+// const litActionCode = litActionCodeForDebugSessionSigs
+// const litActionCode = litActionCodeForDebugStytchLogin
+const litActionCode = litActionCodeForDebugStytchVerifyLogin
 
 interface ExecuteLitActionCodeProps {
   authMethod: VastbaseAuthMethod;

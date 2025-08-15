@@ -10,6 +10,8 @@ import { litActionCodeForSecurityVerification } from "../lit-action-code/securit
 import { litActionCodeForMultiProviderAuth } from "../lit-action-code/multi-provider-auth.lit"
 import { litActionCodeForAPIKeyManagement } from "../lit-action-code/api-key-management.lit"
 import { litActionCodeForDebugAPIKeys } from "../lit-action-code/debug-api-keys.lit"
+import { litActionCodeForDebugStytchLogin } from "../lit-action-code/debug-login.lit"
+import { litActionCodeForDebugStytchVerifyLogin } from "../lit-action-code/debug-verify-login.lit"
 
 const updateWalletSettingsIpfsId = 'QmdCHgm4uAaQWzPR9pTf8WCKQDKTTLeyjnLehp5DevkaKy'
 const updateWalletSettingsIpfsIdHex = '0x1220dcbae2eb8103743aa6686169d46f34cfde13a60a0e74805cbed812de26819f18'
@@ -43,6 +45,12 @@ const apiKeyManagementIpfsIdHex = '0x122046f1e58a0711b6eb661411bb958a058d028ae97
 
 const debugAPIKeysIpfsId = 'QmNeoddCrUW8UuyDagzXDERay46PgWybg9Am4tqpyDB9k7'
 const debugAPIKeysIpfsIdHex = '0x122004a68b249aacc42ee7e0674947575cea793cd4d745670e3fef715118e15a86f4'
+
+const debugStytchLoginIpfsId = 'QmaFEpRBgB3APeahtXkXrjwPTiQkWS7JGGHJxCBTuEpEe2'
+const debugStytchLoginIpfsIdHex = '0x1220b0e95341939a2c604dc877948346b2a492ae1740df084809be8fb4d14aecef5f'
+
+const debugStytchVerifyLoginIpfsId = 'QmZ5yzqa94k9qQZ35xJBYF4ViHrewmxBjPkMV3iHHNm4DB'
+const debugStytchVerifyLoginIpfsIdHex = '0x12209faea7528a0b12ca1301638aaab26365067f3e3f6c9fb06760e933c4410929de'
 
 export const getUpdateWalletIpfsId = async (outputFormat: "base58" | "hex") => {
   if (process.env.NEXT_PUBLIC_ENV === 'dev') {
@@ -205,6 +213,36 @@ export const getDebugAPIKeysIpfsId = async (outputFormat: "base58" | "hex") => {
       return debugAPIKeysIpfsId
     } else {
       return debugAPIKeysIpfsIdHex
+    }
+  }
+}
+
+export const getDebugStytchLoginIpfsId = async (outputFormat: "base58" | "hex") => {
+  if (process.env.NEXT_PUBLIC_ENV === 'dev') {
+    return await getLitActionIpfsCid({
+      input: litActionCodeForDebugStytchLogin,
+      outputFormat: outputFormat
+    })
+  } else {
+    if (outputFormat === "base58") {
+      return debugStytchLoginIpfsId
+    } else {
+      return debugStytchLoginIpfsIdHex
+    }
+  }
+}
+
+export const getDebugStytchVerifyLoginIpfsId = async (outputFormat: "base58" | "hex") => {
+  if (process.env.NEXT_PUBLIC_ENV === 'dev') {
+    return await getLitActionIpfsCid({
+      input: litActionCodeForDebugStytchVerifyLogin,
+      outputFormat: outputFormat
+    })
+  } else {
+    if (outputFormat === "base58") {
+      return debugStytchVerifyLoginIpfsId
+    } else {
+      return debugStytchVerifyLoginIpfsIdHex
     }
   }
 }
