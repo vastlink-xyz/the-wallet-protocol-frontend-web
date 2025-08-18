@@ -1,0 +1,27 @@
+{
+  "name": "the-wallet-protocol-frontend-web",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "irysBundle": "cd irys; node esbuild.js; node irys.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@irys/query": "^0.0.13",
+    "@irys/upload": "^0.0.15",
+    "@irys/upload-ethereum": "^0.0.16",
+    "@lit-protocol/auth-helpers": "^7.3.0",
+    "@lit-protocol/constants": "^7.3.0",
+    "@lit-protocol/lit-auth-client": "^7.3.0",
+    "@lit-protocol/lit-node-client": "^7.3.0",
+    "dotenv": "^17.2.1"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.9"
+  }
+}
