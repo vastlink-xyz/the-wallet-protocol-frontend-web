@@ -14,5 +14,5 @@ export const litNodeClient: LitNodeClient = new LitNodeClient({
 // Initialize LitRelay
 export const litRelay = new LitRelay({
   relayUrl: LitRelay.getRelayUrl(SELECTED_LIT_NETWORK),
-  relayApiKey: 'test-api-key',
+  relayApiKey: process.env.NEXT_PUBLIC_LIT_RELAYER_API_KEY!,
 });
