@@ -46,3 +46,7 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
     ```
 
 The application will now build and deploy on Heroku. You can monitor the build progress in your terminal or on the Heroku Dashboard.
+
+## Debug Lit Actions locally
+brew install ngrok
+ngrok http 3000

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { AUTH_METHOD_SCOPE } from '@lit-protocol/constants';
 import { AUTH_METHOD_TYPE } from '@lit-protocol/constants';
-import { litNodeClient } from '@/lib/lit';
+import { litNodeClient, SELECTED_LIT_NETWORK } from '@/lib/lit';
 import { LitContracts } from '@lit-protocol/contracts-sdk';
 import { PKPEthersWallet } from '@lit-protocol/pkp-ethers';
 import { log } from '@/lib/utils';
@@ -111,7 +111,7 @@ export function AllUsers({
         sessionSigs,
         jsParams: {
           publicKey: user.litActionPkp!.publicKey,
-          litDatilNetwork: LIT_NETWORK.DatilDev,
+          litDatilNetwork: SELECTED_LIT_NETWORK,
           env: process.env.NEXT_PUBLIC_ENV,
           devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
           authMethodMetadata: {
@@ -146,7 +146,7 @@ export function AllUsers({
         sessionSigs,
         jsParams: {
           publicKey: user.litActionPkp!.publicKey,
-          litDatilNetwork: LIT_NETWORK.DatilDev,
+          litDatilNetwork: SELECTED_LIT_NETWORK,
           env: process.env.NEXT_PUBLIC_ENV,
           devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
           authMethodMetadata: {

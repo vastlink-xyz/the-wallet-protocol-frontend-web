@@ -7,7 +7,7 @@ import { IRelayPKP } from "@lit-protocol/types";
 import { VastbaseAuthMethod } from "@/lib/lit/custom-auth";
 import { useState, useEffect } from "react";
 import { useAuthContext } from "@/hooks/useAuthContext";
-import { getLitActionIpfsCid, mintPKP, uploadViaPinata } from "@/lib/lit";
+import { getLitActionIpfsCid, mintPKP, SELECTED_LIT_NETWORK, uploadViaPinata } from "@/lib/lit";
 import { getMultiProviderSessionSigs } from "@/lib/lit/pkpManager";
 import { PKPEthersWallet } from "@lit-protocol/pkp-ethers";
 import { LitContracts } from "@lit-protocol/contracts-sdk";
@@ -89,7 +89,7 @@ export function EditAuthmethod({
       sessionSigs,
       jsParams: {
         pkpPublicKey: actionPkp?.publicKey,
-        litDatilNetwork: LIT_NETWORK.DatilDev,
+        litDatilNetwork: SELECTED_LIT_NETWORK,
         // authMethodMetadata: {
         //   addOrRemove: 'add',
         //   keyType: 2,
@@ -138,7 +138,7 @@ export function EditAuthmethod({
       sessionSigs,
       jsParams: {
         pkpPublicKey: actionPkp.publicKey,
-        litDatilNetwork: LIT_NETWORK.DatilDev,
+        litDatilNetwork: SELECTED_LIT_NETWORK,
         authMethodMetadata: {
           addOrRemove: 'remove',
           keyType: 2,
