@@ -598,12 +598,12 @@ export function MultisigWalletFormContent({
             pkpTokenId: pkpForMultisig.tokenId,
             authMethodId: authMethodId,
             authMethodType: getVastbaseAuthMethodType(),
-            devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
+            devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY || '',
           },
           dataToEncryptHash,
           publicKey: pkpForMultisig.publicKey,
           env: process.env.NEXT_PUBLIC_ENV,
-          devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
+          devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY || '',
         },
       });
       log('litaction res', litActionRes);

@@ -134,12 +134,12 @@ export default function DebugPage() {
           accessToken,
           authMethodId,
           authMethodType: authMethod.authMethodType,
-          devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
+          devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY || '',
         },
         message: 'Hello, world!',
         publicKey: pkp.publicKey,
         env: process.env.NEXT_PUBLIC_ENV,
-        devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
+        devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY || '',
       },
     })
 
@@ -238,7 +238,7 @@ export default function DebugPage() {
           publicKey: pkp.publicKey,
           litDatilNetwork: SELECTED_LIT_NETWORK,
           env: process.env.NEXT_PUBLIC_ENV,
-          devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
+          devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY || '',
           authMethodMetadata: {
             addOrRemove: 'add',
             keyType: 2,

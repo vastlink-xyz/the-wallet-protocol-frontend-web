@@ -405,7 +405,7 @@ export default function APIManagementPage() {
           multisigWalletId: walletId,
           configId: configData._id,
           env: process.env.NEXT_PUBLIC_ENV || 'dev',
-          devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
+          devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY || '',
           authParams: {
             providerType: AuthProviderType.EMAIL_OTP, // Use enum instead of string literal
             accessToken: await getCurrentAccessToken(),

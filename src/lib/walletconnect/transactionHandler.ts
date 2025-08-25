@@ -166,14 +166,14 @@ async function handlePersonalSign(params: TransactionHandlerParams): Promise<str
         message: messageString,
         publicKey: userPkp.publicKey,
         env: process.env.NEXT_PUBLIC_ENV,
-        devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
+        devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY || '',
         authParams: {
           accessToken,
           authMethodId,
           authMethodType: getVastbaseAuthMethodType(), // Use the same function as proposal signing
           providerType,
           pkpTokenId: userPkp.tokenId,
-          devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
+          devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY || '',
         },
       },
     })
@@ -274,14 +274,14 @@ async function handleSignTypedData(params: TransactionHandlerParams): Promise<st
         tokenType: 'ETH', // Dummy value, not used for signing
         transactionAmount: '0', // Dummy value, not used for signing
         env: process.env.NEXT_PUBLIC_ENV,
-        devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
+        devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY || '',
         authParams: {
           accessToken,
           authMethodId,
           authMethodType: getVastbaseAuthMethodType(),
           providerType,
           pkpTokenId: userPkp.tokenId,
-          devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
+          devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY || '',
         },
         // Security params for typed data signing
         pinCode: pinCode || '',

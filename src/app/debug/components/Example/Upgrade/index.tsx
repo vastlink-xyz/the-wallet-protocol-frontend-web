@@ -61,7 +61,7 @@ export function Upgrade({
           publicKey: actionPkp!.publicKey,
           litDatilNetwork: SELECTED_LIT_NETWORK,
           env: process.env.NEXT_PUBLIC_ENV,
-          devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
+          devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY || '',
           // authMethodMetadata: {
           //   addOrRemove: 'remove',
           //   keyType: 2,
@@ -148,7 +148,7 @@ export function Upgrade({
           publicKey: actionPkp!.publicKey,
           litDatilNetwork: SELECTED_LIT_NETWORK,
           env: process.env.NEXT_PUBLIC_ENV,
-          devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
+          devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY || '',
           authMethodMetadata: {
             addOrRemove: 'remove',
             keyType: 2,

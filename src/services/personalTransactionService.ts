@@ -107,7 +107,7 @@ export const executePersonalTransaction = async ({
         transactionAmount: amount,
         publicKey: litActionPkp.publicKey,
         env: process.env.NEXT_PUBLIC_ENV,
-        devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
+        devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY || '',
         chainType: SUPPORTED_TOKENS_INFO[tokenType].chainType,
         authParams: {
           accessToken: accessToken,

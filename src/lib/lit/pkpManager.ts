@@ -226,7 +226,7 @@ export async function getMultiProviderSessionSigs({
         pkpTokenId,
         authMethodType: getVastbaseAuthMethodType(),
         env: process.env.NEXT_PUBLIC_ENV || 'dev',
-        devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
+        devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY || '',
       },
       resourceAbilityRequests: [
         {

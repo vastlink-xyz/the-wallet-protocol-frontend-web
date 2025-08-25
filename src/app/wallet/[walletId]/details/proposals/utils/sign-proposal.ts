@@ -58,14 +58,14 @@ export const signProposal = async ({
       message: proposal.message,
       publicKey: userPkp.publicKey,
       env: process.env.NEXT_PUBLIC_ENV,
-      devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
+      devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY || '',
       authParams: {
         accessToken,
         providerType,
         pkpTokenId: userPkp.tokenId,
         authMethodId: authMethodId,
         authMethodType: getVastbaseAuthMethodType(),
-        devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
+        devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY || '',
       },
     }
   });

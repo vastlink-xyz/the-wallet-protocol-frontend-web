@@ -226,14 +226,14 @@ const signAPIKeysProposal = async ({
       message,
       publicKey: userPkp.publicKey,
       env: process.env.NEXT_PUBLIC_ENV,
-      devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
+      devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY || '',
       authParams: {
         accessToken,
         providerType,
         pkpTokenId: userPkp.tokenId,
         authMethodId: authMethodId,
         authMethodType: getVastbaseAuthMethodType(), // Use the actual custom auth method type
-        devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
+        devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY || '',
       },
     }
   });
@@ -291,7 +291,7 @@ const executeAPIKeysProposal = async ({
       multisigWalletId: proposal.multisigWalletId || proposal.walletId,
       proposalData: proposal.proposalData || proposal.apiKeysData, // Support both formats
       env: process.env.NEXT_PUBLIC_ENV || 'dev',
-      devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION || '',
+      devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY || '',
       authParams,
       // Signature verification parameters
       message
