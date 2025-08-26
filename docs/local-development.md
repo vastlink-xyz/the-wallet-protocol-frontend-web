@@ -34,11 +34,22 @@ ngrok provides a public URL for Lit Protocol nodes to access your local API.
 
 When Lit Actions use fetch to call locally added API endpoints, they must access through ngrok's public URL because Lit Protocol nodes cannot directly access localhost.
 
-#### 2. Update IPFS Configuration
+#### 2. Set Environment Variable for ngrok URL
+
+After ngrok generates a public URL (e.g., `https://abc123.ngrok-free.app`), you need to set the environment variable:
+
+```bash
+# In your .env file or environment
+NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY=https://abc123.ngrok-free.app
+```
+
+This environment variable is used by Lit Actions to make API calls to your local development server.
+
+#### 3. Update IPFS Configuration
 
 Edit `/src/lib/lit/ipfs-id-env.ts` file to ensure Lit Action IPFS CIDs are correctly configured.
 
-#### 3. Use Debug Page
+#### 4. Use Debug Page
 
 Visit http://localhost:3000/debug
 
