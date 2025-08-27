@@ -56,7 +56,7 @@ export async function getPrice() {
     }
   });
 
-  priceData.data['TSTLPX'] = 0.01;
+  priceData.data['LITKEY'] = 0.01;
   priceData.data['VAST'] = 0.01;
 
   priceData.updatedAt = Date.now();
@@ -87,7 +87,7 @@ export const getPriceOld = async (currency: string = 'usd'): Promise<{ [key: str
     ETH: data.ethereum[currency] as number,
     USDT: data.tether[currency] as number,
     USDC: data['bridged-usdc'][currency] as number,
-    TSTLPX: 0.01,
+    LITKEY: 0.01,
     VAST: 0.01,
   };
   priceData.updatedAt = Date.now();

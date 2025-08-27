@@ -12,6 +12,7 @@ export default function Home() {
         {/* <LoginForm /> */}
         <MultiProviderLogin />
       </div>
+      <span style={{ display: "none" }}>environment is ${process.env.NEXT_PUBLIC_ENV}</span>
     </div>
   );
 }

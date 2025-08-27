@@ -40,7 +40,7 @@ async function fetchTransactions(
 
     transactions = btcResult?.transactions || []
     nextId = btcResult?.lastId || null
-  } else if (tokenType === 'TSTLPX') {
+  } else if (tokenType === 'LITKEY') {
     // As tstlpx is not supported by the moralis api, use the yellowstone api to fetch the transaction history
     const yellowstoneResult = await fetchYellowstoneTransactionHistory({
       address,

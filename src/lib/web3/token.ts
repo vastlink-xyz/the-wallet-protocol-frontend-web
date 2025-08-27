@@ -16,7 +16,7 @@ export interface TokenInfo {
   explorerBaseUrl: string;
 }
 
-export const SUPPORTED_TOKENS_INFO = {
+export const SUPPORTED_TOKENS_INFO_TESTNET = {
   BTC: {
     symbol: 'BTC',
     name: 'Bitcoin',
@@ -79,9 +79,9 @@ export const SUPPORTED_TOKENS_INFO = {
     network: 'Ethereum',
     explorerBaseUrl: 'https://sepolia.etherscan.io'
   },
-  TSTLPX: { // (Chronicle Yellowstone - Lit Protocol Testnet)
-    symbol: 'TSTLPX',
-    name: 'Chronicle Yellowstone - Lit Protocol Testnet',
+  LITKEY: { // (Chronicle Yellowstone - Lit Protocol Testnet)
+    symbol: 'LITKEY',
+    name: 'Lit Protocol Token',
     decimals: 18,
     chainType: 'EVM',
     chainName: 'yellowstone',
@@ -89,13 +89,13 @@ export const SUPPORTED_TOKENS_INFO = {
     contractAddress: '',
     addressKey: 'eth',
     defaultWithdrawLimit: '100',
-    gasFeeSymbol: 'TSTLPX',
+    gasFeeSymbol: 'LITKEY',
     network: 'Chronicle Yellowstone',
     explorerBaseUrl: 'https://yellowstone-explorer.litprotocol.com'
   },
   VAST: { // (ERC-20 on baseSepolia)
     symbol: 'VAST',
-    name: 'VAST (ERC-20)',
+    name: 'Vastlink Token',
     decimals: 18,
     chainType: 'EVM',
     chainName: 'baseSepolia',
@@ -108,6 +108,102 @@ export const SUPPORTED_TOKENS_INFO = {
     explorerBaseUrl: 'https://sepolia.basescan.org'
   },
 } as const;
+
+export const SUPPORTED_TOKENS_INFO_MAINNET = {
+  BTC: {
+    symbol: 'BTC',
+    name: 'Bitcoin',
+    decimals: 8,
+    chainType: 'UTXO',
+    chainName: 'mainnet',
+    iconUrl: '/cryptocurrency/btc.png',
+    contractAddress: '',
+    addressKey: 'btc',
+    defaultWithdrawLimit: '0.001',
+    gasFeeSymbol: 'BTC',
+    network: 'Bitcoin',
+    explorerBaseUrl: 'https://mempool.space'
+  },
+  ETH: {
+    symbol: 'ETH',
+    name: 'Ethereum',
+    decimals: 18,
+    chainType: 'EVM',
+    chainName: 'ethereum',
+    iconUrl: '/cryptocurrency/eth.png',
+    contractAddress: '',
+    addressKey: 'eth',
+    defaultWithdrawLimit: '0.1',
+    gasFeeSymbol: 'ETH',
+    network: 'Ethereum',
+    explorerBaseUrl: 'https://etherscan.io'
+  },
+  // SOL: {
+  //   symbol: 'SOL',
+  //   name: 'Solana',
+  //   decimals: 9,
+  //   chainType: 'Solana',
+  // },
+  USDT: { // (ERC-20 on sepolia)
+    symbol: 'USDT',
+    name: 'Tether (ERC-20)',
+    decimals: 6,
+    chainType: 'EVM',
+    chainName: 'ethereum',
+    iconUrl: '/cryptocurrency/usdt.png',
+    contractAddress: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+    addressKey: 'eth',
+    defaultWithdrawLimit: '100',
+    gasFeeSymbol: 'ETH',
+    network: 'Ethereum',
+    explorerBaseUrl: 'https://etherscan.io'
+  },
+  USDC: { // (ERC-20 on sepolia)
+    symbol: 'USDC',
+    name: 'USD Coin (ERC-20)',
+    decimals: 6,
+    chainType: 'EVM',
+    chainName: 'sepolia',
+    iconUrl: '/cryptocurrency/usdc.png',
+    contractAddress: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+    addressKey: 'eth',
+    defaultWithdrawLimit: '100',
+    gasFeeSymbol: 'ETH',
+    network: 'Ethereum',
+    explorerBaseUrl: 'https://etherscan.io'
+  },
+  LITKEY: {
+    symbol: 'LITKEY',
+    name: 'Lit Protocol Token',
+    decimals: 18,
+    chainType: 'EVM',
+    chainName: 'yellowstone',
+    iconUrl: '/cryptocurrency/tstlpx.png',
+    contractAddress: '',
+    addressKey: 'eth',
+    defaultWithdrawLimit: '100',
+    gasFeeSymbol: 'LITKEY',
+    network: 'Chronicle Yellowstone',
+    explorerBaseUrl: 'https://chain.litprotocol.com/'
+  },
+  VAST: {
+    symbol: 'VAST',
+    name: 'Vastlink Token',
+    decimals: 18,
+    chainType: 'EVM',
+    chainName: 'base',
+    iconUrl: '/cryptocurrency/vast.png',
+    contractAddress: VAST_CONTRACT_ADDRESS,
+    addressKey: 'eth',
+    defaultWithdrawLimit: '100',
+    gasFeeSymbol: 'ETH',
+    network: 'Base',
+    explorerBaseUrl: 'https://basescan.org/'
+  },
+} as const;
+
+export const SUPPORTED_TOKENS_INFO = 
+  process.env.NEXT_PUBLIC_ENV?.toLowerCase() === 'production' ? SUPPORTED_TOKENS_INFO_MAINNET : SUPPORTED_TOKENS_INFO_TESTNET;
 
 /**
  * SUPPORTED_TOKENS_INFO as an array for easier iteration and mapping

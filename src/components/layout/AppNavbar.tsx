@@ -28,17 +28,22 @@ export default function AppNavbar() {
             <img src="/vastbase.svg" className='h-13' />
           </Link>
 
-          <p className={cn(
-            'text-white',
-            'text-xs tablet:text-base',
-            'flex items-center gap-2'
-          )}>
-            <AlertTriangleIcon className={cn(
-              'w-4 h-4 text-amber-300',
-              'tablet:w-5 h-5'
-            )} />
-            <span>{t('testnets')}</span>
-          </p>
+          {
+            process.env.NEXT_PUBLIC_ENV?.toLowerCase() !== 'production' && 
+            (
+              <p className={cn(
+                'text-white',
+                'text-xs tablet:text-base',
+                'flex items-center gap-2'
+              )}>
+                <AlertTriangleIcon className={cn(
+                  'w-4 h-4 text-amber-300',
+                  'tablet:w-5 h-5'
+                )} />
+                <span>{t('testnets')}</span>
+              </p>
+            )
+          }
 
           <div className='flex items-center gap-2'>
             <LocaleSwitcher />
