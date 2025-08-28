@@ -10,7 +10,6 @@ import { editAuthmethodForDebugLitActionCode } from "@/app/debug/components/Exam
 import { encryptString } from "@lit-protocol/encryption";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
-import { verifyAuthTokenLitActionCode } from "@/lib/lit-action-code/verify-auth-token";
 import { personalSignLitActionCode } from "@/lib/lit-action-code/proposal-sign.lit";
 import { decryptDebugLitActionCode } from "@/app/debug/decrypt-lit-action";
 import { litActionCodeForUpdateMultisigWalletSettings } from "@/lib/lit-action-code/update-multisig-wallet-settings";
@@ -22,11 +21,9 @@ import { litActionCodeForMultiProviderAuth } from "@/lib/lit-action-code/multi-p
 import { VastbaseAuthMethod } from "@/lib/lit/custom-auth";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import { litActionCodeForAPIKeyManagement } from "@/lib/lit-action-code/api-key-management.lit";
-import { litActionCodeForDebugAPIKeys } from "@/lib/lit-action-code/debug-api-keys.lit";
-import { litActionCodeForDebugSessionSigs } from "@/lib/lit-action-code/debug-session-sigs.lit";
-import { litActionCodeForDebugStytchLogin } from "@/lib/lit-action-code/debug-login.lit";
-import { litActionCodeForDebugStytchVerifyLogin } from "@/lib/lit-action-code/debug-verify-login.lit";
 import { litActionContext } from "@/lib/lit";
+import { litActionCodeForCommonUpgradableProxy } from "@/lib/lit-action-code/common-upgradable-proxy.lit";
+import { litActionCodeForDecryptAndCombine } from "@/lib/lit-action-code/decrypt-and-combine.lit";
 
 
 // const litActionCode = litActionCodeForMultiProviderAuth
@@ -35,12 +32,7 @@ import { litActionContext } from "@/lib/lit";
 // const litActionCode = litActionCodeForMultisigTransaction
 // const litActionCode = litActionCodeForPersonalTransaction
 
-// const litActionCode = litActionCodeForAPIKeyManagement
-// const litActionCode = litActionCodeForDebugAPIKeys
-
-// const litActionCode = litActionCodeForDebugSessionSigs
-// const litActionCode = litActionCodeForDebugStytchLogin
-const litActionCode = litActionCodeForDebugStytchVerifyLogin
+const litActionCode = litActionCodeForCreateMultisigWallet
 
 interface ExecuteLitActionCodeProps {
   authMethod: VastbaseAuthMethod;

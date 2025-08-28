@@ -1,5 +1,4 @@
 import { getLitActionIpfsCid } from "./get-lit-action-ipfs-cid"
-import { verifyAuthTokenLitActionCode } from "../lit-action-code/verify-auth-token"
 import { litActionCodeForMultisigTransaction } from "../lit-action-code/multisig-transaction.lit"
 import { personalSignLitActionCode } from "../lit-action-code/proposal-sign.lit"
 import { litActionCodeForPersonalTransaction } from "../lit-action-code/personal-transaction.lit"
@@ -9,41 +8,44 @@ import { litActionCodeForCreateMultisigWallet } from "../lit-action-code/create-
 import { litActionCodeForSecurityVerification } from "../lit-action-code/security-verification.lit"
 import { litActionCodeForMultiProviderAuth } from "../lit-action-code/multi-provider-auth.lit"
 import { litActionCodeForAPIKeyManagement } from "../lit-action-code/api-key-management.lit"
-import { litActionCodeForDebugAPIKeys } from "../lit-action-code/debug-api-keys.lit"
-import { litActionCodeForDebugStytchLogin } from "../lit-action-code/debug-login.lit"
-import { litActionCodeForDebugStytchVerifyLogin } from "../lit-action-code/debug-verify-login.lit"
 import { litActionCodeForDecryptAndCombine } from "../lit-action-code/decrypt-and-combine.lit"
 
-const updateWalletSettingsIpfsId = 'QmdCHgm4uAaQWzPR9pTf8WCKQDKTTLeyjnLehp5DevkaKy'
-const updateWalletSettingsIpfsIdHex = '0x1220dcbae2eb8103743aa6686169d46f34cfde13a60a0e74805cbed812de26819f18'
+import { litActionCodeForDebugAPIKeys } from "../lit-action-code-debug(used for litprotocol-irys demo and apikey management)/debug-api-keys.lit"
+import { litActionCodeForDebugStytchLogin } from "../lit-action-code-debug(used for litprotocol-irys demo and apikey management)/debug-login.lit"
+import { litActionCodeForDebugStytchVerifyLogin } from "../lit-action-code-debug(used for litprotocol-irys demo and apikey management)/debug-verify-login.lit"
 
-const createWalletIpfsId = 'QmWqra156GwV2cr9pDcQdv8GYAro4e3ch6gAHvZo3h7GA3'
-const createWalletIpfsIdHex = '0x12207e58bfd35ba3463a00393b11b75ed1b9f185376ea3bcec157eb1be8149162a58'
 
-const verifyAuthTokenIpfsId = 'QmdeSZo7yUsfT4fVosxK55dz4fPEWokeFBPfRR2NdV9HJm'
-const verifyAuthTokenIpfsHex = '0x1220e36e072b05d2d058cdbbbedfd7c924f89895b727066a73e4e29f6a1f88b75d86'
+const updateWalletSettingsIpfsId = 'QmZZWwWLrkK8vLNvucM5q7iSqfkha4TMgXUZutSuqzitX5'
+const updateWalletSettingsIpfsIdHex = '0x1220a6bc52830b5b369ebf8695e12f95571e2a250e439e46c9cef1a007ee08608a74'
 
-const multisigTransactionIpfsId = 'QmXitw6nRyuniNHFZRfzuHXgxL4kB5cZMCJckzxRNC7EGF'
-const multisigTransactionIpfsHex = '0x12208b6c0b15d200c6b4b278954758de3e04cbc804ebe9b74d240537b316119eb388'
+const createWalletIpfsId = 'QmWf9N4fVGzWBsAMLe9fndq35JjU8pwJ3P9pBm9pceAevq'
+const createWalletIpfsIdHex = '0x12207b9a59829d92275e8c5c8a44f6b3589120b57481aeeccde79655044e0e6e1bbe'
 
-const personalSignIpfsId = 'QmVZfSsZS7uggyZkmuCN1BECCkRyCLASA1hkn6yTaDrHQX'
-const personalSignIpfsIdHex = '0x12206b57315602eb6bcf0d38eadb929fe06122bb8b4b1e4f6479074e94195b89b11c'
+const multisigTransactionIpfsId = 'QmRsdhfgPVm4QAiG6NderLbTVTZRQ14dwMRCFiaxRihXy3'
+const multisigTransactionIpfsHex = '0x12203482ed35a23dddc59f98edce9de3f5c90325d54d093c0ee30e93eac5af0b5efa'
 
-const personalTransactionIpfsId = 'QmeFc4eZVmboS36FjWb5iuHQ8pqQGKrRHMTrQESqj1sMAE'
-const personalTransactionIpfsIdHex = '0x1220ec70185a1b8a335378dbcc0b9fbf15fbc32ef2edd8905e5fb601cd6b6761da77'
+const personalSignIpfsId = 'QmVbaippnwE2KrDNdywC2rDctp48yrof3TRdHFAQ6EjW6h'
+const personalSignIpfsIdHex = '0x12206bd503067bfc0d473ea6f2618a0f1c1de46a3bffab2140156ea5ab0b13766b1e'
 
-const upgradeIpfsId = 'QmTdAJGwtd1Ex1akC5zjzQsHTGtPKKj4WnDNQftLsXN6Um'
-const upgradeIpfsIdHex = '0x12204e852f217ab356ea529afc8584ef67340cae7b0cb0e76d8045735537f9323ca6'
+const personalTransactionIpfsId = 'Qmbqm2N3M92AYpK3v5C7DqzGmCtMu2puQUqW7Um2wJMJzg'
+const personalTransactionIpfsIdHex = '0x1220c89ce9e49aa976cb676c772793520d18d5e28d99d773692e481d2f8c9fff34a5'
 
-const securityVerificationIpfsId = 'QmQ2uYBBDWvRuBG8M1ruF5vdpxUtKGQJ6XYk8FV9qwrFcf'
-const securityVerificationIpfsIdHex = '0x1220192bafae343aaa8f0b3daf1fbae32df693aabf915aaeb48c7787f1b89b125114'
+const upgradeIpfsId = 'QmcZnFAjuh9NC9LCRfeoLkZ5Wd2c6JekWiFA9ygqrk8ojS'
+const upgradeIpfsIdHex = '0x1220d360b01e6fd2706339fa441a24dac05ff273f3407d0686f1ea53c22605eba3fd'
 
-const multiProviderAuthIpfsId = 'QmUALzmKCewVAHvjgqiu3UKCYXESEbZkjJiXVkjUV9iPUj'
-const multiProviderAuthIpfsIdHex = '0x122056824919f62c758f1077655070e5ef9b0f422e7dad3888efb1e2c110216a9288'
+export const securityVerificationIpfsId = 'QmY31p17D6Qhe7XXY6YJ7hKFs2cuMUeoXhM6PDQaunXUyy'
+const securityVerificationIpfsIdHex = '0x12209010464044d3cc8864927a15f247fdc20b540e4b10be6181d2f8c0bbe913ec74'
 
-const apiKeyManagementIpfsId = 'QmT7bBZqsYubFWcPDxgrqgC71GiJwFA5ZyUouRTxcd6mse'
-const apiKeyManagementIpfsIdHex = '0x122046f1e58a0711b6eb661411bb958a058d028ae9719bf9665a2ac0545928bef451'
+export const multiProviderAuthIpfsId = 'QmZz9cqzvC9YLXxEFzTxX3AqdLTFPMCz37vYmm7gRz4CtR'
+const multiProviderAuthIpfsIdHex = '0x1220ad0bbbe545b144a5eea3a24393fa785f3619a649303404a3ad2ed60069c714fa'
 
+const apiKeyManagementIpfsId = 'Qme6Vm4mAN75NZ6N12q6L6Xn1qvFa9GdcsifQqZM7Akr8d'
+const apiKeyManagementIpfsIdHex = '0x1220ea1abda8380c5012ad43dfcf529bee559b182c0f7cfc2f288847828f5c1794a6'
+
+export const decryptAndCombineIpfsId = 'QmNrnF6JziscMbepBwWsx8YiWcEsrDgX6Ji5EbBVgtt49A'
+const decryptAndCombineIpfsIdHex = '0x122007b7f1798c32489713d369f766588b0e2dc6c1469d72514da33e84959af538cd'
+
+// ===== Debug lit actions =====
 const debugAPIKeysIpfsId = 'QmNeoddCrUW8UuyDagzXDERay46PgWybg9Am4tqpyDB9k7'
 const debugAPIKeysIpfsIdHex = '0x122004a68b249aacc42ee7e0674947575cea793cd4d745670e3fef715118e15a86f4'
 
@@ -52,9 +54,7 @@ const debugStytchLoginIpfsIdHex = '0x1220b0e95341939a2c604dc877948346b2a492ae174
 
 const debugStytchVerifyLoginIpfsId = 'QmZ5yzqa94k9qQZ35xJBYF4ViHrewmxBjPkMV3iHHNm4DB'
 const debugStytchVerifyLoginIpfsIdHex = '0x12209faea7528a0b12ca1301638aaab26365067f3e3f6c9fb06760e933c4410929de'
-
-const decryptAndCombineIpfsId = ''
-const decryptAndCombineIpfsIdHex = ''
+// ===== Debug lit actions =====
 
 export const getUpdateWalletIpfsId = async (outputFormat: "base58" | "hex") => {
   if (process.env.NEXT_PUBLIC_ENV === 'dev') {
@@ -82,21 +82,6 @@ export const getCreateWalletIpfsId = async (outputFormat: "base58" | "hex") => {
       return createWalletIpfsId
     } else {
       return createWalletIpfsIdHex
-    }
-  }
-}
-
-export const getVerifyAuthTokenIpfsId = async (outputFormat: "base58" | "hex") => {
-  if (process.env.NEXT_PUBLIC_ENV === 'dev') {
-    return await getLitActionIpfsCid({
-      input: verifyAuthTokenLitActionCode,
-      outputFormat: outputFormat
-    })
-  } else {
-    if (outputFormat === "base58") {
-      return verifyAuthTokenIpfsId
-    } else {
-      return verifyAuthTokenIpfsHex
     }
   }
 }
@@ -206,6 +191,22 @@ export const getAPIKeyManagementIpfsId = async (outputFormat: "base58" | "hex") 
   }
 }
 
+export const getDecryptAndCombineIpfsId = async (outputFormat: "base58" | "hex") => {
+  if (process.env.NEXT_PUBLIC_ENV === 'dev') {
+    return await getLitActionIpfsCid({
+      input: litActionCodeForDecryptAndCombine,
+      outputFormat: outputFormat
+    })
+  } else {
+    if (outputFormat === "base58") {
+      return decryptAndCombineIpfsId
+    } else {
+      return decryptAndCombineIpfsIdHex
+    }
+  }
+}
+
+// ===== Debug lit actions =====
 export const getDebugAPIKeysIpfsId = async (outputFormat: "base58" | "hex") => {
   if (process.env.NEXT_PUBLIC_ENV === 'dev') {
     return await getLitActionIpfsCid({
@@ -250,18 +251,4 @@ export const getDebugStytchVerifyLoginIpfsId = async (outputFormat: "base58" | "
     }
   }
 }
-
-export const getDecryptAndCombineIpfsId = async (outputFormat: "base58" | "hex") => {
-  if (process.env.NEXT_PUBLIC_ENV === 'dev') {
-    return await getLitActionIpfsCid({
-      input: litActionCodeForDecryptAndCombine,
-      outputFormat: outputFormat
-    })
-  } else {
-    if (outputFormat === "base58") {
-      return decryptAndCombineIpfsId
-    } else {
-      return decryptAndCombineIpfsIdHex
-    }
-  }
-}
+// ===== Debug lit actions =====

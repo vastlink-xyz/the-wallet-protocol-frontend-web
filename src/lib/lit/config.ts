@@ -1,5 +1,6 @@
 import { LIT_NETWORK } from '@lit-protocol/constants';
 import { LIT_NETWORKS_KEYS } from '@lit-protocol/types';
+import { decryptAndCombineIpfsId, multiProviderAuthIpfsId, securityVerificationIpfsId } from './ipfs-id-env';
 
 // Basic configuration
 // export const DOMAIN = 'localhost';
@@ -18,7 +19,7 @@ export const litActionContext = {
   apiBaseUrl: process.env.NEXT_PUBLIC_BASE_URL_FOR_LIT_ACTION,
   litNetwork: SELECTED_LIT_NETWORK,
   // IPFS IDs
-  multiProviderAuthIpfsId: 'QmUALzmKCewVAHvjgqiu3UKCYXESEbZkjJiXVkjUV9iPUj',
-  securityVerificationIpfsId: 'QmQ2uYBBDWvRuBG8M1ruF5vdpxUtKGQJ6XYk8FV9qwrFcf',
-  decryptAndCombineIpfsId: 'QmX3zpPjXTc9VH1fVETtSXELQ2Soynft68sYWo5MjXnFJ5',
+  multiProviderAuthIpfsId,
+  securityVerificationIpfsId,
+  decryptAndCombineIpfsId,
 }
