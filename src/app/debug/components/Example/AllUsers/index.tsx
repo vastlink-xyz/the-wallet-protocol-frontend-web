@@ -8,7 +8,7 @@ import { PKPEthersWallet } from '@lit-protocol/pkp-ethers';
 import { log } from '@/lib/utils';
 import { AuthMethod, IRelayPKP, SessionSigs } from '@lit-protocol/types';
 import { User } from '@/app/api/user/storage';
-import { getPersonalSignIpfsId, getPersonalTransactionIpfsId, getVerifyAuthTokenIpfsId } from '@/lib/lit/ipfs-id-env';
+import { getPersonalSignIpfsId, getPersonalTransactionIpfsId } from '@/lib/lit/ipfs-id-env';
 import { LIT_NETWORK } from '@lit-protocol/constants';
 import { getBtcAddressByPublicKey } from '@/lib/web3/btc';
 import { litActionCodeForCommonUpgradableProxy } from '@/lib/lit-action-code/common-upgradable-proxy.lit';

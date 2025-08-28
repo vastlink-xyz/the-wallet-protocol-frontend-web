@@ -1,5 +1,5 @@
 import { MessageProposal, MultisigWallet } from "@/app/api/multisig/storage";
-import { litNodeClient } from "@/lib/lit";
+import { litActionContext, litNodeClient } from "@/lib/lit";
 import { getMultisigTransactionIpfsId, getUpdateWalletIpfsId } from "@/lib/lit/ipfs-id-env";
 import { log } from "@/lib/utils";
 import { IRelayPKP } from "@lit-protocol/types";
@@ -234,8 +234,7 @@ export const executeTransactionProposal = async ({
     chainType: SUPPORTED_TOKENS_INFO[tokenType].chainType,
     toSignTransaction: txData.toSign,
     transactionAmount: txDetails.value,
-    env: process.env.NEXT_PUBLIC_ENV,
-    devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY || '',
+    litActionContext,
     authParams: {
       accessToken,
       authMethodId: authMethodId,

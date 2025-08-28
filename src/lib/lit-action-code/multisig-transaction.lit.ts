@@ -6,8 +6,6 @@ declare const walletId: string
 declare const toSignTransaction: any
 declare const transactionAmount: string // unit is ETH or BTC
 declare const chainType: string
-declare const env: string
-declare const devUrl: string
 declare const authParams: any
 
 declare const publicKeys: string[]
@@ -118,13 +116,12 @@ const go = async () => {
     }
 
     // Use unified security verification Lit Action
-    const securityVerificationIpfsId = 'QmQ2uYBBDWvRuBG8M1ruF5vdpxUtKGQJ6XYk8FV9qwrFcf'
+    const securityVerificationIpfsId = litActionContext.securityVerificationIpfsId
     const securityVerificationResult = await Lit.Actions.call({
       ipfsId: securityVerificationIpfsId,
       params: {
         authParams,
-        env,
-        devUrl,
+        litActionContext,
         transactionAmount,
         tokenType,
         contextType: 'multisigWalletTransaction',

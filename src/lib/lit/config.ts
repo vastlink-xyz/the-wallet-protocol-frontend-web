@@ -19,4 +19,5 @@ export const litActionContext = {
   litNetwork: SELECTED_LIT_NETWORK,
   // IPFS IDs
   multiProviderAuthIpfsId: 'QmUALzmKCewVAHvjgqiu3UKCYXESEbZkjJiXVkjUV9iPUj',
+  securityVerificationIpfsId: 'QmQ2uYBBDWvRuBG8M1ruF5vdpxUtKGQJ6XYk8FV9qwrFcf',
 }

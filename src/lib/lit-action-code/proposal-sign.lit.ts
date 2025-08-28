@@ -2,12 +2,12 @@ declare const ethers: any
 
 declare const message: string
 declare const publicKey: string
-declare const env: string
 declare const authParams: any
-declare const devUrl: string
+
+declare const litActionContext: any
 
 const _litActionCode = async () => {
-  const multiProviderAuthIpfsId = 'QmUALzmKCewVAHvjgqiu3UKCYXESEbZkjJiXVkjUV9iPUj' 
+  const multiProviderAuthIpfsId = litActionContext.multiProviderAuthIpfsId
   // verify auth token
   const authResult = await Lit.Actions.call({
     ipfsId: multiProviderAuthIpfsId,
@@ -16,8 +16,7 @@ const _litActionCode = async () => {
       accessToken: authParams.accessToken,
       pkpTokenId: authParams.pkpTokenId,
       authMethodType: authParams.authMethodType,
-      env,
-      devUrl,
+      litActionContext,
     },
   })
   console.log('Multi-provider auth result:', authResult)

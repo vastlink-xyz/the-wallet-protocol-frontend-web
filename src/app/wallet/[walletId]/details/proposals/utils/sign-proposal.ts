@@ -1,5 +1,5 @@
 import { MessageProposal, MultisigWallet } from "@/app/api/multisig/storage";
-import { litNodeClient } from "@/lib/lit";
+import { litActionContext, litNodeClient } from "@/lib/lit";
 import { getPersonalSignIpfsId } from "@/lib/lit/ipfs-id-env";
 import { log } from "@/lib/utils";
 import { IRelayPKP } from "@lit-protocol/types";
@@ -57,8 +57,7 @@ export const signProposal = async ({
     jsParams: {
       message: proposal.message,
       publicKey: userPkp.publicKey,
-      env: process.env.NEXT_PUBLIC_ENV,
-      devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY || '',
+      litActionContext,
       authParams: {
         accessToken,
         providerType,

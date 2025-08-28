@@ -1,6 +1,5 @@
 declare const authParams: any
-declare const env: string
-declare const devUrl: string
+
 declare const transactionAmount: string
 declare const tokenType: string
 declare const contextType: string
@@ -10,20 +9,12 @@ declare const mfaType: string
 declare const mfaCode: string
 declare const mfaMethodId: string
 
+declare const litActionContext: any
+
 const securityVerification = async () => {
   try {
     // Determine API base URL based on environment
-    let apiBaseUrl: string;
-    switch (env) {
-      case 'dev':
-        apiBaseUrl = devUrl;
-        break;
-      case 'test':
-        apiBaseUrl = 'https://dev-app-vastbase-eb1a4b4e8e63.herokuapp.com';
-        break;
-      default:
-        throw new Error(`Invalid Base URL for environment: ${env}`);
-    }
+    const apiBaseUrl = litActionContext.apiBaseUrl
 
     console.log('Starting unified security verification...', {
       transactionAmount,

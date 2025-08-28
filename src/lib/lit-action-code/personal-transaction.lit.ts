@@ -3,8 +3,6 @@ declare const ethers: any
 declare const publicKey: string
 declare const toSignTransaction: any
 declare const authParams: any
-declare const env: string
-declare const devUrl: string
 declare const chainType: string
 declare const tokenType: string
 declare const transactionAmount: string // unit is ETH or BTC
@@ -15,12 +13,15 @@ declare const mfaType: string // 'WHATSAPP_OTP' | 'TOTP' | 'EMAIL_OTP'
 declare const mfaCode: string // OTP/TOTP code for MFA verification
 declare const mfaMethodId: string // Stytch method ID for WhatsApp/Email OTP
 
+declare const litActionContext: any
+
 const go = async () => {
-  const securityVerificationIpfsId = 'QmQ2uYBBDWvRuBG8M1ruF5vdpxUtKGQJ6XYk8FV9qwrFcf'
+  const apiBaseUrl = litActionContext.apiBaseUrl
+  const securityVerificationIpfsId = litActionContext.securityVerificationIpfsId
   const publicKeyForLit = publicKey.replace(/^0x/, '');
 
   // verify auth using multi-provider authentication
-  const multiProviderAuthIpfsId = 'QmUALzmKCewVAHvjgqiu3UKCYXESEbZkjJiXVkjUV9iPUj' 
+  const multiProviderAuthIpfsId = litActionContext.multiProviderAuthIpfsId
 
   const authResult = await Lit.Actions.call({
     ipfsId: multiProviderAuthIpfsId,
@@ -29,8 +30,7 @@ const go = async () => {
       accessToken: authParams.accessToken,
       pkpTokenId: authParams.pkpTokenId,
       authMethodType: authParams.authMethodType,
-      env,
-      devUrl,
+      litActionContext,
     },
   })
   console.log('Multi-provider auth result:', authResult)
@@ -40,28 +40,12 @@ const go = async () => {
     return
   }
 
-  let apiBaseUrl: string;
-  let litDatilNetwork: 'datil-dev' | 'datil-test' | 'datil';
-  switch (env) {
-    case 'dev':
-      apiBaseUrl = devUrl;
-      litDatilNetwork = 'datil-dev'
-      break;
-    case 'test':
-      apiBaseUrl = 'https://dev-app-vastbase-eb1a4b4e8e63.herokuapp.com';
-      litDatilNetwork = 'datil-dev'
-      break;
-    default:
-      throw new Error(`Invalid Base URL`);
-  }
-
   // Use unified security verification Lit Action
   const securityVerificationResult = await Lit.Actions.call({
     ipfsId: securityVerificationIpfsId,
     params: {
       authParams,
-      env,
-      devUrl,
+      litActionContext,
       transactionAmount,
       tokenType,
       contextType: 'personalWalletTransaction',

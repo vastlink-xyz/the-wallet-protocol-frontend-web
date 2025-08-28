@@ -8,7 +8,7 @@ import { AuthProviderType } from '@/lib/lit/custom-auth'
 import { IRelayPKP } from '@lit-protocol/types'
 import { MultisigWallet } from '@/app/api/multisig/storage'
 import { User } from '@/app/api/user/storage'
-import { litNodeClient } from '@/lib/lit'
+import { litActionContext, litNodeClient } from '@/lib/lit'
 import { getMultiProviderSessionSigs } from '@/lib/lit/pkpManager'
 import { getPersonalSignIpfsId, getPersonalTransactionIpfsId } from '@/lib/lit/ipfs-id-env'
 import { getVastbaseAuthMethodType } from '@/lib/lit/custom-auth'
@@ -165,8 +165,7 @@ async function handlePersonalSign(params: TransactionHandlerParams): Promise<str
       jsParams: {
         message: messageString,
         publicKey: userPkp.publicKey,
-        env: process.env.NEXT_PUBLIC_ENV,
-        devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY || '',
+        litActionContext,
         authParams: {
           accessToken,
           authMethodId,

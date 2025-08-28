@@ -3,8 +3,7 @@ declare const walletId: string
 declare const proposalId: string
 declare const ethers: any
 declare const publicKey: string
-declare const env: string
-declare const devUrl: string
+
 declare const vastbaseAuthMethodType: number
 declare const pinCode: string | undefined
 declare const mfaType: string | undefined
@@ -12,10 +11,13 @@ declare const mfaCode: string | undefined
 declare const mfaMethodId: string | undefined
 declare const Lit: any
 
+declare const litActionContext: any
+
 const _litActionCode = async () => {
+  const apiBaseUrl = litActionContext.apiBaseUrl
   const currentActionIpfsId = Lit.Auth.actionIpfsIds[0]
   console.log('currentActionIpfsId', currentActionIpfsId)
-  const multiProviderAuthIpfsId = 'QmUALzmKCewVAHvjgqiu3UKCYXESEbZkjJiXVkjUV9iPUj' 
+  const multiProviderAuthIpfsId = litActionContext.multiProviderAuthIpfsId
 
   async function editAuthmethod({
     pkpPublicKey,
@@ -182,8 +184,7 @@ const _litActionCode = async () => {
       accessToken: authParams.accessToken,
       pkpTokenId: authParams.pkpTokenId,
       authMethodType: authParams.authMethodType,
-      env,
-      devUrl,
+      litActionContext,
     },
   })
   console.log('Multi-provider auth result:', authResult)
@@ -193,29 +194,13 @@ const _litActionCode = async () => {
     return
   }
 
-  let apiBaseUrl: string;
-  let litDatilNetwork: 'datil-dev' | 'datil-test' | 'datil';
-  switch (env) {
-    case 'dev':
-      apiBaseUrl = devUrl;
-      litDatilNetwork = 'datil-dev'
-      break;
-    case 'test':
-      apiBaseUrl = 'https://dev-app-vastbase-eb1a4b4e8e63.herokuapp.com';
-      litDatilNetwork = 'datil-dev'
-      break;
-    default:
-      throw new Error(`Invalid Base URL`);
-  }
-
   // Use unified security verification Lit Action
-  const securityVerificationIpfsId = 'QmQ2uYBBDWvRuBG8M1ruF5vdpxUtKGQJ6XYk8FV9qwrFcf'
+  const securityVerificationIpfsId = litActionContext.securityVerificationIpfsId
   const securityVerificationResult = await Lit.Actions.call({
     ipfsId: securityVerificationIpfsId,
     params: {
       authParams,
-      env,
-      devUrl,
+      litActionContext,
       transactionAmount: '0', // Wallet settings don't have transaction amounts
       tokenType: 'ETH', // Dummy token type for wallet settings
       contextType: 'multisigWalletSettings',
@@ -408,7 +393,7 @@ const _litActionCode = async () => {
         // Call the Action to add the signer
         const addSignerRes = await editAuthmethod({
           pkpPublicKey: publicKey,
-          litDatilNetwork: litDatilNetwork, // kkktodo
+          litDatilNetwork: litActionContext.litNetwork,
           authMethodMetadata: {
             addOrRemove: 'add',
             keyType: 2,
@@ -427,7 +412,7 @@ const _litActionCode = async () => {
         // Call the Action to remove the signer
         const removeSignerRes = await editAuthmethod({
           pkpPublicKey: response.data.pkp.publicKey,
-          litDatilNetwork: litDatilNetwork, // kkktodo
+          litDatilNetwork: litActionContext.litNetwork,
           authMethodMetadata: {
             addOrRemove: 'remove',
             keyType: 2,
