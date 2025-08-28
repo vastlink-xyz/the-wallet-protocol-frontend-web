@@ -12,6 +12,7 @@ import { AuthProviderType, getVastbaseAuthMethodType } from '@/lib/lit/custom-au
 import { useAuthContext } from '@/hooks/useAuthContext';
 import { useUserData } from '@/hooks/useUserData';
 import { log } from '@/lib/utils';
+import { litActionContext } from '@/lib/lit';
 
 interface APIKeysDebugButtonProps {
   walletId: string;
@@ -80,8 +81,7 @@ export function APIKeysDebugButton({
           action: 'print_keys',
           multisigWalletId: walletId,
           configId: configData._id,
-          env: process.env.NEXT_PUBLIC_ENV || 'dev',
-          devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY || '',
+          litActionContext,
           authParams: {
             providerType: AuthProviderType.EMAIL_OTP,
             accessToken: await getCurrentAccessToken(),

@@ -1,21 +1,11 @@
 declare const multisigWalletId: string
-declare const env: string
-declare const devUrl: string
 declare const userEmail: string
+
+declare const litActionContext: any;
 
 const go = async () => {
   try {
-    let apiBaseUrl: string;
-    switch (env) {
-      case 'dev':
-        apiBaseUrl = devUrl;
-        break;
-      case 'test':
-        apiBaseUrl = 'https://dev-app-vastbase-eb1a4b4e8e63.herokuapp.com';
-        break;
-      default:
-        throw new Error(`Invalid environment: ${env}`);
-    }
+    const apiBaseUrl = litActionContext.apiBaseUrl
 
     // 1. Fetch encrypted configuration from database
     const apiUrl = `${apiBaseUrl}/api/api-keys-config?walletId=${multisigWalletId}`;

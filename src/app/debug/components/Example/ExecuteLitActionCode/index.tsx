@@ -26,6 +26,7 @@ import { litActionCodeForDebugAPIKeys } from "@/lib/lit-action-code/debug-api-ke
 import { litActionCodeForDebugSessionSigs } from "@/lib/lit-action-code/debug-session-sigs.lit";
 import { litActionCodeForDebugStytchLogin } from "@/lib/lit-action-code/debug-login.lit";
 import { litActionCodeForDebugStytchVerifyLogin } from "@/lib/lit-action-code/debug-verify-login.lit";
+import { litActionContext } from "@/lib/lit";
 
 
 // const litActionCode = litActionCodeForMultiProviderAuth
@@ -84,10 +85,8 @@ export function ExecuteLitActionCode({
             accessToken: await getCurrentAccessToken(),
             authMethodId: authMethodId,
             authMethodType,
-            devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY || '',
           },
-          env: process.env.NEXT_PUBLIC_ENV,
-          devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY || '',
+          litActionContext,
           walletId: 'a18da2ed-7c5a-4587-baa6-d42ef26fe43a',
           proposalId: '05681f0d-f001-441a-b184-30a54a7a02ef',
         },
@@ -196,8 +195,7 @@ export function ExecuteLitActionCode({
           authMethodId,
           authMethodType: authMethod.authMethodType,
           publicKey: actionPkp?.publicKey,
-          env: process.env.NEXT_PUBLIC_ENV,
-          devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY || '',
+          litActionContext,
         },
       });
       log('response', response);

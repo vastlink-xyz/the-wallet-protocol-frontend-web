@@ -10,6 +10,7 @@ import { litNodeClient } from "@/lib/lit";
 import { getMultiProviderSessionSigs } from "@/lib/lit/pkpManager";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import { useUserData } from "@/hooks/useUserData";
+import { getDecryptAndCombineIpfsId } from "@/lib/lit/ipfs-id-env";
 
 // Create Lit Action code that will decrypt the data
 // This is the code that will run on the Lit nodes
@@ -39,8 +40,6 @@ export function Encryption({ authMethod }: { authMethod: VastbaseAuthMethod }) {
   const [decryptedText, setDecryptedText] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
-  
-  const LIT_ACTION_IPFS_ID = 'QmX3zpPjXTc9VH1fVETtSXELQ2Soynft68sYWo5MjXnFJ5'; // Replace with your actual Lit Action IPFS ID
 
   // Get current user data including litActionPkp from separate hooks
   const { authMethodId, getCurrentAccessToken } = useAuthContext();
@@ -165,10 +164,12 @@ export function Encryption({ authMethod }: { authMethod: VastbaseAuthMethod }) {
       //   ],
       // });
 
+      const litActionIpfsId = await getDecryptAndCombineIpfsId("base58")
+
       // Execute the Lit Action
       const response = await executeSecuredLitAction({
         pkpPublicKey: userData.litActionPkp.publicKey,
-        litActionIpfsId: LIT_ACTION_IPFS_ID,
+        litActionIpfsId,
         sessionSigs,
         jsParams: {
           accessControlConditions,

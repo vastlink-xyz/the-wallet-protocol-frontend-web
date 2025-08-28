@@ -232,7 +232,6 @@ const signAPIKeysProposal = async ({
         pkpTokenId: userPkp.tokenId,
         authMethodId: authMethodId,
         authMethodType: getVastbaseAuthMethodType(), // Use the actual custom auth method type
-        devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY || '',
       },
     }
   });

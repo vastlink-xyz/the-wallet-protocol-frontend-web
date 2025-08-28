@@ -3,8 +3,7 @@ import { executeSecuredLitAction } from "@/lib/lit/executeLitAction";
 import { getMultiProviderSessionSigs, litNodeClient } from "@/lib/lit";
 import { VastbaseAuthMethod } from "@/lib/lit/custom-auth";
 import { SecurityLayer } from "@/types/security";
-
-const LIT_ACTION_IPFS_ID = 'QmX3zpPjXTc9VH1fVETtSXELQ2Soynft68sYWo5MjXnFJ5';
+import { getDecryptAndCombineIpfsId } from "@/lib/lit/ipfs-id-env";
 
 export interface PinData {
   encryptedPinHash: string;
@@ -85,9 +84,11 @@ export class PinService {
         providerType: userData.authMethod.providerType,
         userEmail: userData.authMethod.primaryEmail,
       });
+
+      const litActionIpfsId = await getDecryptAndCombineIpfsId("base58")
       const response = await executeSecuredLitAction({
         pkpPublicKey: userData.litActionPkp.publicKey,
-        litActionIpfsId: LIT_ACTION_IPFS_ID,
+        litActionIpfsId,
         sessionSigs,
         jsParams: {
           accessControlConditions: storedPinData.accessControlConditions,

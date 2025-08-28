@@ -172,7 +172,6 @@ async function handlePersonalSign(params: TransactionHandlerParams): Promise<str
           authMethodType: getVastbaseAuthMethodType(), // Use the same function as proposal signing
           providerType,
           pkpTokenId: userPkp.tokenId,
-          devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY || '',
         },
       },
     })
@@ -272,15 +271,13 @@ async function handleSignTypedData(params: TransactionHandlerParams): Promise<st
         chainType: 'EVM', // Use EVM path for signAndCombineEcdsa
         tokenType: 'ETH', // Dummy value, not used for signing
         transactionAmount: '0', // Dummy value, not used for signing
-        env: process.env.NEXT_PUBLIC_ENV,
-        devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY || '',
+        litActionContext,
         authParams: {
           accessToken,
           authMethodId,
           authMethodType: getVastbaseAuthMethodType(),
           providerType,
           pkpTokenId: userPkp.tokenId,
-          devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY || '',
         },
         // Security params for typed data signing
         pinCode: pinCode || '',

@@ -5,27 +5,16 @@ declare const publicKey: string;
 declare const authMethodId: string;
 declare const authMethodType: number;
 declare const accessToken: string;
-declare const env: string
-declare const devUrl: string
+
+declare const litActionContext: any;
 
 declare const ethers: any;
 // declare const Lit: any;
 
 const _litActionCode = async () => {
+  const apiBaseUrl = litActionContext.apiBaseUrl
   const res = {
     "isPermitted": false,
-  }
-
-  let apiBaseUrl: string;
-  switch (env) {
-    case 'dev':
-      apiBaseUrl = devUrl;
-      break;
-    case 'test':
-      apiBaseUrl = 'https://dev-app-vastbase-eb1a4b4e8e63.herokuapp.com';
-      break;
-    default:
-      throw new Error(`Invalid Base URL`);
   }
 
   const isSuccess = await Lit.Actions.runOnce(

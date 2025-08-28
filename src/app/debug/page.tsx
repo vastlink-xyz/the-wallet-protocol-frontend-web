@@ -134,12 +134,10 @@ export default function DebugPage() {
           accessToken,
           authMethodId,
           authMethodType: authMethod.authMethodType,
-          devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY || '',
         },
         message: 'Hello, world!',
         publicKey: pkp.publicKey,
-        env: process.env.NEXT_PUBLIC_ENV,
-        devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY || '',
+        litActionContext,
       },
     })
 

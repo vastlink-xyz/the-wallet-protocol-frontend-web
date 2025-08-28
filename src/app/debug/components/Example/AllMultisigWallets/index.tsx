@@ -103,9 +103,7 @@ export function AllMultisigWallets({
         sessionSigs,
         jsParams: {
           publicKey: wallet.pkp.publicKey,
-          litDatilNetwork: SELECTED_LIT_NETWORK,
-          env: process.env.NEXT_PUBLIC_ENV,
-          devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY || '',
+          litActionContext,
           authMethodMetadata: {
             addOrRemove: 'remove',
             keyType: 2,

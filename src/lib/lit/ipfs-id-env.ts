@@ -12,6 +12,7 @@ import { litActionCodeForAPIKeyManagement } from "../lit-action-code/api-key-man
 import { litActionCodeForDebugAPIKeys } from "../lit-action-code/debug-api-keys.lit"
 import { litActionCodeForDebugStytchLogin } from "../lit-action-code/debug-login.lit"
 import { litActionCodeForDebugStytchVerifyLogin } from "../lit-action-code/debug-verify-login.lit"
+import { litActionCodeForDecryptAndCombine } from "../lit-action-code/decrypt-and-combine.lit"
 
 const updateWalletSettingsIpfsId = 'QmdCHgm4uAaQWzPR9pTf8WCKQDKTTLeyjnLehp5DevkaKy'
 const updateWalletSettingsIpfsIdHex = '0x1220dcbae2eb8103743aa6686169d46f34cfde13a60a0e74805cbed812de26819f18'
@@ -51,6 +52,9 @@ const debugStytchLoginIpfsIdHex = '0x1220b0e95341939a2c604dc877948346b2a492ae174
 
 const debugStytchVerifyLoginIpfsId = 'QmZ5yzqa94k9qQZ35xJBYF4ViHrewmxBjPkMV3iHHNm4DB'
 const debugStytchVerifyLoginIpfsIdHex = '0x12209faea7528a0b12ca1301638aaab26365067f3e3f6c9fb06760e933c4410929de'
+
+const decryptAndCombineIpfsId = ''
+const decryptAndCombineIpfsIdHex = ''
 
 export const getUpdateWalletIpfsId = async (outputFormat: "base58" | "hex") => {
   if (process.env.NEXT_PUBLIC_ENV === 'dev') {
@@ -243,6 +247,21 @@ export const getDebugStytchVerifyLoginIpfsId = async (outputFormat: "base58" | "
       return debugStytchVerifyLoginIpfsId
     } else {
       return debugStytchVerifyLoginIpfsIdHex
+    }
+  }
+}
+
+export const getDecryptAndCombineIpfsId = async (outputFormat: "base58" | "hex") => {
+  if (process.env.NEXT_PUBLIC_ENV === 'dev') {
+    return await getLitActionIpfsCid({
+      input: litActionCodeForDecryptAndCombine,
+      outputFormat: outputFormat
+    })
+  } else {
+    if (outputFormat === "base58") {
+      return decryptAndCombineIpfsId
+    } else {
+      return decryptAndCombineIpfsIdHex
     }
   }
 }

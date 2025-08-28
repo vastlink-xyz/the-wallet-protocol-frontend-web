@@ -8,6 +8,7 @@ import { litNodeClient } from '@/lib/lit/providers'
 import { log } from '@/lib/utils'
 import { SendTransactionDialogState } from '@/components/Transaction/SendTransactionDialog'
 import { AuthProviderType } from '@/lib/lit/custom-auth'
+import { litActionContext } from '@/lib/lit'
 
 export const sendAddressByTokenType = (tokenType: TokenType, litActionPkp: IRelayPKP | null, btcAddress: string) => {
   if (tokenType === 'ETH') {
@@ -106,8 +107,7 @@ export const executePersonalTransaction = async ({
         toSignTransaction: txData.toSign,
         transactionAmount: amount,
         publicKey: litActionPkp.publicKey,
-        env: process.env.NEXT_PUBLIC_ENV,
-        devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY || '',
+        litActionContext,
         chainType: SUPPORTED_TOKENS_INFO[tokenType].chainType,
         authParams: {
           accessToken: accessToken,

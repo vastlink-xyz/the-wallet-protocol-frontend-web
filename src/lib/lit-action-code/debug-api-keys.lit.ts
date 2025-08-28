@@ -3,22 +3,12 @@ declare const ethers: any
 declare const action: string // 'print_keys'
 declare const multisigWalletId: string
 declare const configId: string
-declare const env: string
-declare const devUrl: string
+
+declare const litActionContext: any;
 
 const go = async () => {
   try {
-    let apiBaseUrl: string;
-    switch (env) {
-      case 'dev':
-        apiBaseUrl = devUrl;
-        break;
-      case 'test':
-        apiBaseUrl = 'https://dev-app-vastbase-eb1a4b4e8e63.herokuapp.com';
-        break;
-      default:
-        throw new Error(`Invalid environment: ${env}`);
-    }
+    const apiBaseUrl = litActionContext.apiBaseUrl
 
     // Execute the print_keys action
     if (action === 'print_keys') {

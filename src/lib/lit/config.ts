@@ -20,4 +20,5 @@ export const litActionContext = {
   // IPFS IDs
   multiProviderAuthIpfsId: 'QmUALzmKCewVAHvjgqiu3UKCYXESEbZkjJiXVkjUV9iPUj',
   securityVerificationIpfsId: 'QmQ2uYBBDWvRuBG8M1ruF5vdpxUtKGQJ6XYk8FV9qwrFcf',
+  decryptAndCombineIpfsId: 'QmX3zpPjXTc9VH1fVETtSXELQ2Soynft68sYWo5MjXnFJ5',
 }

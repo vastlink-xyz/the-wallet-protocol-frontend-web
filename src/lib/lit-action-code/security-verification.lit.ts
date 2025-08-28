@@ -110,8 +110,9 @@ const securityVerification = async () => {
       console.log('Verifying PIN using Lit Action...');
       
       try {
+        const decryptAndCombineIpfsId = litActionContext.decryptAndCombineIpfsId
         const pinVerificationResult = await Lit.Actions.call({
-          ipfsId: 'QmX3zpPjXTc9VH1fVETtSXELQ2Soynft68sYWo5MjXnFJ5', // PIN verification lit action
+          ipfsId: decryptAndCombineIpfsId, // PIN verification lit action
           params: {
             accessControlConditions: parsedResult.pinData.accessControlConditions,
             ciphertext: parsedResult.pinData.encryptedPinHash,
