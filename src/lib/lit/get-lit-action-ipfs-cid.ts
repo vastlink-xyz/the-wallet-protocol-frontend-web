@@ -57,7 +57,7 @@ export async function uploadViaPinata(litActionCode: string) {
     formData.append("pinataMetadata", JSON.stringify({ name: "Lit-Action" }));
     formData.append("pinataOptions", JSON.stringify({ cidVersion: 0 }));
 
-    const key = process.env.NEXT_PUBLIC_PINATA_API;
+    const key = process.env.NEXT_PUBLIC_PINATA_JWT;
 
     const request = await fetch(
         "https://api.pinata.cloud/pinning/pinFileToIPFS",
