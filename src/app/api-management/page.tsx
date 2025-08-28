@@ -17,6 +17,7 @@ import { useUserData } from '@/hooks/useUserData';
 import { log } from '@/lib/utils';
 import { APIKeysProposalsList } from '@/components/APIKeysProposalsList';
 import { APIKeysDebugButton } from '@/components/APIKeysDebugButton';
+import { litActionContext } from '@/lib/lit';
 
 // Wallet interface for selection
 interface MultisigWallet {
@@ -404,8 +405,7 @@ export default function APIManagementPage() {
           action: 'decrypt',
           multisigWalletId: walletId,
           configId: configData._id,
-          env: process.env.NEXT_PUBLIC_ENV || 'dev',
-          devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY || '',
+          litActionContext,
           authParams: {
             providerType: AuthProviderType.EMAIL_OTP, // Use enum instead of string literal
             accessToken: await getCurrentAccessToken(),

@@ -13,3 +13,10 @@ export const STYTCH_SIGNIN_REDIRECT = ORIGIN + '/auth/stytch-callback';
 
 // Auth storage keys - each provider has its own storage key
 export const AUTH_METHOD_STORAGE_KEY = 'vastbase-auth'
+
+export const litActionContext = {
+  apiBaseUrl: process.env.NEXT_PUBLIC_BASE_URL_FOR_LIT_ACTION,
+  litNetwork: SELECTED_LIT_NETWORK,
+  // IPFS IDs
+  multiProviderAuthIpfsId: 'QmUALzmKCewVAHvjgqiu3UKCYXESEbZkjJiXVkjUV9iPUj',
+}

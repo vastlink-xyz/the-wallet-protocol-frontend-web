@@ -19,9 +19,12 @@ declare const mfaType: string
 declare const mfaCode: string
 declare const mfaMethodId: string
 
+declare const litActionContext: any
+
 const go = async () => {  
+  const apiBaseUrl = litActionContext.apiBaseUrl
+  const multiProviderAuthIpfsId = litActionContext.multiProviderAuthIpfsId 
   const publicKeyForLit = publicKey.replace(/^0x/, '');
-  const multiProviderAuthIpfsId = 'QmUALzmKCewVAHvjgqiu3UKCYXESEbZkjJiXVkjUV9iPUj' 
 
   try {
     // verify auth token
@@ -32,8 +35,7 @@ const go = async () => {
         accessToken: authParams.accessToken,
         pkpTokenId: authParams.pkpTokenId,
         authMethodType: authParams.authMethodType,
-        env,
-        devUrl,
+        litActionContext,
       },
     })
     console.log('Multi-provider auth result:', authResult)
@@ -41,21 +43,6 @@ const go = async () => {
     if (authResult !== 'true') {
       Lit.Actions.setResponse({response: JSON.stringify({isPermitted: false})})
       return
-    }
-
-    let apiBaseUrl: string;
-    let litDatilNetwork: 'datil-dev' | 'datil-test' | 'datil';
-    switch (env) {
-      case 'dev':
-        apiBaseUrl = devUrl;
-        litDatilNetwork = 'datil-dev'
-        break;
-      case 'test':
-        apiBaseUrl = 'https://dev-app-vastbase-eb1a4b4e8e63.herokuapp.com';
-        litDatilNetwork = 'datil-dev'
-        break;
-      default:
-        throw new Error(`Invalid Base URL`);
     }
 
     const messageHash = ethers.utils.hashMessage(message);

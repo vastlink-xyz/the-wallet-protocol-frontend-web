@@ -14,6 +14,7 @@ import { getMultiProviderAuthIpfsId, getPersonalTransactionIpfsId, getUpgradeIpf
 import { getPersonalSignIpfsId } from './ipfs-id-env';
 import { generateUnifiedAuthMethodId, getVastbaseAuthMethodType, AuthProviderType } from './custom-auth';
 import { litNodeClient, litRelay } from './providers';
+import { litActionContext } from './config';
 /**
  * Get all PKPs for the user
  * Note: This function is currently not implemented and returns empty array
@@ -225,8 +226,7 @@ export async function getMultiProviderSessionSigs({
         userEmail,
         pkpTokenId,
         authMethodType: getVastbaseAuthMethodType(),
-        env: process.env.NEXT_PUBLIC_ENV || 'dev',
-        devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY || '',
+        litActionContext,
       },
       resourceAbilityRequests: [
         {

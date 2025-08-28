@@ -4,10 +4,12 @@ declare const providerType: string
 declare const accessToken: string
 declare const pkpTokenId: string
 declare const authMethodType: string
-declare const env: string
-declare const devUrl: string
+
+declare const litActionContext: any
 
 const _litActionCode = async () => {
+  const apiBaseUrl = litActionContext.apiBaseUrl
+  
   console.log("🔄 Starting multi-provider auth Lit Action...");
 
   // Validate required parameters
@@ -16,19 +18,6 @@ const _litActionCode = async () => {
     return Lit.Actions.setResponse({
       response: "false",
     });
-  }
-
-  // Determine API base URL based on environment
-  let apiBaseUrl: string;
-  switch (env) {
-    case 'dev':
-      apiBaseUrl = devUrl;
-      break;
-    case 'test':
-      apiBaseUrl = 'https://dev-app-vastbase-eb1a4b4e8e63.herokuapp.com';
-      break;
-    default:
-      throw new Error(`Invalid Base URL for environment: ${env}`);
   }
 
   console.log("✅ Using API base URL:", apiBaseUrl);

@@ -5,15 +5,16 @@ declare const multisigWalletId: string
 declare const configId: string
 declare const proposalId: string
 declare const proposalData: any
-declare const env: string
-declare const devUrl: string
 declare const authParams: any
+
+declare const litActionContext: any
 
 // For signature verification in execute_proposal only
 declare const message: string
 
 const go = async () => {
-  const multiProviderAuthIpfsId = 'QmUALzmKCewVAHvjgqiu3UKCYXESEbZkjJiXVkjUV9iPUj'
+  const apiBaseUrl = litActionContext.apiBaseUrl
+  const multiProviderAuthIpfsId = litActionContext.multiProviderAuthIpfsId
 
   try {
     // Verify auth token for all actions
@@ -24,8 +25,7 @@ const go = async () => {
         accessToken: authParams.accessToken,
         pkpTokenId: authParams.pkpTokenId,
         authMethodType: authParams.authMethodType,
-        env,
-        devUrl,
+        litActionContext,
       },
     })
     console.log('Multi-provider auth result:', authResult)
@@ -33,18 +33,6 @@ const go = async () => {
     if (authResult !== 'true') {
       Lit.Actions.setResponse({response: JSON.stringify({success: false, error: 'Authentication failed'})})
       return
-    }
-
-    let apiBaseUrl: string;
-    switch (env) {
-      case 'dev':
-        apiBaseUrl = devUrl;
-        break;
-      case 'test':
-        apiBaseUrl = 'https://dev-app-vastbase-eb1a4b4e8e63.herokuapp.com';
-        break;
-      default:
-        throw new Error(`Invalid environment: ${env}`);
     }
 
     // Execute the requested action

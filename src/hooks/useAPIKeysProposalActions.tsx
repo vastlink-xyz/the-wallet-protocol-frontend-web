@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { litNodeClient } from "@/lib/lit";
+import { litActionContext, litNodeClient } from "@/lib/lit";
 import { getMultiProviderSessionSigs } from "@/lib/lit/pkpManager";
 import { signProposal } from "@/app/wallet/[walletId]/details/proposals/utils/sign-proposal";
 import { toast } from "react-toastify";
@@ -290,8 +290,7 @@ const executeAPIKeysProposal = async ({
       proposalId: proposal.id,
       multisigWalletId: proposal.multisigWalletId || proposal.walletId,
       proposalData: proposal.proposalData || proposal.apiKeysData, // Support both formats
-      env: process.env.NEXT_PUBLIC_ENV || 'dev',
-      devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY || '',
+      litActionContext,
       authParams,
       // Signature verification parameters
       message

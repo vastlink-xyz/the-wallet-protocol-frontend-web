@@ -11,12 +11,13 @@ import { toast } from 'react-toastify'
 import axios from 'axios'
 import { isValidEmail, log } from '@/lib/utils'
 import { 
+  litActionContext,
   litNodeClient, 
   mintPKP
 } from '@/lib/lit'
 import { encryptString } from '@lit-protocol/encryption'
 import { AUTH_METHOD_SCOPE, AUTH_METHOD_TYPE } from '@lit-protocol/constants'
-import { getCreateWalletIpfsId, getMultiProviderAuthIpfsId, getMultisigTransactionIpfsId, getUpdateWalletIpfsId, getAPIKeyManagementIpfsId } from '@/lib/lit/ipfs-id-env'
+import { getCreateWalletIpfsId, getMultisigTransactionIpfsId, getUpdateWalletIpfsId, getAPIKeyManagementIpfsId } from '@/lib/lit/ipfs-id-env'
 import { useAuthExpiration } from '@/hooks/useAuthExpiration'
 import { isTokenValid } from '@/lib/jwt'
 import { TokenType } from '@/lib/web3/token'
@@ -598,12 +599,10 @@ export function MultisigWalletFormContent({
             pkpTokenId: pkpForMultisig.tokenId,
             authMethodId: authMethodId,
             authMethodType: getVastbaseAuthMethodType(),
-            devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY || '',
           },
           dataToEncryptHash,
           publicKey: pkpForMultisig.publicKey,
-          env: process.env.NEXT_PUBLIC_ENV,
-          devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY || '',
+          litActionContext,
         },
       });
       log('litaction res', litActionRes);
