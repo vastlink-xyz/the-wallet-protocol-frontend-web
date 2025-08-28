@@ -1,7 +1,7 @@
 'use client'
 
 import { Button } from "@/components/ui/button"
-import { getLitActionIpfsCid, getPKPs, litNodeClient, getMultiProviderSessionSigs, mintPersonalPKP, SELECTED_LIT_NETWORK } from "@/lib/lit"
+import { getLitActionIpfsCid, getPKPs, litNodeClient, getMultiProviderSessionSigs, mintPersonalPKP, SELECTED_LIT_NETWORK, litActionContext } from "@/lib/lit"
 import { log } from "@/lib/utils";
 import { AccessControlConditions, SessionSigs } from "@lit-protocol/types";
 import { useEffect, useState } from "react";
@@ -237,8 +237,7 @@ export default function DebugPage() {
         jsParams: {
           publicKey: pkp.publicKey,
           litDatilNetwork: SELECTED_LIT_NETWORK,
-          env: process.env.NEXT_PUBLIC_ENV,
-          devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY || '',
+          litActionContext,
           authMethodMetadata: {
             addOrRemove: 'add',
             keyType: 2,

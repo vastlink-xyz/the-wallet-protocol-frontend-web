@@ -1,4 +1,4 @@
-import { getLitActionIpfsCid, litNodeClient, mintPersonalPKP, SELECTED_LIT_NETWORK } from "@/lib/lit";
+import { getLitActionIpfsCid, litActionContext, litNodeClient, mintPersonalPKP, SELECTED_LIT_NETWORK } from "@/lib/lit";
 import { useCustomAuthSessionSigs } from "@/hooks/useAuthContext";
 import { log } from "@/lib/utils";
 import { AuthMethod, IRelayPKP } from "@lit-protocol/types";
@@ -60,8 +60,7 @@ export function Upgrade({
         jsParams: {
           publicKey: actionPkp!.publicKey,
           litDatilNetwork: SELECTED_LIT_NETWORK,
-          env: process.env.NEXT_PUBLIC_ENV,
-          devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY || '',
+          litActionContext,
           // authMethodMetadata: {
           //   addOrRemove: 'remove',
           //   keyType: 2,
@@ -147,8 +146,7 @@ export function Upgrade({
         jsParams: {
           publicKey: actionPkp!.publicKey,
           litDatilNetwork: SELECTED_LIT_NETWORK,
-          env: process.env.NEXT_PUBLIC_ENV,
-          devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY || '',
+          litActionContext,
           authMethodMetadata: {
             addOrRemove: 'remove',
             keyType: 2,

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { MultisigWallet } from '@/app/api/multisig/storage';
 import { AuthMethod, IRelayPKP, SessionSigs } from "@lit-protocol/types";
 import { AUTH_METHOD_TYPE, AUTH_METHOD_SCOPE, LIT_NETWORK } from "@lit-protocol/constants";
-import { litNodeClient, SELECTED_LIT_NETWORK } from "@/lib/lit";
+import { litActionContext, litNodeClient, SELECTED_LIT_NETWORK } from "@/lib/lit";
 import { getMultisigTransactionIpfsId, getPersonalSignIpfsId, getUpdateWalletIpfsId } from "@/lib/lit/ipfs-id-env";
 import { log } from "@/lib/utils";
 import { LitContracts } from '@lit-protocol/contracts-sdk';
@@ -71,8 +71,7 @@ export function AllMultisigWallets({
         jsParams: {
           publicKey: wallet.pkp.publicKey,
           litDatilNetwork: SELECTED_LIT_NETWORK,
-          env: process.env.NEXT_PUBLIC_ENV,
-          devUrl: process.env.NEXT_PUBLIC_DEV_URL_FOR_LIT_ACTION_LOCAL_ONLY || '',
+          litActionContext,
           authMethodMetadata: {
             addOrRemove: 'add',
             keyType: 2,

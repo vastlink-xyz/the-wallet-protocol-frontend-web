@@ -1,7 +1,7 @@
 declare const ethers: any
 declare const publicKey: string
-declare const env: string
 declare const Lit: any
+declare const litActionContext: any
 declare const authMethodMetadata: {
   addOrRemove: 'add' | 'remove';
   keyType: number;
@@ -174,18 +174,7 @@ const _litActionCode = async () => {
   }
 
   try {
-    let litDatilNetwork: 'datil-dev' | 'datil-test' | 'datil';
-    switch (env) {
-      case 'dev':
-        litDatilNetwork = 'datil-dev'
-        break;
-      case 'test':
-        litDatilNetwork = 'datil-dev'
-        break;
-      default:
-        throw new Error(`Invalid Base URL`);
-    }
-
+    const litDatilNetwork = litActionContext.litNetwork
     const res = await editAuthmethod({
       pkpPublicKey: publicKey,
       litDatilNetwork: litDatilNetwork,
