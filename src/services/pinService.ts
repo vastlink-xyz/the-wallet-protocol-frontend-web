@@ -173,8 +173,8 @@ export class PinService {
       }
       
       const data = await response.json();
-      const pinLayers = data.pinLayers || [];
-      const pinLayer = pinLayers.find((layer: SecurityLayer) => layer.type === 'PIN');
+      const layers = data.securityLayers || [];
+      const pinLayer = layers.find((layer: SecurityLayer) => layer.type === 'PIN');
       
       if (!pinLayer) {
         throw new Error('No existing PIN layer found');
