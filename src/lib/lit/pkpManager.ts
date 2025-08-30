@@ -15,6 +15,7 @@ import { getPersonalSignIpfsId } from './ipfs-id-env';
 import { generateUnifiedAuthMethodId, getVastbaseAuthMethodType, AuthProviderType } from './custom-auth';
 import { litNodeClient, litRelay } from './providers';
 import { litActionContext } from './config';
+import { getCapacityDelegationAuthSig } from './capacityDelegationAughSig';
 /**
  * Get all PKPs for the user
  * Note: This function is currently not implemented and returns empty array
@@ -216,10 +217,13 @@ export async function getMultiProviderSessionSigs({
     
     log('Using multi-provider auth Lit Action:', multiProviderAuthIpfsId);
 
+    const capacityDelegationAuthSig = await getCapacityDelegationAuthSig();
+
     const sessionSigs = await litNodeClient.getPkpSessionSigs({
       pkpPublicKey,
       // Use Lit Action for custom authentication verification
       litActionIpfsId: multiProviderAuthIpfsId,
+      capabilityAuthSigs: [capacityDelegationAuthSig],
       jsParams: {
         providerType,
         accessToken,
