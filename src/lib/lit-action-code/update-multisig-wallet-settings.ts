@@ -15,8 +15,7 @@ declare const litActionContext: any
 
 const _litActionCode = async () => {
   const apiBaseUrl = litActionContext.apiBaseUrl
-  const currentActionIpfsId = Lit.Auth.actionIpfsIds[0]
-  console.log('currentActionIpfsId', currentActionIpfsId)
+  console.log('currentActionIpfsIds', Lit.Auth.actionIpfsIds)
   const multiProviderAuthIpfsId = litActionContext.multiProviderAuthIpfsId
 
   async function editAuthmethod({
@@ -489,7 +488,7 @@ const _litActionCode = async () => {
           "parameters": [":currentActionIpfsId"],
           "returnValueTest": {
             "comparator": "=",
-            "value": Lit.Auth.actionIpfsIds[0]
+            "value": litActionContext.updateWalletSettingsIpfsId
           }
         }
       ],

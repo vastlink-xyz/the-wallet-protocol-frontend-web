@@ -15,8 +15,8 @@ import { litActionCodeForDebugStytchLogin } from "../lit-action-code-debug(used 
 import { litActionCodeForDebugStytchVerifyLogin } from "../lit-action-code-debug(used for litprotocol-irys demo and apikey management)/debug-verify-login.lit"
 
 
-const updateWalletSettingsIpfsId = 'QmZZWwWLrkK8vLNvucM5q7iSqfkha4TMgXUZutSuqzitX5'
-const updateWalletSettingsIpfsIdHex = '0x1220a6bc52830b5b369ebf8695e12f95571e2a250e439e46c9cef1a007ee08608a74'
+export const updateWalletSettingsIpfsId = 'QmSTrAhbiX1F1HH6dLJ7C2uMeCCG15tRLZkbZdAaPk63qG'
+const updateWalletSettingsIpfsIdHex = '0x12203d46c501cb5b1e82a8c8d2d76dd8af3d463570b9d80c7a7d571e11b4ff77662f'
 
 const createWalletIpfsId = 'QmWf9N4fVGzWBsAMLe9fndq35JjU8pwJ3P9pBm9pceAevq'
 const createWalletIpfsIdHex = '0x12207b9a59829d92275e8c5c8a44f6b3589120b57481aeeccde79655044e0e6e1bbe'

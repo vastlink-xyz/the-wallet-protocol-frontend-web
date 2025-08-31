@@ -1,6 +1,6 @@
 import { LIT_NETWORK } from '@lit-protocol/constants';
 import { LIT_NETWORKS_KEYS } from '@lit-protocol/types';
-import { decryptAndCombineIpfsId, multiProviderAuthIpfsId, securityVerificationIpfsId } from './ipfs-id-env';
+import { decryptAndCombineIpfsId, multiProviderAuthIpfsId, securityVerificationIpfsId, updateWalletSettingsIpfsId } from './ipfs-id-env';
 
 // Basic configuration
 // export const DOMAIN = 'localhost';
@@ -22,4 +22,5 @@ export const litActionContext = {
   multiProviderAuthIpfsId,
   securityVerificationIpfsId,
   decryptAndCombineIpfsId,
+  updateWalletSettingsIpfsId,
 }
