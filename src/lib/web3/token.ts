@@ -144,7 +144,7 @@ export const SUPPORTED_TOKENS_INFO_MAINNET = {
   //   decimals: 9,
   //   chainType: 'Solana',
   // },
-  USDT: { // (ERC-20 on sepolia)
+  USDT: { // (ERC-20)
     symbol: 'USDT',
     name: 'Tether (ERC-20)',
     decimals: 6,
@@ -158,12 +158,12 @@ export const SUPPORTED_TOKENS_INFO_MAINNET = {
     network: 'Ethereum',
     explorerBaseUrl: 'https://etherscan.io'
   },
-  USDC: { // (ERC-20 on sepolia)
+  USDC: { // (ERC-20)
     symbol: 'USDC',
     name: 'USD Coin (ERC-20)',
     decimals: 6,
     chainType: 'EVM',
-    chainName: 'sepolia',
+    chainName: 'ethereum',
     iconUrl: '/cryptocurrency/usdc.png',
     contractAddress: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
     addressKey: 'eth',
