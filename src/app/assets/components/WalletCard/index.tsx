@@ -189,7 +189,7 @@ export function WalletCard({
           </p>
         </div>
 
-        {isPersonal && (
+        {/* {isPersonal && (
           <div className="w-14 text-center cursor-pointer" onClick={e => { e.stopPropagation(); onSwapClick(); }}>
             <div className={cn(
               "w-14 h-14 p-3 rounded-full border flex items-center justify-center",
@@ -215,7 +215,7 @@ export function WalletCard({
               {transWalletCard("ramp")}
             </p>
           </div>
-        )}
+        )} */}
       </div>
 
       <div className="flex justify-end mt-4 pointer-events-auto z-10">

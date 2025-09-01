@@ -70,7 +70,7 @@ export function WalletSendReceiveButtons({
         )}
 
         {/* Swap Button */}
-        {isButtonVisible("swap") && (
+        {/* {isButtonVisible("swap") && (
           <div className="w-14 text-center cursor-pointer" onClick={() => onSwapClick()}>
             <div className="w-14 h-14 p-3 rounded-full border border-black/20 flex items-center justify-center">
               <ArrowLeftRightIcon className="text-black" />
@@ -79,10 +79,10 @@ export function WalletSendReceiveButtons({
               {t('swap')}
             </p>
           </div>
-        )}
+        )} */}
 
         {/* Ramp Button */}
-        {isButtonVisible("ramp") && (
+        {/* {isButtonVisible("ramp") && (
           <div className="w-14 text-center cursor-pointer" onClick={() => setShowRampDialog(true)}>
             <div className="w-14 h-14 p-3 rounded-full border border-black/20 flex items-center justify-center">
               <PlusIcon className="text-black" />
@@ -91,7 +91,7 @@ export function WalletSendReceiveButtons({
               {t('ramp')}
             </p>
           </div>
-        )}
+        )} */}
       </div>
 
       <ReceiveModal
