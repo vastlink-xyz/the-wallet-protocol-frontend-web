@@ -411,8 +411,8 @@
   "WalletConnect": {
     "connect_dapps": "连接DApps",
     "connected": "已连接 ({count})",
-    "initializing": "初始化中...",
-    "unavailable": "WalletConnect不可用",
+    "initializing": "WalletConnect...",
+    "unavailable": "WalletConnect...",
     "pairing_modal_title": "连接账户",
     "pairing_modal_description": "要使用WalletConnect将您的钱包与DApp配对，请按照以下步骤操作：",
     "pairing_steps": {

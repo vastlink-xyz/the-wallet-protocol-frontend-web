@@ -411,8 +411,8 @@
   "WalletConnect": {
     "connect_dapps": "Connect DApps",
     "connected": "Connected ({count})",
-    "initializing": "Initializing...",
-    "unavailable": "WalletConnect Unavailable",
+    "initializing": "WalletConnect...",
+    "unavailable": "WalletConnect...",
     "pairing_modal_title": "Connect Account",
     "pairing_modal_description": "To pair your wallet with the DApp using WalletConnect, please follow these steps:",
     "pairing_steps": {
