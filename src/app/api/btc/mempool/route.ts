@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { btcConfig } from '@/lib/web3/btc';
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -11,7 +12,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'BTC address is required' }, { status: 400 });
   }
 
-  const baseUrl = 'https://blockstream.info/testnet/api';
+  const baseUrl = `${btcConfig.blockstreamBaseUrl}/api`;
 
   try {
     let fullApiUrl = '';

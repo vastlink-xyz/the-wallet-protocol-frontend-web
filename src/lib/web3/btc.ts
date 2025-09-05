@@ -1,12 +1,22 @@
 import { TransactionItem } from "@/types/transaction-item";
 import * as bitcoinjs from "bitcoinjs-lib";
 
+const isProduction = process.env.NEXT_PUBLIC_ENV?.toLowerCase() === 'production';
+
+export const btcConfig = {
+  network: isProduction ? bitcoinjs.networks.bitcoin : bitcoinjs.networks.testnet,
+  
+  // API endpoints
+  mempoolBaseUrl: isProduction ? 'https://mempool.space' : 'https://mempool.space/testnet',
+  blockstreamBaseUrl: isProduction ? 'https://blockstream.info' : 'https://blockstream.info/testnet',
+} as const;
+
 export const getBtcAddressByPublicKey = (publicKey: string) => {
   try {
     const pubkeyBuffer = Buffer.from(publicKey.slice(2), "hex")
     const pkpBTCAddress = bitcoinjs.payments.p2pkh({
       pubkey: pubkeyBuffer,
-      network: bitcoinjs.networks.testnet,
+      network: btcConfig.network,
     }).address
 
     if (pkpBTCAddress) {
@@ -20,7 +30,7 @@ export const getBtcAddressByPublicKey = (publicKey: string) => {
 export const fetchBtcBalance = async (btcAddress: string): Promise<number> => {
   try {
     // First try to get balance from UTXO endpoint (more accurate for spendable balance)
-    const utxoResponse = await fetch(`https://blockstream.info/testnet/api/address/${btcAddress}/utxo`);
+    const utxoResponse = await fetch(`${btcConfig.blockstreamBaseUrl}/api/address/${btcAddress}/utxo`);
     if (utxoResponse.ok) {
       const utxos = await utxoResponse.json();
       if (Array.isArray(utxos)) {
@@ -33,7 +43,7 @@ export const fetchBtcBalance = async (btcAddress: string): Promise<number> => {
     }
 
     // Fallback to address stats if UTXO endpoint fails
-    const response = await fetch(`https://blockstream.info/testnet/api/address/${btcAddress}`);
+    const response = await fetch(`${btcConfig.blockstreamBaseUrl}/api/address/${btcAddress}`);
     if (!response.ok) {
       if (response.status === 404) {
         console.log(`Address ${btcAddress} not found on Blockstream or has no transactions.`);

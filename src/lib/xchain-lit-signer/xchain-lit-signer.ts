@@ -9,6 +9,7 @@ import {
 } from '@lit-protocol/types';
 import { AddressFormat, Client as BaseBtcClient } from '@xchainjs/xchain-bitcoin'
 import { TxParams, UtxoClientParams } from '@xchainjs/xchain-utxo'
+import { btcConfig } from '@/lib/web3/btc';
 import * as bitcoinjs from "bitcoinjs-lib";
 import { broadcastTransactionByTokenType } from '../web3/transaction'
 
@@ -273,11 +274,11 @@ export class LitBtcClientKeystore extends BaseBtcClient {
         checkFeeBounds(this.feeBounds, feeRate)
 
         // use lit to sign the transaction
-        const response = await fetch(`https://mempool.space/testnet/api/address/${this.btcAddress}/utxo`);
+        const response = await fetch(`${btcConfig.mempoolBaseUrl}/api/address/${this.btcAddress}/utxo`);
         const utxos = await response.json();
         const utxo = utxos.sort((a: any, b: any) => b.value - a.value)[0];
 
-        const utxoTxResponse = await fetch(`https://mempool.space/testnet/api/tx/${utxo.txid}`);
+        const utxoTxResponse = await fetch(`${btcConfig.mempoolBaseUrl}/api/tx/${utxo.txid}`);
         const utxoTxDetails = await utxoTxResponse.json();
         const scriptPubKey = utxoTxDetails.vout[utxo.vout].scriptpubkey;
 
@@ -285,7 +286,7 @@ export class LitBtcClientKeystore extends BaseBtcClient {
         tx.version = 2;
 
         tx.addInput(Buffer.from(utxo.txid, "hex").reverse(), utxo.vout);
-        const network = bitcoinjs.networks.testnet;
+        const network = btcConfig.network;
 
         const utxoValue = utxo.value;
         const amountSats = params.amount.amount().toNumber();
