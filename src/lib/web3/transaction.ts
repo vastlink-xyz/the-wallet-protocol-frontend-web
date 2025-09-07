@@ -10,10 +10,85 @@ import * as bip66 from "bip66";
 import { log } from "../utils";
 import { ERC20_ABI } from "@/constants/abis/erc20";
 import { broadcastTransactionForVAST, getToSignTransactionForVAST } from "./vast";
+import { BitcoinBoxSelection } from "@rosen-bridge/bitcoin-utxo-selection";
+import { DummyLogger } from "@rosen-bridge/abstract-logger";
 
 const BROADCAST_URL = `${btcConfig.blockstreamBaseUrl}/api/tx`;
 const EC = elliptic.ec;
 bitcoinjs.initEccLib(ecc);
+
+// Smart UTXO selection using rosen-bridge library
+const selectOptimalUTXOsWithRosenBridge = async (
+  utxos: any[], 
+  targetAmount: number, 
+  feeRate: number
+) => {
+  // Convert UTXOs to the format expected by rosen-bridge
+  const bitcoinUtxos = utxos.map(utxo => ({
+    txId: utxo.txid,
+    index: utxo.vout,
+    value: BigInt(utxo.value)
+  }));
+
+  // Create fee estimator function
+  const feeEstimator = (selectedBoxes: any[], changeBoxesCount: number) => {
+    // Calculate transaction size: base(10) + inputs(148 each) + outputs(34 each)
+    const inputs = selectedBoxes.length;
+    const outputs = 1 + changeBoxesCount; // 1 for recipient + change outputs
+    const txSize = 10 + (inputs * 148) + (outputs * 34);
+    return BigInt(Math.ceil(feeRate * txSize));
+  };
+
+  // Create selector instance
+  const selector = new BitcoinBoxSelection(new DummyLogger());
+
+  // Define required assets (amount in satoshis as BigInt)
+  const requiredAssets = {
+    nativeToken: BigInt(targetAmount),
+    tokens: [],
+  };
+
+  try {
+    // Get covering UTXOs
+    const result = await selector.getCoveringBoxes(
+      requiredAssets,
+      [], // Forbidden box IDs
+      new Map(), // Tracking map
+      bitcoinUtxos.values(), // Convert array to iterator
+      546n, // Minimum box value (dust limit)
+      undefined, // Max tokens count (irrelevant for Bitcoin)
+      feeEstimator
+    );
+    log('Rosen-bridge UTXO selection result:', result);
+
+    if (!result.covered) {
+      throw new Error('Unable to find suitable UTXO combination for this transaction');
+    }
+
+    // Convert back to original format
+    const selectedInputs = result.boxes.map(box => ({
+      txid: box.txId,
+      vout: box.index,
+      value: Number(box.value)
+    }));
+
+    // Calculate total input value and precise fee
+    const totalInputValue = selectedInputs.reduce((sum, input) => sum + input.value, 0);
+    const txSize = 10 + (selectedInputs.length * 148) + (2 * 34); // Base + inputs + outputs
+    const estimatedFee = Math.ceil(feeRate * txSize);
+    const change = totalInputValue - targetAmount - estimatedFee;
+
+    return {
+      inputs: selectedInputs,
+      fee: estimatedFee,
+      change: Math.max(0, change),
+      totalInputValue
+    };
+  } catch (error) {
+    console.error('Rosen-bridge UTXO selection failed:', error);
+    throw new Error(`UTXO selection failed: ${error instanceof Error ? error.message : String(error)}`);
+  }
+};
 
 export const getToSignTransactionByTokenType = async ({
   tokenType,
@@ -72,36 +147,23 @@ export const getToSignTransactionByTokenType = async ({
       unsignedTransaction: txData,
     }
   } else if (tokenType === 'BTC') {
-    // Use Blockstream API only
-    let utxos, utxoTxDetails, scriptPubKey, utxo;
+    // Use Blockstream API with rosen-bridge UTXO selection
+    let utxos, selectedInputs, scriptPubKeys: { [key: string]: string } = {};
+    let selectionResult: any;
 
     try {
       const response = await fetch(`${btcConfig.blockstreamBaseUrl}/api/address/${sendAddress}/utxo`);
       if (!response.ok) throw new Error(`Blockstream UTXO API failed: ${response.status}`);
       utxos = await response.json();
-      log('utxos from Blockstream', utxos)
+      utxos = utxos.filter((utxo: any) => utxo.status.confirmed);
+      log('filtered utxos from Blockstream', utxos);
 
-      // Sort utxos by value in descending order and pick the first one
-      utxo = utxos.sort((a: any, b: any) => b.value - a.value)[0];
+      if (!utxos || utxos.length === 0) {
+        throw new Error('No UTXOs found for this address');
+      }
 
-      const utxoTxResponse = await fetch(`${btcConfig.blockstreamBaseUrl}/api/tx/${utxo.txid}`);
-      if (!utxoTxResponse.ok) throw new Error(`Blockstream TX API failed: ${utxoTxResponse.status}`);
-      utxoTxDetails = await utxoTxResponse.json();
-      scriptPubKey = utxoTxDetails.vout[utxo.vout].scriptpubkey;
-    } catch (blockstreamError) {
-      console.error('Blockstream API failed:', blockstreamError);
-      throw new Error('Failed to fetch UTXO data from Blockstream API');
-    }
-
-    const tx = new bitcoinjs.Transaction();
-      tx.version = 2;
-
-      tx.addInput(Buffer.from(utxo.txid, "hex").reverse(), utxo.vout);
-      const network = btcConfig.network;
-
-      const utxoValue = utxo.value;
       const amountSats = Math.floor(Number(amount) * 100000000);
-
+      
       // Dust limit constant
       const DUST_LIMIT = 546;
 
@@ -111,55 +173,84 @@ export const getToSignTransactionByTokenType = async ({
       }
 
       // Get dynamic fee rate
-      let feeSats = 10000; // Default fallback
+      let feeRate = 10; // sat/vByte, default fallback
       try {
         const feeResponse = await fetch(`${btcConfig.blockstreamBaseUrl}/api/fee-estimates`);
         if (feeResponse.ok) {
           const feeRates = await feeResponse.json();
-          const feeRate = feeRates['1'] || feeRates['2'] || feeRates['3'] || 10;
-          feeSats = Math.ceil(feeRate * 250); // 250 bytes tx size estimate
+          feeRate = feeRates['3'] || feeRates['6'] || feeRates['10'] || 10; // Use medium priority
         }
       } catch (error) {
         console.warn('Failed to fetch dynamic fee, using fallback:', error);
       }
 
-      // Calculate change amount
-      const changeAmount = utxoValue - amountSats - feeSats;
+      // Use rosen-bridge for optimal UTXO selection
+      selectionResult = await selectOptimalUTXOsWithRosenBridge(utxos, amountSats, feeRate);
+      
+      log('Optimal UTXO selection completed:', selectionResult);
 
-      // Check if we have sufficient funds
-      if (changeAmount < 0) {
-        throw new Error(`Insufficient funds. Available: ${utxoValue} sats, Required: ${amountSats + feeSats} sats (amount + fee)`);
+      // Fetch scriptPubKey for each selected input
+      for (const input of selectionResult.inputs) {
+        const utxoTxResponse = await fetch(`${btcConfig.blockstreamBaseUrl}/api/tx/${input.txid}`);
+        if (!utxoTxResponse.ok) throw new Error(`Blockstream TX API failed: ${utxoTxResponse.status}`);
+        const utxoTxDetails = await utxoTxResponse.json();
+        scriptPubKeys[`${input.txid}:${input.vout}`] = utxoTxDetails.vout[input.vout].scriptpubkey;
       }
 
-      // Add output for the amount to be sent
+      selectedInputs = selectionResult.inputs;
+    } catch (blockstreamError) {
+      console.error('Blockstream API failed:', blockstreamError);
+      throw blockstreamError;
+    }
+
+    const tx = new bitcoinjs.Transaction();
+    tx.version = 2;
+    const network = btcConfig.network;
+    const amountSats = Math.floor(Number(amount) * 100000000);
+    const DUST_LIMIT = 546;
+
+    // Add all selected inputs
+    for (const input of selectedInputs) {
+      tx.addInput(Buffer.from(input.txid, "hex").reverse(), input.vout);
+    }
+
+    // Add output for the amount to be sent
+    tx.addOutput(
+      bitcoinjs.address.toOutputScript(recipientAddress!, network),
+      amountSats
+    );
+
+    // Add change output if needed
+    if (selectionResult.change > DUST_LIMIT) {
       tx.addOutput(
-        bitcoinjs.address.toOutputScript(recipientAddress!, network),
-        amountSats
+        bitcoinjs.address.toOutputScript(sendAddress, network),
+        selectionResult.change
       );
+      log(`Added change output: ${selectionResult.change} sats`);
+    } else if (selectionResult.change > 0) {
+      log(`Change amount ${selectionResult.change} sats is dust, adding to fee`);
+    }
 
-      // If there's change and it's not dust, add it back to the sender
-      if (changeAmount > DUST_LIMIT) {
-        tx.addOutput(
-          bitcoinjs.address.toOutputScript(sendAddress, network),
-          changeAmount
-        );
-      } else if (changeAmount > 0) {
-        // If change is dust, add it to the fee instead
-        feeSats += changeAmount;
-        log(`Change amount ${changeAmount} sats is dust, adding to fee. New fee: ${feeSats} sats`);
-      }
-      
-      const scriptPubKeyBuffer = Buffer.from(scriptPubKey, "hex");
-      const sighash = tx.hashForSignature(
-        0,
-        bitcoinjs.script.compile(scriptPubKeyBuffer),
-        bitcoinjs.Transaction.SIGHASH_ALL
-      );
-      
-      return {
-        toSign: sighash,
-        tx,
-      }
+    log(`Transaction fee: ${selectionResult.fee} sats, Efficiency: ${(selectionResult.totalInputValue / (amountSats + selectionResult.fee)).toFixed(2)}x`);
+
+    // Create signature hash for the first input (we'll handle multi-input later if needed)
+    const firstInput = selectedInputs[0];
+    const scriptPubKey = scriptPubKeys[`${firstInput.txid}:${firstInput.vout}`];
+    const scriptPubKeyBuffer = Buffer.from(scriptPubKey, "hex");
+    const sighash = tx.hashForSignature(
+      0,
+      bitcoinjs.script.compile(scriptPubKeyBuffer),
+      bitcoinjs.Transaction.SIGHASH_ALL
+    );
+    
+    return {
+      toSign: sighash,
+      tx,
+      selectedInputs,
+      scriptPubKeys,
+      fee: selectionResult.fee,
+      efficiency: selectionResult.totalInputValue / (amountSats + selectionResult.fee)
+    }
   } else if (tokenInfo.chainType === 'EVM' && tokenInfo.contractAddress) {
     const rpcUrl = LIT_CHAINS[tokenInfo.chainName as keyof typeof LIT_CHAINS]?.rpcUrls[0];
     const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
