@@ -25,6 +25,8 @@
         "@radix-ui/react-switch": "^1.2.5",
         "@radix-ui/react-tabs": "^1.1.11",
         "@radix-ui/react-tooltip": "^1.2.7",
+        "@rosen-bridge/abstract-logger": "^2.1.0",
+        "@rosen-bridge/bitcoin-utxo-selection": "^1.1.3",
         "@simplewebauthn/browser": "^13.1.0",
         "@tanstack/react-query": "^5.81.2",
         "@types/elliptic": "^6.4.18",
@@ -672,6 +674,14 @@
     "@radixdlt/babylon-gateway-api-sdk": ["@radixdlt/babylon-gateway-api-sdk@1.10.1", "https://registry.npmmirror.com/@radixdlt/babylon-gateway-api-sdk/-/babylon-gateway-api-sdk-1.10.1.tgz", {}, "sha512-l/Pt1qaxi2I99ykl9oS4pO+AzBmpMY6oqMOBq0ABbpg7YqqaugZU3OUP/tI0SQsIR1QvXYGdxlsS+HnhioeHlA=="],
 
     "@radixdlt/radix-engine-toolkit": ["@radixdlt/radix-engine-toolkit@1.0.5", "https://registry.npmmirror.com/@radixdlt/radix-engine-toolkit/-/radix-engine-toolkit-1.0.5.tgz", { "dependencies": { "@noble/ed25519": "2.0.0", "@noble/hashes": "1.3.0", "@types/secp256k1": "4.0.3", "@types/secure-random": "1.1.0", "blakejs": "1.2.1", "change-case": "4.1.2", "decimal.js": "10.4.3", "reflect-metadata": "0.1.13", "secp256k1": "5.0.0" } }, "sha512-hAAuyfvWJl1nr34NIx51ycrzGHRCbITYpqMrDOzLMuPzalKfRKFdv42FWLo+ssm0sfVcl5ngltVjF4JC7kOoPw=="],
+
+    "@rosen-bridge/abstract-box-selection": ["@rosen-bridge/abstract-box-selection@0.3.0", "https://registry.npmmirror.com/@rosen-bridge/abstract-box-selection/-/abstract-box-selection-0.3.0.tgz", { "dependencies": { "@rosen-bridge/abstract-logger": "^2.0.1", "@rosen-bridge/selection-types": "^0.1.0" } }, "sha512-/T6pNlfn59iUoFNiRIAtWf0kooTQyEA/iZUXw8Nqbh44Nc0N6bjbewVcqSZrG2ZHB4U4Ug5fQ0jyOCCtmlz2eg=="],
+
+    "@rosen-bridge/abstract-logger": ["@rosen-bridge/abstract-logger@2.1.0", "https://registry.npmmirror.com/@rosen-bridge/abstract-logger/-/abstract-logger-2.1.0.tgz", {}, "sha512-/TPc6JJh8IeA2mbfgUVMmvG+PUfTRbTbGUDdt6zZRyX6EVa/V+C/0JaSKLZe2tyXArDCR2eCp+W0xSauT9HTww=="],
+
+    "@rosen-bridge/bitcoin-utxo-selection": ["@rosen-bridge/bitcoin-utxo-selection@1.1.3", "https://registry.npmmirror.com/@rosen-bridge/bitcoin-utxo-selection/-/bitcoin-utxo-selection-1.1.3.tgz", { "dependencies": { "@rosen-bridge/abstract-box-selection": "^0.3.0", "@rosen-bridge/abstract-logger": "^2.0.1", "@rosen-bridge/selection-types": "^0.1.0" } }, "sha512-j6i8NY3rPpMo4uIq2vPZ3OkYfg+qj0NigUpAtIQanXaIbGpzUFAE4JSkkEkjPh5xKA+iylY3Mh76DvAdXryrCw=="],
+
+    "@rosen-bridge/selection-types": ["@rosen-bridge/selection-types@0.1.0", "https://registry.npmmirror.com/@rosen-bridge/selection-types/-/selection-types-0.1.0.tgz", {}, "sha512-rODUTidDpFb+gLvyQkzjSffkB/d30VbJ3L8azef25B0BmxVhR5wajGBAHHJmi80Ol94ARB/SfUAu0DqnA1mILQ=="],
 
     "@rtsao/scc": ["@rtsao/scc@1.1.0", "", {}, "sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g=="],
 
