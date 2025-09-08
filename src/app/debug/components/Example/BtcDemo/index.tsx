@@ -1,307 +1,134 @@
-import { IRelayPKP, SessionSigs } from "@lit-protocol/types";
-import { useEffect, useState } from "react";
-import * as bitcoinjs from "bitcoinjs-lib";
-import { log } from "@/lib/utils";
+"use client";
+import { useCallback, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { litNodeClient } from "@/lib/lit";
-import { btcDemoLitActionCode } from "./litAction";
-import * as ecc from "@bitcoin-js/tiny-secp256k1-asmjs";
+import { Input } from "@/components/ui/input";
+import * as btc from "@scure/btc-signer";
 import elliptic from "elliptic";
-import * as bip66 from "bip66";
-import BN from "bn.js";
-import { fetchBtcTodayOutflow } from "@/lib/web3/btc";
-// btc dependencies
+import { getToSignTransactionByTokenType, broadcastTransactionByTokenType } from "@/lib/web3/transaction";
+import { log } from "@/lib/utils";
 
-// Testnet transaction broadcast URL
-const BROADCAST_URL = "https://blockstream.info/testnet/api/tx";
 const EC = elliptic.ec;
-bitcoinjs.initEccLib(ecc);
 
-interface BtcDemoProps {
-  litactionPkp: IRelayPKP | null;
-  sessionSigs: SessionSigs | null;
-}
+export function BtcDemo() {
+  const [privKeyHex, setPrivKeyHex] = useState<string>("eb3c7c16a41ddeeb6177ced920c2b77bcbf1035c0b25fb353096d3aee6070668");
+  const [pubKeyHex, setPubKeyHex] = useState<string>("037992bb575630b81e454550ce4c24f2d775505ef3555fb637b99274de1610a936"); // compressed
+  const [address, setAddress] = useState<string>("tb1quk50fftahzaz56ceut9djhmz9w28t3llsrd8nj");
+  const [to, setTo] = useState<string>("tb1qk3tmmpryp2pgl7sm88tkqc28knxwgsesu7twwl");
+  const [amount, setAmount] = useState<string>("0.00021"); // BTC
+  const [sending, setSending] = useState(false);
+  const [result, setResult] = useState<string>("");
 
-export function BtcDemo({ litactionPkp, sessionSigs }: BtcDemoProps) {
-  const [btcAddress, setBtcAddress] = useState<string | null>(null);
-  const [balance, setBalance] = useState<number | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [toAddress, setToAddress] = useState<string | null>(null);
-  const [isSending, setIsSending] = useState<boolean>(false);
-  const [txResult, setTxResult] = useState<string | null>(null);
-  const [status, setStatus] = useState<string>("");
+  const networkLabel = useMemo(() => {
+    const isProd = process.env.NEXT_PUBLIC_ENV?.toLowerCase() === 'production';
+    return isProd ? 'mainnet' : 'testnet';
+  }, []);
 
-  useEffect(() => {
-    if (!litactionPkp) {
-      return;
-    }
+  const handleGenerate = useCallback(() => {
+    // Generate random private key
+    const priv = btc.utils.randomPrivateKeyBytes();
+    const privHex = Buffer.from(priv).toString('hex');
+    const ec = new EC('secp256k1');
+    const kp = ec.keyFromPrivate(privHex, 'hex');
+    const pubCompressedHex = kp.getPublic(true, 'hex');
 
-    // get the btc address from the public key
-    const publicKey = litactionPkp.publicKey.slice(2);
-    const pubkeyBuffer = Buffer.from(publicKey, "hex");
-    const pkpBTCAddress = bitcoinjs.payments.p2pkh({
-      pubkey: pubkeyBuffer,
-      network: bitcoinjs.networks.testnet,
-    }).address;
+    // Derive SegWit P2WPKH address via scure
+    const addr = btc.p2wpkh(Buffer.from(pubCompressedHex, 'hex'), (process.env.NEXT_PUBLIC_ENV?.toLowerCase() === 'production') ? btc.NETWORK : btc.TEST_NETWORK).address!;
 
-    if (pkpBTCAddress) {
-      setBtcAddress(pkpBTCAddress);
-      // setToAddress('tb1qn85hsmq7td49n8h62st4epcel4806um928spxw');
-      setToAddress('mrLsGGKoanYPxoVYPQxwFDF68tgzhfNnPs');
-    }
-  }, [litactionPkp]);
+    setPrivKeyHex(privHex);
+    setPubKeyHex(pubCompressedHex);
+    setAddress(addr);
+    setResult("");
+  }, []);
 
-  const fetchBalance = async () => {
-    if (!btcAddress) return;
-
+  const handleSend = useCallback(async () => {
     try {
-      setIsLoading(true);
-      // Using BlockCypher API for testnet
-      const response = await fetch(`https://api.blockcypher.com/v1/btc/test3/addrs/${btcAddress}/balance`);
-      const data = await response.json();
-
-      // BlockCypher returns balance in satoshis, converting to BTC with proper precision
-      const balanceInBtc = parseFloat((data.final_balance / 100000000).toFixed(8));
-      setBalance(balanceInBtc);
-      log('BTC Balance', balanceInBtc);
-    } catch (error) {
-      console.error("Error fetching BTC balance:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (btcAddress) {
-      // fetchBalance();
-    }
-  }, [btcAddress]);
-
-  const handleSend = async () => {
-    if (!btcAddress || !sessionSigs || !litactionPkp) {
-      console.error("Missing required parameters");
-      return;
-    }
-    
-    try {
-      setIsSending(true);
-      setTxResult(null);
-      setStatus("Fetching UTXO information...");
-      
-      // 1. Get UTXO information
-      const response = await fetch(`https://blockstream.info/testnet/api/address/${btcAddress}/utxo`);
-      const utxos = await response.json();
-      
-      if (!utxos || utxos.length === 0) {
-        throw new Error("No UTXOs found for this address");
+      if (!privKeyHex || !pubKeyHex || !address || !to) {
+        setResult('Please generate keys and fill all fields.');
+        return;
       }
-      
-      const utxo = utxos[0];
-      
-      // Use the actual UTXO value
-      const utxoValue = utxo.value;
-      // Amount to send (in satoshis)
-      const amountToSend = 10000; // 0.0001 BTC = 10000 satoshis
-      // Set a reasonable miner fee
-      const minimumFee = 1000; // 0.00001 BTC = 1000 satoshis
+      setSending(true);
+      setResult('Preparing transaction...');
 
-      // Dust limit constant
-      const DUST_LIMIT = 546;
-
-      // Check if the amount to send is dust
-      if (amountToSend < DUST_LIMIT) {
-        throw new Error(`Amount too small. Minimum amount is ${DUST_LIMIT} satoshis (0.00000546 BTC)`);
-      }
-
-      // Calculate change amount
-      const changeAmount = utxoValue - amountToSend - minimumFee;
-
-      // Check if balance is sufficient
-      if (changeAmount < 0) {
-        throw new Error(`Insufficient funds. UTXO value: ${utxoValue / 100000000} BTC, trying to send: ${amountToSend / 100000000} BTC plus fees`);
-      }
-      
-      const utxoTxResponse = await fetch(`https://blockstream.info/testnet/api/tx/${utxo.txid}`);
-      const utxoTxDetails = await utxoTxResponse.json();
-      const scriptPubKey = utxoTxDetails.vout[utxo.vout].scriptpubkey;
-      
-      setStatus("Creating transaction...");
-      // 2. Create transaction
-      const tx = new bitcoinjs.Transaction();
-      tx.version = 2;
-      
-      tx.addInput(Buffer.from(utxo.txid, "hex").reverse(), utxo.vout);
-      const network = bitcoinjs.networks.testnet;
-      
-      // add output for the amount to be sent
-      tx.addOutput(
-        bitcoinjs.address.toOutputScript(toAddress!, network),
-        amountToSend
-      );
-
-      // if there's change and it's not dust, add it back to the sender
-      if (changeAmount > DUST_LIMIT) {
-        tx.addOutput(
-          bitcoinjs.address.toOutputScript(btcAddress, network),
-          changeAmount
-        );
-      } else if (changeAmount > 0) {
-        // If change is dust, add it to the fee instead
-        console.log(`Change amount ${changeAmount} sats is dust, adding to fee. New fee: ${minimumFee + changeAmount} sats`);
-      }
-      
-      const scriptPubKeyBuffer = Buffer.from(scriptPubKey, "hex");
-      const sighash = tx.hashForSignature(
-        0,
-        bitcoinjs.script.compile(scriptPubKeyBuffer),
-        bitcoinjs.Transaction.SIGHASH_ALL
-      );
-      
-      setStatus("Executing Lit Action to sign transaction...");
-      // 3. Sign with Lit Protocol
-      if (!litNodeClient.ready) {
-        await litNodeClient.connect();
-      }
-      
-      const litActionResponse = await litNodeClient.executeJs({
-        code: btcDemoLitActionCode,
-        sessionSigs,
-        jsParams: {
-          toSign: sighash,
-          publicKey: litactionPkp.publicKey,
+      // 1) Build tx + preimages using our transaction.ts
+      const txData = await getToSignTransactionByTokenType({
+        tokenType: 'BTC' as any,
+        options: {
+          sendAddress: address,
+          recipientAddress: to,
+          amount, // BTC string
+          publicKey: '0x' + pubKeyHex,
         },
-      }) as any;
-
-      const sig = litActionResponse.signatures.btcSignature
-
-      // log('litActionResponse', litActionResponse)
-      // const sig = JSON.parse(litActionResponse.response)
-      log('sig', sig)
-
-      // return
-      
-      setStatus("Converting signature...");
-      // 4. Convert signature format
-      let r = Buffer.from(sig.r, "hex");
-      let s = Buffer.from(sig.s, "hex");
-      
-      const rBN = new BN(r);
-      let sBN = new BN(s);
-      
-      const secp256k1 = new EC("secp256k1");
-      const n = secp256k1.curve.n;
-      
-      if (sBN.cmp(n.divn(2)) === 1) {
-        sBN = n.sub(sBN);
-      }
-      
-      // @ts-ignore
-      r = rBN.toArrayLike(Buffer, "be", 32);
-      // @ts-ignore
-      s = sBN.toArrayLike(Buffer, "be", 32);
-      
-      function ensurePositive(buffer: Buffer): Buffer {
-        if (buffer[0] & 0x80) {
-          const newBuffer = Buffer.alloc(buffer.length + 1);
-          newBuffer[0] = 0x00;
-          buffer.copy(newBuffer, 1);
-          return newBuffer;
-        }
-        return buffer;
-      }
-      
-      // @ts-ignore
-      const positiveR = ensurePositive(r);
-      // @ts-ignore
-      const positiveS = ensurePositive(s);
-      
-      let derSignature;
-      try {
-        derSignature = bip66.encode(positiveR, positiveS);
-      } catch (error) {
-        console.error("Error during DER encoding:", error);
-        throw error;
-      }
-      
-      setStatus("Setting input script...");
-      // 5. Set input script
-      const signatureWithHashType = Buffer.concat([
-        derSignature,
-        Buffer.from([bitcoinjs.Transaction.SIGHASH_ALL]),
-      ]);
-      
-      const scriptSig = bitcoinjs.script.compile([
-        signatureWithHashType,
-        Buffer.from(litactionPkp.publicKey.slice(2), "hex"),
-      ]);
-      
-      tx.setInputScript(0, scriptSig);
-      const txHex = tx.toHex();
-      
-      setStatus("Broadcasting transaction...");
-      // 6. Broadcast transaction
-      const broadcastResponse = await fetch(BROADCAST_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "text/plain",
-        },
-        body: txHex,
       });
-      
-      if (!broadcastResponse.ok) {
-        const errorText = await broadcastResponse.text();
-        throw new Error(`Error broadcasting transaction: ${errorText}`);
-      }
-      
-      const txid = await broadcastResponse.text();
-      setStatus("");
-      setTxResult(`Transaction sent successfully! TXID: ${txid}`);
-      
-      // 7. Refresh balance
-      setTimeout(() => fetchBalance(), 3000);
-      
-    } catch (error) {
-      console.error("Error sending BTC transaction:", error);
-      setTxResult(`Error sending transaction: ${error instanceof Error ? error.message : "Unknown error"}`);
-      setStatus("");
-    } finally {
-      setIsSending(false);
-    }
-  };
 
-  const handleFetchTodayOutflow = async () => {
-    if (!btcAddress) return;
-    const outflow = await fetchBtcTodayOutflow(btcAddress);
-    log('Today Outflow', outflow);
-  }
+      if (!('tx' in txData)) {
+        throw new Error('Unexpected tx data for BTC');
+      }
+
+      const toSignArray = txData.toSign as Uint8Array[];
+      setResult(`Signing ${toSignArray.length} input(s)...`);
+
+      // 2) Locally ECDSA-sign each preimage using the provided private key
+      const ec = new EC('secp256k1');
+      const key = ec.keyFromPrivate(privKeyHex, 'hex');
+      const signatures = toSignArray.map((msg) => {
+        const sig = key.sign(Buffer.from(msg), { canonical: true });
+        return {
+          r: sig.r.toString(16),
+          s: sig.s.toString(16),
+        };
+      });
+
+      // 3) Broadcast using our transaction.ts helper
+      setResult('Broadcasting...');
+      const txid = await broadcastTransactionByTokenType({
+        tokenType: 'BTC' as any,
+        options: {
+          tx: txData.tx,
+          sig: signatures,
+          publicKey: '0x' + pubKeyHex,
+        },
+      });
+
+      setResult(`Sent! txid: ${txid}`);
+      log('Broadcasted BTC txid', txid);
+    } catch (e: any) {
+      console.error(e);
+      setResult(`Error: ${e?.message || String(e)}`);
+    } finally {
+      setSending(false);
+    }
+  }, [privKeyHex, pubKeyHex, address, to, amount]);
 
   return (
-    <div>
-      <h3>BTC Demo</h3>
-      {btcAddress && (
-        <div>
-          <p>Address: {btcAddress}</p>
-          <p>Balance: {isLoading ? "Loading..." : balance !== null ? `${balance} BTC` : "Unknown"}</p>
-          <Button onClick={fetchBalance} disabled={isLoading}>
-            Refresh Balance
-          </Button>
-        </div>
-      )}
-      <Button
-        onClick={handleSend}
-        disabled={isSending || !btcAddress}
-      >
-        {isSending ? "Sending..." : "Send Transaction"}
-      </Button>
+    <div className="space-y-4">
+      <h3 className="font-semibold">BTC P2WPKH Demo ({networkLabel})</h3>
 
-      <Button
-        onClick={handleFetchTodayOutflow}
-      >
-        Today Outflow
-      </Button>
+      <div className="flex gap-2 flex-wrap items-center">
+        <Button onClick={handleGenerate}>Generate Keys & Address</Button>
+        <div className="text-sm opacity-70">Generates random secp256k1 keypair</div>
+      </div>
 
-      {status && <p className="mt-2">{status}</p>}
-      {txResult && <p className="mt-2">{txResult}</p>}
+      <div className="space-y-2">
+        <div className="break-all text-sm"><b>PrivKey:</b> {privKeyHex || '-'}</div>
+        <div className="break-all text-sm"><b>PubKey (compressed):</b> {pubKeyHex || '-'}</div>
+        <div className="break-all text-sm"><b>Address:</b> {address || '-'}</div>
+      </div>
+
+      <div className="grid gap-2 max-w-xl">
+        <label className="text-sm">Recipient (bech32 or compatible)</label>
+        <Input value={to} onChange={(e) => setTo(e.target.value)} placeholder="tb1..." />
+        <label className="text-sm">Amount (BTC)</label>
+        <Input value={amount} onChange={(e) => setAmount(e.target.value)} />
+      </div>
+
+      <div className="flex gap-2 items-center">
+        <Button disabled={sending || !address || !to} onClick={handleSend}>
+          {sending ? 'Sending...' : 'Send (sign locally)'}
+        </Button>
+        <div className="text-xs opacity-60">Uses getToSignTransactionByTokenType + broadcastTransactionByTokenType</div>
+      </div>
+
+      {result && <div className="text-sm mt-2 break-all">{result}</div>}
     </div>
   );
 }
