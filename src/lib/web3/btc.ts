@@ -14,7 +14,8 @@ export const btcConfig = {
 export const getBtcAddressByPublicKey = (publicKey: string) => {
   try {
     const pubkeyBuffer = Buffer.from(publicKey.slice(2), "hex")
-    const pkpBTCAddress = bitcoinjs.payments.p2pkh({
+    // Use SegWit (P2WPKH) format instead of legacy P2PKH
+    const pkpBTCAddress = bitcoinjs.payments.p2wpkh({
       pubkey: pubkeyBuffer,
       network: btcConfig.network,
     }).address
@@ -23,7 +24,7 @@ export const getBtcAddressByPublicKey = (publicKey: string) => {
       return pkpBTCAddress
     }
   } catch (error) {
-    console.error("Error getting BTC address:", error)
+    console.error("Error getting BTC SegWit address:", error)
   }
 }
 

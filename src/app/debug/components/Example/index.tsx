@@ -118,12 +118,7 @@ export function Example() {
           />
         );
       case 'btc-demo':
-        return (
-          <BtcDemo 
-            litactionPkp={userData?.litActionPkp || null}
-            sessionSigs={sessionSigs}
-          />
-        );
+        return (<BtcDemo />);
       default:
         return null;
     }
