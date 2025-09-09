@@ -288,10 +288,19 @@ function SendTransactionDialogContent({
       try {
         setIsLoadingFee(true);
         // Call the fee estimation function
-        const estimation = await estimateGasFee({
-          tokenType,
-          balance
-        });
+        let estimation;
+        if (tokenType === 'BTC') {
+          const sendAddress = addresses?.btc || '';
+          estimation = await estimateGasFee({
+            tokenType,
+            balance,
+            sendAddress,
+            recipientAddress: recipientAddress || sendAddress,
+            amount,
+          });
+        } else {
+          estimation = await estimateGasFee({ tokenType, balance });
+        }
         
         setFeeEstimation(estimation);
       } catch (error) {
