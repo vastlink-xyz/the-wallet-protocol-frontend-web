@@ -214,10 +214,8 @@ export const executeTeamTransactionProposal = async ({
     }
     
     let txHash = null
-    // Try to extract transaction hash from different response formats
     if (result.status === 'success') {
       try {
-        // Unify handling: Lit returns JSON string for sig in both EVM and UTXO
         const sig = typeof result.sig === 'string' ? JSON.parse(result.sig) : result.sig;
         
         const txReceipt = await broadcastTransactionByTokenType({

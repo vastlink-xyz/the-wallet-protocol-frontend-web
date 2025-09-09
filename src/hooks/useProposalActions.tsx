@@ -155,12 +155,7 @@ export function useProposalActions({
       let txHash = null;
       if (result.status === 'success') {
         try {
-          let sig: any;
-          if (SUPPORTED_TOKENS_INFO[tokenType].chainType === 'EVM') {
-            sig = JSON.parse(result.sig);
-          } else {
-            sig = response.signatures.btcSignatures;
-          }
+          const sig: any = typeof result.sig === 'string' ? JSON.parse(result.sig) : result.sig;
           const txReceipt = await broadcastTransactionByTokenType({
             tokenType,
             options: {

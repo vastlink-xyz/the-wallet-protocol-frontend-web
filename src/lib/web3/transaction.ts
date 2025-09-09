@@ -1,11 +1,8 @@
 import { ethers } from "ethers";
 import { SUPPORTED_TOKENS_INFO, TokenType } from "./token";
 import { LIT_CHAINS } from "@lit-protocol/constants";
-import { btcConfig } from '@/lib/web3/btc';
-import * as btc from '@scure/btc-signer';
-import BN from "bn.js";
-import elliptic from "elliptic";
-import * as bip66 from "bip66";
+import { getBtcToSignTransaction, broadcastBtcTransaction, estimateBtcFeeAccurate } from '@/lib/web3/btc';
+import type * as btc from '@scure/btc-signer';
 import { log } from "../utils";
 import { ERC20_ABI } from "@/constants/abis/erc20";
 import { broadcastTransactionForVAST, getToSignTransactionForVAST } from "./vast";
@@ -54,10 +51,7 @@ interface VASTTransactionData extends BaseTransactionData {
 export type TransactionData = EVMTransactionData | BTCTransactionData | VASTTransactionData;
 export type { BTCTransactionData, EVMTransactionData, VASTTransactionData };
 
-const BROADCAST_URL = `${btcConfig.blockstreamBaseUrl}/api/tx`;
-const isProd = process.env.NEXT_PUBLIC_ENV?.toLowerCase() === 'production';
-const scureNetwork = isProd ? btc.NETWORK : btc.TEST_NETWORK;
-const EC = elliptic.ec;
+// BTC-specific build/broadcast logic lives in src/lib/web3/btc.ts
 
 // We use btc.selectUTXO from @scure/btc-signer for accurate SegWit size/fee
 
@@ -117,154 +111,13 @@ export const getToSignTransactionByTokenType = async ({
       unsignedTransaction: txData,
     }
   } else if (tokenType === 'BTC') {
-    // Use Blockstream API with @scure/btc-signer UTXO selection
-    let utxos, selectionResult: any;
-
-    try {
-      const response = await fetch(`${btcConfig.blockstreamBaseUrl}/api/address/${sendAddress}/utxo`);
-      if (!response.ok) throw new Error(`Blockstream UTXO API failed: ${response.status}`);
-      utxos = await response.json();
-      utxos = utxos.filter((utxo: any) => utxo.status.confirmed);
-      log('filtered utxos from Blockstream', utxos);
-
-      if (!utxos || utxos.length === 0) {
-        throw new Error('No UTXOs found for this address');
-      }
-
-      const amountSats = Math.floor(Number(amount) * 100000000);
-      
-      // Dust limit constant
-      const DUST_LIMIT = 546;
-
-      // Check if the amount to send is dust
-      if (amountSats < DUST_LIMIT) {
-        throw new Error(`Amount too small. Minimum amount is ${DUST_LIMIT} satoshis (0.00000546 BTC)`);
-      }
-
-      // Get dynamic fee rate
-      let feeRate = 10; // sat/vByte, default fallback
-      try {
-        const feeResponse = await fetch(`${btcConfig.blockstreamBaseUrl}/api/fee-estimates`);
-        if (feeResponse.ok) {
-          const feeRates = await feeResponse.json();
-          // Some explorers return decimal sat/vB; ensure integer for BigInt conversion
-          const est = feeRates['3'] || feeRates['6'] || feeRates['10'] || 10;
-          feeRate = Math.ceil(Number(est));
-        }
-      } catch (error) {
-        console.warn('Failed to fetch dynamic fee, using fallback:', error);
-      }
-
-      // Ensure compressed pubkey for P2WPKH
-      const publicKeyBuffer = (() => {
-        const hex = publicKey.startsWith('0x') ? publicKey.slice(2) : publicKey;
-        if (hex.length === 66 && (hex.startsWith('02') || hex.startsWith('03'))) {
-          return Buffer.from(hex, 'hex');
-        }
-        const ec = new EC('secp256k1');
-        const uncompressed = hex.length === 130 ? hex : (hex.length === 128 ? '04' + hex : hex);
-        const key = ec.keyFromPublic(uncompressed, 'hex');
-        const compressedHex = key.getPublic(true, 'hex');
-        return Buffer.from(compressedHex, 'hex');
-      })();
-      const spend = btc.p2wpkh(publicKeyBuffer, scureNetwork);
-
-      // Normalize UTXOs for btc.selectUTXO
-      const utxoInputs = utxos.map((u: any) => ({
-        txid: Buffer.from(u.txid, 'hex'),
-        index: u.vout,
-        witnessUtxo: {
-          script: spend.script,
-          amount: BigInt(u.value),
-        },
-      }));
-
-      // Desired outputs (recipient only; change handled by selector)
-      const outputs = [{ address: recipientAddress!, amount: BigInt(amountSats) }];
-
-      // Select inputs + build tx
-      selectionResult = btc.selectUTXO(utxoInputs, outputs, 'default', {
-        changeAddress: sendAddress,
-        feePerByte: BigInt(Math.ceil(Number(feeRate))),
-        bip69: true,
-        createTx: true,
-        network: scureNetwork,
-      });
-
-      if (!selectionResult || !selectionResult.tx) {
-        throw new Error('Insufficient funds: unable to find suitable UTXO combination');
-      }
-
-      log('UTXO selection completed:', {
-        fee: selectionResult.fee?.toString(),
-        weight: selectionResult.weight,
-        changeUsed: selectionResult.change,
-        inputs: selectionResult.inputs?.length,
-        outputs: selectionResult.outputs?.length,
-      });
-    } catch (blockstreamError) {
-      console.error('Blockstream API failed:', blockstreamError);
-      throw blockstreamError;
-    }
-
-    // Use tx created by selector
-    const tx: btc.Transaction = selectionResult.tx;
-    const amountSats = Math.floor(Number(amount) * 100000000);
-
-    // Build scriptCode for P2WPKH (BIP-143) from pubkey hash
-    // Ensure compressed pubkey for P2WPKH
-    const publicKeyBuffer = (() => {
-      const hex = publicKey.startsWith('0x') ? publicKey.slice(2) : publicKey;
-      if (hex.length === 66 && (hex.startsWith('02') || hex.startsWith('03'))) {
-        return Buffer.from(hex, 'hex');
-      }
-      const ec = new EC('secp256k1');
-      const uncompressed = hex.length === 130 ? hex : (hex.length === 128 ? '04' + hex : hex);
-      const key = ec.keyFromPublic(uncompressed, 'hex');
-      const compressedHex = key.getPublic(true, 'hex');
-      return Buffer.from(compressedHex, 'hex');
-    })();
-    const spend = btc.p2wpkh(publicKeyBuffer, scureNetwork);
-    const scriptCode = btc.OutScript.encode({ type: 'pkh', hash: spend.hash! });
-
-    // Create signature preimages (one per input) using library helper
-    const toSignArray: Uint8Array[] = [];
-    for (let i = 0; i < tx.inputsLength; i++) {
-      const input = tx.getInput(i);
-      if (!input.witnessUtxo) throw new Error('Missing witnessUtxo for input');
-      const preimage = tx.preimageWitnessV0(i, scriptCode, btc.SigHash.ALL, input.witnessUtxo.amount);
-      toSignArray.push(preimage);
-    }
-
-    // Build selected inputs summary for downstream usage (amounts for finalize)
-    const selectedInputs = Array.from({ length: tx.inputsLength }).map((_, i) => {
-      const inp = tx.getInput(i);
-      if (inp.index === undefined) throw new Error('Missing input index');
-      return {
-        txid: Buffer.from(inp.txid as Uint8Array).toString('hex'),
-        vout: inp.index as number,
-        value: Number(inp.witnessUtxo!.amount),
-      };
+    const res = await getBtcToSignTransaction({
+      sendAddress,
+      recipientAddress,
+      amount,
+      publicKey,
     });
-
-    const totalInputValue = selectedInputs.reduce((acc, i) => acc + i.value, 0);
-    const fee = Number(tx.fee); // prefer tx.fee over estimator
-
-    // Optional: log fee, vsize and approx rate
-    // tx.vsize requires finalized tx (with signatures). Use estimator weight -> vsize instead.
-    const estWeight = selectionResult?.weight || 0;
-    const vsizeEst = estWeight ? Math.ceil(estWeight / 4) : 0;
-    const approxRate = vsizeEst ? Math.ceil(fee / vsizeEst) : 0;
-    log(`Transaction fee: ${fee} sats, est vsize: ${vsizeEst} vB, ~rate: ${approxRate} sat/vB, Efficiency: ${(totalInputValue / (amountSats + fee)).toFixed(2)}x`);
-
-    const toSignHexArray = toSignArray.map((u8) => ethers.utils.hexlify(u8));
-    return {
-      toSign: toSignHexArray, // hex strings for Lit
-      tx,
-      selectedInputs,
-      fee,
-      efficiency: totalInputValue / (amountSats + fee)
-    } as BTCTransactionData
+    return res as unknown as BTCTransactionData;
   } else if (tokenInfo.chainType === 'EVM' && tokenInfo.contractAddress) {
     const rpcUrl = LIT_CHAINS[tokenInfo.chainName as keyof typeof LIT_CHAINS]?.rpcUrls[0];
     const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
@@ -359,130 +212,23 @@ export const broadcastTransactionByTokenType = async ({
     const txReceipt = await provider.sendTransaction(signedAndSerializedTx);
     return txReceipt.hash
   } else if (tokenType === 'BTC') {
-    const { sig, publicKey, tx } = options
-    
-    const signatures = sig;
-    const inputCount = tx.inputsLength;
-    
-    // Ensure we have the right number of signatures
-    if (signatures.length !== inputCount) {
-      throw new Error(`Signature count mismatch: expected ${inputCount}, got ${signatures.length}`);
-    }
-    
-    // Create compressed public key buffer for P2WPKH witness
-    const publicKeyBuffer = (() => {
-      const hex = publicKey.startsWith('0x') ? publicKey.slice(2) : publicKey;
-      if (hex.length === 66 && (hex.startsWith('02') || hex.startsWith('03'))) {
-        return Buffer.from(hex, 'hex');
-      }
-      const ec = new EC('secp256k1');
-      const uncompressed = hex.length === 130 ? hex : (hex.length === 128 ? '04' + hex : hex);
-      const key = ec.keyFromPublic(uncompressed, 'hex');
-      const compressedHex = key.getPublic(true, 'hex');
-      return Buffer.from(compressedHex, 'hex');
-    })();
-    
-    // Process each signature and add to transaction inputs for SegWit
-    // Helper to normalize r/s into 32-byte hex (strip 0x, trim/pad to 64 chars)
-    const normalizeScalarHex = (hex: string): string => {
-      if (!hex) return ''.padStart(64, '0');
-      let h = hex.toString().toLowerCase();
-      if (h.startsWith('0x')) h = h.slice(2);
-      // Keep only hex chars just in case
-      h = h.replace(/[^0-9a-f]/g, '');
-      if (h.length > 64) h = h.slice(h.length - 64); // take least significant 32 bytes
-      if (h.length < 64) h = h.padStart(64, '0');
-      return h;
-    };
-
-    for (let i = 0; i < signatures.length; i++) {
-      const currentSig = signatures[i];
-      const rHex = normalizeScalarHex(currentSig.r);
-      const sHex = normalizeScalarHex(currentSig.s);
-      // r: use normalized 32-byte buffer as-is (no BN conversion needed)
-      let r = Buffer.from(rHex, "hex");
-      // s: apply low-S normalization using BN, then to 32-byte buffer
-      let sBN = new BN(Buffer.from(sHex, 'hex'));
-      const secp256k1 = new EC("secp256k1");
-      const n = secp256k1.curve.n;
-      if (sBN.cmp(n.divn(2)) === 1) {
-        sBN = n.sub(sBN);
-      }
-      // Convert BN back to fixed 32-byte buffer via hex padding (avoid toArrayLike length errors)
-      let sHexNorm = sBN.toString(16);
-      if (sHexNorm.length > 64) sHexNorm = sHexNorm.slice(sHexNorm.length - 64);
-      if (sHexNorm.length < 64) sHexNorm = sHexNorm.padStart(64, '0');
-      let s = Buffer.from(sHexNorm, 'hex');
-      
-      function ensurePositive(buffer: Buffer): Buffer {
-        if (buffer[0] & 0x80) {
-          const newBuffer = Buffer.alloc(buffer.length + 1);
-          newBuffer[0] = 0x00;
-          buffer.copy(newBuffer, 1);
-          return newBuffer;
-        }
-        return buffer;
-      }
-      
-      // @ts-ignore
-      const positiveR = ensurePositive(r);
-      // @ts-ignore
-      const positiveS = ensurePositive(s);
-      
-      let derSignature;
-      try {
-        derSignature = bip66.encode(positiveR, positiveS);
-      } catch (error) {
-        console.error(`Error during DER encoding for input ${i}:`, error);
-        throw error;
-      }
-
-      const signatureWithHashType = Buffer.concat([
-        derSignature,
-        Buffer.from([0x01]), // SIGHASH_ALL
-      ]);
-      
-      // For SegWit P2WPKH, ensure witnessUtxo is present and set partial signature
-      const inp = tx.getInput(i);
-      const amount = inp.witnessUtxo?.amount;
-      tx.updateInput(i, {
-        witnessUtxo: {
-          script: btc.p2wpkh(publicKeyBuffer, scureNetwork).script,
-          amount: amount !== undefined ? amount : 0n,
-        },
-        // PSBT partialSig format: [[pubkey, signature]]
-        partialSig: [[publicKeyBuffer, signatureWithHashType]],
-      });
-    }
-    
-    // Finalize the transaction
-    tx.finalize();
-    const txHex = tx.hex;
-    
-    const broadcastResponse = await fetch(BROADCAST_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "text/plain",
-      },
-      body: txHex,
-    });
-    
-    if (!broadcastResponse.ok) {
-      const errorText = await broadcastResponse.text();
-      throw new Error(`Error broadcasting transaction: ${errorText}`);
-    }
-    
-    const txid = await broadcastResponse.text();
-    return txid
+    return await broadcastBtcTransaction(options);
   }
 }
 
 export const estimateGasFee = async ({
   tokenType,
-  balance
+  balance,
+  // BTC accurate estimation params (optional; if provided, use accurate path)
+  sendAddress,
+  recipientAddress,
+  amount,
 }: {
   tokenType: TokenType;
   balance: string;
+  sendAddress?: string;
+  recipientAddress?: string;
+  amount?: string;
 }) => {
   const tokenInfo = SUPPORTED_TOKENS_INFO[tokenType];
   
@@ -542,47 +288,15 @@ export const estimateGasFee = async ({
         remainingBalance: isSufficientForFee ? (numBalance - numFee).toString() : "0"
       };
     } else if (tokenInfo.chainType === 'UTXO') {
-      // SegWit fee calculation for Bitcoin
-      try {
-        // Directly call Blockstream API for fee rates
-        const response = await fetch(`${btcConfig.blockstreamBaseUrl}/api/fee-estimates`);
-        if (!response.ok) throw new Error('Fee API failed');
-
-        const feeRates = await response.json();
-
-        // Use a simple fee rate (sat/vByte) - prefer faster confirmation
-        const feeRate = feeRates['1'] || feeRates['2'] || feeRates['3'] || 10; // fallback to 10 sat/vB
-
-        // SegWit transaction size estimate: base(10.5) + inputs(68 each) + outputs(31 each)
-        // For P2WPKH: input size is ~68 vBytes (41 base + 27 witness), output size is ~31 vBytes
-        const estimatedInputs = 2; // Average case assumption
-        const estimatedOutputs = 2; // One for recipient, one for change
-        const txSize = 10.5 + (estimatedInputs * 68) + (estimatedOutputs * 31);
-        const feeSats = Math.ceil(feeRate * txSize);
-        const estimatedFee = parseFloat((feeSats / 100000000).toFixed(8)).toString(); // Convert to BTC with proper precision
-
-        const numBalance = parseFloat(balance);
-        const numFee = parseFloat(estimatedFee);
-        const isSufficientForFee = numBalance >= numFee;
-
-        return {
-          estimatedFee,
-          isSufficientForFee,
-          remainingBalance: isSufficientForFee ? (numBalance - numFee).toString() : "0"
-        };
-      } catch (error) {
-        // Simple fallback if API fails
-        const estimatedFee = "0.0001"; // 0.0001 BTC fallback
-        const numBalance = parseFloat(balance);
-        const numFee = parseFloat(estimatedFee);
-        const isSufficientForFee = numBalance >= numFee;
-
-        return {
-          estimatedFee,
-          isSufficientForFee,
-          remainingBalance: isSufficientForFee ? (numBalance - numFee).toString() : "0"
-        };
+      if (!sendAddress || !amount) {
+        throw new Error('BTC fee estimation requires sendAddress and amount');
       }
+      return await estimateBtcFeeAccurate({
+        sendAddress,
+        recipientAddress: recipientAddress || sendAddress,
+        amount,
+        balance,
+      });
     }
     
     // Default response for unsupported chains

@@ -1,6 +1,10 @@
 import { TransactionItem } from "@/types/transaction-item";
 import * as bitcoinjs from "bitcoinjs-lib";
 import { ec as EC } from 'elliptic';
+import * as scure from '@scure/btc-signer';
+import BN from 'bn.js';
+import * as bip66 from 'bip66';
+import { log } from '@/lib/utils';
 
 const isProduction = process.env.NEXT_PUBLIC_ENV?.toLowerCase() === 'production';
 
@@ -11,6 +15,10 @@ export const btcConfig = {
   mempoolBaseUrl: isProduction ? 'https://mempool.space' : 'https://mempool.space/testnet',
   blockstreamBaseUrl: isProduction ? 'https://blockstream.info' : 'https://blockstream.info/testnet',
 } as const;
+
+const scureNetwork = isProduction ? scure.NETWORK : scure.TEST_NETWORK;
+
+const BROADCAST_URL = `${btcConfig.blockstreamBaseUrl}/api/tx`;
 
 /**
  * Derive a P2WPKH (bech32) BTC address from an ECDSA public key hex.
@@ -49,6 +57,318 @@ export const getBtcAddressByPublicKey = (publicKey: string): string => {
   } catch (error) {
     console.error('Error getting BTC SegWit address:', error);
     return '';
+  }
+}
+
+// ------------------------
+// BTC transaction building
+// ------------------------
+
+export interface BtcSelectedInput {
+  txid: string;
+  vout: number;
+  value: number;
+}
+
+export interface BtcToSignResult {
+  toSign: string[]; // 0x-prefixed 32-byte hex preimages, one per input
+  tx: scure.Transaction;
+  selectedInputs: BtcSelectedInput[];
+  fee: number;
+  efficiency: number;
+}
+
+function ensureCompressedPubkey(pubkeyHex: string): Buffer {
+  const hex = pubkeyHex.startsWith('0x') ? pubkeyHex.slice(2) : pubkeyHex;
+  if (hex.length === 66 && (hex.startsWith('02') || hex.startsWith('03'))) {
+    return Buffer.from(hex, 'hex');
+  }
+  const ec = new EC('secp256k1');
+  const uncompressed = hex.length === 130 ? hex : (hex.length === 128 ? '04' + hex : hex);
+  const key = ec.keyFromPublic(uncompressed, 'hex');
+  const compressedHex = key.getPublic(true, 'hex');
+  return Buffer.from(compressedHex, 'hex');
+}
+
+export async function getBtcToSignTransaction({
+  sendAddress,
+  recipientAddress,
+  amount,
+  publicKey,
+}: {
+  sendAddress: string;
+  recipientAddress: string;
+  amount: string; // BTC amount in decimal string
+  publicKey: string;
+}): Promise<BtcToSignResult> {
+  // Fetch confirmed UTXOs
+  const response = await fetch(`${btcConfig.blockstreamBaseUrl}/api/address/${sendAddress}/utxo`);
+  if (!response.ok) throw new Error(`Blockstream UTXO API failed: ${response.status}`);
+  let utxos: any[] = await response.json();
+  utxos = utxos.filter((u: any) => u.status?.confirmed);
+  log('filtered utxos from Blockstream', utxos);
+
+  if (!utxos || utxos.length === 0) {
+    throw new Error('No UTXOs found for this address');
+  }
+
+  const amountSats = Math.floor(Number(amount) * 100000000);
+  const DUST_LIMIT = 546;
+  if (amountSats < DUST_LIMIT) {
+    throw new Error(`Amount too small. Minimum amount is ${DUST_LIMIT} satoshis (0.00000546 BTC)`);
+  }
+
+  // Fee estimate
+  let feeRate = 10; // sat/vB fallback
+  try {
+    const feeResponse = await fetch(`${btcConfig.blockstreamBaseUrl}/api/fee-estimates`);
+    if (feeResponse.ok) {
+      const feeRates = await feeResponse.json();
+      const est = feeRates['3'] || feeRates['6'] || feeRates['10'] || 10;
+      feeRate = Math.ceil(Number(est));
+    }
+  } catch (e) {
+    console.warn('Failed to fetch dynamic fee, using fallback:', e);
+  }
+
+  const publicKeyBuffer = ensureCompressedPubkey(publicKey);
+  const spend = scure.p2wpkh(publicKeyBuffer, scureNetwork);
+
+  // Normalize UTXOs for scure.selectUTXO
+  const utxoInputs = utxos.map((u: any) => ({
+    txid: Buffer.from(u.txid, 'hex'),
+    index: u.vout,
+    witnessUtxo: {
+      script: spend.script,
+      amount: BigInt(u.value),
+    },
+  }));
+
+  const outputs = [{ address: recipientAddress, amount: BigInt(amountSats) }];
+
+  const selectionResult = scure.selectUTXO(utxoInputs, outputs, 'default', {
+    changeAddress: sendAddress,
+    feePerByte: BigInt(Math.ceil(Number(feeRate))),
+    bip69: true,
+    createTx: true,
+    network: scureNetwork,
+  });
+  if (!selectionResult || !selectionResult.tx) {
+    throw new Error('Insufficient funds: unable to find suitable UTXO combination');
+  }
+
+  const tx: scure.Transaction = selectionResult.tx;
+
+  // Build scriptCode for preimages
+  const scriptCode = scure.OutScript.encode({ type: 'pkh', hash: spend.hash! });
+  const toSignArray: Uint8Array[] = [];
+  for (let i = 0; i < tx.inputsLength; i++) {
+    const input = tx.getInput(i);
+    if (!input.witnessUtxo) throw new Error('Missing witnessUtxo for input');
+    const preimage = tx.preimageWitnessV0(i, scriptCode, scure.SigHash.ALL, input.witnessUtxo.amount);
+    toSignArray.push(preimage);
+  }
+
+  const selectedInputs: BtcSelectedInput[] = Array.from({ length: tx.inputsLength }).map((_, i) => {
+    const inp = tx.getInput(i);
+    if (inp.index === undefined) throw new Error('Missing input index');
+    return {
+      txid: Buffer.from(inp.txid as Uint8Array).toString('hex'),
+      vout: inp.index as number,
+      value: Number(inp.witnessUtxo!.amount),
+    };
+  });
+
+  const totalInputValue = selectedInputs.reduce((acc, i) => acc + i.value, 0);
+  const fee = Number(tx.fee);
+  const estWeight = selectionResult?.weight || 0;
+  const vsizeEst = estWeight ? Math.ceil(estWeight / 4) : 0;
+  const approxRate = vsizeEst ? Math.ceil(fee / vsizeEst) : 0;
+  log(`Transaction fee: ${fee} sats, est vsize: ${vsizeEst} vB, ~rate: ${approxRate} sat/vB, Efficiency: ${(totalInputValue / (amountSats + fee)).toFixed(2)}x`);
+
+  const toSignHexArray = toSignArray.map((u8) => '0x' + Buffer.from(u8).toString('hex'));
+  return {
+    toSign: toSignHexArray,
+    tx,
+    selectedInputs,
+    fee,
+    efficiency: totalInputValue / (amountSats + fee),
+  };
+}
+
+// ------------------------
+// BTC transaction broadcast
+// ------------------------
+
+// Normalize r/s into 32-byte hex (strip 0x, trim/pad to 64 chars)
+function normalizeScalarHex(hex: string): string {
+  if (!hex) return ''.padStart(64, '0');
+  let h = hex.toString().toLowerCase();
+  if (h.startsWith('0x')) h = h.slice(2);
+  h = h.replace(/[^0-9a-f]/g, '');
+  if (h.length > 64) h = h.slice(h.length - 64);
+  if (h.length < 64) h = h.padStart(64, '0');
+  return h;
+}
+
+// Ensure DER-encoded integers are positive (prepend 0x00 if highest bit is set)
+function ensurePositive(buffer: Buffer): Buffer {
+  if (buffer[0] & 0x80) {
+    const newBuffer = Buffer.alloc(buffer.length + 1);
+    newBuffer[0] = 0x00;
+    buffer.copy(newBuffer, 1);
+    return newBuffer;
+  }
+  return buffer;
+}
+
+export async function broadcastBtcTransaction({
+  sig,
+  publicKey,
+  tx,
+}: {
+  sig: Array<{ r: string; s: string; v?: number }>;
+  publicKey: string;
+  tx: scure.Transaction;
+}): Promise<string> {
+  const signatures = sig;
+  const inputCount = tx.inputsLength;
+  if (signatures.length !== inputCount) {
+    throw new Error(`Signature count mismatch: expected ${inputCount}, got ${signatures.length}`);
+  }
+
+  const publicKeyBuffer = ensureCompressedPubkey(publicKey);
+
+  for (let i = 0; i < signatures.length; i++) {
+    const currentSig = signatures[i];
+    const rHex = normalizeScalarHex(currentSig.r);
+    const sHex = normalizeScalarHex(currentSig.s);
+    let r = Buffer.from(rHex, 'hex');
+
+    // low-S normalization for s
+    let sBN = new BN(Buffer.from(sHex, 'hex'));
+    const ec = new EC('secp256k1');
+    const n = ec.curve.n;
+    if (sBN.cmp(n.divn(2)) === 1) sBN = n.sub(sBN);
+    let sHexNorm = sBN.toString(16);
+    if (sHexNorm.length > 64) sHexNorm = sHexNorm.slice(sHexNorm.length - 64);
+    if (sHexNorm.length < 64) sHexNorm = sHexNorm.padStart(64, '0');
+    let s = Buffer.from(sHexNorm, 'hex');
+
+    const positiveR = ensurePositive(r);
+    const positiveS = ensurePositive(s);
+
+    const derSignature = bip66.encode(positiveR, positiveS);
+    const signatureWithHashType = Buffer.concat([derSignature, Buffer.from([0x01])]); // SIGHASH_ALL
+
+    const inp = tx.getInput(i);
+    const amount = inp.witnessUtxo?.amount;
+    tx.updateInput(i, {
+      witnessUtxo: {
+        script: scure.p2wpkh(publicKeyBuffer, scureNetwork).script,
+        amount: amount !== undefined ? amount : 0n,
+      },
+      partialSig: [[publicKeyBuffer, signatureWithHashType]],
+    });
+  }
+
+  tx.finalize();
+  const txHex = tx.hex;
+
+  const broadcastResponse = await fetch(BROADCAST_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: txHex,
+  });
+  if (!broadcastResponse.ok) {
+    const errorText = await broadcastResponse.text();
+    throw new Error(`Error broadcasting transaction: ${errorText}`);
+  }
+  const txid = await broadcastResponse.text();
+  return txid;
+}
+
+export async function estimateBtcFeeAccurate({
+  sendAddress,
+  recipientAddress,
+  amount,
+  balance,
+}: {
+  sendAddress: string;
+  recipientAddress: string;
+  amount: string; // BTC amount in decimal string
+  balance: string; // BTC balance in decimal string
+}) {
+  try {
+    // Fetch confirmed UTXOs
+    const response = await fetch(`${btcConfig.blockstreamBaseUrl}/api/address/${sendAddress}/utxo`);
+    if (!response.ok) throw new Error(`Blockstream UTXO API failed: ${response.status}`);
+    let utxos: any[] = await response.json();
+    utxos = utxos.filter((u: any) => u.status?.confirmed);
+    if (!utxos || utxos.length === 0) throw new Error('No UTXOs found for this address');
+
+    // Fee rate (same approach as build path: prefer 3/6/10)
+    let feeRate = 10; // sat/vB fallback
+    try {
+      const feeResponse = await fetch(`${btcConfig.blockstreamBaseUrl}/api/fee-estimates`);
+      if (feeResponse.ok) {
+        const feeRates = await feeResponse.json();
+        const est = feeRates['3'] || feeRates['6'] || feeRates['10'] || 10;
+        feeRate = Math.ceil(Number(est));
+      }
+    } catch (_) {}
+
+    const amountSats = Math.floor(Number(amount) * 100000000);
+    const DUST_LIMIT = 546;
+    if (amountSats < DUST_LIMIT) {
+      return {
+        estimatedFee: '0',
+        isSufficientForFee: true,
+        remainingBalance: balance,
+        warning: `Amount below dust limit (${DUST_LIMIT} sats)`
+      };
+    }
+
+    // Build script for this address (prevout script)
+    const outType = scure.Address(scureNetwork).decode(sendAddress);
+    const prevoutScript = scure.OutScript.encode(outType);
+
+    const utxoInputs = utxos.map((u: any) => ({
+      txid: Buffer.from(u.txid, 'hex'),
+      index: u.vout,
+      witnessUtxo: {
+        script: prevoutScript,
+        amount: BigInt(u.value),
+      },
+    }));
+
+    const outputs = [{ address: recipientAddress, amount: BigInt(amountSats) }];
+
+    const selectionResult = scure.selectUTXO(utxoInputs, outputs, 'default', {
+      changeAddress: sendAddress,
+      feePerByte: BigInt(Math.ceil(Number(feeRate))),
+      bip69: true,
+      createTx: true,
+      network: scureNetwork,
+    });
+    if (!selectionResult || !selectionResult.tx) throw new Error('Insufficient funds');
+
+    const tx: scure.Transaction = selectionResult.tx;
+    const feeSats = Number(tx.fee);
+    const estimatedFee = parseFloat((feeSats / 100000000).toFixed(8)).toString();
+
+    const numBalance = parseFloat(balance);
+    const numFee = parseFloat(estimatedFee);
+    const isSufficientForFee = numBalance >= numFee;
+
+    return {
+      estimatedFee,
+      isSufficientForFee,
+      remainingBalance: isSufficientForFee ? (numBalance - numFee).toString() : '0'
+    };
+  } catch (error) {
+    // Do not fallback to simple estimation; propagate error to caller
+    throw error instanceof Error ? error : new Error(String(error));
   }
 }
 

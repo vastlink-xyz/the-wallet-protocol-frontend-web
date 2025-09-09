@@ -136,7 +136,6 @@ export const executePersonalTransaction = async ({
     log('result parse', result)
     
     if (result.status === 'success') {
-      // Unify handling: Lit returns JSON string for sig in both EVM and UTXO
       const sig: any = typeof result.sig === 'string' ? JSON.parse(result.sig) : result.sig
       const txReceipt = await broadcastTransactionByTokenType({
         tokenType,
