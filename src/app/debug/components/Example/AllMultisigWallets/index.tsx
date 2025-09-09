@@ -10,7 +10,7 @@ import { LitContracts } from '@lit-protocol/contracts-sdk';
 import { PKPEthersWallet } from '@lit-protocol/pkp-ethers';
 import { litActionCodeForCommonUpgradableProxy } from '@/lib/lit-action-code/common-upgradable-proxy.lit';
 
-const upgradeIpfsFn = getUpdateWalletIpfsId
+const upgradeIpfsFn = getMultisigTransactionIpfsId
 const removeIpfsIdHex = '0x12203bcbfca3a322e7a605154112cffdad2b518cc8d91d0c49ebfbebca5bbe8b5964'
 
 interface AllMultisigWalletsProps {

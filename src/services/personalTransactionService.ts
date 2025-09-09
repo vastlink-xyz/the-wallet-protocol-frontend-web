@@ -77,6 +77,7 @@ export const executePersonalTransaction = async ({
         sendAddress: sendAddressByTokenType(tokenType, litActionPkp, btcAddress),
         recipientAddress,
         amount,
+        publicKey: litActionPkp.publicKey, // Add publicKey for BTC SegWit transactions
       },
     })
     log('txData', txData)
@@ -135,12 +136,8 @@ export const executePersonalTransaction = async ({
     log('result parse', result)
     
     if (result.status === 'success') {
-      let sig: any
-      if (SUPPORTED_TOKENS_INFO[tokenType].chainType === 'EVM') {
-        sig = JSON.parse(result.sig)
-      } else {
-        sig = response.signatures.btcSignatures
-      }
+      // Unify handling: Lit returns JSON string for sig in both EVM and UTXO
+      const sig: any = typeof result.sig === 'string' ? JSON.parse(result.sig) : result.sig
       const txReceipt = await broadcastTransactionByTokenType({
         tokenType,
         options: {

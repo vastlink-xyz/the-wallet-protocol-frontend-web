@@ -30,9 +30,9 @@ import { litActionCodeForDecryptAndCombine } from "@/lib/lit-action-code/decrypt
 // const litActionCode = litActionCodeForCreateMultisigWallet
 // const litActionCode = litActionCodeForUpdateMultisigWalletSettings
 // const litActionCode = litActionCodeForMultisigTransaction
-// const litActionCode = litActionCodeForPersonalTransaction
+const litActionCode = litActionCodeForPersonalTransaction
 
-const litActionCode = litActionCodeForUpdateMultisigWalletSettings
+// const litActionCode = litActionCodeForUpdateMultisigWalletSettings
 
 interface ExecuteLitActionCodeProps {
   authMethod: VastbaseAuthMethod;

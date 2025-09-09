@@ -1,5 +1,6 @@
 import { TransactionItem } from "@/types/transaction-item";
 import * as bitcoinjs from "bitcoinjs-lib";
+import { ec as EC } from 'elliptic';
 
 const isProduction = process.env.NEXT_PUBLIC_ENV?.toLowerCase() === 'production';
 
@@ -11,20 +12,43 @@ export const btcConfig = {
   blockstreamBaseUrl: isProduction ? 'https://blockstream.info' : 'https://blockstream.info/testnet',
 } as const;
 
-export const getBtcAddressByPublicKey = (publicKey: string) => {
+/**
+ * Derive a P2WPKH (bech32) BTC address from an ECDSA public key hex.
+ * Accepts 0x-prefixed or plain hex; compressed (33-byte) or uncompressed (65-byte) keys.
+ */
+export const getBtcAddressByPublicKey = (publicKey: string): string => {
   try {
-    const pubkeyBuffer = Buffer.from(publicKey.slice(2), "hex")
-    // Use SegWit (P2WPKH) format instead of legacy P2PKH
-    const pkpBTCAddress = bitcoinjs.payments.p2wpkh({
-      pubkey: pubkeyBuffer,
-      network: btcConfig.network,
-    }).address
-
-    if (pkpBTCAddress) {
-      return pkpBTCAddress
+    if (!publicKey) return '';
+    const hex = publicKey.startsWith('0x') ? publicKey.slice(2) : publicKey;
+    if (hex.length !== 66 && hex.length !== 130) {
+      // Unknown length; try to treat as uncompressed missing 0x04 prefix
+      // If 64 bytes (128 hex), prefix with '04'
+      if (hex.length === 128) {
+        return getBtcAddressByPublicKey('0x04' + hex);
+      }
+      return '';
     }
+
+    // Ensure compressed public key for P2WPKH
+    let compressedHex = hex;
+    if (hex.length === 130) {
+      // Uncompressed (65 bytes, 0x04...)
+      const ec = new EC('secp256k1');
+      const key = ec.keyFromPublic(hex, 'hex');
+      compressedHex = key.getPublic(true, 'hex');
+    }
+
+    // Validate compressed prefix (02/03)
+    if (!(compressedHex.startsWith('02') || compressedHex.startsWith('03'))) {
+      return '';
+    }
+
+    const pubkeyBuffer = Buffer.from(compressedHex, 'hex');
+    const payment = bitcoinjs.payments.p2wpkh({ pubkey: pubkeyBuffer, network: btcConfig.network });
+    return payment.address ?? '';
   } catch (error) {
-    console.error("Error getting BTC SegWit address:", error)
+    console.error('Error getting BTC SegWit address:', error);
+    return '';
   }
 }
 
