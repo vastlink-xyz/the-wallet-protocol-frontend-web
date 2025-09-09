@@ -243,7 +243,7 @@ export async function broadcastBtcTransaction({
     const currentSig = signatures[i];
     const rHex = normalizeScalarHex(currentSig.r);
     const sHex = normalizeScalarHex(currentSig.s);
-    let r = Buffer.from(rHex, 'hex');
+    const r = Buffer.from(rHex, 'hex');
 
     // low-S normalization for s
     let sBN = new BN(Buffer.from(sHex, 'hex'));
@@ -253,7 +253,7 @@ export async function broadcastBtcTransaction({
     let sHexNorm = sBN.toString(16);
     if (sHexNorm.length > 64) sHexNorm = sHexNorm.slice(sHexNorm.length - 64);
     if (sHexNorm.length < 64) sHexNorm = sHexNorm.padStart(64, '0');
-    let s = Buffer.from(sHexNorm, 'hex');
+    const s = Buffer.from(sHexNorm, 'hex');
 
     const positiveR = ensurePositive(r);
     const positiveS = ensurePositive(s);

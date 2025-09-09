@@ -106,7 +106,6 @@ export function Example() {
           <AllUsers 
             currentUserPkp={userData?.litActionPkp || null}
             currentUserAuthMethod={authMethod as any}
-            sessionSigs={sessionSigs}
           />
         );
       case 'all-wallets':

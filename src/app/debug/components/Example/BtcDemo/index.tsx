@@ -64,7 +64,12 @@ export function BtcDemo() {
         throw new Error('Unexpected tx data for BTC');
       }
 
-      const toSignArray = txData.toSign as Uint8Array[];
+      // txData.toSign is string[] (0x-prefixed 32-byte hashes) for BTC
+      const toSignHex = txData.toSign as string[];
+      const toSignArray: Uint8Array[] = toSignHex.map((h) => {
+        const hex = typeof h === 'string' && h.startsWith('0x') ? h.slice(2) : (h as string);
+        return new Uint8Array(Buffer.from(hex, 'hex'));
+      });
       setResult(`Signing ${toSignArray.length} input(s)...`);
 
       // 2) Locally ECDSA-sign each preimage using the provided private key
