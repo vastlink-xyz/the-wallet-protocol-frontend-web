@@ -211,6 +211,7 @@ export const executeTransactionProposal = async ({
       }),
       recipientAddress: txDetails.to,
       amount: txDetails.value,
+      publicKey: walletPkp.publicKey, // Add publicKey for BTC SegWit transactions
     },
   })
 

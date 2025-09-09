@@ -17,7 +17,7 @@ import {
 } from '@/lib/lit'
 import { encryptString } from '@lit-protocol/encryption'
 import { AUTH_METHOD_SCOPE, AUTH_METHOD_TYPE } from '@lit-protocol/constants'
-import { getCreateWalletIpfsId, getMultisigTransactionIpfsId, getUpdateWalletIpfsId, getAPIKeyManagementIpfsId } from '@/lib/lit/ipfs-id-env'
+import { getCreateWalletIpfsId, getMultisigTransactionIpfsId, getUpdateWalletIpfsId, getAPIKeyManagementIpfsId, getUpgradeIpfsId } from '@/lib/lit/ipfs-id-env'
 import { useAuthExpiration } from '@/hooks/useAuthExpiration'
 import { isTokenValid } from '@/lib/jwt'
 import { TokenType } from '@/lib/web3/token'
@@ -476,7 +476,7 @@ export function MultisigWalletFormContent({
       const updateWalletIpfsIdHex = await getUpdateWalletIpfsId("hex");
       const multisigTransactionIpfsIdHex = await getMultisigTransactionIpfsId('hex')
       const apiKeyManagementIpfsIdHex = await getAPIKeyManagementIpfsId('hex')
-      // const upgradeIpfsIdHex = await getUpgradeIpfsId('hex')
+      const upgradeIpfsIdHex = await getUpgradeIpfsId('hex')
       const createWalletIpfsId = await getCreateWalletIpfsId("base58");
 
       // Determine actual signers for wallet creation
@@ -519,6 +519,14 @@ export function MultisigWalletFormContent({
         [AUTH_METHOD_SCOPE.NoPermissions],
         ...signerAuthMethodIds.filter(id => id !== authMethodId).map(() => [AUTH_METHOD_SCOPE.NoPermissions])
       ];
+
+      if (process.env.NEXT_PUBLIC_ENV === 'dev') {
+        // upgrade
+        allAuthMethodTypes.push(AUTH_METHOD_TYPE.LitAction);
+        allAuthMethodIds.push(upgradeIpfsIdHex)
+        allAuthMethodPubkeys.push('0x')
+        allAuthMethodScopes.push([AUTH_METHOD_SCOPE.SignAnything])
+      }
 
       const pkpForMultisig = await mintPKP({
         keyType: 2,

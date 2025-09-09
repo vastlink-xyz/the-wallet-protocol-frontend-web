@@ -12,9 +12,16 @@ export function isValidEmail(email: string): boolean {
 }
 
 // Function to truncate text in the middle
-export function truncateMiddle(text: string, maxLength: number = 20) {
-  if (text.length <= maxLength) return text;
-  const start = Math.ceil(maxLength / 2) - 2;
-  const end = Math.floor(maxLength / 2) - 2;
-  return `${text.slice(0, start)}...${text.slice(-end)}`;
+export function truncateMiddle(text: string | null | undefined, maxLength: number = 20) {
+  const value = text ?? '';
+  if (maxLength <= 0) return '';
+  if (value.length <= maxLength) return value;
+
+  const ellipsis = '...';
+  const keep = Math.max(0, maxLength - ellipsis.length);
+  const start = Math.ceil(keep / 2);
+  const end = Math.floor(keep / 2);
+
+  if (start <= 0 || end <= 0) return ellipsis;
+  return `${value.slice(0, start)}${ellipsis}${value.slice(value.length - end)}`;
 }

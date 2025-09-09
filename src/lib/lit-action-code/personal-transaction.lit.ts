@@ -85,7 +85,49 @@ const go = async () => {
   }
 
   try {
-    if (chainType === 'EVM') {
+    if (chainType === 'UTXO') {
+      // Expect 0x-prefixed 32-byte hash hex strings; convert to Uint8Array
+      const raw = Array.isArray(toSignTransaction) ? toSignTransaction : [];
+      const toSignArray: Uint8Array[] = raw.map((h: any, i: number) => {
+        const u8 = typeof h === 'string' ? ethers.utils.arrayify(h) : h;
+        if (!(u8 instanceof Uint8Array) || u8.length !== 32) {
+          throw new Error(`Invalid toSign[${i}]: expect 32-byte hash hex`);
+        }
+        return u8;
+      });
+
+      const signatures = [] as any[];
+      console.log(`Processing ${toSignArray.length} BTC input(s) for signing`);
+      
+      for (let i = 0; i < toSignArray.length; i++) {
+        console.log(`Signing input ${i + 1}/${toSignArray.length}`);
+        if (!(toSignArray[i] instanceof Uint8Array) || toSignArray[i].length !== 32) {
+          throw new Error(`Invalid toSign preimage at index ${i}: expected 32-byte Uint8Array`);
+        }
+        const sig = await Lit.Actions.signAndCombineEcdsa({
+          toSign: toSignArray[i],
+          publicKey: publicKeyForLit,
+          sigName: `btcSignatures_${i}`,
+        }) as any;
+        signatures.push(sig);
+      }
+      // Normalize to array of objects and then stringify for consistent handling with EVM
+      const signatureObjs = signatures.map((s: any) => {
+        try {
+          return typeof s === 'string' ? JSON.parse(s) : s;
+        } catch (_e) {
+          return s;
+        }
+      });
+
+      Lit.Actions.setResponse({
+        response: JSON.stringify({
+          status: 'success',
+          isValid: true,
+          sig: JSON.stringify(signatureObjs),
+        }),
+      });
+    } else {
       const sig = await Lit.Actions.signAndCombineEcdsa({
         toSign: toSignTransaction,
         publicKey: publicKeyForLit,
@@ -93,20 +135,6 @@ const go = async () => {
       }) as any;
     
       console.log("sig is", sig);
-  
-      Lit.Actions.setResponse({
-        response: JSON.stringify({
-          status: 'success',
-          isValid: true,
-          sig,
-        }),
-      });
-    } else {
-      const sig = await Lit.Actions.signEcdsa({
-        toSign: toSignTransaction,
-        publicKey,
-        sigName: 'btcSignatures',
-      }) as any;
   
       Lit.Actions.setResponse({
         response: JSON.stringify({

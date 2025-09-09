@@ -13,7 +13,9 @@ import { broadcastTransactionForVAST, getToSignTransactionForVAST } from "./vast
 
 // Type definitions for transaction data
 interface BaseTransactionData {
-  toSign: Uint8Array | Uint8Array[] | Buffer | Buffer[];
+  // NOTE: For BTC, this will be string[] (0x-prefixed 32-byte hex preimages).
+  // For EVM & VAST, this remains Uint8Array.
+  toSign: Uint8Array | Uint8Array[] | Buffer | Buffer[] | string | string[];
 }
 
 interface EVMTransactionData extends BaseTransactionData {
@@ -33,7 +35,7 @@ interface EVMTransactionData extends BaseTransactionData {
 }
 
 interface BTCTransactionData extends BaseTransactionData {
-  toSign: Uint8Array[]; // BTC uses one preimage per input (SegWit)
+  toSign: string[]; // BTC uses one preimage per input (SegWit) - hex strings for Lit
   tx: btc.Transaction;
   selectedInputs: Array<{
     txid: string;
@@ -70,9 +72,7 @@ export const getToSignTransactionByTokenType = async ({
   const tokenInfo = SUPPORTED_TOKENS_INFO[tokenType]
 
   if (tokenType === 'VAST') {
-    return getToSignTransactionForVAST({
-      options,
-    })
+    return getToSignTransactionForVAST({ options });
   } else if (tokenInfo.chainType === 'EVM' && !tokenInfo.contractAddress) {
     const rpcUrl = LIT_CHAINS[tokenInfo.chainName as keyof typeof LIT_CHAINS]?.rpcUrls[0];
     const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
@@ -155,7 +155,18 @@ export const getToSignTransactionByTokenType = async ({
         console.warn('Failed to fetch dynamic fee, using fallback:', error);
       }
 
-      const publicKeyBuffer = Buffer.from(publicKey.slice(2), 'hex');
+      // Ensure compressed pubkey for P2WPKH
+      const publicKeyBuffer = (() => {
+        const hex = publicKey.startsWith('0x') ? publicKey.slice(2) : publicKey;
+        if (hex.length === 66 && (hex.startsWith('02') || hex.startsWith('03'))) {
+          return Buffer.from(hex, 'hex');
+        }
+        const ec = new EC('secp256k1');
+        const uncompressed = hex.length === 130 ? hex : (hex.length === 128 ? '04' + hex : hex);
+        const key = ec.keyFromPublic(uncompressed, 'hex');
+        const compressedHex = key.getPublic(true, 'hex');
+        return Buffer.from(compressedHex, 'hex');
+      })();
       const spend = btc.p2wpkh(publicKeyBuffer, scureNetwork);
 
       // Normalize UTXOs for btc.selectUTXO
@@ -201,7 +212,18 @@ export const getToSignTransactionByTokenType = async ({
     const amountSats = Math.floor(Number(amount) * 100000000);
 
     // Build scriptCode for P2WPKH (BIP-143) from pubkey hash
-    const publicKeyBuffer = Buffer.from(publicKey.slice(2), 'hex');
+    // Ensure compressed pubkey for P2WPKH
+    const publicKeyBuffer = (() => {
+      const hex = publicKey.startsWith('0x') ? publicKey.slice(2) : publicKey;
+      if (hex.length === 66 && (hex.startsWith('02') || hex.startsWith('03'))) {
+        return Buffer.from(hex, 'hex');
+      }
+      const ec = new EC('secp256k1');
+      const uncompressed = hex.length === 130 ? hex : (hex.length === 128 ? '04' + hex : hex);
+      const key = ec.keyFromPublic(uncompressed, 'hex');
+      const compressedHex = key.getPublic(true, 'hex');
+      return Buffer.from(compressedHex, 'hex');
+    })();
     const spend = btc.p2wpkh(publicKeyBuffer, scureNetwork);
     const scriptCode = btc.OutScript.encode({ type: 'pkh', hash: spend.hash! });
 
@@ -235,13 +257,14 @@ export const getToSignTransactionByTokenType = async ({
     const approxRate = vsizeEst ? Math.ceil(fee / vsizeEst) : 0;
     log(`Transaction fee: ${fee} sats, est vsize: ${vsizeEst} vB, ~rate: ${approxRate} sat/vB, Efficiency: ${(totalInputValue / (amountSats + fee)).toFixed(2)}x`);
 
+    const toSignHexArray = toSignArray.map((u8) => ethers.utils.hexlify(u8));
     return {
-      toSign: toSignArray, // One hash per input
+      toSign: toSignHexArray, // hex strings for Lit
       tx,
       selectedInputs,
       fee,
       efficiency: totalInputValue / (amountSats + fee)
-    }
+    } as BTCTransactionData
   } else if (tokenInfo.chainType === 'EVM' && tokenInfo.contractAddress) {
     const rpcUrl = LIT_CHAINS[tokenInfo.chainName as keyof typeof LIT_CHAINS]?.rpcUrls[0];
     const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
@@ -346,28 +369,50 @@ export const broadcastTransactionByTokenType = async ({
       throw new Error(`Signature count mismatch: expected ${inputCount}, got ${signatures.length}`);
     }
     
-    // Create public key buffer
-    const publicKeyBuffer = Buffer.from(publicKey.slice(2), "hex");
+    // Create compressed public key buffer for P2WPKH witness
+    const publicKeyBuffer = (() => {
+      const hex = publicKey.startsWith('0x') ? publicKey.slice(2) : publicKey;
+      if (hex.length === 66 && (hex.startsWith('02') || hex.startsWith('03'))) {
+        return Buffer.from(hex, 'hex');
+      }
+      const ec = new EC('secp256k1');
+      const uncompressed = hex.length === 130 ? hex : (hex.length === 128 ? '04' + hex : hex);
+      const key = ec.keyFromPublic(uncompressed, 'hex');
+      const compressedHex = key.getPublic(true, 'hex');
+      return Buffer.from(compressedHex, 'hex');
+    })();
     
     // Process each signature and add to transaction inputs for SegWit
+    // Helper to normalize r/s into 32-byte hex (strip 0x, trim/pad to 64 chars)
+    const normalizeScalarHex = (hex: string): string => {
+      if (!hex) return ''.padStart(64, '0');
+      let h = hex.toString().toLowerCase();
+      if (h.startsWith('0x')) h = h.slice(2);
+      // Keep only hex chars just in case
+      h = h.replace(/[^0-9a-f]/g, '');
+      if (h.length > 64) h = h.slice(h.length - 64); // take least significant 32 bytes
+      if (h.length < 64) h = h.padStart(64, '0');
+      return h;
+    };
+
     for (let i = 0; i < signatures.length; i++) {
       const currentSig = signatures[i];
-      let r = Buffer.from(currentSig.r, "hex");
-      let s = Buffer.from(currentSig.s, "hex");
-      const rBN = new BN(r);
-      let sBN = new BN(s);
-      
+      const rHex = normalizeScalarHex(currentSig.r);
+      const sHex = normalizeScalarHex(currentSig.s);
+      // r: use normalized 32-byte buffer as-is (no BN conversion needed)
+      let r = Buffer.from(rHex, "hex");
+      // s: apply low-S normalization using BN, then to 32-byte buffer
+      let sBN = new BN(Buffer.from(sHex, 'hex'));
       const secp256k1 = new EC("secp256k1");
       const n = secp256k1.curve.n;
-      
       if (sBN.cmp(n.divn(2)) === 1) {
         sBN = n.sub(sBN);
       }
-      
-      // @ts-ignore
-      r = rBN.toArrayLike(Buffer, "be", 32);
-      // @ts-ignore
-      s = sBN.toArrayLike(Buffer, "be", 32);
+      // Convert BN back to fixed 32-byte buffer via hex padding (avoid toArrayLike length errors)
+      let sHexNorm = sBN.toString(16);
+      if (sHexNorm.length > 64) sHexNorm = sHexNorm.slice(sHexNorm.length - 64);
+      if (sHexNorm.length < 64) sHexNorm = sHexNorm.padStart(64, '0');
+      let s = Buffer.from(sHexNorm, 'hex');
       
       function ensurePositive(buffer: Buffer): Buffer {
         if (buffer[0] & 0x80) {

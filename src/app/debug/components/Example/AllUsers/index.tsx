@@ -12,24 +12,24 @@ import { getPersonalSignIpfsId, getPersonalTransactionIpfsId } from '@/lib/lit/i
 import { LIT_NETWORK } from '@lit-protocol/constants';
 import { getBtcAddressByPublicKey } from '@/lib/web3/btc';
 import { litActionCodeForCommonUpgradableProxy } from '@/lib/lit-action-code/common-upgradable-proxy.lit';
+import { useCustomAuthSessionSigs } from '@/hooks/useAuthContext';
 
-const upgradeIpfsHexFn = getPersonalSignIpfsId
+const upgradeIpfsHexFn = getPersonalTransactionIpfsId
 const removeIpfsIdHex = '0x1220c48885c1552dbf86675c26a605a216fdceaf80caf70d0a5b838a006c7767eee5'
 
 interface UserProps {
   currentUserPkp: IRelayPKP | null;
   currentUserAuthMethod: AuthMethod | null;
-  sessionSigs: SessionSigs | null;
 }
 
 export function AllUsers({
   currentUserPkp,
   currentUserAuthMethod,
-  sessionSigs,
 }: UserProps) {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const getCustomAuthSessionSigs = useCustomAuthSessionSigs();
   
   useEffect(() => {
     async function fetchUsers() {
@@ -65,6 +65,7 @@ export function AllUsers({
         await litNodeClient.connect();
       }
 
+      const sessionSigs = await getCustomAuthSessionSigs()
       if (!sessionSigs) {
         return;
       }
@@ -97,6 +98,7 @@ export function AllUsers({
 
   // Handle upgrade button click (empty implementation for now)
   const handleUpgrade = async (user: User) => {
+    const sessionSigs = await getCustomAuthSessionSigs()
     if (!sessionSigs) {
       return;
     }
@@ -133,6 +135,7 @@ export function AllUsers({
 
   // Handle upgrade button click (empty implementation for now)
   const handleRemoveLitAction = async (user: User) => {
+    const sessionSigs = await getCustomAuthSessionSigs()
     if (!sessionSigs) {
       return;
     }
