@@ -94,3 +94,7 @@ const yourLitActionIpfsId = 'QmZ5yzqa94k9qQZ35xJBYF4ViHrewmxBjPkMV3iHHNm4DB'
 // Update hex format ID  
 const yourLitActionIpfsIdHex = '0x12209faea7528a0b12ca1301638aaab26365067f3e3f6c9fb06760e933c4410929de'
 ```
+
+### Debug BTC on testnet
+
+Launch Electrum wallet on testnet `/Applications/Electrum.app/Contents/MacOS/run_electrum --testnet`
