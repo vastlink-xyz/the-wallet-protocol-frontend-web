@@ -22,7 +22,7 @@ export const sendAddressByTokenType = (tokenType: TokenType, litActionPkp: IRela
   throw new Error(`Unsupported token type: ${tokenType}`)
 }
 
-interface ExecuteTransactionParams {
+export interface ExecuteTransactionParams {
   state: SendTransactionDialogState
   accessToken: string
   authMethodType: number
