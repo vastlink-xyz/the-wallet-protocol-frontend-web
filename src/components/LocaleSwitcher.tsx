@@ -1,10 +1,12 @@
 'use client';
 
-import { useTransition } from 'react';
+import { useTransition, useEffect } from 'react';
 
 import { Locale, locales } from '@/i18n/config';
 import { setUserLocale } from '@/services/localeService';
 import { useLocale, useTranslations } from 'next-intl';
+
+import { useRouter, useSearchParams } from 'next/navigation';
 
 import {
   DropdownMenu,
@@ -25,6 +27,13 @@ export default function LocaleSwitcher({ className, size }: LocaleSwitcherProps)
   const locale = useLocale();
 
   const [isPending, startTransition] = useTransition();
+
+  const searchParams = useSearchParams();
+  const language = searchParams.get('language');
+
+  useEffect(() => {  
+    language && setUserLocale(language as Locale);
+  }, []);
 
   function handleValueChange(value: string) {
     startTransition(() => {
