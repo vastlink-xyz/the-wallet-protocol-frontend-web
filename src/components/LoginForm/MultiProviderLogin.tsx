@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,9 @@ export default function MultiProviderLogin({
   title,
   invitationId,
 }: MultiProviderLoginProps) {
+  const searchParams = useSearchParams();
+  const isSignUp = searchParams.get('signUp') === null ? false : true;
+
   const transLogin = useTranslations('LoginPage');
 
   return (
@@ -43,6 +47,7 @@ export default function MultiProviderLogin({
           defaultEmail={defaultEmail}
           title={title}
           invitationId={invitationId}
+          isSignUp={isSignUp}
         />
 
         {/* Divider */}

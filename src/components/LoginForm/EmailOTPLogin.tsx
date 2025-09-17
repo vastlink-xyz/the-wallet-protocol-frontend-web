@@ -19,12 +19,14 @@ interface EmailOTPLoginProps {
   defaultEmail?: string;
   title?: string;
   invitationId?: string;
+  isSignUp: boolean;
 }
 
 export default function EmailOTPLogin({
   defaultEmail,
   title,
   invitationId,
+  isSignUp,
 }: EmailOTPLoginProps) {
   const router = useRouter();
   const transCommon = useTranslations('Common')
@@ -35,7 +37,7 @@ export default function EmailOTPLogin({
   const [methodId, setMethodId] = useState<string>('');
   const [code, setCode] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
-  const [isRegisterMode, setIsRegisterMode] = useState<boolean>(false);
+  const [isRegisterMode, setIsRegisterMode] = useState<boolean>(isSignUp);
 
   async function sendPasscode(event: any) {
     event.preventDefault();
