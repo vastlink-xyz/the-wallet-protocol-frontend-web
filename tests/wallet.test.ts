@@ -37,6 +37,7 @@ describe('Create a wallet', () => {
       mfaCode: undefined,
       mfaMethodId: undefined,
       setIsSending: (a) => {},
+      setResetAmount: (a) => {},
     }
     
     const res = await executePersonalTransaction(input);
