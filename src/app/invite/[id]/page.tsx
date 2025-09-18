@@ -168,6 +168,7 @@ export default function InvitePage() {
             defaultEmail={invitation.recipientEmail}
             title="Create a wallet"
             invitationId={invitation.id}
+            isSignUp={true}
           />
         </>
       )}

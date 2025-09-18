@@ -44,7 +44,7 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
 4.  **Deploy to Heroku:**
     To deploy `feature/litprotocol` branch to Heroku's `main` branch:
     ```bash
-    git remove -v (double check)
+    git remote -v (double check)
     git push heroku-dev feature/litprotocol:main (Vastbase staging)
     git push heroku-production feature/litprotocol:main (Vastbase production)
     ```

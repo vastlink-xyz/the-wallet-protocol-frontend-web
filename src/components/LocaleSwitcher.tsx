@@ -32,7 +32,7 @@ export default function LocaleSwitcher({ className, size }: LocaleSwitcherProps)
   const language = searchParams.get('language');
 
   useEffect(() => {  
-    language && setUserLocale(language as Locale);
+    if (language) setUserLocale(language as Locale);
   }, []);
 
   function handleValueChange(value: string) {
