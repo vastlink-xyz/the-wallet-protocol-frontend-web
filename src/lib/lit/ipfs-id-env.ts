@@ -57,7 +57,7 @@ const debugStytchVerifyLoginIpfsIdHex = '0x12209faea7528a0b12ca1301638aaab263650
 // ===== Debug lit actions =====
 
 export const getUpdateWalletIpfsId = async (outputFormat: "base58" | "hex") => {
-  if (process.env.NEXT_PUBLIC_ENV === 'dev') {
+  if (process.env.NEXT_PUBLIC_ENV === 'dev' && false) {
     return await getLitActionIpfsCid({
       input: litActionCodeForUpdateMultisigWalletSettings,
       outputFormat: outputFormat
@@ -72,7 +72,7 @@ export const getUpdateWalletIpfsId = async (outputFormat: "base58" | "hex") => {
 }
 
 export const getCreateWalletIpfsId = async (outputFormat: "base58" | "hex") => {
-  if (process.env.NEXT_PUBLIC_ENV === 'dev') {
+  if (process.env.NEXT_PUBLIC_ENV === 'dev' && false) {
     return await getLitActionIpfsCid({
       input: litActionCodeForCreateMultisigWallet,
       outputFormat: outputFormat
@@ -87,7 +87,7 @@ export const getCreateWalletIpfsId = async (outputFormat: "base58" | "hex") => {
 }
 
 export const getMultisigTransactionIpfsId = async (outputFormat: "base58" | "hex") => {
-  if (process.env.NEXT_PUBLIC_ENV === 'dev') {
+  if (process.env.NEXT_PUBLIC_ENV === 'dev' && false) {
     return await getLitActionIpfsCid({
       input: litActionCodeForMultisigTransaction,
       outputFormat: outputFormat
@@ -102,7 +102,7 @@ export const getMultisigTransactionIpfsId = async (outputFormat: "base58" | "hex
 }
 
 export const getPersonalSignIpfsId = async (outputFormat: "base58" | "hex") => {
-  if (process.env.NEXT_PUBLIC_ENV === 'dev') {
+  if (process.env.NEXT_PUBLIC_ENV === 'dev' && false) {
     return await getLitActionIpfsCid({
       input: personalSignLitActionCode,
       outputFormat: outputFormat
@@ -117,7 +117,7 @@ export const getPersonalSignIpfsId = async (outputFormat: "base58" | "hex") => {
 }
 
 export const getPersonalTransactionIpfsId = async (outputFormat: "base58" | "hex") => {
-  if (process.env.NEXT_PUBLIC_ENV === 'dev') {
+  if (process.env.NEXT_PUBLIC_ENV === 'dev' && false) {
     return await getLitActionIpfsCid({
       input: litActionCodeForPersonalTransaction,
       outputFormat: outputFormat
@@ -132,7 +132,7 @@ export const getPersonalTransactionIpfsId = async (outputFormat: "base58" | "hex
 }
 
 export const getUpgradeIpfsId = async (outputFormat: "base58" | "hex") => {
-  if (process.env.NEXT_PUBLIC_ENV === 'dev') {
+  if (process.env.NEXT_PUBLIC_ENV === 'dev' && false) {
     return await getLitActionIpfsCid({
       input: litActionCodeForCommonUpgradableProxy,
       outputFormat: outputFormat
@@ -147,7 +147,7 @@ export const getUpgradeIpfsId = async (outputFormat: "base58" | "hex") => {
 }
 
 export const getSecurityVerificationIpfsId = async (outputFormat: "base58" | "hex") => {
-  if (process.env.NEXT_PUBLIC_ENV === 'dev') {
+  if (process.env.NEXT_PUBLIC_ENV === 'dev' && false) {
     return await getLitActionIpfsCid({
       input: litActionCodeForSecurityVerification,
       outputFormat: outputFormat
@@ -162,7 +162,7 @@ export const getSecurityVerificationIpfsId = async (outputFormat: "base58" | "he
 }
 
 export const getMultiProviderAuthIpfsId = async (outputFormat: "base58" | "hex") => {
-  if (process.env.NEXT_PUBLIC_ENV === 'dev') {
+  if (process.env.NEXT_PUBLIC_ENV === 'dev' && false) {
     return await getLitActionIpfsCid({
       input: litActionCodeForMultiProviderAuth,
       outputFormat: outputFormat
@@ -177,7 +177,7 @@ export const getMultiProviderAuthIpfsId = async (outputFormat: "base58" | "hex")
 }
 
 export const getAPIKeyManagementIpfsId = async (outputFormat: "base58" | "hex") => {
-  if (process.env.NEXT_PUBLIC_ENV === 'dev') {
+  if (process.env.NEXT_PUBLIC_ENV === 'dev' && false) {
     return await getLitActionIpfsCid({
       input: litActionCodeForAPIKeyManagement,
       outputFormat: outputFormat
@@ -192,7 +192,7 @@ export const getAPIKeyManagementIpfsId = async (outputFormat: "base58" | "hex") 
 }
 
 export const getDecryptAndCombineIpfsId = async (outputFormat: "base58" | "hex") => {
-  if (process.env.NEXT_PUBLIC_ENV === 'dev') {
+  if (process.env.NEXT_PUBLIC_ENV === 'dev' && false) {
     return await getLitActionIpfsCid({
       input: litActionCodeForDecryptAndCombine,
       outputFormat: outputFormat
@@ -208,7 +208,7 @@ export const getDecryptAndCombineIpfsId = async (outputFormat: "base58" | "hex")
 
 // ===== Debug lit actions =====
 export const getDebugAPIKeysIpfsId = async (outputFormat: "base58" | "hex") => {
-  if (process.env.NEXT_PUBLIC_ENV === 'dev') {
+  if (process.env.NEXT_PUBLIC_ENV === 'dev' && false) {
     return await getLitActionIpfsCid({
       input: litActionCodeForDebugAPIKeys,
       outputFormat: outputFormat
@@ -223,7 +223,7 @@ export const getDebugAPIKeysIpfsId = async (outputFormat: "base58" | "hex") => {
 }
 
 export const getDebugStytchLoginIpfsId = async (outputFormat: "base58" | "hex") => {
-  if (process.env.NEXT_PUBLIC_ENV === 'dev') {
+  if (process.env.NEXT_PUBLIC_ENV === 'dev' && false) {
     return await getLitActionIpfsCid({
       input: litActionCodeForDebugStytchLogin,
       outputFormat: outputFormat
@@ -238,7 +238,7 @@ export const getDebugStytchLoginIpfsId = async (outputFormat: "base58" | "hex") 
 }
 
 export const getDebugStytchVerifyLoginIpfsId = async (outputFormat: "base58" | "hex") => {
-  if (process.env.NEXT_PUBLIC_ENV === 'dev') {
+  if (process.env.NEXT_PUBLIC_ENV === 'dev' && false) {
     return await getLitActionIpfsCid({
       input: litActionCodeForDebugStytchVerifyLogin,
       outputFormat: outputFormat
