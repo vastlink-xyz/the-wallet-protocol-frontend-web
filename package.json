@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "test": "vitest run",
-    "test:single": "vitest run -t 'should be able to sign and broadcast a BTC transaction'",
+    "test:single": "vitest run -t 'should be able to sign and broadcast a USDC transaction'",
+    "test:single2": "vitest run -t 'wallet tests'",
     "lint": "next lint && tsc --noEmit"
   },
   "dependencies": {
