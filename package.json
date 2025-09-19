@@ -6,8 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "vitest",
-    "test-single": "vitest -t 'Create a wallet'",
+    "test": "vitest run",
+    "test:single": "vitest run -t 'should be able to sign and broadcast a BTC transaction'",
     "lint": "next lint && tsc --noEmit"
   },
   "dependencies": {
