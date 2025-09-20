@@ -1,5 +1,3 @@
-import axios from 'axios';
-
 /**
  * Send team wallet notification - Unified handler for all types of team wallet notifications
  * @param params Notification parameters
@@ -35,35 +33,26 @@ export const sendTeamNotification = async (params: {
   signersCount?: number;
 }) => {
   try {
-    // Get backend URL
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
-    if (!backendUrl) {
-      console.error('NEXT_PUBLIC_BACKEND_URL environment variable is not defined');
-      throw new Error('Backend URL is not configured');
-    }
+    // Build URL that works in both browser and server contexts
+    const base = typeof window === 'undefined' 
+      ? (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000')
+      : ''
+    const url = `${base}/api/messaging/send-multisig-notification`
 
-    // Call backend API to send notification
-    const response = await axios.post(
-      `${backendUrl}/messaging/send-multisig-notification`, 
-      params
-    );
-    
-    if (response.data && response.data.success) {
-      console.log(`Successfully sent notification to: ${params.to}`);
-      return {
-        success: true,
-        email: params.to,
-        response: response.data
-      };
-    } else {
-      throw new Error(response.data?.message || 'Failed to send notification');
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    })
+
+    const data = await res.json().catch(() => ({}))
+    if (res.ok && data && data.success) {
+      console.log(`Successfully sent notification to: ${params.to}`)
+      return { success: true, email: params.to, response: data }
     }
+    throw new Error(data?.error || data?.message || `Failed with status ${res.status}`)
   } catch (error) {
-    console.error(`Failed to send notification to ${params.to}:`, error);
-    return {
-      success: false,
-      email: params.to,
-      error: error instanceof Error ? error.message : 'Unknown error'
-    };
+    console.error(`Failed to send notification to ${params.to}:`, error)
+    return { success: false, email: params.to, error: error instanceof Error ? error.message : 'Unknown error' }
   }
 }; 

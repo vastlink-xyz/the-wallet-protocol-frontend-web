@@ -1,9 +1,4 @@
 /**
- * Email notification utility for sending emails via API
- */
-import axios from 'axios';
-
-/**
  * Send an invite email to an unregistered user
  */
 export async function sendInviteEmail({
@@ -20,19 +15,28 @@ export async function sendInviteEmail({
   inviteUrl: string;
 }): Promise<boolean> {
   try {
-    const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/messaging/send-invite-email`, {
-      to: recipientEmail,
-      senderEmail,
-      tokenType,
-      amount,
-      inviteUrl,
-      notificationType: 'invite'
-    });
-    
-    return response.data.success;
+    const base = typeof window === 'undefined' 
+      ? (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000')
+      : ''
+    const url = `${base}/api/messaging/send-invite-email`
+
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        to: recipientEmail,
+        senderEmail,
+        tokenType,
+        amount,
+        inviteUrl,
+        notificationType: 'invite'
+      }),
+    })
+    const data = await res.json().catch(() => ({}))
+    return res.ok && data?.success === true
   } catch (error) {
-    console.error('Failed to send invite email:', error);
-    return false;
+    console.error('Failed to send invite email:', error)
+    return false
   }
 }
 
@@ -53,18 +57,27 @@ export async function sendRecipientRegisteredEmail({
   completeUrl: string;
 }): Promise<boolean> {
   try {
-    const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/messaging/send-invite-email`, {
-      to,
-      recipientEmail,
-      tokenType,
-      amount,
-      inviteUrl: completeUrl,
-      notificationType: 'recipient-registered'
-    });
-    
-    return response.data.success;
+    const base = typeof window === 'undefined' 
+      ? (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000')
+      : ''
+    const url = `${base}/api/messaging/send-invite-email`
+
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        to,
+        recipientEmail,
+        tokenType,
+        amount,
+        inviteUrl: completeUrl,
+        notificationType: 'recipient-registered'
+      }),
+    })
+    const data = await res.json().catch(() => ({}))
+    return res.ok && data?.success === true
   } catch (error) {
-    console.error('Failed to send recipient registered email:', error);
-    return false;
+    console.error('Failed to send recipient registered email:', error)
+    return false
   }
-} 
+}

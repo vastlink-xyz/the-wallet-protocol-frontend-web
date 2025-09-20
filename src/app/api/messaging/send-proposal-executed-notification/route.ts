@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server'
 import { log } from '@/lib/utils'
+import emailService from '@/lib/messaging/services/EmailService'
 
 interface ProposalExecutedNotificationRequest {
   approvers: string[]
@@ -69,57 +70,41 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // Get backend URL
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL
-    if (!backendUrl) {
-      console.error('NEXT_PUBLIC_BACKEND_URL environment variable is not defined')
-      return Response.json(
-        { success: false, error: "Backend URL is not configured" },
-        { status: 500 }
-      )
-    }
-    
-    // Send notification to all approvers in one request (backend handles the loop)
-    const response = await fetch(`${backendUrl}/messaging/send-proposal-executed-notification`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        approvers,
+    // Send notifications to all approvers locally via SendGrid
+    const promises = approvers.map((approverEmail) =>
+      emailService.sendProposalExecutedNotification({
+        to: approverEmail,
         proposalId,
         proposalType,
         walletName,
         walletLink,
-        executionDetails: body.executionDetails,
-        proposer,
+        executionDetails: body.executionDetails || {},
       })
-    })
+    )
 
-    if (response.ok) {
-      const result = await response.json()
-      log(`Successfully sent notifications to ${approvers.length} approver(s)`)
+    const results = await Promise.allSettled(promises)
+    const totalSent = results.filter(r => r.status === 'fulfilled').length
+    const totalFailed = results.length - totalSent
 
+    log(`Sent proposal executed notifications. Success: ${totalSent}, Failed: ${totalFailed}`)
+
+    if (totalFailed > 0) {
       return Response.json({
-        success: true,
-        message: result.message || `Proposal executed notification emails have been sent to ${approvers.length} approver(s)`,
-        sentTo: result.sentTo || approvers,
-        totalSent: approvers.length,
-        totalFailed: 0
-      })
-    } else {
-      const errorData = await response.json()
-      console.error('Backend failed to send notifications:', errorData)
-      return Response.json(
-        {
-          success: false,
-          error: errorData.error || 'Backend service error',
-          totalSent: 0,
-          totalFailed: approvers.length
-        },
-        { status: response.status }
-      )
+        success: false,
+        error: 'Some notifications failed to send',
+        sentTo: approvers,
+        totalSent,
+        totalFailed,
+      }, { status: 207 })
     }
+
+    return Response.json({
+      success: true,
+      message: `Proposal executed notification emails have been sent to ${approvers.length} approver(s)`,
+      sentTo: approvers,
+      totalSent,
+      totalFailed: 0,
+    })
     
   } catch (error) {
     console.error('Error sending proposal executed notifications:', error)

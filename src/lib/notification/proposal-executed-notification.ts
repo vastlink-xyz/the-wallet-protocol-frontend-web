@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { MessageProposal, MultisigWallet } from '@/app/api/multisig/storage';
 import { log } from '@/lib/utils';
 import { SUPPORTED_TOKENS_INFO } from '@/lib/web3/token';
@@ -90,18 +89,22 @@ export const sendProposalExecutedNotification = async (params: ProposalExecutedN
     });
     
     // Call the frontend API which will handle sending to all approvers
-    const response = await axios.post('/api/messaging/send-proposal-executed-notification', requestData);
-
-    if (response.data.success) {
-      log(`Successfully sent proposal executed notifications to ${response.data.totalSent} approver(s)`);
+    const res = await fetch('/api/messaging/send-proposal-executed-notification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestData),
+    })
+    const data = await res.json()
+    if (res.ok && data.success) {
+      log(`Successfully sent proposal executed notifications to ${data.totalSent} approver(s)`);
       return {
         success: true,
-        sentTo: response.data.sentTo,
-        totalSent: response.data.totalSent,
-        totalFailed: response.data.totalFailed || 0
+        sentTo: data.sentTo,
+        totalSent: data.totalSent,
+        totalFailed: data.totalFailed || 0
       };
     } else {
-      throw new Error(response.data.error || 'Failed to send notifications');
+      throw new Error(data.error || 'Failed to send notifications');
     }
     
   } catch (error) {
