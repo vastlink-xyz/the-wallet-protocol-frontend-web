@@ -7,8 +7,9 @@
     "build": "next build",
     "start": "next start",
     "test": "vitest run",
-    "test:single": "vitest run -t 'should be able to sign and broadcast a USDC transaction'",
-    "test:single2": "vitest run -t 'wallet tests'",
+    "test:singleC": "vitest run -t 'should be able to raise and approve and execute a LITKEY proposal'",
+    "test:singleB": "vitest run -t 'should be able to sign and broadcast a BTC transaction'",
+    "test:singleA": "vitest run -t 'wallet tests'",
     "lint": "next lint && tsc --noEmit"
   },
   "dependencies": {

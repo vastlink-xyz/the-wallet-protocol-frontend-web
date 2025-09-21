@@ -14,7 +14,7 @@ import { fetchProposal } from '@/app/wallet/[walletId]/details/proposals/utils/p
 import { executeTransactionProposal } from '@/app/wallet/[walletId]/details/proposals/utils/execute-proposal'
 import { AuthProviderType } from '@/lib/lit/custom-auth'
 
-interface CreateAndApproveTransactionProposalParams {
+export interface CreateAndApproveTransactionProposalParams {
   state: SendTransactionDialogState
   wallet: MultisigWallet
   userPkp: IRelayPKP
