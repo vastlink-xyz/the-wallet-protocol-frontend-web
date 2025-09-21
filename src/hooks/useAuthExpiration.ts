@@ -41,8 +41,6 @@ export function useAuthExpiration() {
         handleExpiredAuth();
         return false;
       }
-
-      log('useAuthExpiration verifyAuthOrRedirect accessToken', accessToken, new Date().toISOString())
       
       const isValid = await isTokenValid(authMethod.providerType, accessToken);
       if (!isValid) {
