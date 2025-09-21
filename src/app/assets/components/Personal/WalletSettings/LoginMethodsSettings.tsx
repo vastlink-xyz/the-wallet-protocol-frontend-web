@@ -189,11 +189,7 @@ export function LoginMethodsSettings({ user, onUserUpdate }: LoginMethodsSetting
         providerType: AuthProviderType.PASSKEY,
         accessToken: session_jwt
       };
-      console.log('Sending to /api/user/auth-providers:', {
-        authMethodId: requestBody.authMethodId ? `${requestBody.authMethodId.substring(0, 10)}...` : 'undefined',
-        providerType: requestBody.providerType,
-        accessToken: requestBody.accessToken ? `${requestBody.accessToken.substring(0, 20)}...` : 'undefined'
-      });
+      console.log('Sending to /api/user/auth-providers');
 
       const apiResponse = await fetch('/api/user/auth-providers', {
         method: 'POST',
