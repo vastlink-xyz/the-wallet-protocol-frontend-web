@@ -13,6 +13,7 @@ import { signProposal } from '@/app/wallet/[walletId]/details/proposals/utils/si
 import { fetchProposal } from '@/app/wallet/[walletId]/details/proposals/utils/proposal'
 import { executeTransactionProposal } from '@/app/wallet/[walletId]/details/proposals/utils/execute-proposal'
 import { AuthProviderType } from '@/lib/lit/custom-auth'
+import { BASE_URL } from '@/constants'
 
 export interface CreateAndApproveTransactionProposalParams {
   state: SendTransactionDialogState
@@ -66,7 +67,7 @@ export const createAndApproveTransactionProposal = async ({
       tokenType: tokenType
     }
     
-    const response = await axios.post('/api/multisig/messages', {
+    const response = await axios.post(`${BASE_URL}/api/multisig/messages`, {
       walletId: wallet?.id,
       createdBy: {
         authMethodId: authMethodId,

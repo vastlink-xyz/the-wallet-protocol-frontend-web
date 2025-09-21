@@ -4,6 +4,7 @@ import { useAuthContext } from '@/hooks/useAuthContext';
 import { IRelayPKP } from "@lit-protocol/types";
 import axios from "axios";
 import { generateSettingsChangeDescriptions } from "./settingsDescriptionUtils";
+import { BASE_URL } from "@/constants";
 
 export const getTransactionDetails = (proposal: MessageProposal, wallet: MultisigWallet) => {
   try {
@@ -51,13 +52,13 @@ export const getTransactionDetails = (proposal: MessageProposal, wallet: Multisi
 };
 
 export const fetchProposal = async (proposalId: string, walletId: string) => {
-  const { data } = await axios.get(`/api/multisig/messages?proposalId=${proposalId}&walletId=${walletId}`)
+  const { data } = await axios.get(`${BASE_URL}/api/multisig/messages?proposalId=${proposalId}&walletId=${walletId}`)
   return data.data
 }
 
 export const fetchUpdatedWallet = async (walletId: string) => {
   try {
-    const response = await axios.get(`/api/multisig?id=${walletId}`);
+    const response = await axios.get(`${BASE_URL}/api/multisig?id=${walletId}`);
     if (response.data.success) {
       return response.data.data;
     }

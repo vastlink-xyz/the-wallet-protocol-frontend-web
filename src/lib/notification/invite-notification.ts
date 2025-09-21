@@ -1,6 +1,9 @@
 /**
  * Send an invite email to an unregistered user
  */
+
+import { BASE_URL } from '@/constants';
+
 export async function sendInviteEmail({
   recipientEmail,
   senderEmail,
@@ -15,10 +18,7 @@ export async function sendInviteEmail({
   inviteUrl: string;
 }): Promise<boolean> {
   try {
-    const base = typeof window === 'undefined' 
-      ? (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000')
-      : ''
-    const url = `${base}/api/messaging/send-invite-email`
+    const url = `${BASE_URL}/api/messaging/send-invite-email`
 
     const res = await fetch(url, {
       method: 'POST',
@@ -57,10 +57,7 @@ export async function sendRecipientRegisteredEmail({
   completeUrl: string;
 }): Promise<boolean> {
   try {
-    const base = typeof window === 'undefined' 
-      ? (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000')
-      : ''
-    const url = `${base}/api/messaging/send-invite-email`
+    const url = `${BASE_URL}/api/messaging/send-invite-email`
 
     const res = await fetch(url, {
       method: 'POST',

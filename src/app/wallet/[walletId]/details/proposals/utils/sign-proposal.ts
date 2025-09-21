@@ -6,6 +6,7 @@ import { IRelayPKP } from "@lit-protocol/types";
 import axios from "axios";
 import { getMultiProviderSessionSigs } from "@/lib/lit/pkpManager";
 import { getVastbaseAuthMethodType, AuthProviderType } from "@/lib/lit/custom-auth";
+import { BASE_URL } from '@/constants'
 
 interface ISignPrposalParams {
   proposal: MessageProposal;
@@ -72,7 +73,7 @@ export const signProposal = async ({
   log('signature', signature)
 
   // Submit signature to API
-  const response = await axios.put(`/api/multisig/messages`, {
+  const response = await axios.put(`${BASE_URL}/api/multisig/messages`, {
     proposalId: proposal.id,
     walletId: proposal.walletId,
     signer: userPkp.ethAddress,
