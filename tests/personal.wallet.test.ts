@@ -8,7 +8,7 @@ import { AuthProviderType } from '@/lib/lit/custom-auth';
 
 import { theUser, testConfig } from './fixtures';
 
-describe('wallet tests', () => {
+describe('personal wallet tests', () => {
   it('should be able to sign and broadcast a BTC transaction', async () => {
     const input: ExecuteTransactionParams = {
       state: {
