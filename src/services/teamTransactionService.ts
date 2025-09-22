@@ -122,7 +122,7 @@ export const createAndApproveTransactionProposal = async ({
         } else {
           toast.info('You have approved the proposal. Waiting for other signers to approve.')
           setShowSendDialog(false)
-          return { success: true } // Proposal created successfully, no MFA needed yet
+          return { success: true, proposal, wallet } // Proposal created successfully, no MFA needed yet
         }
       }
     }

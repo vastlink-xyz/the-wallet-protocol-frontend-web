@@ -8,7 +8,7 @@ import { getMultiProviderSessionSigs } from "@/lib/lit/pkpManager";
 import { getVastbaseAuthMethodType, AuthProviderType } from "@/lib/lit/custom-auth";
 import { BASE_URL } from '@/constants'
 
-export interface ISignPrposalParams {
+export interface IApprovePrposalParams {
   proposal: MessageProposal;
   wallet: MultisigWallet;
   userPkp: IRelayPKP;
@@ -26,7 +26,7 @@ export const approveProposal = async ({
   authMethodId,
   providerType,
   userEmail,
-}: ISignPrposalParams) => {
+}: IApprovePrposalParams) => {
   // Validate that the current user is a signer of the wallet
   const isUserSigner = wallet.signers.some(signer => 
     signer.ethAddress.toLowerCase() === userPkp.ethAddress.toLowerCase()
