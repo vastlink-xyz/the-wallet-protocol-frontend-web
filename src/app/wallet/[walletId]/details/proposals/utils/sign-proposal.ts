@@ -8,7 +8,7 @@ import { getMultiProviderSessionSigs } from "@/lib/lit/pkpManager";
 import { getVastbaseAuthMethodType, AuthProviderType } from "@/lib/lit/custom-auth";
 import { BASE_URL } from '@/constants'
 
-interface ISignPrposalParams {
+export interface ISignPrposalParams {
   proposal: MessageProposal;
   wallet: MultisigWallet;
   userPkp: IRelayPKP;
@@ -18,7 +18,7 @@ interface ISignPrposalParams {
   userEmail: string;
 }
 
-export const signProposal = async ({
+export const approveProposal = async ({
   proposal,
   wallet,
   userPkp,

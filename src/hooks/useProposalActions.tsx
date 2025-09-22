@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { MessageProposal, MultisigWallet } from "@/app/api/multisig/storage";
 import { litNodeClient } from "@/lib/lit";
 import { getMultiProviderSessionSigs } from "@/lib/lit/pkpManager";
-import { signProposal } from "@/app/wallet/[walletId]/details/proposals/utils/sign-proposal";
+import { approveProposal } from "@/app/wallet/[walletId]/details/proposals/utils/sign-proposal";
 import { executeTransactionProposal, executeWalletSettingsProposal } from "@/app/wallet/[walletId]/details/proposals/utils/execute-proposal";
 import { broadcastTransactionByTokenType } from "@/lib/web3/transaction";
 import { sendProposalExecutedNotification } from "@/lib/notification/proposal-executed-notification";
@@ -323,7 +323,7 @@ export function useProposalActions({
       if (!accessToken) {
         throw new Error('Access token not available');
       }
-      const response = await signProposal({
+      const response = await approveProposal({
         proposal,
         wallet,
         userPkp,
@@ -364,7 +364,7 @@ export function useProposalActions({
       if (!accessToken) {
         throw new Error('Access token not available');
       }
-      const response = await signProposal({
+      const response = await approveProposal({
         proposal,
         wallet,
         userPkp,

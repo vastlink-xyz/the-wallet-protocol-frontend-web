@@ -9,7 +9,7 @@ import { MessageProposal, MultisigWallet } from '@/app/api/multisig/storage'
 import { User } from '@/app/api/user/storage'
 import { SendTransactionDialogState } from '@/components/Transaction/SendTransactionDialog'
 import axios from 'axios'
-import { signProposal } from '@/app/wallet/[walletId]/details/proposals/utils/sign-proposal'
+import { approveProposal } from '@/app/wallet/[walletId]/details/proposals/utils/sign-proposal'
 import { fetchProposal } from '@/app/wallet/[walletId]/details/proposals/utils/proposal'
 import { executeTransactionProposal } from '@/app/wallet/[walletId]/details/proposals/utils/execute-proposal'
 import { AuthProviderType } from '@/lib/lit/custom-auth'
@@ -85,7 +85,7 @@ export const createAndApproveTransactionProposal = async ({
     if (response.data.success) {
       const proposal = response.data.data
       
-      const res = await signProposal({
+      const res = await approveProposal({
         proposal,
         wallet,
         userPkp,
@@ -133,7 +133,7 @@ export const createAndApproveTransactionProposal = async ({
   }
 }
 
-interface ExecuteTransactionProposalParams {
+export interface ExecuteTransactionProposalParams {
   proposal: MessageProposal
   wallet: MultisigWallet
   userPkp: IRelayPKP

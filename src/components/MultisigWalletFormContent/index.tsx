@@ -27,7 +27,7 @@ import { DailyWithdrawLimits, getDefaultDailyWithdrawLimits } from '../Transacti
 import { useAuthContext } from '@/hooks/useAuthContext'
 import { sendTeamNotification } from '@/lib/notification/team-notificatioin'
 import { MessageProposal } from '@/app/api/multisig/storage'
-import { signProposal } from '@/app/wallet/[walletId]/details/proposals/utils/sign-proposal'
+import { approveProposal } from '@/app/wallet/[walletId]/details/proposals/utils/sign-proposal'
 import { fetchProposal } from '@/app/wallet/[walletId]/details/proposals/utils/proposal'
 import { executeWalletSettingsProposal } from '@/app/wallet/[walletId]/details/proposals/utils/execute-proposal'
 import { generateSettingsChangeDescriptions } from '@/app/wallet/[walletId]/details/proposals/utils/settingsDescriptionUtils'
@@ -702,7 +702,7 @@ export function MultisigWalletFormContent({
       throw new Error('No access token available');
     }
 
-    const response = await signProposal({
+    const response = await approveProposal({
       proposal,
       wallet,
       userPkp,

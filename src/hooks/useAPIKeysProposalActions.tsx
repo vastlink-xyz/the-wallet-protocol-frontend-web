@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { litActionContext, litNodeClient } from "@/lib/lit";
 import { getMultiProviderSessionSigs } from "@/lib/lit/pkpManager";
-import { signProposal } from "@/app/wallet/[walletId]/details/proposals/utils/sign-proposal";
+import { approveProposal } from "@/app/wallet/[walletId]/details/proposals/utils/sign-proposal";
 import { toast } from "react-toastify";
 import { AuthProviderType, getVastbaseAuthMethodType } from "@/lib/lit/custom-auth";
 
