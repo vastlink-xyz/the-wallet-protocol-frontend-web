@@ -8,7 +8,7 @@
     "start": "next start",
     "test": "vitest run",
     "test:singleC": "vitest run -t 'should be able to raise and approve and execute a LITKEY proposal'",
-    "test:singleB": "vitest run -t 'should be able to sign and broadcast a BTC transaction'",
+    "test:singleB": "vitest run -t 'should be able to sign and broadcast a USDC transaction'",
     "test:singleA": "vitest run -t 'wallet tests'",
     "lint": "next lint && tsc --noEmit"
   },
