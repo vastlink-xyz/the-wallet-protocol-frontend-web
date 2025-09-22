@@ -12,6 +12,7 @@ import { IRelayPKP } from '@lit-protocol/types';
 import { User } from '@/app/api/user/storage';
 import { setTokenToStorage } from '@/lib/storage/authmethod';
 import { mintPersonalPKP } from '@/lib/lit';
+import { IS_PRODUCTION } from '@/constants';
 
 interface CallbackParams {
   providerType: AuthProviderType;
@@ -91,6 +92,11 @@ export default function UnifiedAuthCallbackPage() {
         
         // Validate the auth params structure
         if (authParams.providerType && authParams.accessToken && authParams.userEmail) {
+
+          if (!IS_PRODUCTION) {
+            console.debug('authParams logged for tests only:', authParams);
+          }
+
           return {
             providerType: authParams.providerType,
             accessToken: authParams.accessToken,

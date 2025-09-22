@@ -5,18 +5,17 @@ import * as scure from '@scure/btc-signer';
 import BN from 'bn.js';
 import * as bip66 from 'bip66';
 import { log } from '@/lib/utils';
-
-const isProduction = process.env.NEXT_PUBLIC_ENV?.toLowerCase() === 'production';
+import { IS_PRODUCTION } from '@/constants';
 
 export const btcConfig = {
-  network: isProduction ? bitcoinjs.networks.bitcoin : bitcoinjs.networks.testnet,
+  network: IS_PRODUCTION ? bitcoinjs.networks.bitcoin : bitcoinjs.networks.testnet,
   
   // API endpoints
-  mempoolBaseUrl: isProduction ? 'https://mempool.space' : 'https://mempool.space/testnet',
-  blockstreamBaseUrl: isProduction ? 'https://blockstream.info' : 'https://blockstream.info/testnet',
+  mempoolBaseUrl: IS_PRODUCTION ? 'https://mempool.space' : 'https://mempool.space/testnet',
+  blockstreamBaseUrl: IS_PRODUCTION ? 'https://blockstream.info' : 'https://blockstream.info/testnet',
 } as const;
 
-const scureNetwork = isProduction ? scure.NETWORK : scure.TEST_NETWORK;
+const scureNetwork = IS_PRODUCTION ? scure.NETWORK : scure.TEST_NETWORK;
 
 const BROADCAST_URL = `${btcConfig.blockstreamBaseUrl}/api/tx`;
 
