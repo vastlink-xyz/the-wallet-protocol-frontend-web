@@ -174,7 +174,7 @@ export const broadcastTransactionForVAST = async ({
   console.log("Manually constructed signature:", signature);
   
   const response = await axios.post(
-    `${process.env.NEXT_PUBLIC_BACKEND_URL}/smartcontract/broadcast-relayer-transaction`,
+    `/api/smartcontract/broadcast-relayer-transaction`,
     {
       serializedRequest,
       signature,
