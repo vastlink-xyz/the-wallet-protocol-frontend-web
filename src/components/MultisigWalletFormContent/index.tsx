@@ -27,7 +27,7 @@ import { generateSettingsChangeDescriptions } from '@/app/wallet/[walletId]/deta
 import { useTranslations } from 'next-intl'
 import { getVastbaseAuthMethodType } from '@/lib/lit/custom-auth'
 import { useSecurityVerification } from '@/hooks/useSecurityVerification'
-import { createTeamWallet } from '@/services/TeamWalletService'
+import { createTeamWallet } from '@/services/teamWalletService'
 
 interface MultisigWalletFormContentProps {
   mode: 'create' | 'edit'
