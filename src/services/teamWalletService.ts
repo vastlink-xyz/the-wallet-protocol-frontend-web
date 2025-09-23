@@ -11,8 +11,34 @@ import { TokenType } from '@/lib/web3/token'
 import { log } from '@/lib/utils'
 import { getCreateWalletIpfsId, getMultisigTransactionIpfsId, getUpdateWalletIpfsId, getAPIKeyManagementIpfsId, getUpgradeIpfsId } from '@/lib/lit/ipfs-id-env'
 import { MFASettings, MultisigWallet, MultisigWalletMetadata } from '@/app/api/multisig/storage'
-import { getVastbaseAuthMethodType } from '@/lib/lit/custom-auth'
+import { getVastbaseAuthMethodType, VastbaseAuthMethod, AuthProviderType } from '@/lib/lit/custom-auth'
 import { BASE_URL } from '@/constants'
+import { SessionSigsMap } from '@lit-protocol/types'
+
+type WalletSigner = { ethAddress?: string } & Record<string, any>
+
+type CreateTeamWalletParams = {
+    authMethod: { providerType: AuthProviderType }
+    authMethodId: string
+    signerAuthMethodIds: string[]
+    authMethodType: number
+    dailyLimits: Record<TokenType, string>
+    walletName: string
+    actualSigners: WalletSigner[]
+    actualThreshold: number
+    sessionSigs: any
+    accessToken: string
+    userPkp: unknown
+    currentUserEmail: string
+    hasUnregisteredUsers: boolean
+    handleWalletInvitations: any
+    sendEmailToSigners?: any
+    onSuccess?: () => void
+    otherSigners: WalletSigner[]
+    unregisteredUsers: WalletSigner[]
+    setDailyLimits?: (limits: Record<TokenType, string>) => void
+    toastSuccess: (unregisteredCount: number) => void
+}
 
 export const createTeamWallet = async ({
     authMethod,
@@ -35,7 +61,7 @@ export const createTeamWallet = async ({
     unregisteredUsers,
     setDailyLimits,
     toastSuccess,
-}) => {
+}: CreateTeamWalletParams) => {
     // Generate multisig PKP
     const createWalletIpfsIdHex = await getCreateWalletIpfsId("hex");
     const updateWalletIpfsIdHex = await getUpdateWalletIpfsId("hex");
@@ -215,7 +241,7 @@ export const createTeamWallet = async ({
                     actualThreshold,
                     walletLink,
                     walletName,
-                ).catch(error => {
+                ).catch((error: unknown) => {
                     console.error('Failed to send notification emails:', error);
                 });
             }
