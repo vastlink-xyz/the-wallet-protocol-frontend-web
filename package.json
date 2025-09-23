@@ -17,6 +17,8 @@
     "start": "node .next/standalone/server.js"
   },
   "dependencies": {
+    "next": "15.4.7",
+    "next-intl": "^4.3.4",
     "@bitcoin-js/tiny-secp256k1-asmjs": "^2.2.3",
     "@lit-protocol/auth-helpers": "^7.1.0",
     "@lit-protocol/constants": "^7.1.0",
@@ -77,8 +79,6 @@
     "tw-animate-css": "^1.2.5"
   },
   "devDependencies": {
-    "next": "15.4.7",
-    "next-intl": "^4.3.4",
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "@types/mongoose": "^5.11.97",
