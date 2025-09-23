@@ -5,14 +5,15 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
     "test": "vitest run",
     "test:singleD": "vitest run -t 'create a team wallet'",
     "test:singleC": "vitest run -t 'raise and approve and execute a LITKEY proposal'",
     "test:singleB": "vitest run -t 'sign and broadcast a USDC transaction'",
     "test:singleA": "vitest run -t 'wallet tests'",
     "lint": "next lint && tsc --noEmit",
-    "heroku-postbuild": "npm run build && npm prune --omit=dev"
+    "postbuild:clean": "rm -rf .next/cache coverage docs tests '**/*.map'",
+    "heroku-postbuild": "npm run build && npm run postbuild:clean && npm prune --omit=dev",
+    "start": "node .next/standalone/server.js"
   },
   "dependencies": {
     "@bitcoin-js/tiny-secp256k1-asmjs": "^2.2.3",
