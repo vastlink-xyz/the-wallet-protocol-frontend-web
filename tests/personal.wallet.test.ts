@@ -9,7 +9,7 @@ import { AuthProviderType } from '@/lib/lit/custom-auth';
 import { theUser, testConfig } from './fixtures';
 
 describe('personal wallet tests', () => {
-  it('should be able to sign and broadcast a BTC transaction', async () => {
+  it('sign and broadcast a BTC transaction', async () => {
     const input: ExecuteTransactionParams = {
       state: {
         to: "tb1qgg0hyr824qfk2cu9wx9qqpt40jsgnevzgqc5uq",
@@ -47,7 +47,7 @@ describe('personal wallet tests', () => {
 
   }, testConfig.LONG_TIMEOUT);
 
-  it('should be able to sign and broadcast a ETH transaction', async () => {
+  it('sign and broadcast a ETH transaction', async () => {
     const input: ExecuteTransactionParams = {
       state: {
         to: "0x1Ae2785c2D6924016709E67513A1796e14E844EB",
@@ -85,7 +85,7 @@ describe('personal wallet tests', () => {
 
   }, testConfig.LONG_TIMEOUT);
 
-  it('should be able to sign and broadcast a USDC transaction', async () => {
+  it('sign and broadcast a USDC transaction', async () => {
     const input: ExecuteTransactionParams = {
       state: {
         to: "0x1Ae2785c2D6924016709E67513A1796e14E844EB",

@@ -227,4 +227,6 @@ export const createTeamWallet = async ({
             onSuccess();
         }
     }
+
+    return litActionRes;
 }
