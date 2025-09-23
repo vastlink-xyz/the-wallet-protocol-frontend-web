@@ -13,8 +13,10 @@
     "lint": "next lint && tsc --noEmit",
 
     "build": "next build",
-    "postbuild:clean": "rm -rf .next/cache coverage docs tests '**/*.map'",
-    "heroku-postbuild": "npm run build && npm run postbuild:clean && npm prune --omit=dev && rm -rf node_modules",
+    "postbuild:assets": "mkdir -p .next/standalone/.next && cp -R .next/static .next/standalone/.next/static && cp -R public .next/standalone/public || true",
+    "postbuild:clean": "rm -rf .next/cache '**/*.map'",
+    "postbuild": "npm run postbuild:assets && npm run postbuild:clean",
+    "heroku-postbuild": "npm run build && npm prune --omit=dev && rm -rf node_modules && rm -rf coverage docs tests",
     "start": "node .next/standalone/server.js"
   },
   "dependencies": {
