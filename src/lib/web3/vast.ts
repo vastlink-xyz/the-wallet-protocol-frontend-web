@@ -5,6 +5,7 @@ import { ERC20_ABI } from "@/constants/abis/erc20";
 import { VAST_FORWARDER_ABI } from "@/constants/abis/vast-forwarder";
 import axios from "axios";
 import { log } from "../utils";
+import { BASE_URL } from "@/constants";
 
 export const getToSignTransactionForVAST = async ({
   options,
@@ -174,7 +175,7 @@ export const broadcastTransactionForVAST = async ({
   console.log("Manually constructed signature:", signature);
   
   const response = await axios.post(
-    `/api/smartcontract/broadcast-relayer-transaction`,
+    `${BASE_URL}/api/smartcontract/broadcast-relayer-transaction`,
     {
       serializedRequest,
       signature,

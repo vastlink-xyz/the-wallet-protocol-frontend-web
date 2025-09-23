@@ -28,7 +28,7 @@ export const SUPPORTED_TOKENS_INFO_TESTNET = {
     addressKey: 'btc',
     defaultWithdrawLimit: '0.001',
     gasFeeSymbol: 'BTC',
-    network: 'Bitcoin',
+    network: 'Bitcoin Testnet3',
     explorerBaseUrl: 'https://mempool.space/testnet'
   },
   ETH: {
@@ -42,7 +42,7 @@ export const SUPPORTED_TOKENS_INFO_TESTNET = {
     addressKey: 'eth',
     defaultWithdrawLimit: '0.1',
     gasFeeSymbol: 'ETH',
-    network: 'Ethereum',
+    network: 'Ethereum Sepolia',
     explorerBaseUrl: 'https://sepolia.etherscan.io'
   },
   // SOL: {
@@ -62,7 +62,7 @@ export const SUPPORTED_TOKENS_INFO_TESTNET = {
     addressKey: 'eth',
     defaultWithdrawLimit: '100',
     gasFeeSymbol: 'ETH',
-    network: 'Ethereum',
+    network: 'Ethereum Sepolia',
     explorerBaseUrl: 'https://sepolia.etherscan.io'
   },
   USDC: { // (ERC-20 on sepolia)
@@ -76,7 +76,7 @@ export const SUPPORTED_TOKENS_INFO_TESTNET = {
     addressKey: 'eth',
     defaultWithdrawLimit: '100',
     gasFeeSymbol: 'ETH',
-    network: 'Ethereum',
+    network: 'Ethereum Sepolia',
     explorerBaseUrl: 'https://sepolia.etherscan.io'
   },
   LITKEY: { // (Chronicle Yellowstone - Lit Protocol Testnet)
@@ -104,7 +104,7 @@ export const SUPPORTED_TOKENS_INFO_TESTNET = {
     addressKey: 'eth',
     defaultWithdrawLimit: '100',
     gasFeeSymbol: 'ETH',
-    network: 'Base',
+    network: 'Base Sepolia',
     explorerBaseUrl: 'https://sepolia.basescan.org'
   },
 } as const;
