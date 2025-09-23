@@ -14,6 +14,7 @@
 
     "build": "next build",
     "postbuild:clean": "rm -rf .next/cache coverage docs tests '**/*.map'",
+    "heroku-postbuild": "npm run build && npm run postbuild:clean && npm prune --omit=dev && rm -rf node_modules",
     "start": "node .next/standalone/server.js"
   },
   "dependencies": {
@@ -76,7 +77,15 @@
     "react-toastify": "^11.0.5",
     "stytch": "^12.19.0",
     "tailwind-merge": "^3.2.0",
-    "tw-animate-css": "^1.2.5"
+    "tw-animate-css": "^1.2.5",
+    "@xchainjs/xchain-client": "^2.0.0",
+    "@xchainjs/xchain-ethereum": "^2.0.2",
+    "@xchainjs/xchain-evm": "^2.0.1",
+    "@xchainjs/xchain-midgard-query": "^2.0.0",
+    "@xchainjs/xchain-thorchain-amm": "^3.0.6",
+    "@xchainjs/xchain-thorchain-query": "^2.0.1",
+    "@xchainjs/xchain-util": "^2.0.0",
+    "@xchainjs/xchain-wallet": "^2.0.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -85,14 +94,6 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@xchainjs/xchain-client": "^2.0.0",
-    "@xchainjs/xchain-ethereum": "^2.0.2",
-    "@xchainjs/xchain-evm": "^2.0.1",
-    "@xchainjs/xchain-midgard-query": "^2.0.0",
-    "@xchainjs/xchain-thorchain-amm": "^3.0.6",
-    "@xchainjs/xchain-thorchain-query": "^2.0.1",
-    "@xchainjs/xchain-util": "^2.0.0",
-    "@xchainjs/xchain-wallet": "^2.0.5",
     "dotenv": "^17.2.2",
     "eslint": "^9",
     "eslint-config-next": "15.3.0",
