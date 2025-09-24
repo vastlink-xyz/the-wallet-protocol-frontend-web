@@ -37,8 +37,7 @@ export async function GET(request: NextRequest) {
     if (walletId) {
       const walletProposals = await getMessageProposals(walletId)
       proposals = walletProposals.filter(proposal => 
-        proposal.status === 'pending' && 
-        !proposal.signatures.some(sig => sig.signer.toLowerCase() === userAddress.toLowerCase())
+        proposal.status === 'pending'
       )
     } else {
       // No specific wallet provided, get unsigned proposals across all wallets

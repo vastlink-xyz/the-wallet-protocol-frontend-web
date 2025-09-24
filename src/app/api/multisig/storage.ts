@@ -156,15 +156,8 @@ export async function getUnsignedProposalsByUser(userAddress: string): Promise<M
       status: 'pending'
     }).sort({ createdAt: -1 }).lean();
 
-    // Filter out proposals that the user has already signed
-    const unsignedProposals = proposals.filter(proposal => 
-      !proposal.signatures.some((sig: { signer: string }) => 
-        sig.signer.toLowerCase() === userAddress.toLowerCase()
-      )
-    );
-
     // Add wallet name to each proposal
-    const proposalsWithWalletName = unsignedProposals.map(proposal => {
+    const proposalsWithWalletName = proposals.map(proposal => {
       const wallet = wallets.find(w => w.id === proposal.walletId);
       return {
         ...proposal,
