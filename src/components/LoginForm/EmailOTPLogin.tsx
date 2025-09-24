@@ -15,7 +15,7 @@ import { AuthProviderType } from '@/lib/lit/custom-auth';
 import NewGoogleLogin from './NewGoogleLogin';
 import PasskeyLogin from './PasskeyLogin';
 import { BASE_URL } from '@/constants';
-import { login, LoginMethod } from '@/services/loginService';
+import { sendVerificationCode, login, LoginMethod } from '@/services/loginService';
 
 type OtpStep = 'submit' | 'verify';
 
@@ -71,13 +71,8 @@ export default function EmailOTPLogin({
         return;
       }
       
-      // Call backend API to send OTP
-      const { data } = await axios.post(`${BASE_URL}/api/stytch/send-otp`, { 
-        email 
-      });
-      
-      console.log('OTP sent successfully:', data);
-      
+      const data = await sendVerificationCode({ email }, LoginMethod.STYTCH_EMAIL_OTP);
+            
       if (!data?.method_id) {
         throw new Error('Invalid response: method_id not found');
       }

@@ -9,10 +9,27 @@ export enum LoginMethod {
     FIREBASE_GOOGLE_OAUTH = "Firebase Google OAuth"
 };
 
+export const sendVerificationCode = async (input: any, loginMethod: LoginMethod) => {
+    if (loginMethod === LoginMethod.STYTCH_EMAIL_OTP) return await sendVerficationCodeWithStytchEmailOTP(input);
+
+    throw Error(`Login method ${loginMethod} not implemented.`);
+};
+
 export const login = async (input: any, loginMethod: LoginMethod) => {
     if (loginMethod === LoginMethod.STYTCH_EMAIL_OTP) return await loginWithStytchEmailOTP(input);
 
     throw Error(`Login method ${loginMethod} not implemented.`);
+};
+
+export const sendVerficationCodeWithStytchEmailOTP = async (input: any) => {
+    const { email } = input;
+          
+    // Call backend API to send OTP
+    const { data } = await axios.post(`${BASE_URL}/api/stytch/send-otp`, { 
+        email 
+    });
+
+    return data;
 };
 
 export const loginWithStytchEmailOTP = async (input: any) => {
