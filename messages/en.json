@@ -156,7 +156,7 @@
   "LoginPage": {
     "continue_with_google": "Login with Google",
     "continue_with_passkey": "Login with Passkey",
-    "or_continue_with": "More options",
+    "or_continue_with": "More login options",
     "other_login_methods": "Other login methods",
     "hide_other_methods": "Hide other methods",
     "connecting": "Connecting...",

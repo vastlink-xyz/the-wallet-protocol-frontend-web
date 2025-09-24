@@ -87,6 +87,7 @@ export default function GoogleLogin({ invitationId }: GoogleLoginProps) {
       disabled={loading}
       className="w-full h-12 flex items-center justify-center gap-3"
       variant="outline"
+      style={{marginBottom: 10 + 'px'}}
     >
       <Image 
         src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg" 
