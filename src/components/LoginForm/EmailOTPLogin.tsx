@@ -14,6 +14,8 @@ import { useTranslations } from 'next-intl';
 import { AuthProviderType } from '@/lib/lit/custom-auth';
 import NewGoogleLogin from './NewGoogleLogin';
 import PasskeyLogin from './PasskeyLogin';
+import { BASE_URL } from '@/constants';
+import { login, LoginMethod } from '@/services/loginService';
 
 type OtpStep = 'submit' | 'verify';
 
@@ -52,7 +54,7 @@ export default function EmailOTPLogin({
     setLoading(true);
     try {
       // First check if user exists
-      const { data: checkData } = await axios.post('/api/user/check-exists', { 
+      const { data: checkData } = await axios.post(`${BASE_URL}/api/user/check-exists`, { 
         email 
       });
       
@@ -70,7 +72,7 @@ export default function EmailOTPLogin({
       }
       
       // Call backend API to send OTP
-      const { data } = await axios.post('/api/stytch/send-otp', { 
+      const { data } = await axios.post(`${BASE_URL}/api/stytch/send-otp`, { 
         email 
       });
       
@@ -93,24 +95,9 @@ export default function EmailOTPLogin({
   async function authenticate(event: any) {
     event.preventDefault();
     setLoading(true);
+
     try {
-      // Call backend API to verify OTP
-      const { data } = await axios.post('/api/stytch/verify-otp', {
-        methodId,
-        code
-      });
-      
-      if (!data?.session_jwt || !data?.user_id) {
-        throw new Error('Invalid response: session_jwt or user_id not found');
-      }
-      
-      // Encode authentication parameters for URL transmission
-      const authParams = {
-        providerType: AuthProviderType.EMAIL_OTP,
-        accessToken: data.session_jwt,
-        userEmail: email,
-        userId: data.user_id
-      };
+      const authParams = await login({ email, emailId: methodId, otpCode: code }, LoginMethod.STYTCH_EMAIL_OTP);
       
       const encodedAuthParams = encodeURIComponent(JSON.stringify(authParams));
       

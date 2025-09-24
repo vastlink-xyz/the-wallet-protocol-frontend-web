@@ -25,7 +25,7 @@
     "login_button": "Login",
     "register_button": "Create Account",
     "switch_to_register": "Don't have an account? Create one",
-    "switch_to_login": "Already have an account? Sign in",
+    "switch_to_login": "Already have an account? Log in",
     "code_title": "Check your email",
     "code_description": "Enter the 6-digit verification code sent to {email}",
     "code": "Code",
