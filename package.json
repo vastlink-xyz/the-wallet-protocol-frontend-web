@@ -6,6 +6,8 @@
     "dev": "next dev",
 
     "test": "vitest run",
+    
+    "test:singleE": "vitest run -t 'execute a LITKEY proposal'",
     "test:singleD": "vitest run -t 'create a team wallet'",
     "test:singleC": "vitest run -t 'raise and approve and execute a LITKEY proposal'",
     "test:singleB": "vitest run -t 'sign and broadcast a USDC transaction'",
