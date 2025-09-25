@@ -2,25 +2,19 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+
 import { log } from '@/lib/utils';
 import { LogoLoading } from '@/components/LogoLoading';
 import { toast } from 'react-toastify';
 import { parseError } from '@/lib/error';
-import { AuthProviderType, generateUnifiedAuthMethodId, getVastbaseAuthMethodType } from '@/lib/lit/custom-auth';
+import { generateUnifiedAuthMethodId, getVastbaseAuthMethodType } from '@/lib/lit/custom-auth';
 import { useAuthContext } from '@/hooks/useAuthContext';
 import { IRelayPKP } from '@lit-protocol/types';
-import { User } from '@/app/api/user/storage';
 import { setTokenToStorage } from '@/lib/storage/authmethod';
-import { mintPersonalPKP } from '@/lib/lit';
 import { IS_PRODUCTION, KeyManagementPlatform } from '@/constants';
 
 import { createOrGetPersonalWallet } from '@/services/peronsalWalletService';
-
-interface CallbackParams {
-  providerType: AuthProviderType;
-  accessToken: string;
-  userEmail: string;
-}
+import { CallbackParams, createOrGetUser } from '@/services/userManagementService';
 
 /**
  * Unified authentication callback page - handles post-authentication logic for all auth methods
@@ -161,109 +155,6 @@ export default function UnifiedAuthCallbackPage() {
     } catch (error) {
       console.error('Error verifying authentication:', error);
       return false;
-    }
-  };
-
-  /**
-   * Create or get user based on provider type
-   * - EMAIL_OTP: Can register (create) or login (get existing)
-   * - Others: Must login (get existing), cannot register
-   */
-  const createOrGetUser = async (callbackParams: CallbackParams) => {
-    try {
-      if (callbackParams.providerType === AuthProviderType.EMAIL_OTP) {
-        // Email OTP: Can be registration or login
-        return await handleEmailOTPUser(callbackParams);
-      } else {
-        // Other providers: Login only, must exist
-        return await handleSecondaryProviderUser(callbackParams);
-      }
-    } catch (error) {
-      console.error('Error in createOrGetUser:', error);
-      throw error;
-    }
-  };
-
-  /**
-   * Handle Email OTP user (registration or login)
-   */
-  const handleEmailOTPUser = async (callbackParams: CallbackParams) => {
-    const unifiedAuthMethodId = generateUnifiedAuthMethodId(callbackParams.userEmail);
-
-    // Try to get existing user by authMethodId
-    const userResponse = await fetch(`/api/user?authMethodId=${unifiedAuthMethodId}`);
-    
-    if (userResponse.ok) {
-      // User exists, normal login
-      const userData = await userResponse.json();
-      log('Found existing user via authMethodId:', userData);
-      return userData as User;
-    } else if (userResponse.status === 404) {
-      // User doesn't exist, create new user with PKP
-      log('Creating new user with email:', callbackParams.userEmail);
-      
-      const createUserResponse = await fetch('/api/user', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${callbackParams.accessToken}`,
-        },
-        body: JSON.stringify({
-          authMethodId: unifiedAuthMethodId,
-          email: callbackParams.userEmail,
-          authProviders: [{
-            providerType: callbackParams.providerType,
-            sub: callbackParams.userEmail, // For email type, use email as sub
-            email: callbackParams.userEmail,
-            isEnabled: true,
-            isPrimary: true,
-            metadata: {},
-            createdAt: new Date()
-          }]
-        }),
-      });
-      
-      if (!createUserResponse.ok) {
-        const errorData = await createUserResponse.json();
-        throw new Error(`Failed to create user: ${errorData.error || createUserResponse.status}`);
-      }
-      
-      const newUser = await createUserResponse.json();
-      log('User created successfully:', newUser);
-      return newUser;
-    } else {
-      throw new Error(`Failed to check user: ${userResponse.status}`);
-    }
-  };
-
-  /**
-   * Handle secondary provider user (login only)
-   */
-  const handleSecondaryProviderUser = async (callbackParams: CallbackParams) => {
-    // Find user by authProvider (not by authMethodId)
-    const userResponse = await fetch(`/api/user/by-provider`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        providerType: callbackParams.providerType,
-        userEmail: callbackParams.userEmail,
-        accessToken: callbackParams.accessToken, // Add accessToken for verification
-      })
-    });
-
-    if (userResponse.ok) {
-      // User found, normal login
-      const userData = await userResponse.json();
-      log('Found existing user via authProvider:', userData);
-      return userData;
-    } else if (userResponse.status === 404) {
-      // User not found - must register with email first
-      throw new Error(`Account not found. Please register with email first, then add ${callbackParams.providerType} login in wallet settings.`);
-    } else {
-      const errorData = await userResponse.json();
-      throw new Error(`Failed to find user: ${errorData.error || userResponse.status}`);
     }
   };
 
