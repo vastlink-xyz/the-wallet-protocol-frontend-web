@@ -53,6 +53,7 @@ export default function UnifiedAuthCallbackPage() {
 
       // Step 4: Handle PKP
       // const pkp = await createOrGetPKP(callbackParams, user);
+      console.debug("createOrGetPersonalWallet()", {callbackParams, user});
       const pkp = await createOrGetPersonalWallet(callbackParams, user, KeyManagementPlatform.LitProtocol);
 
       // Step 5: Store authentication info

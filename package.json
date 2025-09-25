@@ -7,7 +7,7 @@
 
     "test": "vitest run",
     
-    "test:singleF": "vitest run -t 'the user logs in'",
+    "test:singleF": "vitest run -t 'the user creats a or gets his personal wallet'",
     "test:singleE": "vitest run -t 'execute a LITKEY proposal'",
     "test:singleD": "vitest run -t 'create a team wallet'",
     "test:singleC": "vitest run -t 'raise and approve and execute a LITKEY proposal'",
