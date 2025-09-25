@@ -49,7 +49,8 @@ export const loginWithStytchEmailOTP = async (input: any) => {
             providerType: AuthProviderType.EMAIL_OTP,
             accessToken: data.session_jwt,
             userEmail: email,
-            userId: data.user_id
+            userId: data.user_id,
+            loginMethod: LoginMethod.STYTCH_EMAIL_OTP,
           };
           
           return authParams;
