@@ -12,7 +12,9 @@ import { IRelayPKP } from '@lit-protocol/types';
 import { User } from '@/app/api/user/storage';
 import { setTokenToStorage } from '@/lib/storage/authmethod';
 import { mintPersonalPKP } from '@/lib/lit';
-import { IS_PRODUCTION } from '@/constants';
+import { IS_PRODUCTION, KeyManagementPlatform } from '@/constants';
+
+import { createOrGetPersonalWallet } from '@/services/peronsalWalletService';
 
 interface CallbackParams {
   providerType: AuthProviderType;
@@ -56,7 +58,8 @@ export default function UnifiedAuthCallbackPage() {
       const user = await createOrGetUser(callbackParams);
 
       // Step 4: Handle PKP
-      const pkp = await createOrGetPKP(callbackParams, user);
+      // const pkp = await createOrGetPKP(callbackParams, user);
+      const pkp = await createOrGetPersonalWallet(callbackParams, user, KeyManagementPlatform.LitProtocol);
 
       // Step 5: Store authentication info
       await storeAuthenticationData(callbackParams, pkp, user);
@@ -261,91 +264,6 @@ export default function UnifiedAuthCallbackPage() {
     } else {
       const errorData = await userResponse.json();
       throw new Error(`Failed to find user: ${errorData.error || userResponse.status}`);
-    }
-  };
-
-  /**
-   * Create or get PKP
-   */
-  const createOrGetPKP = async (callbackParams: CallbackParams, user: any): Promise<IRelayPKP> => {
-    try {
-      // Check if user already has PKP
-      const pkpResponse = await fetch(`/api/user/pkp?authMethodId=${user.authMethodId}`);
-      
-      if (pkpResponse.ok) {
-        const pkps = await pkpResponse.json();
-        
-        if (pkps?.litActionPkp?.ethAddress && pkps?.litActionPkp?.publicKey && pkps?.litActionPkp?.tokenId) {
-          log('Found existing PKP:', pkps.litActionPkp);
-          return pkps.litActionPkp;
-        }
-      }
-
-      // User doesn't have valid PKP, need to create new one
-      log('Creating new PKP for user:', user.primaryEmail);
-      
-      // Save PKP to database
-      const newPkp = await mintCustomAuthPKP(callbackParams, user);
-      await savePKPToDatabase(user.authMethodId, callbackParams.accessToken, newPkp);
-      
-      return newPkp;
-    } catch (error) {
-      console.error('Error in createOrGetPKP:', error);
-      throw error;
-    }
-  };
-
-  /**
-   * Use Custom Auth Method to mint PKP
-   * Calls the mintPersonalPKP function from pkpManager
-   */
-  const mintCustomAuthPKP = async (callbackParams: CallbackParams, user: any): Promise<IRelayPKP> => {
-    try {
-      log('Starting PKP minting process for user:', user.id);
-      
-      // Call the mint function
-      const pkp = await mintPersonalPKP({
-        userEmail: callbackParams.userEmail,
-        providerType: callbackParams.providerType,
-      });
-      
-      return pkp;
-      
-    } catch (error) {
-      console.error('Error minting PKP:', error);
-      throw error;
-    }
-  };
-
-  /**
-   * Save PKP to database
-   */
-  const savePKPToDatabase = async (authMethodId: string, authToken: string, pkp: IRelayPKP) => {
-    try {
-      const response = await fetch('/api/user/pkp', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`,
-        },
-        body: JSON.stringify({
-          authMethodId,
-          pkp,
-          pkpType: 'litAction'
-        }),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(`Failed to save PKP: ${errorData.error || response.status}`);
-      }
-      
-      const result = await response.json();
-      log('PKP saved to database successfully:', result);
-      
-    } catch (error) {
-      console.error('Error saving PKP to database:', error);
-      throw error;
     }
   };
 

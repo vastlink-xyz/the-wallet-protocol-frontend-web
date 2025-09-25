@@ -1,14 +1,20 @@
 import { describe, it, expect } from 'vitest';
 
-import { LitRelay } from '@lit-protocol/lit-auth-client';
-import { LitNodeClient } from '@lit-protocol/lit-node-client';
-
 import { ExecuteTransactionParams, executePersonalTransaction } from '@/services/personalTransactionService';
 import { AuthProviderType } from '@/lib/lit/custom-auth';
+
+import { createOrGetPersonalWallet } from '@/services/peronsalWalletServiceForLitProtocol';
 
 import { theUser, testConfig } from './fixtures';
 
 describe('personal wallet tests', () => {
+  it('the user creats a personal wallet', async () => {
+    const res = await createOrGetPersonalWallet(input, user);
+    console.debug(res);
+
+    expect(res).toBeDefined();
+  });
+
   it('sign and broadcast a BTC transaction', async () => {
     const input: ExecuteTransactionParams = {
       state: {
