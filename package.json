@@ -7,12 +7,14 @@
 
     "test": "vitest run",
     
+    "test:singleG": "vitest run -t 'the user gets his asset portfolio'",
     "test:singleF": "vitest run -t 'the user creats a or gets his personal wallet'",
     "test:singleE": "vitest run -t 'execute a LITKEY proposal'",
     "test:singleD": "vitest run -t 'create a team wallet'",
     "test:singleC": "vitest run -t 'raise and approve and execute a LITKEY proposal'",
     "test:singleB": "vitest run -t 'sign and broadcast a USDC transaction'",
     "test:singleA": "vitest run -t 'wallet tests'",
+    
     "lint": "next lint && tsc --noEmit",
 
     "build": "next build",

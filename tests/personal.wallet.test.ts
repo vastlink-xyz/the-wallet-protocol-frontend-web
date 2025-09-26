@@ -3,11 +3,19 @@ import { describe, it, expect } from 'vitest';
 import { ExecuteTransactionParams, executePersonalTransaction } from '@/services/personalTransactionService';
 import { AuthProviderType } from '@/lib/lit/custom-auth';
 
-import { createOrGetPersonalWallet } from '@/services/peronsalWalletServiceByLitProtocol';
+import { createOrGetPersonalWallet, getAssetPortfolio } from '@/services/peronsalWalletServiceByLitProtocol';
 
 import { theUser, testConfig } from './fixtures';
 
 describe('personal wallet tests', () => {
+  it('the user gets his asset portfolio', async () => {
+    const res = await getAssetPortfolio({
+      authMethodId: '0xa7462ffe061228d9c5617f7e82fabf4cc6edb9905f8079d0ca86cb9e13789b9f'
+    });
+
+    expect(res).toBeDefined();
+  });
+
   it('the user creats a or gets his personal wallet', async () => {
     const testData = {
       callbackParams: {

@@ -29,6 +29,19 @@ export const createOrGetUser = async (callbackParams: CallbackParams) => {
     }
 };
 
+export const getUser = async (authMethodId: string): Promise<{ user: User; authMethodId: string }> => {
+    const userResponse = await fetch(`${BASE_URL}/api/user?authMethodId=${authMethodId}`)
+    
+    if (!userResponse.ok) {
+      throw new Error('Failed to fetch user information')
+    }
+    
+    return {
+        user: await userResponse.json(),
+        authMethodId,
+    };
+};
+
 /**
  * Handle Email OTP user (registration or login)
  */

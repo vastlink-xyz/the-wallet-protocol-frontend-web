@@ -4,8 +4,14 @@ import { IRelayPKP } from '@lit-protocol/types';
 import { log } from '@/lib/utils'
 import { BASE_URL } from '@/constants'
 
+import { getUser } from '@/services/userManagementService';
+
 export const createOrGetPersonalWallet = async (input: any, user: any) => {
   return await createOrGetPKP(input, user);
+}
+
+export const getAssetPortfolio = async (user: any) => {
+  return await getUser(user.authMethodId);
 }
 
 const createOrGetPKP = async (input: any, user: any): Promise<IRelayPKP> => {

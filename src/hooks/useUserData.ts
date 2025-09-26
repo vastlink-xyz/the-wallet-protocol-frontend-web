@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { User } from '@/app/api/user/storage'
 import { useMemo } from 'react'
 import { useAuthContext } from '@/hooks/useAuthContext'
+import { getUser } from '@/services/userManagementService';
 
 interface UseUserDataReturn {
   userData: User | null
@@ -10,25 +11,6 @@ interface UseUserDataReturn {
   error: string | null
   hasPkp: boolean
   refetch: () => void
-}
-
-// Fetch user data function
-async function fetchUserData(authMethodId: string): Promise<User> {
-  const userResponse = await fetch(`/api/user?authMethodId=${authMethodId}`)
-  if (!userResponse.ok) {
-    throw new Error('Failed to fetch user information')
-  }
-  return await userResponse.json()
-}
-
-// Combined fetch function for both authMethodId and user data
-async function fetchUserWithAuthId(authMethodId: string): Promise<{ user: User; authMethodId: string }> {
-  if (!authMethodId) {
-    throw new Error('No auth method ID provided')
-  }
-  
-  const user = await fetchUserData(authMethodId)
-  return { user, authMethodId }
 }
 
 export function useUserData(): UseUserDataReturn {
@@ -43,7 +25,7 @@ export function useUserData(): UseUserDataReturn {
     refetch
   } = useQuery({
     queryKey: ['userData', contextAuthMethodId],
-    queryFn: () => fetchUserWithAuthId(contextAuthMethodId!),
+    queryFn: () => getUser(contextAuthMethodId!),
     enabled: !!contextAuthMethodId, // Only run query if authMethodId exists
     staleTime: 5 * 60 * 1000, // Consider data stale after 5 minutes
     gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
