@@ -3,7 +3,7 @@ import { describe, it, expect } from 'vitest';
 import { ExecuteTransactionParams, executePersonalTransaction } from '@/services/personalTransactionService';
 import { AuthProviderType } from '@/lib/lit/custom-auth';
 
-import { createOrGetPersonalWallet } from '@/services/peronsalWalletServiceForLitProtocol';
+import { createOrGetPersonalWallet } from '@/services/peronsalWalletServiceByLitProtocol';
 
 import { theUser, testConfig } from './fixtures';
 
