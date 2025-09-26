@@ -3,15 +3,19 @@ import { describe, it, expect } from 'vitest';
 import { ExecuteTransactionParams, executePersonalTransaction } from '@/services/personalTransactionService';
 import { AuthProviderType } from '@/lib/lit/custom-auth';
 
-import { createOrGetPersonalWallet, getAssetPortfolio } from '@/services/peronsalWalletServiceByLitProtocol';
+import { createOrGetPersonalWallet, getAssetPortfolio } from '@/services/peronsalWalletService';
 
 import { theUser, testConfig } from './fixtures';
+import { KeyManagementPlatform } from '@/constants';
 
 describe('personal wallet tests', () => {
   it('the user gets his asset portfolio', async () => {
-    const res = await getAssetPortfolio({
-      authMethodId: '0xa7462ffe061228d9c5617f7e82fabf4cc6edb9905f8079d0ca86cb9e13789b9f'
-    });
+    const res = await getAssetPortfolio(
+      {
+        authMethodId: '0xa7462ffe061228d9c5617f7e82fabf4cc6edb9905f8079d0ca86cb9e13789b9f'
+      }, 
+      KeyManagementPlatform.LitProtocol
+    );
 
     expect(res).toBeDefined();
   });
@@ -71,7 +75,11 @@ describe('personal wallet tests', () => {
       },
     }
 
-    const res = await createOrGetPersonalWallet(testData.callbackParams, testData.user);
+    const res = await createOrGetPersonalWallet(
+      testData.callbackParams, 
+      testData.user,
+      KeyManagementPlatform.LitProtocol
+    );
     console.debug("res", res);
 
     expect(res).toBeDefined();
