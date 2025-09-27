@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { useUserInfo } from '@/hooks/user/useUserInfo';
+import { ChainAddresses, useUserInfo } from '@/hooks/user/useUserInfo';
 import { encryptWithPublicKey, hashEncryptedData, log, OneHourMs } from '@/lib/utils';
 import keyManagementService from '@/services/KeyManagementService';
 import { loadDeviceId, storeDeviceId } from '@/services/KeyManagementService/FireblocksKeyManagementService/deviceId';
@@ -10,7 +10,7 @@ import { decode, encode } from "js-base64";
 import { apiService, initFireblocksNCW } from '@/services/KeyManagementService/FireblocksKeyManagementService/fireblocksInstance';
 import { Input } from '@/components/ui/input';
 import api from '@/lib/api';
-import { TokenType } from '@/types/tokens';
+import { ChainType, TokenType } from '@/types/tokens';
 import { TransactionType } from '@/types/transaction';
 import { authManager } from './auth/FirebaseAuthManager';
 import { gdriveRecover } from './auth/GoogleDrive';
@@ -283,7 +283,7 @@ export default function FireblocksDemoPage() {
     }
   }
 
-  const handleCreateTransaction = async () => {
+  const handleCreateTransaction = async (token: TokenType, coinType: keyof ChainAddresses) => {
     setLoading(true)
     if (!userInfoFetched || !userInfo) {
       return
@@ -308,18 +308,18 @@ export default function FireblocksDemoPage() {
     // const data = await apiService.createTransaction(deviceId, dataToSend)
     try {
       const data: any = await keyManagementService.signTransaction({
-        fromAddress: userInfo.chainAddresses?.BITCOIN_TEST ?? '',
+        fromAddress: userInfo.chainAddresses![coinType] ?? '',
         toAddress: destinationAddress,
         amount: amount,
-        token: TokenType.BTC_TEST,
+        token: TokenType[token],
         transactionType: TransactionType.TRANSFER,
       })
       if (data.needOtp) {
         const queryParams = {
-          fromAddress: userInfo.chainAddresses?.BITCOIN_TEST ?? '',
+          fromAddress: userInfo.chainAddresses![coinType] ?? '',
           toAddress: destinationAddress,
           amount: amount,
-          token: TokenType.BTC_TEST,
+          token: TokenType[token],
           transactionType: TransactionType.TRANSFER,
         }
         const queryString = new URLSearchParams(queryParams).toString();
@@ -396,21 +396,27 @@ export default function FireblocksDemoPage() {
   }
 
   const handleGetTransaction = async () => {
-    setLoading(true)
-    if (!userInfoFetched || !userInfo) {
-      return
+    try {
+      setLoading(true)
+      if (!userInfoFetched || !userInfo) {
+        return
+      }
+      const deviceId = loadDeviceId(userInfo.sub)
+      if (!deviceId) {
+        return
+      }
+      if (!txId) {
+        alert('Please create a transaction first')
+        return
+      }
+      const transaction = await apiService.getTransactionById(deviceId, txId)
+      console.log('transaction details', transaction)
+      setLoading(false)
+    } catch(err) {
+      console.log('error', err)
+    } finally {
+      setLoading(false)
     }
-    const deviceId = loadDeviceId(userInfo.sub)
-    if (!deviceId) {
-      return
-    }
-    if (!txId) {
-      alert('Please create a transaction first')
-      return
-    }
-    const transaction = await apiService.getTransactionById(deviceId, txId)
-    console.log('transaction details', transaction)
-    setLoading(false)
   }
 
   const handleSignTransactionByTxId = async () => {
@@ -632,7 +638,8 @@ export default function FireblocksDemoPage() {
       <Input placeholder='transaction id' value={txId} onChange={(e) => setTxId(e.target.value)} />
     </div>
     <Button disabled={loading} onClick={handleCreateTestTransaction}>test Create a transaction</Button>
-    <Button disabled={loading} onClick={handleCreateTransaction}>Create a transfer transaction</Button>
+    <Button disabled={loading} onClick={() => handleCreateTransaction(TokenType.BTC_TEST, 'BTC_TEST' as ChainType)}>Create a btc transfer transaction</Button>
+    {/* <Button disabled={loading} onClick={() => handleCreateTransaction(TokenType.ETH, 'ETH_TEST5' as ChainType)}>Create a eth transfer transaction</Button> */}
     <Button disabled={loading} onClick={handleCreateTypedMessageTransaction}>Create a typed message transaction</Button>
     {txId && <Button disabled={loading} onClick={handleGetTransaction}>Get transaction</Button>}
 
