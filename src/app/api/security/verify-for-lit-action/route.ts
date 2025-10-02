@@ -25,7 +25,7 @@ interface PriorityHandler {
   priority: number;
   category: string;
   checkRequired: (layers: SecurityLayer[], requestData: VerifyForLitActionRequest, user: User, sessionJwt: string) => Promise<{ isRequired: boolean; requirementData?: any }>;
-  verify: (layers: SecurityLayer[], requestData: VerifyForLitActionRequest, user: User) => Promise<{ success: boolean; error?: string; data?: any }>;
+  verify: (layers: SecurityLayer[], requestData: VerifyForLitActionRequest, user: User, sessionJwt: string) => Promise<{ success: boolean; error?: string; data?: any }>;
   formatResponse: (layers: SecurityLayer[], requirementData?: any) => any;
 }
 
@@ -41,7 +41,7 @@ const pinHandler: PriorityHandler = {
       requirementData: isRequired && pinLayer?.type === 'PIN' ? pinLayer.config.pinData : undefined
     };
   },
-  verify: async (layers: SecurityLayer[], _requestData: VerifyForLitActionRequest, _user: User) => {
+  verify: async (layers: SecurityLayer[], _requestData: VerifyForLitActionRequest, _user: User, _sessionJwt: string) => {
     const pinLayer = layers.find(layer => layer.category === 'pin' && layer.isEnabled);
     if (!pinLayer || pinLayer.type !== 'PIN' || !pinLayer.config.pinData) {
       return { success: false, error: 'PIN data not found in security layer' };
@@ -95,7 +95,7 @@ const mfaHandler: PriorityHandler = {
     
     return { isRequired: false };
   },
-  verify: async (_layers: SecurityLayer[], requestData: VerifyForLitActionRequest, user: User) => {
+  verify: async (_layers: SecurityLayer[], requestData: VerifyForLitActionRequest, user: User, sessionJwt: string) => {
     const { mfaType, mfaCode, mfaMethodId } = requestData;
     
     if (!mfaCode || !mfaType) {
@@ -125,6 +125,7 @@ const mfaHandler: PriorityHandler = {
           const whatsappResponse = await stytchClient.otps.authenticate({
             method_id: mfaMethodId!,
             code: mfaCode,
+            session_jwt: sessionJwt,
           });
           verificationResult = !!whatsappResponse.user_id && whatsappResponse.user_id === stytchUserId;
           break;
@@ -133,7 +134,8 @@ const mfaHandler: PriorityHandler = {
           const totpResponse = await stytchClient.totps.authenticate({
             user_id: stytchUserId,
             totp_code: mfaCode,
-          });
+            session_jwt: sessionJwt,
+          } as any);
           verificationResult = !!totpResponse.user_id;
           break;
 
@@ -141,6 +143,7 @@ const mfaHandler: PriorityHandler = {
           const emailResponse = await stytchClient.otps.authenticate({
             method_id: mfaMethodId!,
             code: mfaCode,
+            session_jwt: sessionJwt,
           });
           verificationResult = !!emailResponse.user_id && emailResponse.user_id === stytchUserId;
           break;
@@ -245,7 +248,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Verify if credentials provided for this priority level
-        const verificationResult = await handler.verify(layersForPriority, body, user);
+        const verificationResult = await handler.verify(layersForPriority, body, user, token);
         
         if (!verificationResult.success) {
           return NextResponse.json({

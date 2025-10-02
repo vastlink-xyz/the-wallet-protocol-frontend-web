@@ -6,6 +6,7 @@ import { policyEnforcer } from '@/services/policies/PolicyEnforcer';
 import { stytchClient } from '@/app/api/stytch/client';
 import { SUPPORTED_TOKENS_INFO, TokenType, SUPPORTED_TOKEN_SYMBOLS } from '@/lib/web3/token';
 import { StytchError } from 'stytch';
+import { hasRecentOtpAuthentication } from '@/lib/auth/hasRecentOtpAuthentication';
 
 // PATCH /api/user/settings - Update user wallet settings
 export async function PATCH(request: NextRequest) {
@@ -16,7 +17,8 @@ export async function PATCH(request: NextRequest) {
     log('Authenticated session in user settings:', { user: user?.authMethodId, providerType: authResult.providerType });
 
     const body = await request.json();
-    const { walletSettings, otp, phoneId } = body;
+    // Backward-compatible: support both the old (otp + phoneId) and the new (mfaCode + methodId)
+    const { walletSettings, otp, phoneId, mfaCode, methodId } = body;
 
     const authMethodId = user?.authMethodId;
     if (!authMethodId) {
@@ -55,26 +57,13 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
-    // Check if we have an OTP and need to authenticate it
-    if (otp) {
-      // Validate OTP
-      const authResponse = await stytchClient.otps.authenticate({
-        method_id: phoneId,
-        code: otp,
+    // Enforce recent OTP/TOTP verification only; do not consume OTP codes here
+    const hasRecentOtp = await hasRecentOtpAuthentication(token);
+    if (!hasRecentOtp) {
+      log('hasRecentOtp:', hasRecentOtp);
+      return NextResponse.json({
+        requiresMfa: true,
       });
-      log('Stytch OTP authenticate response:', authResponse);
-    } else {
-      // Check if MFA is required for this operation
-      const shouldTriggerMFA = await policyEnforcer.checkPolicies({
-        updateSettings: walletSettings,
-        sessionJwt: token,
-      }, 'personalWalletSettingsUpdate');
-
-      if (shouldTriggerMFA) {
-        return NextResponse.json({
-          requiresMfa: shouldTriggerMFA,
-        });
-      }
     }
 
     // Update user wallet settings

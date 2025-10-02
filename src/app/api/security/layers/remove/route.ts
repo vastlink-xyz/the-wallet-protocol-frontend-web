@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUser, updateUserWalletSettings } from '../../../user/storage';
 import { SecurityLayer, SecurityLayerType } from '@/types/security';
-import { authenticateUser } from '@/lib/auth/multi-provider-auth';
+import { authenticateMultiProviderSession } from '@/lib/auth/multi-provider-auth';
+import { hasRecentOtpAuthentication } from '@/lib/auth/hasRecentOtpAuthentication';
 import { SecurityLayerService } from '@/services/securityLayerService';
 
 // DELETE /api/security/layers/remove - Remove or disable a security layer (database only)
 export async function DELETE(request: NextRequest) {
   try {
-    await authenticateUser(request);
+    const { user, token } = await authenticateMultiProviderSession(request);
     
     const body = await request.json();
-    const { authMethodId, layerType } = body;
+    const { authMethodId: bodyAuthMethodId, layerType } = body;
+    const authMethodId = bodyAuthMethodId || user?.authMethodId;
     
     if (!authMethodId) {
       return NextResponse.json(
@@ -26,12 +28,17 @@ export async function DELETE(request: NextRequest) {
       );
     }
     
-    const user = await getUser(authMethodId);
     if (!user) {
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
       );
+    }
+
+    // require recent OTP/TOTP on session
+    const hasRecent = await hasRecentOtpAuthentication(token);
+    if (!hasRecent) {
+      return NextResponse.json({ requiresMfa: true });
     }
     
     // Validate layer type
@@ -55,6 +62,7 @@ export async function DELETE(request: NextRequest) {
     }
     
     const layerIndex = securityLayers.findIndex(layer => layer.id === targetLayer.id);
+
     
     // Update database security layers
     let updatedSecurityLayers: SecurityLayer[];

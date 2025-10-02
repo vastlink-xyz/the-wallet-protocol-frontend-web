@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getUser, updateUserWalletSettings } from '../../../user/storage';
 import { SecurityLayer, SecurityLayerType } from '@/types/security';
 import { authenticateMultiProviderSession } from '@/lib/auth/multi-provider-auth';
+import { hasRecentOtpAuthentication } from '@/lib/auth/hasRecentOtpAuthentication';
 import { verifyStytchDataExists } from '../stytchValidation';
 import { SecurityLayerService } from '@/services/securityLayerService';
 
@@ -9,11 +10,12 @@ import { SecurityLayerService } from '@/services/securityLayerService';
 export async function POST(request: NextRequest) {
   try {
     const authResult = await authenticateMultiProviderSession(request);
-    const { user: authenticatedUser } = authResult;
+    const { user: authenticatedUser, token } = authResult;
     
     const body = await request.json();
-    const { authMethodId, layerType, config } = body;
+    const { layerType, config } = body;
     
+    const authMethodId = authenticatedUser?.authMethodId;
     if (!authMethodId) {
       return NextResponse.json(
         { error: 'Missing authMethodId in request body' },
@@ -38,6 +40,12 @@ export async function POST(request: NextRequest) {
     
     // Validate layer type
     if (!SecurityLayerService.validateLayerType(layerType)) {
+      // Require recent OTP/TOTP on session
+      const hasRecent = await hasRecentOtpAuthentication(token);
+      if (!hasRecent) {
+        return NextResponse.json({ requiresMfa: true });
+      }
+
       return NextResponse.json(
         { error: `Unsupported layer type: ${layerType}` },
         { status: 400 }

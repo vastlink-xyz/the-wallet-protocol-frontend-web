@@ -16,7 +16,6 @@ import { toast } from 'react-toastify';
 import { useAuthContext } from '@/hooks/useAuthContext';
 import { log } from '@/lib/utils';
 import { SUPPORTED_TOKENS_INFO, TokenType, SUPPORTED_TOKEN_SYMBOLS } from '@/lib/web3/token';
-import { MFAOtpDialog } from '@/components/Transaction/MFAOtpDialog';
 import { LabeledContainer } from '@/components/LabeledContainer';
 import { DailyWithdrawLimits } from '@/components/Transaction/DailyWithdrawLimits';
 import { LogoLoading } from '@/components/LogoLoading';
@@ -45,11 +44,7 @@ export function PersonalWalletSettings() {
   const { userData, refetch: refetchUserData } = useUserData();
 
   // State for real MFA Dialog
-  const [showMfaDialog, setShowMfaDialog] = useState(false);
   const [verifiedPhone, setVerifiedPhone] = useState<string | null>(null);
-  const [methodId, setMethodId] = useState<string | null>(null);
-  const [phoneId, setPhoneId] = useState<string | null>(null);
-  const [pendingSettings, setPendingSettings] = useState<any>(null);
 
   // Get auth method - use useState to make it reactive
   const { authMethod, authMethodId, getCurrentAccessToken } = useAuthContext();
@@ -156,7 +151,7 @@ export function PersonalWalletSettings() {
     setTokenLimits(newLimits);
   }, [userData]);
 
-  // Initialize MFA data when dialog opens
+  // Initialize MFA data when dialog opens (used for banner only)
   useEffect(() => {
     const initializeMfaData = async () => {
       if (!isPersonalWalletSettingsOpen) return;
@@ -179,7 +174,6 @@ export function PersonalWalletSettings() {
 
           if (phones.length > 0) {
             setVerifiedPhone(phones[0].phone_number);
-            setPhoneId(phones[0].phone_id);
           }
         }
       } catch (error) {
@@ -192,8 +186,6 @@ export function PersonalWalletSettings() {
     if (isPersonalWalletSettingsOpen) {
       initializeMfaData();
     } else {
-      // Reset states when dialog closes
-      setShowMfaDialog(false);
       setIsMfaLoading(false);
     }
   }, [isPersonalWalletSettingsOpen]);
@@ -220,7 +212,6 @@ export function PersonalWalletSettings() {
 
       if (phones.length > 0) {
         setVerifiedPhone(phones[0].phone_number);
-        setPhoneId(phones[0].phone_id);
       }
     } catch (error) {
       console.error('Error fetching user phone:', error);
@@ -263,72 +254,7 @@ export function PersonalWalletSettings() {
   };
 
   // Real send OTP function
-  const handleSendOtp = async () => {
-    const sessionJwt = await getSessionJwt();
-    if (!sessionJwt || !verifiedPhone) {
-      throw new Error('Session or phone number not found');
-    }
-
-    log('Sending OTP to', verifiedPhone);
-    const response = await fetch('/api/mfa/whatsapp/send-code', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${sessionJwt}`,
-      },
-      body: JSON.stringify({ phone_number: verifiedPhone }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      log('Error response from API', errorData);
-      throw new Error(errorData.error || `Failed to send OTP: ${response.status}`);
-    }
-
-    const data = await response.json();
-    setMethodId(data.method_id);
-    log('OTP sent, method_id:', data.method_id);
-  };
-
-  // Real verify OTP function
-  const handleVerifyOtp = async (otp: string) => {
-    const sessionJwt = await getSessionJwt();
-    if (!sessionJwt || !methodId || !authMethodId || !pendingSettings) {
-      throw new Error('Required data for verification is missing');
-    }
-
-    if (otp.length !== 6) {
-      throw new Error('Verification code must be 6 digits');
-    }
-
-    log('Verifying OTP and updating settings', { method_id: methodId, code: otp });
-    const response = await fetch('/api/user/settings', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${sessionJwt}`,
-      },
-      body: JSON.stringify({
-        authMethodId,
-        walletSettings: pendingSettings,
-        otp,
-        phoneId,
-      }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || `Failed to update settings: ${response.status}`);
-    }
-
-    const data = await response.json();
-    log('Settings updated successfully', data);
-
-    toast.success(t("update_success"));
-
-    setShowMfaDialog(false);
-    closePersonalWalletSettings(); // Close the settings dialog
-  };
+  // Removed direct OTP flow in favor of unified security verification in useSecurityVerification
 
   return (
     <>
@@ -401,17 +327,6 @@ export function PersonalWalletSettings() {
         </div>
       </DialogContent>
     </Dialog>
-
-      {/* Real MFA OTP Dialog for wallet settings */}
-      <MFAOtpDialog
-        isOpen={showMfaDialog}
-        onClose={() => setShowMfaDialog(false)}
-        onOtpVerify={handleVerifyOtp}
-        sendOtp={handleSendOtp}
-        identifier={verifiedPhone}
-        title={t("opt_dialog_title")}
-        description={t("opt_dialog_description")}
-      />
 
       {/* PIN and MFA dialogs from security verification hook */}
       {securityVerification.PinDialog}

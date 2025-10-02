@@ -1,17 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUser, updateUserWalletSettings } from '../../../user/storage';
 import { SecurityLayer } from '@/types/security';
-import { authenticateUser } from '@/lib/auth/multi-provider-auth';
+import { authenticateMultiProviderSession } from '@/lib/auth/multi-provider-auth';
+import { hasRecentOtpAuthentication } from '@/lib/auth/hasRecentOtpAuthentication';
 import { verifyStytchDataExists } from '../stytchValidation';
 import { SecurityLayerService } from '@/services/securityLayerService';
 
 // PUT /api/security/layers/update - Update security layer fields (isEnabled, config, etc.)
 export async function PUT(request: NextRequest) {
   try {
-    const { authMethodId: userAuthMethodId } = await authenticateUser(request);
+    const { user, token } = await authenticateMultiProviderSession(request);
+    const authMethodId = user?.authMethodId;
     
     const body = await request.json();
-    const { authMethodId, layerId, ...updates } = body;
+    const { layerId, ...updates } = body;
     
     if (!authMethodId || !layerId) {
       return NextResponse.json(
@@ -28,7 +30,6 @@ export async function PUT(request: NextRequest) {
       );
     }
     
-    const user = await getUser(authMethodId);
     if (!user) {
       return NextResponse.json(
         { error: 'User not found' },
@@ -48,6 +49,12 @@ export async function PUT(request: NextRequest) {
     }
     
     const targetLayer = securityLayers[layerIndex];
+
+    // require recent OTP/TOTP on session
+    const hasRecent = await hasRecentOtpAuthentication(token);
+    if (!hasRecent) {
+      return NextResponse.json({ requiresMfa: true });
+    }
     
     // Prevent disabling EMAIL_OTP layers (they can be disabled but not removed)
     if (updates.isEnabled === false && targetLayer.type === 'EMAIL_OTP') {
