@@ -15,13 +15,10 @@ export async function PATCH(request: NextRequest) {
     const { user, token } = authResult;
     log('Authenticated session in user settings:', { user: user?.authMethodId, providerType: authResult.providerType });
 
-    // TODO by JJ:
-    // Should get current settings from the data source instead of the request, and use it for OTP and MFA.
-    // const currentSettings = await getPersonalWalletSettings(user);
-
     const body = await request.json();
-    const { authMethodId, walletSettings, otp, phoneId } = body;
+    const { walletSettings, otp, phoneId } = body;
 
+    const authMethodId = user?.authMethodId;
     if (!authMethodId) {
       return NextResponse.json(
         { error: 'Missing authMethodId in request body' },
