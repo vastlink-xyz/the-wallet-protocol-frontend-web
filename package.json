@@ -7,6 +7,7 @@
 
     "test": "vitest run",
     
+    "test:singleH": "vitest run -t 'the user updates daily withdrawal limits'",
     "test:singleG": "vitest run -t 'the user gets his asset portfolio'",
     "test:singleF": "vitest run -t 'the user creats a or gets his personal wallet'",
     "test:singleE": "vitest run -t 'execute a LITKEY proposal'",
