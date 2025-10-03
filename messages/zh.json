@@ -144,7 +144,7 @@
     "daily_withdraw_title": "每日提现限额",
     "daily_withdraw_description": "请注意，每日提现限额仅在设置多因素认证（MFA）后生效。",
     "saving": "保存中...",
-    "save": "保存设置",
+    "save": "保存",
     "mfa_pin_settings": "PIN 码设置",
     "mfa_settings": "多因素认证设置",
     "login_methods": "登录方式",

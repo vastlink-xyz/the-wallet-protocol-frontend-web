@@ -286,6 +286,15 @@ export function PersonalWalletSettings() {
                       initialLimits={tokenLimits}
                       onChange={handleLimitsChange}
                     />
+                    <div className="flex justify-end">
+                      <Button
+                        className="w-32"
+                        onClick={saveSettings}
+                        disabled={!isLimitValid || isSaving || securityVerification.isVerifying}
+                      >
+                        {t(isSaving || securityVerification.isVerifying ? 'saving' : 'save')}
+                      </Button>
+                    </div>
                   </>
                 )
               }
@@ -313,15 +322,6 @@ export function PersonalWalletSettings() {
                   onUserUpdate={handleUserUpdate}
                 />
               </LabeledContainer>
-
-              <DialogFooter className="pt-4 space-x-2">
-                <Button
-                  onClick={saveSettings}
-                  disabled={!isLimitValid || isSaving || securityVerification.isVerifying}
-                >
-                  {t(isSaving || securityVerification.isVerifying ? 'saving' : 'save')}
-                </Button>
-              </DialogFooter>
             </>
           )}
         </div>
