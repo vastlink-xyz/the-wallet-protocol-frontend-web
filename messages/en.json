@@ -144,7 +144,7 @@
     "daily_withdraw_title": "Daily Withdraw Limits",
     "daily_withdraw_description": "Please note that daily withdrawal limits work only when MFA has been set up.",
     "saving": "Saving...",
-    "save": "Save Settings",
+    "save": "Save",
     "mfa_pin_settings": "PIN Settings",
     "mfa_settings": "MFA Settings",
     "login_methods": "Login Methods",
