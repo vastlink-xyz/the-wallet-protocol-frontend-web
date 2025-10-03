@@ -40,16 +40,15 @@ export async function POST(request: NextRequest) {
     
     // Validate layer type
     if (!SecurityLayerService.validateLayerType(layerType)) {
-      // Require recent OTP/TOTP on session
-      const hasRecent = await hasRecentOtpAuthentication(token);
-      if (!hasRecent) {
-        return NextResponse.json({ requiresMfa: true });
-      }
-
       return NextResponse.json(
         { error: `Unsupported layer type: ${layerType}` },
         { status: 400 }
       );
+    }
+
+    const hasRecent = await hasRecentOtpAuthentication(token);
+    if (!hasRecent) {
+      return NextResponse.json({ requiresMfa: true });
     }
     
     // Get current security layers array
