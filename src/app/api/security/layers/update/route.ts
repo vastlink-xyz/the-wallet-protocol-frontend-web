@@ -50,10 +50,12 @@ export async function PUT(request: NextRequest) {
     
     const targetLayer = securityLayers[layerIndex];
 
-    // require recent OTP/TOTP on session
-    const hasRecent = await hasRecentOtpAuthentication(token);
-    if (!hasRecent) {
-      return NextResponse.json({ requiresMfa: true });
+    if (targetLayer.type === 'PIN') {
+      // require recent OTP/TOTP on session
+      const hasRecent = await hasRecentOtpAuthentication(token);
+      if (!hasRecent) {
+        return NextResponse.json({ requiresMfa: true });
+      }
     }
     
     // Prevent disabling EMAIL_OTP layers (they can be disabled but not removed)

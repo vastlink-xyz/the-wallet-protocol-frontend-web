@@ -46,9 +46,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const hasRecent = await hasRecentOtpAuthentication(token);
-    if (!hasRecent) {
-      return NextResponse.json({ requiresMfa: true });
+    if (layerType === 'PIN') {
+      const hasRecent = await hasRecentOtpAuthentication(token);
+      if (!hasRecent) {
+        return NextResponse.json({ requiresMfa: true });
+      }
     }
     
     // Get current security layers array

@@ -35,10 +35,12 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // require recent OTP/TOTP on session
-    const hasRecent = await hasRecentOtpAuthentication(token);
-    if (!hasRecent) {
-      return NextResponse.json({ requiresMfa: true });
+    if (layerType === 'PIN') {
+      // require recent OTP/TOTP on session
+      const hasRecent = await hasRecentOtpAuthentication(token);
+      if (!hasRecent) {
+        return NextResponse.json({ requiresMfa: true });
+      }
     }
     
     // Validate layer type
